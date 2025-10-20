@@ -1,0 +1,5 @@
+[mcp_servers.task_master_ai]
+command = "npx"
+
+# Optionalargs
+args = ["-y", "task-master-ai"]

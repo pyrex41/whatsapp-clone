@@ -1,0 +1,534 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Set up Phoenix project with Elixir",
+        "description": "Initialize a new Phoenix project with Elixir 1.7+, including dependencies for real-time channels, database, and authentication.",
+        "details": "Run `mix phx.new globalbridge_backend --no-ecto` to create the project. Add dependencies: `{:phoenix_live_view, \"~> 0.18\"}, {:ecto_sql, \"~> 3.9\"}, {:sqlite_ecto2, \"~> 2.3\"}, {:jason, \"~> 1.3\"}`. Configure SQLite as the database in `config/dev.exs`. Set up basic folder structure as per PRD. Note: Database architecture uses sharding strategy where each thread/conversation gets its own SQLite database file (e.g., `threads/{thread_id}.db`) for granular backup, sharing, and E2EE. Shared databases include `users.db`, `bridges.db`, and `sync_state.db`.",
+        "testStrategy": "Verify project compiles and starts with `mix phx.server`. Check that SQLite database is created and migrations run.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "2",
+        "title": "Implement database schema for users, threads, and messages",
+        "description": "Create Ecto schemas and migrations for core tables: users, threads, messages, bridges, and CDC log, accounting for per-thread database sharding.",
+        "details": "Define schemas in `lib/messaging/` with fields as per PRD. Create migrations: `mix ecto.gen.migration create_users`, etc. Use SQLite with foreign keys. For CDC log, add triggers to capture changes. Implement sharding strategy: each thread/conversation gets its own SQLite database file (e.g., `priv/db/threads/{thread_id}.db`) for messages and thread-specific data. Shared databases: `users.db` (global users), `bridges.db` (bridge configurations), `sync_state.db` (CDC sync tracking). Messages and thread data are stored in per-thread databases to enable granular backup, sharing, and E2EE with per-thread encryption keys.",
+        "testStrategy": "Run migrations and verify tables exist in SQLite. Insert test data and check relationships. Test database sharding by creating multiple thread databases and verifying isolation.",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "3",
+        "title": "Set up Phoenix Channels for real-time messaging",
+        "description": "Configure Phoenix Channels for thread-based communication with <100ms latency.",
+        "details": "Create `ThreadChannel` in `lib/messaging_web/channels/`. Handle join, message broadcast. Use `Phoenix.Channel.broadcast/3` for real-time updates. Integrate with WebSocket client.",
+        "testStrategy": "Test channel joining and message broadcasting using Phoenix.ChannelTest. Measure latency with timers.",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "4",
+        "title": "Implement user authentication and authorization",
+        "description": "Add JWT-based auth for users, with thread access control.",
+        "details": "Use `Phoenix.Token` for JWT. Create `AuthController` for login/signup. Add plugs for authorization in controllers. Store user public keys for future E2EE.",
+        "testStrategy": "Test login flow, token validation, and access to protected endpoints.",
+        "priority": "high",
+        "dependencies": [
+          "13",
+          "14"
+        ],
+        "status": "deferred",
+        "subtasks": []
+      },
+      {
+        "id": "5",
+        "title": "Create contexts for threads and messages",
+        "description": "Build Elixir contexts for CRUD operations on threads and messages.",
+        "details": "Implement `Messaging.Threads` and `Messaging.Messages` contexts with functions like `create_thread/2`, `list_messages/2`. Use Ecto queries for filtering.",
+        "testStrategy": "Unit tests for each context function using ExUnit. Mock database for isolation.",
+        "priority": "medium",
+        "dependencies": [
+          "2"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "6",
+        "title": "Set up iOS project with Swift 6 and SwiftUI",
+        "description": "Initialize Xcode project for iOS app with Swift 6 strict concurrency, SwiftUI, and required dependencies.",
+        "details": "COMPLETE STEP-BY-STEP XCODE SETUP (for users new to Xcode): 1) Install Xcode from Mac App Store (search 'Xcode', ~12GB download). 2) Launch Xcode and create new project: File → New → Project → iOS App → SwiftUI interface → Swift language → Product Name: 'GlobalBridge' → Team: None → Organization Identifier: 'com.yourname.globalbridge' → Save in clients/ios folder. 3) Configure project: Select project → GlobalBridge target → General tab: iOS 15.0+ deployment target → Build Settings: Swift Language Version = 6, Strict Concurrency Checking = Complete. 4) Create folder structure: Right-click GlobalBridge folder → New Group for 'Core' and 'Features' → Add subgroups: Core/Models, Core/Networking, Core/Storage, Core/Crypto, Features/Threads, Features/Chat, Features/Bridges. 5) Add packages: File → Add Packages → Add 'https://github.com/davidstump/SwiftPhoenixClient' and 'https://github.com/stephencelis/SQLite.swift'. 6) Clean up: Replace GlobalBridgeApp.swift content, create ContentView.swift with basic Text view. 7) Build and run on iOS simulator.",
+        "testStrategy": "Build and run on simulator. Verify SwiftUI views render correctly. Check that packages resolve without errors. Confirm folder structure matches PRD. Verify Swift 6 strict concurrency is enabled. Test that project builds successfully.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "7",
+        "title": "Implement state management with Swiftea (TEA/MVU)",
+        "description": "Set up Swiftea for state management in iOS app.",
+        "details": "Integrate Swiftea library (https://github.com/cooler333/Swiftea) - TEA/MVU pattern implementation for SwiftUI. Add as Swift Package: File → Add Packages → 'https://github.com/cooler333/Swiftea'. Create state structs for threads, messages. Implement update functions for actions like sendMessage, loadThreads.",
+        "testStrategy": "Unit tests for state updates. Ensure UI reflects state changes correctly.",
+        "priority": "medium",
+        "dependencies": [
+          "6"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "8",
+        "title": "Create data models for User, Thread, Message",
+        "description": "Define Swift structs for core data models matching backend schemas.",
+        "details": "Create `User.swift`, `Thread.swift`, `Message.swift` with Codable conformance. Include fields for E2EE placeholders.",
+        "testStrategy": "Test JSON encoding/decoding with sample data.",
+        "priority": "medium",
+        "dependencies": [
+          "6"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "9",
+        "title": "Set up local SQLite storage with DatabaseManager",
+        "description": "Implement DatabaseManager for local SQLite operations.",
+        "details": "Use SQLite.swift to create tables for threads, messages, CDC log. Handle per-thread databases as per PRD.",
+        "testStrategy": "Insert and query test data. Verify data persistence across app restarts.",
+        "priority": "high",
+        "dependencies": [
+          "6",
+          "8"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "10",
+        "title": "Implement Phoenix Channel client for real-time sync",
+        "description": "Set up SwiftPhoenixClient for WebSocket connections to backend.",
+        "details": "Create `PhoenixChannelManager` actor. Connect to channels, handle message events. Integrate with state management.",
+        "testStrategy": "Test connection, joining channels, and receiving broadcasts.",
+        "priority": "high",
+        "dependencies": [
+          "6",
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "11",
+        "title": "Build thread list and creation views",
+        "description": "Create SwiftUI views for listing threads and creating new ones.",
+        "details": "Implement `ThreadListView` and `ThreadCreationView`. Bind to state. Handle user interactions.",
+        "testStrategy": "UI tests for view rendering and interactions. Integration tests with state updates.",
+        "priority": "medium",
+        "dependencies": [
+          "7",
+          "8"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "12",
+        "title": "Implement chat view and message composer",
+        "description": "Build ChatView for displaying messages and MessageComposer for sending.",
+        "details": "Use SwiftUI List for messages. Add text input for composing. Integrate with Phoenix for sending.",
+        "testStrategy": "Test message sending and receiving in UI. Verify optimistic updates.",
+        "priority": "medium",
+        "dependencies": [
+          "7",
+          "10",
+          "11"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "13",
+        "title": "Implement manual CDC for client-side sync",
+        "description": "Create CDCManager for tracking local changes and syncing with server.",
+        "details": "Use SQLite triggers for CDC log. Implement push/pull logic in actor. Handle conflicts with last-write-wins.",
+        "testStrategy": "Simulate offline changes, reconnect, and verify sync. Test conflict resolution.",
+        "priority": "high",
+        "dependencies": [
+          "9"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "14",
+        "title": "Create sync controller on backend",
+        "description": "Implement SyncController for pull/push CDC changes.",
+        "details": "Add endpoints `/api/v1/sync/pull` and `/push`. Validate user access, apply changes with Ecto.",
+        "testStrategy": "Integration tests for sync flows. Mock client requests.",
+        "priority": "high",
+        "dependencies": [
+          "2",
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "15",
+        "title": "Integrate Turso as optional sync backend",
+        "description": "Add feature flag for Turso sync as alternative to manual CDC.",
+        "details": "Configure Turso SDK. Toggle based on env var. Fallback to manual if disabled.",
+        "testStrategy": "Test both modes. Verify data consistency.",
+        "priority": "medium",
+        "dependencies": [
+          "13",
+          "14"
+        ],
+        "status": "deferred",
+        "subtasks": [],
+        "updatedAt": "2025-10-20T21:26:42.085Z"
+      },
+      {
+        "id": "16",
+        "title": "Set up Slack OAuth and app configuration",
+        "description": "Configure Slack app with OAuth 2.0, webhooks, and required scopes.",
+        "details": "Create Slack app at api.slack.com. Set redirect URI. Implement OAuth flow in backend.",
+        "testStrategy": "Test OAuth redirect and token exchange.",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "17",
+        "title": "Implement Slack bridge GenServer",
+        "description": "Create Bridge.SlackServer for polling/webhook handling.",
+        "details": "Use GenServer for Slack integration. Handle events, forward to threads. Implement rate limiting.",
+        "testStrategy": "Unit tests for GenServer. Mock Slack API responses.",
+        "priority": "medium",
+        "dependencies": [
+          "16",
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "18",
+        "title": "Build Slack bridge setup UI",
+        "description": "Create views for connecting Slack to threads.",
+        "details": "Implement `SlackAuthView` with OAuth flow. Show bridge status.",
+        "testStrategy": "UI tests for auth flow. End-to-end with mock Slack.",
+        "priority": "medium",
+        "dependencies": [
+          "6",
+          "16"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "19",
+        "title": "Set up Telegram bot and API integration",
+        "description": "Create Telegram bot via BotFather and configure API access.",
+        "details": "Get bot token. Set up webhook/polling endpoints.",
+        "testStrategy": "Test bot creation and basic API calls.",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "20",
+        "title": "Implement Telegram bridge GenServer",
+        "description": "Create Bridge.TelegramServer for message sync.",
+        "details": "Handle updates, forward messages. Support media.",
+        "testStrategy": "Unit tests for GenServer. Mock Telegram API.",
+        "priority": "medium",
+        "dependencies": [
+          "19",
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "21",
+        "title": "Build Telegram bridge setup UI",
+        "description": "Create views for connecting Telegram groups.",
+        "details": "Implement `TelegramAuthView` with invite link. Show status.",
+        "testStrategy": "UI tests for setup. Integration tests.",
+        "priority": "medium",
+        "dependencies": [
+          "6",
+          "19"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "22",
+        "title": "Implement bridge context and management",
+        "description": "Create Messaging.Bridges context for CRUD on bridges.",
+        "details": "Functions for creating, updating bridges. Validate configs.",
+        "testStrategy": "Unit tests for context functions.",
+        "priority": "medium",
+        "dependencies": [
+          "2",
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "23",
+        "title": "Add rate limiting for bridges",
+        "description": "Implement RateLimiter GenServer for API compliance.",
+        "details": "Token bucket algorithm. Integrate with Slack/Telegram servers.",
+        "testStrategy": "Test rate limiting under load.",
+        "priority": "medium",
+        "dependencies": [
+          "17",
+          "20"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "24",
+        "title": "Implement offline message queuing",
+        "description": "Queue messages locally when offline, sync on reconnect.",
+        "details": "Use CDC log for queuing. Background sync actor.",
+        "testStrategy": "Simulate offline mode, verify queuing and sync.",
+        "priority": "high",
+        "dependencies": [
+          "13",
+          "14"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "25",
+        "title": "Add typing indicators and read receipts",
+        "description": "Implement real-time typing and read status.",
+        "details": "Broadcast typing events via channels. Update UI.",
+        "testStrategy": "Test in multi-user scenario.",
+        "priority": "low",
+        "dependencies": [
+          "3",
+          "10"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "26",
+        "title": "Prepare AI abstraction layer",
+        "description": "Set up protocols for AI providers (on-device and server).",
+        "details": "Define AIProvider protocol. Placeholder implementations.",
+        "testStrategy": "Unit tests for protocol conformance.",
+        "priority": "low",
+        "dependencies": [
+          "6"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "27",
+        "title": "Implement feature flag system",
+        "description": "Add feature flags for tiers (free, pro, enterprise).",
+        "details": "Backend: Accounts.Features. iOS: FeatureFlags.",
+        "testStrategy": "Test flag checks and UI gating.",
+        "priority": "medium",
+        "dependencies": [
+          "4"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "28",
+        "title": "Add encryption readiness (E2EE placeholders)",
+        "description": "Prepare for Signal Protocol integration.",
+        "details": "Add encrypted_content fields. Placeholder crypto functions.",
+        "testStrategy": "Test data structures.",
+        "priority": "low",
+        "dependencies": [
+          "2",
+          "8"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "29",
+        "title": "Implement comprehensive testing suite",
+        "description": "Add unit, integration, and UI tests as per PRD.",
+        "details": "Use ExUnit for backend, XCTest for iOS. Aim for coverage targets.",
+        "testStrategy": "Run full test suite. Check coverage reports.",
+        "priority": "medium",
+        "dependencies": [
+          "1",
+          "6"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "30",
+        "title": "Set up CI/CD and deployment",
+        "description": "Configure automated testing and deployment to Fly.io for backend, App Store for iOS.",
+        "details": "Use GitHub Actions. Docker for backend.",
+        "testStrategy": "Test deployment pipelines.",
+        "priority": "medium",
+        "dependencies": [
+          "29"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "31",
+        "title": "Validate data architecture and CDC retention",
+        "description": "Confirm per-thread SQLite sharding and CDC policies match PRD data architecture.",
+        "details": "Verify thread-specific database creation, shared catalogs, WAL mode, and 7-day CDC pruning logic. Ensure Turso toggle works when enabled.",
+        "testStrategy": "Run automated checks that create multiple threads, inspect file layout, and assert CDC trigger operation with retention pruning.",
+        "priority": "medium",
+        "dependencies": [
+          "2",
+          "13",
+          "14",
+          "15"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "32",
+        "title": "Harden bridge supervision and rate controls",
+        "description": "Augment bridge GenServers with Phoenix/OTP supervision, circuit breakers, and monitoring hooks.",
+        "details": "Configure separate supervision trees per bridge, add telemetry/structured logging, and enforce token bucket + backoff aligned with Slack/Telegram limits.",
+        "testStrategy": "Simulate bridge failures and rate breaches; confirm processes restart cleanly and metrics/logs capture incidents.",
+        "priority": "medium",
+        "dependencies": [
+          "17",
+          "20",
+          "22",
+          "23"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "33",
+        "title": "Implement security configuration baseline",
+        "description": "Apply TLS-only settings, webhook signature verification, audit logging, and mobile ATS/pinning per PRD security requirements.",
+        "details": "Enable HTTPS enforcement, add Slack/Telegram signature checks, configure Audit log storage, and update iOS Info.plist for ATS + certificate pinning.",
+        "testStrategy": "Run security smoke tests verifying non-HTTPS rejection, valid signature handling, audit entry creation, and ATS compliance in simulator.",
+        "priority": "high",
+        "dependencies": [
+          "4",
+          "16",
+          "19",
+          "22"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "34",
+        "title": "Verify performance and scalability targets",
+        "description": "Benchmark latency, throughput, and offline sync to satisfy non-functional requirements.",
+        "details": "Use Phoenix benchmarking and iOS instrumentation to measure <100ms channel latency, bridge sync SLAs, CDC catch-up, and app memory footprint.",
+        "testStrategy": "Execute load tests and profiling sessions; ensure metrics meet PRD thresholds with documented results.",
+        "priority": "medium",
+        "dependencies": [
+          "3",
+          "10",
+          "24",
+          "32"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "35",
+        "title": "Run risk mitigation exercises",
+        "description": "Test high-priority risks including bridge outages, WebSocket instability, and rate-limit DoS scenarios.",
+        "details": "Leverage Phoenix fault injection and LiveView monitoring to rehearse failure recovery, circuit breaker thresholds, and fallback polling.",
+        "testStrategy": "Document tabletop + automated drills confirming recovery steps, alarms, and user-facing degradation messaging.",
+        "priority": "medium",
+        "dependencies": [
+          "32",
+          "33",
+          "34"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "36",
+        "title": "Validate external integrations and dependencies",
+        "description": "Confirm Slack, Telegram, Turso (optional), and monitoring services meet assumptions.",
+        "details": "Exercise OAuth flows, webhook callbacks, Turso sync toggle, and ensure mock services cover outage scenarios.",
+        "testStrategy": "Run integration suites with real sandbox credentials and fallbacks, capturing documentation for each dependency.",
+        "priority": "medium",
+        "dependencies": [
+          "16",
+          "17",
+          "18",
+          "19",
+          "20",
+          "21",
+          "15"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "37",
+        "title": "Audit accessibility and localization readiness",
+        "description": "Ensure iOS UI satisfies VoiceOver, Dynamic Type, contrast, and localization scaffolding.",
+        "details": "Leverage SwiftUI accessibility APIs, enable localization files, and validate Phoenix responses respect locale headers.",
+        "testStrategy": "Perform VoiceOver walkthroughs, Dynamic Type tests, contrast checks, and verify sample localized strings render.",
+        "priority": "medium",
+        "dependencies": [
+          "11",
+          "12",
+          "18",
+          "21"
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2025-10-20T21:26:42.085Z",
+      "taskCount": 37,
+      "completedCount": 0,
+      "tags": [
+        "master"
+      ]
+    }
+  }
+}
