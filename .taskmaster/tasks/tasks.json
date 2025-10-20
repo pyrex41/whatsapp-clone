@@ -176,7 +176,9 @@
       "completedCount": 0,
       "tags": [
         "master"
-      ]
+      ],
+      "created": "2025-10-20T23:05:05.260Z",
+      "description": "Tasks for master context"
     }
   },
   "slack": {
@@ -231,7 +233,12 @@
         ],
         "updatedAt": "2025-10-20T22:01:08.513Z"
       }
-    ]
+    ],
+    "metadata": {
+      "created": "2025-10-20T23:05:05.260Z",
+      "updated": "2025-10-20T23:05:05.260Z",
+      "description": "Tasks for slack context"
+    }
   },
   "telegram": {
     "tasks": [
@@ -285,12 +292,17 @@
         ],
         "updatedAt": "2025-10-20T22:01:24.414Z"
       }
-    ]
+    ],
+    "metadata": {
+      "created": "2025-10-20T23:05:05.260Z",
+      "updated": "2025-10-20T23:05:05.260Z",
+      "description": "Tasks for telegram context"
+    }
   },
   "mvp": {
     "tasks": [
       {
-        "id": "1",
+        "id": 1,
         "title": "Set up Phoenix project with Elixir",
         "description": "Initialize a new Phoenix project with Elixir 1.7+, including dependencies for real-time channels, database, and authentication.",
         "details": "Run `mix phx.new globalbridge_backend --no-ecto` to create the project. Add dependencies: `{:phoenix_live_view, \"~> 0.18\"}, {:ecto_sql, \"~> 3.9\"}, {:sqlite_ecto2, \"~> 2.3\"}, {:jason, \"~> 1.3\"}`. Configure SQLite as the database in `config/dev.exs`. Set up basic folder structure as per PRD. Note: Database architecture uses sharding strategy where each thread/conversation gets its own SQLite database file (e.g., `threads/{thread_id}.db`) for granular backup, sharing, and E2EE. Shared databases include `users.db`, `bridges.db`, and `sync_state.db`.",
@@ -298,10 +310,64 @@
         "priority": "high",
         "dependencies": [],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create new Phoenix project with Elixir",
+            "description": "Initialize a new Phoenix project named 'globalbridge_backend' using Elixir 1.7+ by running the mix phx.new command without Ecto.",
+            "dependencies": [],
+            "details": "Run `mix phx.new globalbridge_backend --no-ecto` in the terminal to generate the basic Phoenix project structure. Ensure Elixir 1.7+ is installed and available in the PATH. This creates the initial app skeleton with web framework setup.",
+            "status": "pending",
+            "testStrategy": "Verify that the project directory is created and contains standard Phoenix files like mix.exs, lib/, and config/."
+          },
+          {
+            "id": 2,
+            "title": "Add required dependencies to mix.exs",
+            "description": "Update the mix.exs file to include dependencies for Phoenix LiveView, Ecto SQL, SQLite adapter, and JSON handling.",
+            "dependencies": [
+              1
+            ],
+            "details": "Open mix.exs and add the following to the deps list: {:phoenix_live_view, \"~> 0.18\"}, {:ecto_sql, \"~> 3.9\"}, {:sqlite_ecto2, \"~> 2.3\"}, {:jason, \"~> 1.3\"}. Run `mix deps.get` to fetch the dependencies. This enables real-time channels, database interactions, and authentication features.",
+            "status": "pending",
+            "testStrategy": "Run `mix deps.get` and check that all dependencies are successfully downloaded without errors."
+          },
+          {
+            "id": 3,
+            "title": "Configure SQLite database in config files",
+            "description": "Set up SQLite as the database adapter in the development configuration file.",
+            "dependencies": [
+              2
+            ],
+            "details": "Edit config/dev.exs to configure the database adapter to use SQLite. Add or modify the Repo configuration to use Ecto.Adapters.SQLite3 with a database path. Ensure the configuration supports the sharding strategy mentioned in the PRD.",
+            "status": "pending",
+            "testStrategy": "Run `mix ecto.create` and verify that the SQLite database file is created in the specified location."
+          },
+          {
+            "id": 4,
+            "title": "Set up basic folder structure as per PRD",
+            "description": "Organize the project folders to match the Product Requirements Document specifications.",
+            "dependencies": [
+              3
+            ],
+            "details": "Create necessary directories such as threads/ for per-thread databases, and ensure folders for users.db, bridges.db, and sync_state.db are prepared. Adjust the lib/ and web/ structures if needed to align with the PRD's folder layout for better organization.",
+            "status": "pending",
+            "testStrategy": "Inspect the project directory structure and confirm it matches the PRD's specified layout."
+          },
+          {
+            "id": 5,
+            "title": "Initialize shared database directories",
+            "description": "Prepare shared SQLite storage locations for users, bridges, and sync state without duplicating sharding logic.",
+            "dependencies": [
+              4
+            ],
+            "details": "Create directories for shared databases (users.db, bridges.db, sync_state.db) and ensure application config points to them. Leave per-thread sharding implementation to Task 2.",
+            "status": "pending",
+            "testStrategy": "Verify directories exist and configuration points to the shared database files."
+          }
+        ]
       },
       {
-        "id": "2",
+        "id": 2,
         "title": "Implement database schema for users, threads, and messages",
         "description": "Create Ecto schemas and migrations for core tables: users, threads, messages, bridges, and CDC log, accounting for per-thread database sharding.",
         "details": "Define schemas in `lib/messaging/` with fields as per PRD. Create migrations: `mix ecto.gen.migration create_users`, etc. Use SQLite with foreign keys. For CDC log, add triggers to capture changes. Implement sharding strategy: each thread/conversation gets its own SQLite database file (e.g., `priv/db/threads/{thread_id}.db`) for messages and thread-specific data. Shared databases: `users.db` (global users), `bridges.db` (bridge configurations), `sync_state.db` (CDC sync tracking). Messages and thread data are stored in per-thread databases to enable granular backup, sharing, and E2EE with per-thread encryption keys.",
@@ -311,10 +377,42 @@
           "1"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define Ecto schemas for users, threads, messages, bridges, and CDC log",
+            "description": "Create Ecto schema modules in lib/messaging/ for each entity with fields and associations as specified in the PRD.",
+            "dependencies": [],
+            "details": "Define User schema with fields like id, username, email, public_key. Thread schema with id, title, created_at. Message schema with id, content, thread_id, user_id. Bridges schema for configurations. CDC log schema for change tracking. Ensure schemas account for sharding by not assuming single database.",
+            "status": "pending",
+            "testStrategy": "Compile the schemas and verify no errors; run basic queries in tests to ensure fields are accessible."
+          },
+          {
+            "id": 2,
+            "title": "Create database migrations for all core tables",
+            "description": "Generate and implement Ecto migrations to create tables for users, threads, messages, bridges, and CDC log across shared and per-thread databases.",
+            "dependencies": [
+              1
+            ],
+            "details": "Use mix ecto.gen.migration to create migration files for each table. Configure migrations to run on appropriate databases: users.db for users, bridges.db for bridges, sync_state.db for CDC log, and per-thread dbs for threads and messages. Add SQLite triggers for CDC log to capture inserts, updates, deletes. Enable foreign keys in SQLite.",
+            "status": "pending",
+            "testStrategy": "Run migrations and inspect SQLite files to confirm tables exist with correct structures; insert sample data and verify foreign key constraints."
+          },
+          {
+            "id": 3,
+            "title": "Implement per-thread database sharding strategy",
+            "description": "Set up the sharding logic to route data to per-thread SQLite databases for messages and thread-specific data, while using shared databases for global data.",
+            "dependencies": [
+              2
+            ],
+            "details": "Configure Ecto repos or use custom logic to select database files based on thread_id (e.g., priv/db/threads/{thread_id}.db). Implement database creation on-the-fly for new threads. Ensure isolation so that thread data doesn't mix. Handle connections and migrations for dynamic databases.",
+            "status": "pending",
+            "testStrategy": "Create multiple thread databases, insert data into different threads, and verify data isolation; test database creation for new threads and ensure no cross-contamination."
+          }
+        ]
       },
       {
-        "id": "3",
+        "id": 3,
         "title": "Set up Phoenix Channels for real-time messaging",
         "description": "Configure Phoenix Channels for thread-based communication with <100ms latency.",
         "details": "Create `ThreadChannel` in `lib/messaging_web/channels/`. Handle join, message broadcast. Use `Phoenix.Channel.broadcast/3` for real-time updates. Integrate with WebSocket client.",
@@ -324,10 +422,64 @@
           "1"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create ThreadChannel module",
+            "description": "Initialize the ThreadChannel module in the specified directory to handle thread-based communication.",
+            "dependencies": [],
+            "details": "Create a new file `lib/messaging_web/channels/thread_channel.ex` and define the ThreadChannel module using Phoenix.Channel. Set up basic structure with handle_in and handle_join functions.",
+            "status": "pending",
+            "testStrategy": "Use Phoenix.ChannelTest to verify the module compiles and can be instantiated."
+          },
+          {
+            "id": 2,
+            "title": "Implement channel join functionality",
+            "description": "Add logic to handle users joining the ThreadChannel for specific threads.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the ThreadChannel module, implement the join/3 function to allow users to join channels based on thread IDs. Ensure proper authorization and assign thread-specific data to the socket.",
+            "status": "pending",
+            "testStrategy": "Write tests using Phoenix.ChannelTest to assert successful joins and handle unauthorized attempts."
+          },
+          {
+            "id": 3,
+            "title": "Implement message broadcasting",
+            "description": "Set up message broadcasting within the channel for real-time updates.",
+            "dependencies": [
+              2
+            ],
+            "details": "Use Phoenix.Channel.broadcast/3 in the handle_in function to broadcast incoming messages to all subscribers in the thread channel. Handle message events and ensure they are pushed to connected clients.",
+            "status": "pending",
+            "testStrategy": "Test broadcasting with Phoenix.ChannelTest by simulating message sends and verifying they are received by subscribers."
+          },
+          {
+            "id": 4,
+            "title": "Integrate with WebSocket client",
+            "description": "Connect the ThreadChannel to a WebSocket client for real-time communication.",
+            "dependencies": [
+              3
+            ],
+            "details": "Configure the WebSocket endpoint in the Phoenix application to support the ThreadChannel. Ensure the client can connect, join channels, and receive broadcasts seamlessly.",
+            "status": "pending",
+            "testStrategy": "Use integration tests to verify WebSocket connections, channel joins, and message receipts from the client side."
+          },
+          {
+            "id": 5,
+            "title": "Optimize for low latency",
+            "description": "Ensure the channel setup meets the <100ms latency requirement.",
+            "dependencies": [
+              4
+            ],
+            "details": "Profile the channel operations and optimize code for performance. Use timers in tests to measure end-to-end latency from message send to receive, aiming for under 100ms.",
+            "status": "pending",
+            "testStrategy": "Implement latency measurement tests with timers in Phoenix.ChannelTest and integration tests to confirm performance metrics."
+          }
+        ]
       },
       {
-        "id": "4",
+        "id": 4,
         "title": "Implement user authentication and authorization",
         "description": "Add JWT-based auth for users, with thread access control.",
         "details": "Use `Phoenix.Token` for JWT. Create `AuthController` for login/signup. Add plugs for authorization in controllers. Store user public keys for future E2EE.",
@@ -338,11 +490,67 @@
           "14"
         ],
         "status": "pending",
-        "subtasks": [],
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create User model and database schema",
+            "description": "Reference existing User schema and expose auth-specific validations.",
+            "dependencies": [],
+            "details": "Reuse the User schema created in Task 2. Add validations for email/password, and ensure fields needed for auth (password hash, public key) are available.",
+            "status": "pending",
+            "testStrategy": "Ensure auth validations pass using existing schema tests."
+          },
+          {
+            "id": 2,
+            "title": "Implement JWT token generation and validation",
+            "description": "Set up JWT handling using Phoenix.Token for secure user sessions.",
+            "dependencies": [
+              1
+            ],
+            "details": "Configure Phoenix.Token for signing and verifying JWTs. Create helper functions in a module like Auth.Token for generating tokens on login and validating them in requests. Ensure tokens include user ID and expiration.",
+            "status": "pending",
+            "testStrategy": "Test token generation, validation, and expiration handling."
+          },
+          {
+            "id": 3,
+            "title": "Create AuthController for login and signup",
+            "description": "Build the AuthController to handle user registration and authentication endpoints.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Implement signup and login actions in AuthController. For signup, hash passwords and store user data including public keys. For login, verify credentials and return JWT. Use Phoenix controllers with proper error handling.",
+            "status": "pending",
+            "testStrategy": "Integration tests for signup and login flows, including invalid inputs."
+          },
+          {
+            "id": 4,
+            "title": "Add authorization plugs for thread access control",
+            "description": "Implement plugs to enforce authorization on thread-related endpoints.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create plugs that verify JWT tokens and check user permissions for accessing threads. Add these plugs to controllers handling thread operations. Ensure only authenticated users can access their threads, with potential role-based checks.",
+            "status": "pending",
+            "testStrategy": "Test protected endpoints with valid/invalid tokens and access control scenarios."
+          },
+          {
+            "id": 5,
+            "title": "Integrate public key storage and retrieval",
+            "description": "Ensure user public keys are stored during signup and retrievable for E2EE.",
+            "dependencies": [
+              1,
+              3
+            ],
+            "details": "Modify the signup process to accept and store user public keys in the User model. Add functions to retrieve public keys by user ID. Prepare for future E2EE by ensuring keys are securely handled and not exposed unnecessarily.",
+            "status": "pending",
+            "testStrategy": "Test key storage during signup and retrieval in auth flows."
+          }
+        ],
         "updatedAt": "2025-10-20T22:49:23.454Z"
       },
       {
-        "id": "5",
+        "id": 5,
         "title": "Create contexts for threads and messages",
         "description": "Build Elixir contexts for CRUD operations on threads and messages.",
         "details": "Implement `Messaging.Threads` and `Messaging.Messages` contexts with functions like `create_thread/2`, `list_messages/2`. Use Ecto queries for filtering.",
@@ -352,10 +560,64 @@
           "2"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up Messaging module structure",
+            "description": "Create the Messaging module directory and initial files for Threads and Messages contexts in the Elixir project.",
+            "dependencies": [],
+            "details": "In the lib directory, create a messaging folder and add empty threads.ex and messages.ex files. Ensure the module structure aligns with Phoenix conventions.",
+            "status": "pending",
+            "testStrategy": "Verify module compilation without errors."
+          },
+          {
+            "id": 2,
+            "title": "Implement Messaging.Threads context with basic CRUD",
+            "description": "Define the Messaging.Threads context module with functions for creating, reading, updating, and deleting threads.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement functions like create_thread/2, get_thread/1, update_thread/2, delete_thread/1, and list_threads/1 using Ecto schemas. Include basic validations and associations.",
+            "status": "pending",
+            "testStrategy": "Unit tests for each CRUD function using ExUnit with mocked database interactions."
+          },
+          {
+            "id": 3,
+            "title": "Add filtering and querying to Threads context",
+            "description": "Enhance the Threads context with advanced Ecto queries for filtering threads based on criteria like user ID or status.",
+            "dependencies": [
+              2
+            ],
+            "details": "Add functions such as list_threads_by_user/1 or filter_threads/2 that utilize Ecto.Query for dynamic filtering. Ensure queries are optimized for performance.",
+            "status": "pending",
+            "testStrategy": "Unit tests for query functions with various filter parameters and mock data."
+          },
+          {
+            "id": 4,
+            "title": "Implement Messaging.Messages context with basic CRUD",
+            "description": "Define the Messaging.Messages context module with functions for creating, reading, updating, and deleting messages.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement functions like create_message/2, get_message/1, update_message/2, delete_message/1, and list_messages/2 using Ecto schemas. Associate messages with threads and include validations.",
+            "status": "pending",
+            "testStrategy": "Unit tests for each CRUD function using ExUnit with mocked database interactions."
+          },
+          {
+            "id": 5,
+            "title": "Add filtering and querying to Messages context",
+            "description": "Enhance the Messages context with advanced Ecto queries for filtering messages, such as by thread ID or timestamp.",
+            "dependencies": [
+              4
+            ],
+            "details": "Add functions such as list_messages_by_thread/2 or filter_messages/2 that use Ecto.Query for efficient filtering. Support pagination if needed for large message lists.",
+            "status": "pending",
+            "testStrategy": "Unit tests for query functions with different filter scenarios and mock data."
+          }
+        ]
       },
       {
-        "id": "6",
+        "id": 6,
         "title": "Set up iOS project with Swift 6 and SwiftUI",
         "description": "Initialize Xcode project for iOS app with Swift 6 strict concurrency, SwiftUI, and required dependencies.",
         "details": "COMPLETE STEP-BY-STEP XCODE SETUP (for users new to Xcode): 1) Install Xcode from Mac App Store (search 'Xcode', ~12GB download). 2) Launch Xcode and create new project: File \u2192 New \u2192 Project \u2192 iOS App \u2192 SwiftUI interface \u2192 Swift language \u2192 Product Name: 'GlobalBridge' \u2192 Team: None \u2192 Organization Identifier: 'com.yourname.globalbridge' \u2192 Save in clients/ios folder. 3) Configure project: Select project \u2192 GlobalBridge target \u2192 General tab: iOS 15.0+ deployment target \u2192 Build Settings: Swift Language Version = 6, Strict Concurrency Checking = Complete. 4) Create folder structure: Right-click GlobalBridge folder \u2192 New Group for 'Core' and 'Features' \u2192 Add subgroups: Core/Models, Core/Networking, Core/Storage, Core/Crypto, Features/Threads, Features/Chat, Features/Bridges. 5) Add packages: File \u2192 Add Packages \u2192 Add 'https://github.com/davidstump/SwiftPhoenixClient' and 'https://github.com/stephencelis/SQLite.swift'. 6) Clean up: Replace GlobalBridgeApp.swift content, create ContentView.swift with basic Text view. 7) Build and run on iOS simulator.",
@@ -363,10 +625,56 @@
         "priority": "high",
         "dependencies": [],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 2,
+            "title": "Create new SwiftUI project in Xcode",
+            "description": "Create SwiftUI app target in the existing repo.",
+            "dependencies": [
+              1
+            ],
+            "details": "Within the repo, create the SwiftUI project (File \u2192 New \u2192 Project) naming conventions defined in PRD.",
+            "status": "pending",
+            "testStrategy": "Check that the project is created successfully and the basic SwiftUI template loads without errors."
+          },
+          {
+            "id": 3,
+            "title": "Configure project settings for Swift 6 and iOS deployment",
+            "description": "Adjust the project target settings to use Swift 6 with strict concurrency and set the minimum iOS deployment target.",
+            "dependencies": [
+              2
+            ],
+            "details": "Select the GlobalBridge project in Xcode, then select the GlobalBridge target. In the General tab, set the iOS Deployment Target to 15.0 or higher. In Build Settings, set Swift Language Version to 6 and Strict Concurrency Checking to Complete.",
+            "status": "pending",
+            "testStrategy": "Build the project and confirm that Swift 6 features are enabled without compilation errors."
+          },
+          {
+            "id": 4,
+            "title": "Set up project folder structure",
+            "description": "Organize the project by creating necessary groups and subgroups for code organization.",
+            "dependencies": [
+              2
+            ],
+            "details": "In Xcode, right-click the GlobalBridge folder and create new groups: 'Core' and 'Features'. Under Core, add subgroups: Models, Networking, Storage, Crypto. Under Features, add subgroups: Threads, Chat, Bridges. Ensure the structure matches the PRD requirements.",
+            "status": "pending",
+            "testStrategy": "Verify that the folder structure is created and visible in the Xcode project navigator."
+          },
+          {
+            "id": 5,
+            "title": "Add Swift packages and finalize project setup",
+            "description": "Integrate required Swift packages, clean up default files, and perform initial build.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Add SwiftPhoenixClient and SQLite.swift via Swift Package Manager. Replace boilerplate files and run on simulator to confirm packages build.",
+            "status": "pending",
+            "testStrategy": "Build and run on simulator, verify SwiftUI views render, packages resolve without errors, and the project builds successfully with Swift 6 strict concurrency enabled."
+          }
+        ]
       },
       {
-        "id": "7",
+        "id": 7,
         "title": "Implement state management with Swiftea (TEA/MVU)",
         "description": "Set up Swiftea for state management in iOS app.",
         "details": "Integrate Swiftea library (https://github.com/cooler333/Swiftea) - TEA/MVU pattern implementation for SwiftUI. Add as Swift Package: File \u2192 Add Packages \u2192 'https://github.com/cooler333/Swiftea'. Create state structs for threads, messages. Implement update functions for actions like sendMessage, loadThreads.",
@@ -376,10 +684,64 @@
           "6"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add Swiftea library as Swift Package dependency",
+            "description": "Integrate the Swiftea library into the iOS project using Swift Package Manager to enable TEA/MVU pattern for state management.",
+            "dependencies": [],
+            "details": "Open the project in Xcode, go to File \u2192 Add Packages, enter the URL 'https://github.com/cooler333/Swiftea', and add it to the project. Ensure the package is properly linked and builds without errors.",
+            "status": "pending",
+            "testStrategy": "Verify that the package is added successfully by checking the project dependencies and ensuring the app compiles."
+          },
+          {
+            "id": 2,
+            "title": "Define state structs for threads and messages",
+            "description": "Create Swift structs to represent the application state for threads and messages in accordance with the TEA/MVU pattern.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the project, create new Swift files for state definitions. Define structs like AppState, ThreadState, and MessageState with appropriate properties such as arrays for threads and messages, and any necessary flags for loading states.",
+            "status": "pending",
+            "testStrategy": "Unit tests to ensure structs are properly initialized and can hold expected data types without errors."
+          },
+          {
+            "id": 3,
+            "title": "Define actions for state updates",
+            "description": "Enumerate and define the actions that will trigger state changes, such as sendMessage and loadThreads.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create an enum or similar structure for Actions, including cases for sendMessage (with message data), loadThreads, and any other relevant actions. Ensure actions are properly typed to carry necessary payload data.",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify that actions can be created and contain the correct data payloads."
+          },
+          {
+            "id": 4,
+            "title": "Implement update functions for actions",
+            "description": "Write the update logic that processes actions and returns new state based on the current state and action.",
+            "dependencies": [
+              3
+            ],
+            "details": "Implement a function or method that takes the current state and an action, and returns an updated state. Handle cases like appending new messages to threads, loading thread lists, and managing any side effects like API calls within the update logic.",
+            "status": "pending",
+            "testStrategy": "Unit tests for each action to ensure state transitions are correct and side effects are triggered appropriately."
+          },
+          {
+            "id": 5,
+            "title": "Integrate state management into SwiftUI views",
+            "description": "Connect the Swiftea state management to the SwiftUI views to make the UI reactive to state changes.",
+            "dependencies": [
+              4
+            ],
+            "details": "Modify the main SwiftUI views to use the Swiftea store, binding views to state properties. Ensure that actions are dispatched from UI interactions, and the views update automatically when state changes.",
+            "status": "pending",
+            "testStrategy": "UI tests to confirm that state changes are reflected in the interface, such as displaying new messages or loaded threads."
+          }
+        ]
       },
       {
-        "id": "8",
+        "id": 8,
         "title": "Create data models for User, Thread, Message",
         "description": "Define Swift structs for core data models matching backend schemas.",
         "details": "Create `User.swift`, `Thread.swift`, `Message.swift` with Codable conformance. Include fields for E2EE placeholders.",
@@ -389,10 +751,64 @@
           "6"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create User.swift file with User struct",
+            "description": "Define the User struct in User.swift including basic fields like id, name, email.",
+            "dependencies": [],
+            "details": "Create a new Swift file named User.swift in the appropriate directory. Define a struct named User with properties such as id (String), name (String), email (String), and any other required fields matching the backend schema. Ensure the struct is properly formatted and includes necessary imports.",
+            "status": "pending",
+            "testStrategy": "Unit tests for struct initialization and basic property access."
+          },
+          {
+            "id": 2,
+            "title": "Create Thread.swift file with Thread struct",
+            "description": "Define the Thread struct in Thread.swift including fields like id, title, participants.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a new Swift file named Thread.swift. Define a struct named Thread with properties such as id (String), title (String), participants ([User]), createdAt (Date), and other relevant fields. Follow the backend schema for accuracy.",
+            "status": "pending",
+            "testStrategy": "Unit tests for struct creation and property validation."
+          },
+          {
+            "id": 3,
+            "title": "Create Message.swift file with Message struct",
+            "description": "Define the Message struct in Message.swift including fields like id, content, sender, timestamp.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create a new Swift file named Message.swift. Define a struct named Message with properties such as id (String), content (String), sender (User), timestamp (Date), threadId (String), and additional fields as per the schema.",
+            "status": "pending",
+            "testStrategy": "Unit tests for message struct and its relationships."
+          },
+          {
+            "id": 4,
+            "title": "Add Codable conformance to User, Thread, and Message structs",
+            "description": "Make all three structs conform to the Codable protocol for JSON encoding and decoding.",
+            "dependencies": [
+              3
+            ],
+            "details": "Update User.swift, Thread.swift, and Message.swift to include Codable conformance. Ensure all properties are encodable/decodable, handling any custom types or dates appropriately with JSONEncoder/Decoder.",
+            "status": "pending",
+            "testStrategy": "Test JSON encoding and decoding with sample data for each struct."
+          },
+          {
+            "id": 5,
+            "title": "Include E2EE placeholders in data models",
+            "description": "Add placeholder fields or properties for End-to-End Encryption in User, Thread, and Message structs.",
+            "dependencies": [
+              4
+            ],
+            "details": "Add fields like encryptionKey (String?) or encryptedContent (String?) to the respective structs. Ensure these are optional or nullable to serve as placeholders until full E2EE implementation is added later.",
+            "status": "pending",
+            "testStrategy": "Verify that structs compile with placeholders and test basic encoding/decoding including these fields."
+          }
+        ]
       },
       {
-        "id": "9",
+        "id": 9,
         "title": "Set up local SQLite storage with DatabaseManager",
         "description": "Implement DatabaseManager for local SQLite operations.",
         "details": "Use SQLite.swift to create tables for threads, messages, CDC log. Handle per-thread databases as per PRD.",
@@ -403,10 +819,31 @@
           "8"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create DatabaseManager class structure",
+            "description": "Define the DatabaseManager class with initialization and basic SQLite setup using SQLite.swift.",
+            "dependencies": [],
+            "details": "Implement the DatabaseManager class in Swift, integrating SQLite.swift as a dependency. Set up the class to handle database connections and provide a foundation for table creation and per-thread database management as specified in the PRD.",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify class initialization and SQLite connection establishment."
+          },
+          {
+            "id": 2,
+            "title": "Implement table creation and per-thread database handling",
+            "description": "Create tables for threads, messages, and CDC log, and manage per-thread databases.",
+            "dependencies": [
+              1
+            ],
+            "details": "Within the DatabaseManager class, use SQLite.swift to define and create tables for threads (with fields like id, title), messages (id, thread_id, content, timestamp), and CDC log (id, entity_type, operation, data). Implement logic to handle separate databases per thread as per PRD requirements, ensuring proper sharding and persistence.",
+            "status": "pending",
+            "testStrategy": "Insert test data into tables and query to verify structure. Test per-thread database isolation by creating multiple threads and checking data separation."
+          }
+        ]
       },
       {
-        "id": "10",
+        "id": 10,
         "title": "Implement Phoenix Channel client for real-time sync",
         "description": "Set up SwiftPhoenixClient for WebSocket connections to backend.",
         "details": "Create `PhoenixChannelManager` actor. Connect to channels, handle message events. Integrate with state management.",
@@ -417,10 +854,64 @@
           "3"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add SwiftPhoenixClient dependency to the project",
+            "description": "Integrate the SwiftPhoenixClient library into the iOS project to enable WebSocket connections.",
+            "dependencies": [],
+            "details": "Add SwiftPhoenixClient to the existing project if not already present; this subtask owns the dependency.",
+            "status": "pending",
+            "testStrategy": "Verify that the package builds successfully and can be imported without errors."
+          },
+          {
+            "id": 2,
+            "title": "Create PhoenixChannelManager actor structure",
+            "description": "Define the basic structure of the PhoenixChannelManager actor for managing WebSocket connections.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a new Swift file for PhoenixChannelManager as an actor. Define initial properties such as socket URL, channel names, and connection state. Implement basic initialization without connection logic yet.",
+            "status": "pending",
+            "testStrategy": "Unit test to ensure the actor initializes correctly and holds expected properties."
+          },
+          {
+            "id": 3,
+            "title": "Implement channel connection logic",
+            "description": "Add functionality to connect to Phoenix channels using the SwiftPhoenixClient.",
+            "dependencies": [
+              2
+            ],
+            "details": "Within PhoenixChannelManager, implement methods to establish WebSocket connection and join specific channels. Handle connection states (connecting, connected, disconnected) and basic error handling for failed connections.",
+            "status": "pending",
+            "testStrategy": "Integration test simulating connection to a test channel, verifying successful joins and handling of connection failures."
+          },
+          {
+            "id": 4,
+            "title": "Handle incoming message events",
+            "description": "Set up event listeners to process messages received from Phoenix channels.",
+            "dependencies": [
+              3
+            ],
+            "details": "Implement event handlers in PhoenixChannelManager for incoming broadcasts and messages. Parse message payloads and trigger appropriate actions, such as updating local state or notifying other parts of the app.",
+            "status": "pending",
+            "testStrategy": "Mock WebSocket messages and verify that events are correctly parsed and handled, including edge cases like malformed messages."
+          },
+          {
+            "id": 5,
+            "title": "Integrate with state management system",
+            "description": "Connect the PhoenixChannelManager to the app's state management for real-time updates.",
+            "dependencies": [
+              4
+            ],
+            "details": "Modify PhoenixChannelManager to dispatch actions to the Swiftea state management system upon receiving messages. Ensure that UI updates reflect real-time changes, integrating with existing state structs for threads and messages.",
+            "status": "pending",
+            "testStrategy": "End-to-end test where simulated channel messages update the app state and UI correctly, ensuring no race conditions or state inconsistencies."
+          }
+        ]
       },
       {
-        "id": "11",
+        "id": 11,
         "title": "Build thread list and creation views",
         "description": "Create SwiftUI views for listing threads and creating new ones.",
         "details": "Implement `ThreadListView` and `ThreadCreationView`. Bind to state. Handle user interactions.",
@@ -431,10 +922,62 @@
           "8"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design UI layout for ThreadListView",
+            "description": "Sketch and define the SwiftUI layout for ThreadListView, including list structure, thread item display, and navigation elements.",
+            "dependencies": [],
+            "details": "Use SwiftUI components like List and VStack to create a scrollable list of threads. Include placeholders for thread title, last message, and timestamp. Ensure responsive design for different screen sizes.",
+            "status": "pending",
+            "testStrategy": "UI tests to verify layout rendering on various devices."
+          },
+          {
+            "id": 2,
+            "title": "Implement data binding for ThreadListView",
+            "description": "Bind ThreadListView to the application state to display a list of threads fetched from the backend.",
+            "dependencies": [
+              1
+            ],
+            "details": "Integrate with the state management system (e.g., ObservableObject or EnvironmentObject) to observe changes in the threads array. Use ForEach to render each thread item dynamically.",
+            "status": "pending",
+            "testStrategy": "Integration tests to check that state updates trigger view refreshes."
+          },
+          {
+            "id": 3,
+            "title": "Add user interaction handlers for ThreadListView",
+            "description": "Implement handlers for user interactions in ThreadListView, such as selecting a thread to navigate to its details.",
+            "dependencies": [
+              2
+            ],
+            "details": "Add onTapGesture or NavigationLink to thread items for selection. Handle loading states and error cases. Ensure accessibility with proper labels and hints.",
+            "status": "pending",
+            "testStrategy": "UI interaction tests to simulate taps and verify navigation."
+          },
+          {
+            "id": 4,
+            "title": "Design UI layout for ThreadCreationView",
+            "description": "Design the SwiftUI interface for ThreadCreationView, including form fields for thread title, participants, and creation button.",
+            "dependencies": [],
+            "details": "Use Form, TextField, and Button components. Include validation feedback and a cancel option. Structure the view to be modal or pushed via navigation.",
+            "status": "pending",
+            "testStrategy": "UI tests for form rendering and initial state."
+          },
+          {
+            "id": 5,
+            "title": "Implement state binding and creation logic for ThreadCreationView",
+            "description": "Bind ThreadCreationView to state for creating new threads and handle the creation process upon user submission.",
+            "dependencies": [
+              4
+            ],
+            "details": "Bind form fields to state variables. On button tap, validate inputs and call a creation function that updates the state and possibly communicates with the backend. Handle success and failure scenarios.",
+            "status": "pending",
+            "testStrategy": "Integration tests for state updates and backend interaction on creation."
+          }
+        ]
       },
       {
-        "id": "12",
+        "id": 12,
         "title": "Implement chat view and message composer",
         "description": "Build ChatView for displaying messages and MessageComposer for sending.",
         "details": "Use SwiftUI List for messages. Add text input for composing. Integrate with Phoenix for sending.",
@@ -446,10 +989,63 @@
           "11"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up basic ChatView structure",
+            "description": "Create the foundational SwiftUI view for the chat interface, including placeholders for the message list and composer.",
+            "dependencies": [],
+            "details": "Initialize a new SwiftUI View called ChatView. Set up the basic layout with a VStack or similar to hold the message list at the top and the composer at the bottom. Ensure it integrates with the app's navigation or state management system.",
+            "status": "pending",
+            "testStrategy": "Verify the view renders without errors and basic layout is correct in the SwiftUI preview."
+          },
+          {
+            "id": 2,
+            "title": "Implement message display in SwiftUI List",
+            "description": "Build the message list component to display chat messages using SwiftUI List.",
+            "dependencies": [
+              1
+            ],
+            "details": "Within ChatView, add a SwiftUI List that iterates over a collection of messages. Each message should be displayed in a row with sender info, timestamp, and content. Handle scrolling and performance for large lists.",
+            "status": "pending",
+            "testStrategy": "Test with mock data to ensure messages display correctly, scrolling works, and UI updates when messages are added."
+          },
+          {
+            "id": 3,
+            "title": "Create MessageComposer component",
+            "description": "Develop the MessageComposer view for composing and preparing messages to send.",
+            "dependencies": [],
+            "details": "Create a separate SwiftUI View for MessageComposer with a TextField for input and a Button for sending. Include basic validation like non-empty text. Style it to fit the chat UI theme.",
+            "status": "pending",
+            "testStrategy": "Unit test the composer for input handling and button states. UI test to ensure it appears correctly in the chat view."
+          },
+          {
+            "id": 4,
+            "title": "Add send functionality to MessageComposer",
+            "description": "Implement the logic to handle sending messages from the composer.",
+            "dependencies": [
+              3
+            ],
+            "details": "In MessageComposer, add an action to the send button that captures the input text, clears the field, and triggers the send process. Prepare the message data structure for integration with Phoenix.",
+            "status": "pending",
+            "testStrategy": "Test the send button action with mock sends, verifying input is cleared and message is prepared correctly."
+          },
+          {
+            "id": 5,
+            "title": "Integrate Phoenix for message sending and UI updates",
+            "description": "Connect the chat components to Phoenix for real-time sending and receiving of messages, updating the UI accordingly.",
+            "dependencies": [
+              2,
+              4
+            ],
+            "details": "Integrate Phoenix channels in ChatView to send messages via MessageComposer and listen for incoming messages. Update the message list optimistically on send and on receive. Handle connection states and errors.",
+            "status": "pending",
+            "testStrategy": "Test message sending and receiving in a simulated environment. Verify optimistic updates and real-time UI refreshes. Check error handling for failed sends."
+          }
+        ]
       },
       {
-        "id": "13",
+        "id": 13,
         "title": "Implement manual CDC for client-side sync",
         "description": "Create CDCManager for tracking local changes and syncing with server.",
         "details": "Use SQLite triggers for CDC log. Implement push/pull logic in actor. Handle conflicts with last-write-wins.",
@@ -459,10 +1055,42 @@
           "9"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up CDC log with SQLite triggers",
+            "description": "Create a CDC log mechanism using SQLite triggers to track local changes in the database.",
+            "dependencies": [],
+            "details": "Implement database triggers in SQLite to automatically log changes (inserts, updates, deletes) into a CDC table. Ensure the log captures necessary metadata like timestamps and change types for efficient syncing.",
+            "status": "pending",
+            "testStrategy": "Unit tests for trigger activation and log accuracy with various database operations."
+          },
+          {
+            "id": 2,
+            "title": "Implement push/pull logic in actor",
+            "description": "Develop the push and pull synchronization logic within an actor for client-side sync.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create an actor (e.g., using Elixir's GenServer or similar) that handles pushing local changes from the CDC log to the server and pulling updates from the server. Implement retry mechanisms and error handling for network issues.",
+            "status": "pending",
+            "testStrategy": "Integration tests simulating network conditions, verifying push/pull operations and data consistency."
+          },
+          {
+            "id": 3,
+            "title": "Handle conflicts with last-write-wins",
+            "description": "Implement conflict resolution using a last-write-wins strategy during sync.",
+            "dependencies": [
+              2
+            ],
+            "details": "Add logic to detect conflicts when merging server changes with local ones, resolving by prioritizing the most recent timestamp. Update the CDC log and local database accordingly to maintain consistency.",
+            "status": "pending",
+            "testStrategy": "Simulate concurrent changes and offline scenarios to test conflict detection and resolution accuracy."
+          }
+        ]
       },
       {
-        "id": "14",
+        "id": 14,
         "title": "Create sync controller on backend",
         "description": "Implement SyncController for pull/push CDC changes.",
         "details": "Add endpoints `/api/v1/sync/pull` and `/push`. Validate user access, apply changes with Ecto.",
@@ -473,10 +1101,67 @@
           "5"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create SyncController module structure",
+            "description": "Set up the basic Phoenix controller module for handling sync operations, including routing configuration.",
+            "dependencies": [],
+            "details": "In the Phoenix project, create a new file `lib/messaging_web/controllers/sync_controller.ex`. Define the module with `use MessagingWeb, :controller` and add placeholder functions for pull and push actions. Configure routes in `router.ex` for `/api/v1/sync/pull` and `/api/v1/sync/push` pointing to this controller.",
+            "status": "pending",
+            "testStrategy": "Unit test to verify the controller module compiles and routes are properly configured."
+          },
+          {
+            "id": 2,
+            "title": "Implement user access validation",
+            "description": "Add authentication and authorization checks to ensure only authorized users can access sync endpoints.",
+            "dependencies": [
+              1
+            ],
+            "details": "Integrate with existing authentication system (assuming from Task 2 dependencies). Use plugs or functions to validate user tokens or sessions before processing requests. Reject unauthorized requests with appropriate HTTP status codes like 401 or 403.",
+            "status": "pending",
+            "testStrategy": "Integration tests to simulate authenticated and unauthenticated requests, verifying access control."
+          },
+          {
+            "id": 3,
+            "title": "Implement pull endpoint for retrieving CDC changes",
+            "description": "Develop the `/api/v1/sync/pull` endpoint to fetch and return pending changes for the user.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "In the SyncController, implement the `pull` action. Query the database using Ecto to retrieve changes since the last sync timestamp provided in the request. Format the response as JSON with change data, ensuring it handles pagination if needed for large datasets.",
+            "status": "pending",
+            "testStrategy": "Integration tests mocking database queries and verifying JSON response structure with sample change data."
+          },
+          {
+            "id": 4,
+            "title": "Implement push endpoint for applying CDC changes",
+            "description": "Develop the `/api/v1/sync/push` endpoint to receive and apply incoming changes from the client.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "In the SyncController, implement the `push` action. Parse incoming JSON payload for changes, validate the data structure, and use Ecto to apply inserts, updates, or deletes to the relevant models (threads, messages). Handle conflicts or errors gracefully.",
+            "status": "pending",
+            "testStrategy": "Integration tests simulating push requests with valid and invalid payloads, checking database state changes."
+          },
+          {
+            "id": 5,
+            "title": "Integrate with Ecto for change application and error handling",
+            "description": "Ensure Ecto operations are properly integrated with transaction handling and error responses.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Wrap Ecto operations in transactions for atomicity. Add comprehensive error handling for database constraints, validation failures, and network issues. Return appropriate JSON responses indicating success or failure with details.",
+            "status": "pending",
+            "testStrategy": "Unit and integration tests for transaction rollbacks on failures and correct error responses."
+          }
+        ]
       },
       {
-        "id": "15",
+        "id": 15,
         "title": "Integrate Turso as optional sync backend",
         "description": "Add feature flag for Turso sync as alternative to manual CDC.",
         "details": "Configure Turso SDK. Toggle based on env var. Fallback to manual if disabled.",
@@ -491,7 +1176,7 @@
         "updatedAt": "2025-10-20T21:26:42.085Z"
       },
       {
-        "id": "16",
+        "id": 16,
         "title": "Implement offline message queuing",
         "description": "Queue messages locally when offline, sync on reconnect.",
         "details": "Use CDC log for queuing. Background sync actor.",
@@ -502,10 +1187,31 @@
           "14"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement message queuing logic using CDC log",
+            "description": "Develop the core logic to queue messages locally in the CDC log when the app is offline, ensuring messages are stored persistently until sync.",
+            "dependencies": [],
+            "details": "Implement CDC log queuing logic leveraging triggers from Task 13 without hard dependency references.",
+            "status": "pending",
+            "testStrategy": "Simulate offline mode by disabling network, send messages, verify they are queued in CDC log, then reconnect and check if they are processed."
+          },
+          {
+            "id": 2,
+            "title": "Implement background sync actor for message synchronization",
+            "description": "Create a background actor that monitors connectivity and syncs queued messages with the server upon reconnection.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement background sync actor that works with the queuing logic, triggering sync when connectivity resumes.",
+            "status": "pending",
+            "testStrategy": "Test by simulating offline state, queuing messages, then enabling network and verifying the actor syncs messages automatically, resolving any conflicts."
+          }
+        ]
       },
       {
-        "id": "17",
+        "id": 17,
         "title": "Add typing indicators and read receipts",
         "description": "Implement real-time typing and read status.",
         "details": "Broadcast typing events via channels. Update UI.",
@@ -516,10 +1222,63 @@
           "10"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up backend broadcasting for typing events",
+            "description": "Implement server-side logic to broadcast typing events via channels when a user starts or stops typing.",
+            "dependencies": [],
+            "details": "Create a channel handler in Phoenix to listen for typing events from clients and broadcast them to other connected users in the same thread. Use Phoenix.Channel for real-time broadcasting.",
+            "status": "pending",
+            "testStrategy": "Test broadcasting by simulating multiple users typing in a thread and verifying events are received."
+          },
+          {
+            "id": 2,
+            "title": "Implement read receipt tracking on backend",
+            "description": "Add logic to track when messages are read by users and broadcast read status updates.",
+            "dependencies": [
+              1
+            ],
+            "details": "Modify the message controller or channel to mark messages as read when accessed, and broadcast read receipts via channels. Store read status in the database for persistence.",
+            "status": "pending",
+            "testStrategy": "Simulate message reading in a multi-user scenario and verify read receipts are broadcasted and stored."
+          },
+          {
+            "id": 3,
+            "title": "Update frontend to send typing indicators",
+            "description": "Modify the client-side code to send typing start/stop events to the server when the user is typing.",
+            "dependencies": [],
+            "details": "In the chat input component, add event listeners for key presses to detect typing activity, throttle events to avoid spam, and send them via the WebSocket channel to the backend.",
+            "status": "pending",
+            "testStrategy": "Test by typing in the input field and checking if typing events are sent to the server without excessive calls."
+          },
+          {
+            "id": 4,
+            "title": "Display typing indicators in UI",
+            "description": "Update the chat UI to show typing indicators when other users are typing.",
+            "dependencies": [
+              1,
+              3
+            ],
+            "details": "Subscribe to typing events from the channel and update the UI to display a 'User is typing...' message or indicator near the chat input. Hide it after a timeout or stop event.",
+            "status": "pending",
+            "testStrategy": "In a multi-user test, have one user type and verify the indicator appears for others in real-time."
+          },
+          {
+            "id": 5,
+            "title": "Implement read receipt display in UI",
+            "description": "Add UI elements to show read receipts for messages, indicating who has read them.",
+            "dependencies": [
+              2
+            ],
+            "details": "Listen for read receipt broadcasts and update message bubbles to show read status (e.g., checkmarks). Handle cases for multiple recipients and display accordingly in the message list.",
+            "status": "pending",
+            "testStrategy": "Test by marking messages as read and verifying the UI updates correctly for all users in the thread."
+          }
+        ]
       },
       {
-        "id": "18",
+        "id": 18,
         "title": "Prepare AI abstraction layer",
         "description": "Set up protocols for AI providers (on-device and server).",
         "details": "Define AIProvider protocol. Placeholder implementations.",
@@ -529,10 +1288,65 @@
           "6"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define AIProvider protocol",
+            "description": "Create a protocol that outlines the interface for AI providers, including methods for processing requests and handling responses.",
+            "dependencies": [],
+            "details": "In the Elixir project, define a protocol named AIProvider with functions like process_request/2 and handle_response/2 to abstract interactions with different AI providers.",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify protocol definition and basic conformance."
+          },
+          {
+            "id": 2,
+            "title": "Implement on-device AI placeholder",
+            "description": "Create a placeholder implementation of the AIProvider protocol for on-device AI processing.",
+            "dependencies": [
+              1
+            ],
+            "details": "Develop a module like OnDeviceAI that implements the AIProvider protocol with stub functions that simulate on-device AI responses, using mock data for testing purposes.",
+            "status": "pending",
+            "testStrategy": "Unit tests for the placeholder implementation to ensure it conforms to the protocol."
+          },
+          {
+            "id": 3,
+            "title": "Implement server AI placeholder",
+            "description": "Create a placeholder implementation of the AIProvider protocol for server-based AI processing.",
+            "dependencies": [
+              1
+            ],
+            "details": "Develop a module like ServerAI that implements the AIProvider protocol with stub functions that simulate server AI responses, including basic HTTP client mocks.",
+            "status": "pending",
+            "testStrategy": "Unit tests for the placeholder implementation to ensure it conforms to the protocol."
+          },
+          {
+            "id": 4,
+            "title": "Integrate AI providers into project structure",
+            "description": "Add the AIProvider protocol and implementations to the appropriate contexts or modules in the Phoenix project.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Update the Messaging or relevant context to include references to AIProvider, ensuring the placeholders can be swapped with real implementations later.",
+            "status": "pending",
+            "testStrategy": "Integration tests to verify that the placeholders can be instantiated and used within the application context."
+          },
+          {
+            "id": 5,
+            "title": "Add configuration for AI provider selection",
+            "description": "Set up configuration options to select between on-device and server AI providers based on environment or settings.",
+            "dependencies": [
+              4
+            ],
+            "details": "Add configuration in config files to allow switching between OnDeviceAI and ServerAI implementations, with defaults set to placeholders for development.",
+            "status": "pending",
+            "testStrategy": "Configuration tests to ensure the correct provider is selected based on config values."
+          }
+        ]
       },
       {
-        "id": "19",
+        "id": 19,
         "title": "Implement feature flag system",
         "description": "Add feature flags for tiers (free, pro, enterprise).",
         "details": "Backend: Accounts.Features. iOS: FeatureFlags.",
@@ -542,10 +1356,62 @@
           "4"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define feature flag structure in backend Accounts.Features",
+            "description": "Create a module or struct in Accounts.Features to define the available feature flags for each tier (free, pro, enterprise).",
+            "dependencies": [],
+            "details": "In the backend, within the Accounts.Features module, define a map or struct that lists features like 'advanced_search', 'unlimited_messages', etc., and associates them with tiers. Ensure it's extensible for future flags.",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify flag definitions are correctly mapped to tiers."
+          },
+          {
+            "id": 2,
+            "title": "Implement user tier determination logic",
+            "description": "Add logic to determine the user's current tier based on their account data.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the backend, create a function in Accounts.Features that takes a user ID and returns their tier (free, pro, enterprise) by querying the database or user model. This will be used to filter available features.",
+            "status": "pending",
+            "testStrategy": "Unit tests for tier determination with mock user data."
+          },
+          {
+            "id": 3,
+            "title": "Create API endpoint to fetch user feature flags",
+            "description": "Implement a backend API endpoint that returns the enabled feature flags for the authenticated user.",
+            "dependencies": [
+              2
+            ],
+            "details": "In the backend, add a new endpoint in a controller (e.g., AccountsController) that uses the Accounts.Features logic to return a JSON response with the user's enabled flags based on their tier. Secure it with authentication.",
+            "status": "pending",
+            "testStrategy": "Integration tests for the API endpoint, verifying correct flags are returned for different user tiers."
+          },
+          {
+            "id": 4,
+            "title": "Set up FeatureFlags module in iOS app",
+            "description": "Implement the FeatureFlags module in iOS to manage and check feature flags locally or via API.",
+            "dependencies": [],
+            "details": "In the iOS app, create a FeatureFlags class or struct that can fetch flags from the backend API and cache them locally. Include methods to check if a specific flag is enabled for the current user.",
+            "status": "pending",
+            "testStrategy": "Unit tests for flag checking logic and API fetching."
+          },
+          {
+            "id": 5,
+            "title": "Integrate feature flags into iOS UI for gating",
+            "description": "Update the iOS UI components to check feature flags and gate features accordingly.",
+            "dependencies": [
+              4
+            ],
+            "details": "In the iOS app, modify relevant views and controllers to query the FeatureFlags module before enabling pro or enterprise features. For example, hide or disable buttons for premium features if the flag is off. Use SwiftUI bindings or observers.",
+            "status": "pending",
+            "testStrategy": "UI tests to simulate different flag states and verify gating behavior."
+          }
+        ]
       },
       {
-        "id": "20",
+        "id": 20,
         "title": "Add encryption readiness (E2EE placeholders)",
         "description": "Prepare for Signal Protocol integration.",
         "details": "Add encrypted_content fields. Placeholder crypto functions.",
@@ -556,7 +1422,273 @@
           "8"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Update database schema for encrypted_content fields",
+            "description": "Modify the Ecto schemas for messages and threads to include encrypted_content fields to store encrypted data.",
+            "dependencies": [],
+            "details": "In the lib/messaging/ directory, update the message schema to add an encrypted_content field of type :text or :binary. Ensure this integrates with the per-thread sharding strategy by adding the field to thread-specific databases. Run migrations to apply changes.",
+            "status": "pending",
+            "testStrategy": "Verify schema changes by running migrations and checking table structures in SQLite databases."
+          },
+          {
+            "id": 2,
+            "title": "Create placeholder crypto functions",
+            "description": "Implement basic placeholder functions for encryption and decryption operations to prepare for Signal Protocol.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add a new module in lib/messaging/crypto.ex with functions like encrypt/1 and decrypt/1 that currently return placeholder values (e.g., base64 encoded strings). These will be replaced with actual Signal Protocol logic later.",
+            "status": "pending",
+            "testStrategy": "Unit test the placeholder functions to ensure they return expected dummy outputs without errors."
+          },
+          {
+            "id": 3,
+            "title": "Integrate encrypted content in message handling",
+            "description": "Update message creation and retrieval logic to use the encrypted_content field and placeholder crypto functions.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Modify the message controller or context in lib/messaging/ to encrypt message content before storing in encrypted_content and decrypt when retrieving. Use the placeholder functions for now, ensuring compatibility with Phoenix Channels.",
+            "status": "pending",
+            "testStrategy": "Test message creation and retrieval through API endpoints, verifying encrypted_content is populated and decrypted correctly."
+          },
+          {
+            "id": 4,
+            "title": "Add E2EE placeholders in real-time messaging",
+            "description": "Incorporate encryption placeholders into the ThreadChannel for real-time message broadcasting.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Update the ThreadChannel in lib/messaging_web/channels/ to apply encryption/decryption using placeholders before broadcasting messages via Phoenix.Channel.broadcast/3. Ensure latency remains under 100ms.",
+            "status": "pending",
+            "testStrategy": "Use Phoenix.ChannelTest to simulate channel interactions, checking that messages are encrypted/decrypted in broadcasts."
+          },
+          {
+            "id": 5,
+            "title": "Document and prepare for Signal Protocol integration",
+            "description": "Create documentation and code comments outlining where Signal Protocol will replace placeholders.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Add detailed comments in the crypto module and relevant files explaining the integration points for Signal Protocol. Prepare a checklist for future implementation steps, including key management and session handling.",
+            "status": "pending",
+            "testStrategy": "Review code comments and ensure all placeholder functions are documented for easy replacement."
+          }
+        ]
+      },
+      {
+        "id": 21,
+        "title": "Expose online/offline presence indicators",
+        "description": "Leverage Phoenix Presence to broadcast user status and surface indicators in iOS UI.",
+        "details": "Use Phoenix Presence on backend to track joins/leaves per thread. Update Elixir channel handlers to push presence diffs. On iOS, integrate presence updates into Swiftea state and render status badges in thread list and chat view.",
+        "testStrategy": "Write channel tests asserting Presence payloads, and UI tests verifying status badges change when simulated presence events fire.",
+        "priority": "medium",
+        "dependencies": [
+          "3",
+          "7",
+          "10"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up Phoenix Presence module in Elixir backend",
+            "description": "Initialize and configure Phoenix Presence to track user presence in threads.",
+            "dependencies": [],
+            "details": "Add Phoenix Presence dependency if not already present, create a Presence module in the Elixir backend to handle tracking of user joins and leaves per thread, ensuring it integrates with the existing channel structure.",
+            "status": "pending",
+            "testStrategy": "Unit tests for Presence module initialization and basic tracking functionality."
+          },
+          {
+            "id": 2,
+            "title": "Update Elixir channel handlers to track presence",
+            "description": "Modify channel handlers to subscribe to presence events and track user status.",
+            "dependencies": [
+              1
+            ],
+            "details": "Update the relevant Elixir channel handlers (e.g., for threads) to use Presence.track/3 for joins and handle leaves, ensuring presence state is maintained accurately per thread.",
+            "status": "pending",
+            "testStrategy": "Channel tests to verify presence tracking on join/leave events."
+          },
+          {
+            "id": 3,
+            "title": "Implement presence diff broadcasting",
+            "description": "Configure channels to broadcast presence diffs to connected clients.",
+            "dependencies": [
+              2
+            ],
+            "details": "Modify channel handlers to push presence diffs using Presence.list/1 and broadcast changes via the channel, allowing clients to receive real-time updates on user status changes.",
+            "status": "pending",
+            "testStrategy": "Integration tests for broadcasting presence diffs and verifying payloads."
+          },
+          {
+            "id": 4,
+            "title": "Integrate presence updates into iOS Swiftea state",
+            "description": "Update the iOS app's state management to handle incoming presence updates.",
+            "dependencies": [
+              3
+            ],
+            "details": "In the iOS SwiftPhoenixClient integration, modify the PhoenixChannelManager or relevant actors to parse presence diff messages and update the Swiftea state accordingly, storing user online/offline status.",
+            "status": "pending",
+            "testStrategy": "Unit tests for state updates upon receiving simulated presence events."
+          },
+          {
+            "id": 5,
+            "title": "Render presence status badges in iOS UI",
+            "description": "Display online/offline indicators in thread list and chat views.",
+            "dependencies": [
+              4
+            ],
+            "details": "Update the iOS UI components for thread list and chat view to render status badges based on the presence state, using appropriate icons or colors to indicate user availability, ensuring the UI refreshes in real-time.",
+            "status": "pending",
+            "testStrategy": "UI tests to verify badges appear and update correctly with presence changes."
+          }
+        ]
+      },
+      {
+        "id": 22,
+        "title": "Enable foreground push notifications",
+        "description": "Implement local/APNS foreground notifications triggered by Phoenix events.",
+        "details": "Configure Phoenix to emit notification events, add Apple Push notification capability, and display UNUserNotificationCenter alerts when app is active.",
+        "testStrategy": "Simulate incoming message events and assert notifications display in simulator foreground.",
+        "priority": "medium",
+        "dependencies": [
+          "3",
+          "10",
+          "4"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configure Phoenix to emit notification events",
+            "description": "Set up the Phoenix backend to emit events that trigger push notifications when specific actions occur, such as new messages.",
+            "dependencies": [],
+            "details": "Modify the Phoenix server-side code to broadcast notification events via channels or websockets, ensuring events are structured with necessary data like message content and user IDs.",
+            "status": "pending",
+            "testStrategy": "Use Phoenix console to simulate events and verify they are emitted correctly."
+          },
+          {
+            "id": 2,
+            "title": "Add Apple Push Notification capability to the iOS app",
+            "description": "Integrate APNS into the iOS application to receive push notifications from the server.",
+            "dependencies": [
+              1
+            ],
+            "details": "Register the app for push notifications in AppDelegate, request user permission, and handle device token registration with the server. Ensure proper entitlements are set in Xcode.",
+            "status": "pending",
+            "testStrategy": "Run the app on a device or simulator, check for permission prompts, and verify token registration logs."
+          },
+          {
+            "id": 3,
+            "title": "Implement notification handling for incoming APNS payloads",
+            "description": "Create logic to process incoming push notification payloads and prepare them for display.",
+            "dependencies": [
+              2
+            ],
+            "details": "In the app delegate or a dedicated manager, parse the notification payload, extract relevant data, and decide whether to display a foreground alert based on app state.",
+            "status": "pending",
+            "testStrategy": "Send test notifications via APNS and inspect payload handling in debug logs."
+          },
+          {
+            "id": 4,
+            "title": "Display UNUserNotificationCenter alerts when app is active",
+            "description": "Use UNUserNotificationCenter to show notification alerts in the foreground when the app is running.",
+            "dependencies": [
+              3
+            ],
+            "details": "Configure UNUserNotificationCenter to present notifications as banners or alerts when the app is in the foreground, customizing the presentation options as needed.",
+            "status": "pending",
+            "testStrategy": "Trigger notifications while app is active and verify alerts appear on screen in the simulator."
+          },
+          {
+            "id": 5,
+            "title": "Integrate notification triggers with Phoenix events",
+            "description": "Connect the notification system to listen for Phoenix events and trigger APNS notifications accordingly.",
+            "dependencies": [
+              1,
+              4
+            ],
+            "details": "Implement a listener in the iOS app that subscribes to Phoenix events and calls the push notification sending logic when events are received, ensuring real-time triggering.",
+            "status": "pending",
+            "testStrategy": "Simulate Phoenix events and confirm that push notifications are sent and displayed in the foreground."
+          }
+        ]
+      },
+      {
+        "id": 23,
+        "title": "Display message timestamps in chat UI",
+        "description": "Ensure chat messages show human-readable timestamps consistent with PRD schema.",
+        "details": "Format server timestamps via shared utilities and surface them in MessageRow layout with locale awareness.",
+        "testStrategy": "Snapshot/UI tests verifying timestamps render and adjust to locale.",
+        "priority": "low",
+        "dependencies": [
+          "12",
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create shared timestamp formatting utility",
+            "description": "Develop a shared utility function to format server timestamps into human-readable strings.",
+            "dependencies": [],
+            "details": "Implement a utility module in the shared utilities folder that takes a timestamp and formats it according to the PRD schema, ensuring it's reusable across the application.",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify correct formatting of various timestamp inputs."
+          },
+          {
+            "id": 2,
+            "title": "Add locale awareness to timestamp formatting",
+            "description": "Enhance the timestamp utility to support locale-specific formatting.",
+            "dependencies": [
+              1
+            ],
+            "details": "Modify the utility to accept a locale parameter and use internationalization libraries to format timestamps appropriately for different locales, ensuring consistency.",
+            "status": "pending",
+            "testStrategy": "Unit tests with different locales to confirm proper formatting."
+          },
+          {
+            "id": 3,
+            "title": "Update MessageRow component to include timestamp display",
+            "description": "Modify the MessageRow layout to display the formatted timestamp for each message.",
+            "dependencies": [
+              2
+            ],
+            "details": "Integrate the timestamp utility into the MessageRow component, positioning the timestamp appropriately in the UI layout, and ensure it renders correctly with message content.",
+            "status": "pending",
+            "testStrategy": "UI tests to check timestamp visibility and positioning in the chat interface."
+          },
+          {
+            "id": 4,
+            "title": "Integrate timestamp formatting with server data",
+            "description": "Connect the MessageRow to use actual server timestamps via the shared utility.",
+            "dependencies": [
+              3
+            ],
+            "details": "Update the data flow to pass server timestamps to the MessageRow component, applying the formatting utility to ensure real-time display of human-readable timestamps.",
+            "status": "pending",
+            "testStrategy": "Integration tests verifying timestamps from server data are formatted and displayed accurately."
+          },
+          {
+            "id": 5,
+            "title": "Verify PRD schema consistency and finalize UI",
+            "description": "Review and adjust the timestamp display to fully align with the PRD schema requirements.",
+            "dependencies": [
+              4
+            ],
+            "details": "Conduct a final check to ensure the timestamps match the PRD specifications, including format, placement, and locale handling, and make any necessary refinements to the UI.",
+            "status": "pending",
+            "testStrategy": "Snapshot tests to capture the final UI state and ensure no regressions."
+          }
+        ]
       }
     ],
     "metadata": {
@@ -566,7 +1698,9 @@
       "completedCount": 0,
       "tags": [
         "mvp"
-      ]
+      ],
+      "created": "2025-10-20T23:05:05.260Z",
+      "description": "Tasks for mvp context"
     }
   }
 }
