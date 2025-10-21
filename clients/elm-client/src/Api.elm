@@ -258,7 +258,7 @@ sendMessage config authToken threadId content toMsg =
 encodeCredentials : Credentials -> Encode.Value
 encodeCredentials creds =
     Encode.object
-        [ ( "email", Encode.string creds.email )
+        [ ( "identifier", Encode.string creds.email )
         , ( "password", Encode.string creds.password )
         ]
 
