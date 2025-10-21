@@ -1,0 +1,55 @@
+flowchart LR
+  subgraph Clients
+    A[Native Mobile Client]
+    B[Elm Web Client]
+    C[CLI & QA Tools]
+  end
+
+  subgraph PhoenixBackend[Phoenix Backend]
+    D1[REST Controllers]
+    D2["Phoenix Channels &\nLiveView Hooks"]
+    D3["Guardian Auth &\nSession Management"]
+    D4["Bridge Supervisors\n(Integration GenServers)"]
+    D5["Telemetry & Observability"]
+  end
+
+  subgraph Storage["Storage Layer"]
+    E1["Shared SQLite DBs\nusers.db / bridges.db / sync_state.db"]
+    E2["Thread Shards\npriv/threads/{thread_id}.db"]
+  end
+
+  A -->|HTTPS/API| D1
+  B -->|HTTPS/API| D1
+  C -->|HTTPS/API| D1
+
+  A -->|WebSocket| D2
+  B -->|WebSocket| D2
+
+  D1 -->|Token Issuance| D3
+  D2 -->|Token Validation| D3
+
+  D1 -->|Ecto| E1
+  D2 -->|Ecto| E1
+  D4 -->|Shared Metadata| E1
+
+  D2 -->|Per-thread Repo| E2
+  D4 -->|CDC & Sync| E2
+
+  subgraph Integrations
+    G[Slack API]
+    H[Telegram API]
+    I[Future Bridges]
+  end
+
+  D4 -->|Outbound Events| G
+  D4 -->|Outbound Events| H
+  D4 -->|Adapter Interface| I
+
+  G -->|Inbound Messages| D4
+  H -->|Inbound Messages| D4
+  I -->|Inbound Messages| D4
+
+  D4 -->|Bridge Events| D2
+
+  D5 -->|Metrics| J[Logs / Dashboards]
+  D5 -->|Alerts| K[DevOps & QA]

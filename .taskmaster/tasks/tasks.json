@@ -303,7 +303,7 @@
   "mvp": {
     "tasks": [
       {
-        "id": "1",
+        "id": 1,
         "title": "Set up Phoenix project with Elixir",
         "description": "Initialize a new Phoenix project with Elixir 1.7+, including dependencies for real-time channels, database, and authentication.",
         "details": "Run `mix phx.new globalbridge_backend --no-ecto` to create the project. Add dependencies: `{:phoenix_live_view, \"~> 0.18\"}, {:ecto_sql, \"~> 3.9\"}, {:sqlite_ecto2, \"~> 2.3\"}, {:jason, \"~> 1.3\"}`. Configure SQLite as the database in `config/dev.exs`. Set up basic folder structure as per PRD. Note: Database architecture uses sharding strategy where each thread/conversation gets its own SQLite database file (e.g., `threads/{thread_id}.db`) for granular backup, sharing, and E2EE. Shared databases include `users.db`, `bridges.db`, and `sync_state.db`.",
@@ -382,7 +382,7 @@
         "updatedAt": "2025-10-21T00:12:44.796Z"
       },
       {
-        "id": "2",
+        "id": 2,
         "title": "Implement database schema for users, threads, and messages",
         "description": "Create Ecto schemas and migrations for core tables: users, threads, messages, bridges, and CDC log, accounting for per-thread database sharding.",
         "details": "Define schemas in `lib/messaging/` with fields as per PRD. Create migrations: `mix ecto.gen.migration create_users`, etc. Use SQLite with foreign keys. For CDC log, add triggers to capture changes. Implement sharding strategy: each thread/conversation gets its own SQLite database file (e.g., `priv/db/threads/{thread_id}.db`) for messages and thread-specific data. Shared databases: `users.db` (global users), `bridges.db` (bridge configurations), `sync_state.db` (CDC sync tracking). Messages and thread data are stored in per-thread databases to enable granular backup, sharing, and E2EE with per-thread encryption keys.",
@@ -437,7 +437,7 @@
         "updatedAt": "2025-10-21T00:21:17.363Z"
       },
       {
-        "id": "3",
+        "id": 3,
         "title": "Set up Phoenix Channels for real-time messaging",
         "description": "Configure Phoenix Channels for thread-based communication with <100ms latency.",
         "details": "Create `ThreadChannel` in `lib/messaging_web/channels/`. Handle join, message broadcast. Use `Phoenix.Channel.broadcast/3` for real-time updates. Integrate with WebSocket client.",
@@ -512,7 +512,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": "4",
+        "id": 4,
         "title": "Implement user authentication and authorization",
         "description": "Add JWT-based auth for users, with thread access control.",
         "details": "Use `Phoenix.Token` for JWT. Create `AuthController` for login/signup. Add plugs for authorization in controllers. Store user public keys for future E2EE.",
@@ -591,7 +591,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": "5",
+        "id": 5,
         "title": "Create contexts for threads and messages",
         "description": "Build Elixir contexts for CRUD operations on threads and messages.",
         "details": "Implement `Messaging.Threads` and `Messaging.Messages` contexts with functions like `create_thread/2`, `list_messages/2`. Use Ecto queries for filtering.",
@@ -666,14 +666,14 @@
         "expansionPrompt": ""
       },
       {
-        "id": "6",
+        "id": 6,
         "title": "Set up iOS project with Swift 6 and SwiftUI",
         "description": "Initialize Xcode project for iOS app with Swift 6 strict concurrency, SwiftUI, and required dependencies.",
         "details": "COMPLETE STEP-BY-STEP XCODE SETUP (for users new to Xcode): 1) Install Xcode from Mac App Store (search 'Xcode', ~12GB download). 2) Launch Xcode and create new project: File → New → Project → iOS App → SwiftUI interface → Swift language → Product Name: 'GlobalBridge' → Team: None → Organization Identifier: 'com.yourname.globalbridge' → Save in clients/ios folder. 3) Configure project: Select project → GlobalBridge target → General tab: iOS 15.0+ deployment target → Build Settings: Swift Language Version = 6, Strict Concurrency Checking = Complete. 4) Create folder structure: Right-click GlobalBridge folder → New Group for 'Core' and 'Features' → Add subgroups: Core/Models, Core/Networking, Core/Storage, Core/Crypto, Features/Threads, Features/Chat, Features/Bridges. 5) Add packages: File → Add Packages → Add 'https://github.com/davidstump/SwiftPhoenixClient' and 'https://github.com/stephencelis/SQLite.swift'. 6) Clean up: Replace GlobalBridgeApp.swift content, create ContentView.swift with basic Text view. 7) Build and run on iOS simulator.",
         "testStrategy": "Build and run on simulator. Verify SwiftUI views render correctly. Check that packages resolve without errors. Confirm folder structure matches PRD. Verify Swift 6 strict concurrency is enabled. Test that project builds successfully.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 2,
@@ -683,7 +683,7 @@
               1
             ],
             "details": "Within the repo, create the SwiftUI project (File → New → Project) naming conventions defined in PRD.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Check that the project is created successfully and the basic SwiftUI template loads without errors.",
             "parentId": "undefined"
           },
@@ -695,7 +695,7 @@
               2
             ],
             "details": "Select the GlobalBridge project in Xcode, then select the GlobalBridge target. In the General tab, set the iOS Deployment Target to 15.0 or higher. In Build Settings, set Swift Language Version to 6 and Strict Concurrency Checking to Complete.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Build the project and confirm that Swift 6 features are enabled without compilation errors.",
             "parentId": "undefined"
           },
@@ -707,7 +707,7 @@
               2
             ],
             "details": "In Xcode, right-click the GlobalBridge folder and create new groups: 'Core' and 'Features'. Under Core, add subgroups: Models, Networking, Storage, Crypto. Under Features, add subgroups: Threads, Chat, Bridges. Ensure the structure matches the PRD requirements.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify that the folder structure is created and visible in the Xcode project navigator.",
             "parentId": "undefined"
           },
@@ -720,7 +720,7 @@
               4
             ],
             "details": "Add SwiftPhoenixClient and SQLite.swift via Swift Package Manager. Replace boilerplate files and run on simulator to confirm packages build.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Build and run on simulator, verify SwiftUI views render, packages resolve without errors, and the project builds successfully with Swift 6 strict concurrency enabled.",
             "parentId": "undefined"
           }
@@ -730,7 +730,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": "7",
+        "id": 7,
         "title": "Implement state management with Swiftea (TEA/MVU)",
         "description": "Set up Swiftea for state management in iOS app.",
         "details": "Integrate Swiftea library (https://github.com/cooler333/Swiftea) - TEA/MVU pattern implementation for SwiftUI. Add as Swift Package: File → Add Packages → 'https://github.com/cooler333/Swiftea'. Create state structs for threads, messages. Implement update functions for actions like sendMessage, loadThreads.",
@@ -805,7 +805,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": "8",
+        "id": 8,
         "title": "Create data models for User, Thread, Message",
         "description": "Define Swift structs for core data models matching backend schemas.",
         "details": "Create `User.swift`, `Thread.swift`, `Message.swift` with Codable conformance. Include fields for E2EE placeholders.",
@@ -880,7 +880,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": "9",
+        "id": 9,
         "title": "Set up local SQLite storage with DatabaseManager",
         "description": "Implement DatabaseManager for local SQLite operations.",
         "details": "Use SQLite.swift to create tables for threads, messages, CDC log. Handle per-thread databases as per PRD.",
@@ -920,7 +920,7 @@
         "expansionPrompt": "Subtasks for creating the DatabaseManager class, setting up tables for each entity, and implementing per-thread database handling."
       },
       {
-        "id": "10",
+        "id": 10,
         "title": "Implement Phoenix Channel client for real-time sync",
         "description": "Set up SwiftPhoenixClient for WebSocket connections to backend.",
         "details": "Create `PhoenixChannelManager` actor. Connect to channels, handle message events. Integrate with state management.",
@@ -996,7 +996,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": "11",
+        "id": 11,
         "title": "Build thread list and creation views",
         "description": "Create SwiftUI views for listing threads and creating new ones.",
         "details": "Implement `ThreadListView` and `ThreadCreationView`. Bind to state. Handle user interactions.",
@@ -1070,7 +1070,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": "12",
+        "id": 12,
         "title": "Implement chat view and message composer",
         "description": "Build ChatView for displaying messages and MessageComposer for sending.",
         "details": "Use SwiftUI List for messages. Add text input for composing. Integrate with Phoenix for sending.",
@@ -1146,7 +1146,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": "13",
+        "id": 13,
         "title": "Implement manual CDC for client-side sync",
         "description": "Create CDCManager for tracking local changes and syncing with server.",
         "details": "Use SQLite triggers for CDC log. Implement push/pull logic in actor. Handle conflicts with last-write-wins.",
@@ -1197,7 +1197,7 @@
         "expansionPrompt": "Subtasks for setting up CDC log with triggers, implementing push/pull logic in an actor, and handling conflicts."
       },
       {
-        "id": "14",
+        "id": 14,
         "title": "Create sync controller on backend",
         "description": "Implement SyncController for pull/push CDC changes.",
         "details": "Add endpoints `/api/v1/sync/pull` and `/push`. Validate user access, apply changes with Ecto.",
@@ -1276,7 +1276,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": "15",
+        "id": 15,
         "title": "Integrate Turso as optional sync backend",
         "description": "Add feature flag for Turso sync as alternative to manual CDC.",
         "details": "Configure Turso SDK. Toggle based on env var. Fallback to manual if disabled.",
@@ -1291,7 +1291,7 @@
         "updatedAt": "2025-10-20T21:26:42.085Z"
       },
       {
-        "id": "16",
+        "id": 16,
         "title": "Implement offline message queuing",
         "description": "Queue messages locally when offline, sync on reconnect.",
         "details": "Use CDC log for queuing. Background sync actor.",
@@ -1331,7 +1331,7 @@
         "expansionPrompt": "Subtasks for queuing logic using CDC and background sync actor."
       },
       {
-        "id": "17",
+        "id": 17,
         "title": "Add typing indicators and read receipts",
         "description": "Implement real-time typing and read status.",
         "details": "Broadcast typing events via channels. Update UI.",
@@ -1406,7 +1406,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": "18",
+        "id": 18,
         "title": "Prepare AI abstraction layer",
         "description": "Set up protocols for AI providers (on-device and server).",
         "details": "Define AIProvider protocol. Placeholder implementations.",
@@ -1482,7 +1482,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": "19",
+        "id": 19,
         "title": "Implement feature flag system",
         "description": "Add feature flags for tiers (free, pro, enterprise).",
         "details": "Backend: Accounts.Features. iOS: FeatureFlags.",
@@ -1555,7 +1555,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": "20",
+        "id": 20,
         "title": "Add encryption readiness (E2EE placeholders)",
         "description": "Prepare for Signal Protocol integration.",
         "details": "Add encrypted_content fields. Placeholder crypto functions.",
@@ -1636,7 +1636,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": "21",
+        "id": 21,
         "title": "Expose online/offline presence indicators",
         "description": "Leverage Phoenix Presence to broadcast user status and surface indicators in iOS UI.",
         "details": "Use Phoenix Presence on backend to track joins/leaves per thread. Update Elixir channel handlers to push presence diffs. On iOS, integrate presence updates into Swiftea state and render status badges in thread list and chat view.",
@@ -1713,7 +1713,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": "22",
+        "id": 22,
         "title": "Enable foreground push notifications",
         "description": "Implement local/APNS foreground notifications triggered by Phoenix events.",
         "details": "Configure Phoenix to emit notification events, add Apple Push notification capability, and display UNUserNotificationCenter alerts when app is active.",
@@ -1791,7 +1791,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": "23",
+        "id": 23,
         "title": "Display message timestamps in chat UI",
         "description": "Ensure chat messages show human-readable timestamps consistent with PRD schema.",
         "details": "Format server timestamps via shared utilities and surface them in MessageRow layout with locale awareness.",
@@ -1874,7 +1874,10 @@
       "completedCount": 2,
       "tags": [
         "mvp"
-      ]
+      ],
+      "created": "2025-10-21T02:10:46.559Z",
+      "description": "Tasks for mvp context",
+      "updated": "2025-10-21T03:09:36.726Z"
     }
   }
 }

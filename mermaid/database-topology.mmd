@@ -1,0 +1,38 @@
+classDiagram
+  class UsersDB {
+    <<SQLite>>
+    users
+    identities
+    sessions
+  }
+
+  class BridgesDB {
+    <<SQLite>>
+    bridges
+    bridge_configs
+    bridge_threads
+  }
+
+  class SyncStateDB {
+    <<SQLite>>
+    sync_checkpoints
+    cdc_log
+    replay_queue
+  }
+
+  class ThreadDB {
+    <<SQLite>>
+    messages
+    attachments
+    message_cdc
+  }
+
+  UsersDB <.. ThreadDB : user_id references
+  BridgesDB <.. ThreadDB : bridge_thread_id
+  SyncStateDB <-- ThreadDB : per-thread checkpoint
+  SyncStateDB <-- BridgesDB : integration status
+
+  note for ThreadDB "One database file per thread:\npriv/threads/{thread_id}.db\nManaged by thread repo supervisor."
+  note for UsersDB "Shared metadata for authentication\nand profile management."
+  note for BridgesDB "Stores integration credentials and\nper-thread bridge mappings."
+  note for SyncStateDB "Tracks CDC state and replay queues\nfor offline / bridge retries."

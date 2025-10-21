@@ -1,0 +1,28 @@
+sequenceDiagram
+  autonumber
+  participant WebClient as Elm Web Client
+  participant MobileClient as Native Mobile Client
+  participant Channel as Phoenix Channel
+  participant Repo as Thread Repo (Ecto)
+  participant Shared as Shared Repo (users/bridges)
+  participant Bridge as Bridge Worker
+  participant Slack as Slack API
+
+  WebClient->>Channel: sendMessage(payload, threadId)
+  Channel->>Repo: persist to threads/{threadId}.db
+  Repo-->>Channel: {:ok, message_id}
+  Channel-->>WebClient: ack(message_id, status="sending")
+  Channel->>Bridge: broadcast message event
+
+  Bridge->>Shared: read bridge configuration
+  Bridge->>Slack: POST chatMessage(payload, credentials)
+  Slack-->>Bridge: delivery confirmation
+  Bridge-->>Channel: delivery status update
+  Channel-->>WebClient: update status="delivered"
+  Channel-->>MobileClient: push delivered message
+
+  Slack->>Bridge: new message webhook/poll
+  Bridge->>Repo: persist inbound message
+  Bridge->>Channel: broadcast inbound message
+  Channel-->>WebClient: render inbound payload
+  Channel-->>MobileClient: render inbound payload
