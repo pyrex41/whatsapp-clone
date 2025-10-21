@@ -269,6 +269,15 @@ final class DatabaseManager {
         try connection.run(cdcLogsTable.createIndex([cdcTableName, cdcRecordId], ifNotExists: true))
         try connection.run(cdcLogsTable.createIndex(cdcTimestamp, ifNotExists: true))
 
+        // Add is_synced column for CDC logs
+        let cdcIsSynced = Expression<Bool>("is_synced")
+        do {
+            try connection.run(cdcLogsTable.addColumn(cdcIsSynced, defaultValue: false))
+        } catch {
+            // Column might already exist
+        }
+        try connection.run(cdcLogsTable.createIndex(cdcIsSynced, ifNotExists: true))
+
         // Create sync_states table
         try connection.run(syncStatesTable.create(ifNotExists: true) { t in
             t.column(syncId, primaryKey: true)
@@ -290,7 +299,133 @@ final class DatabaseManager {
         try connection.run(syncStatesTable.createIndex([syncEntityType, syncEntityId], ifNotExists: true))
         try connection.run(syncStatesTable.createIndex(syncIsSynced, ifNotExists: true))
 
+        // Task 13.1: Create SQLite triggers for automatic CDC logging
+        try await createCDCTriggers(in: connection)
+
         print("✅ Thread-specific tables created")
+    }
+
+    // MARK: - Task 13.1: SQLite CDC Triggers
+
+    /// Create SQLite triggers to automatically log CDC events
+    private func createCDCTriggers(in connection: Connection) async throws {
+        // Trigger for INSERT operations on messages
+        let insertTrigger = """
+        CREATE TRIGGER IF NOT EXISTS messages_insert_cdc_trigger
+        AFTER INSERT ON messages
+        BEGIN
+            INSERT INTO cdc_logs (
+                id, table_name, record_id, operation,
+                old_data, new_data, changed_fields,
+                timestamp, created_at, is_synced
+            ) VALUES (
+                lower(hex(randomblob(16))),
+                'messages',
+                NEW.id,
+                'insert',
+                NULL,
+                json_object(
+                    'id', NEW.id,
+                    'thread_id', NEW.thread_id,
+                    'sender_id', NEW.sender_id,
+                    'content', NEW.content,
+                    'message_type', NEW.message_type,
+                    'status', NEW.status,
+                    'created_at', NEW.created_at,
+                    'updated_at', NEW.updated_at
+                ),
+                NULL,
+                datetime('now'),
+                datetime('now'),
+                0
+            );
+        END;
+        """
+
+        // Trigger for UPDATE operations on messages
+        let updateTrigger = """
+        CREATE TRIGGER IF NOT EXISTS messages_update_cdc_trigger
+        AFTER UPDATE ON messages
+        BEGIN
+            INSERT INTO cdc_logs (
+                id, table_name, record_id, operation,
+                old_data, new_data, changed_fields,
+                timestamp, created_at, is_synced
+            ) VALUES (
+                lower(hex(randomblob(16))),
+                'messages',
+                NEW.id,
+                'update',
+                json_object(
+                    'id', OLD.id,
+                    'thread_id', OLD.thread_id,
+                    'sender_id', OLD.sender_id,
+                    'content', OLD.content,
+                    'message_type', OLD.message_type,
+                    'status', OLD.status,
+                    'created_at', OLD.created_at,
+                    'updated_at', OLD.updated_at
+                ),
+                json_object(
+                    'id', NEW.id,
+                    'thread_id', NEW.thread_id,
+                    'sender_id', NEW.sender_id,
+                    'content', NEW.content,
+                    'message_type', NEW.message_type,
+                    'status', NEW.status,
+                    'created_at', NEW.created_at,
+                    'updated_at', NEW.updated_at
+                ),
+                json_array(
+                    CASE WHEN OLD.content != NEW.content THEN 'content' END,
+                    CASE WHEN OLD.status != NEW.status THEN 'status' END,
+                    CASE WHEN OLD.message_type != NEW.message_type THEN 'message_type' END
+                ),
+                datetime('now'),
+                datetime('now'),
+                0
+            );
+        END;
+        """
+
+        // Trigger for DELETE operations on messages
+        let deleteTrigger = """
+        CREATE TRIGGER IF NOT EXISTS messages_delete_cdc_trigger
+        AFTER DELETE ON messages
+        BEGIN
+            INSERT INTO cdc_logs (
+                id, table_name, record_id, operation,
+                old_data, new_data, changed_fields,
+                timestamp, created_at, is_synced
+            ) VALUES (
+                lower(hex(randomblob(16))),
+                'messages',
+                OLD.id,
+                'delete',
+                json_object(
+                    'id', OLD.id,
+                    'thread_id', OLD.thread_id,
+                    'sender_id', OLD.sender_id,
+                    'content', OLD.content,
+                    'message_type', OLD.message_type,
+                    'status', OLD.status,
+                    'created_at', OLD.created_at,
+                    'updated_at', OLD.updated_at
+                ),
+                json_object('id', OLD.id),
+                NULL,
+                datetime('now'),
+                datetime('now'),
+                0
+            );
+        END;
+        """
+
+        try connection.execute(insertTrigger)
+        try connection.execute(updateTrigger)
+        try connection.execute(deleteTrigger)
+
+        print("✅ CDC triggers created successfully")
     }
 
     // MARK: - Thread Operations
@@ -585,11 +720,13 @@ final class DatabaseManager {
     /// Fetch unsynced CDC logs
     func fetchUnsyncedCDCLogs(shardId: String, limit: Int = 100) async throws -> [CDCLog] {
         let db = try await getThreadDatabase(shardId: shardId)
+        let cdcIsSynced = Expression<Bool>("is_synced")
 
         do {
             var logs: [CDCLog] = []
 
             let query = cdcLogsTable
+                .filter(cdcIsSynced == false)
                 .order(cdcTimestamp.asc)
                 .limit(limit)
 
@@ -634,9 +771,84 @@ final class DatabaseManager {
         }
     }
 
-    // MARK: - Helper Methods
+    /// Mark CDC log as synced
+    func markCDCLogAsSynced(logId: UUID, shardId: String) async throws {
+        let db = try await getThreadDatabase(shardId: shardId)
+        let cdcIsSynced = Expression<Bool>("is_synced")
 
-    private func fetchThread(id: UUID) async throws -> Thread? {
+        do {
+            let logRow = cdcLogsTable.filter(cdcId == logId.uuidString)
+            let update = logRow.update(cdcIsSynced <- true)
+
+            let changes = try db.run(update)
+            if changes == 0 {
+                print("⚠️ CDC log not found for marking as synced: \(logId)")
+            }
+        } catch {
+            throw DatabaseError.updateFailed("CDC log sync status: \(error.localizedDescription)")
+        }
+    }
+
+    /// Update an existing message
+    func updateMessage(_ message: Message) async throws {
+        guard let thread = try await fetchThread(id: message.threadId) else {
+            throw DatabaseError.notFound("Thread: \(message.threadId)")
+        }
+
+        let db = try await getThreadDatabase(shardId: thread.databaseShardId)
+
+        do {
+            let metadataJson = message.metadata.flatMap { try? JSONEncoder().encode($0) }
+                .flatMap { String(data: $0, encoding: .utf8) }
+
+            let messageRow = messagesTable.filter(messageId == message.id.uuidString)
+            let update = messageRow.update(
+                messageContent <- message.content,
+                messageType <- message.messageType.rawValue,
+                messageStatus <- message.status.rawValue,
+                messageMetadata <- metadataJson,
+                messageReplyToId <- message.replyToId?.uuidString,
+                messageEditedAt <- message.editedAt,
+                messageDeletedAt <- message.deletedAt,
+                messageUpdatedAt <- Date()
+            )
+
+            let changes = try db.run(update)
+
+            if changes == 0 {
+                throw DatabaseError.notFound("Message: \(message.id)")
+            }
+
+            print("✅ Message updated: \(message.id)")
+        } catch {
+            throw DatabaseError.updateFailed("Message: \(error.localizedDescription)")
+        }
+    }
+
+    /// Delete a message
+    func deleteMessage(id: UUID, threadId: UUID) async throws {
+        guard let thread = try await fetchThread(id: threadId) else {
+            throw DatabaseError.notFound("Thread: \(threadId)")
+        }
+
+        let db = try await getThreadDatabase(shardId: thread.databaseShardId)
+
+        do {
+            let messageRow = messagesTable.filter(messageId == id.uuidString)
+            let changes = try db.run(messageRow.delete())
+
+            if changes == 0 {
+                throw DatabaseError.notFound("Message: \(id)")
+            }
+
+            print("✅ Message deleted: \(id)")
+        } catch {
+            throw DatabaseError.deleteFailed("Message: \(error.localizedDescription)")
+        }
+    }
+
+    /// Fetch thread by ID (public version)
+    func fetchThread(id: UUID) async throws -> Thread? {
         guard let db = mainConnection else {
             throw DatabaseError.connectionFailed("Main connection not available")
         }
@@ -660,6 +872,8 @@ final class DatabaseManager {
             updatedAt: row[threadUpdatedAt]
         )
     }
+
+    // MARK: - Helper Methods
 
     private func updateThreadLastMessage(threadId: UUID, timestamp: Date) async throws {
         guard let db = mainConnection else { return }

@@ -125,11 +125,90 @@ defmodule GlobalbridgeBackend.Chat do
 
   @doc """
   Mark a message as read by a user.
+
+  Creates or updates a read receipt for the specified message.
+  Uses upsert to handle duplicate read attempts gracefully.
   """
   def mark_message_read(thread_id, message_id, user_id) do
-    # TODO: Implement read receipts
-    # This would insert/update a read_receipt record
-    :ok
+    alias GlobalbridgeBackend.Schemas.ReadReceipt
+
+    case get_thread(thread_id) do
+      nil ->
+        {:error, :thread_not_found}
+
+      thread ->
+        shard_repo = get_shard_repo(thread.database_shard_id)
+
+        # Use insert with on_conflict to handle upserts
+        attrs = %{
+          message_id: message_id,
+          user_id: user_id,
+          read_at: DateTime.utc_now()
+        }
+
+        %ReadReceipt{}
+        |> ReadReceipt.create_changeset(attrs)
+        |> shard_repo.insert(
+          on_conflict: {:replace, [:read_at, :updated_at]},
+          conflict_target: [:message_id, :user_id]
+        )
+    end
+  end
+
+  @doc """
+  Get read receipts for a message.
+
+  Returns list of users who have read the message with timestamps.
+  """
+  def get_message_read_receipts(thread_id, message_id) do
+    alias GlobalbridgeBackend.Schemas.ReadReceipt
+
+    case get_thread(thread_id) do
+      nil ->
+        {:error, :thread_not_found}
+
+      thread ->
+        shard_repo = get_shard_repo(thread.database_shard_id)
+
+        query =
+          from(rr in ReadReceipt,
+            where: rr.message_id == ^message_id,
+            order_by: [asc: rr.read_at],
+            select: rr
+          )
+
+        {:ok, shard_repo.all(query)}
+    end
+  end
+
+  @doc """
+  Get last read message ID for a user in a thread.
+
+  Useful for showing "read up to here" indicators.
+  """
+  def get_last_read_message(thread_id, user_id) do
+    alias GlobalbridgeBackend.Schemas.ReadReceipt
+
+    case get_thread(thread_id) do
+      nil ->
+        {:error, :thread_not_found}
+
+      thread ->
+        shard_repo = get_shard_repo(thread.database_shard_id)
+
+        query =
+          from(rr in ReadReceipt,
+            where: rr.user_id == ^user_id,
+            order_by: [desc: rr.read_at],
+            limit: 1,
+            select: rr.message_id
+          )
+
+        case shard_repo.one(query) do
+          nil -> {:ok, nil}
+          message_id -> {:ok, message_id}
+        end
+    end
   end
 
   # Private helpers

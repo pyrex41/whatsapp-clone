@@ -3,10 +3,49 @@ defmodule GlobalbridgeBackendWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug CORSPlug
   end
 
-  scope "/api", GlobalbridgeBackendWeb do
+  pipeline :auth do
+    plug GlobalbridgeBackend.Auth.Pipeline
+  end
+
+  scope "/api/auth", GlobalbridgeBackendWeb do
     pipe_through :api
+
+    # Public auth routes
+    post "/signup", AuthController, :signup
+    post "/login", AuthController, :login
+    post "/refresh", AuthController, :refresh
+  end
+
+  scope "/api/auth", GlobalbridgeBackendWeb do
+    pipe_through [:api, :auth]
+
+    # Protected auth routes
+    get "/me", AuthController, :me
+    post "/logout", AuthController, :logout
+    put "/password", AuthController, :change_password
+    put "/public-key", AuthController, :update_public_key
+    get "/public-key/:user_id", AuthController, :get_public_key
+  end
+
+  scope "/api/v1", GlobalbridgeBackendWeb do
+    pipe_through [:api, :auth]
+
+    # Feature flags
+    get "/features", FeatureController, :index
+    get "/features/:feature", FeatureController, :show
+    put "/features/tier", FeatureController, :update_tier
+
+    # CDC Sync endpoints
+    scope "/sync" do
+      post "/pull", SyncController, :pull
+      post "/push", SyncController, :push
+    end
+
+    # Protected API routes will go here
+    # Example: resources for threads, messages, etc.
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

@@ -28,6 +28,9 @@ public actor PhoenixChannelManager {
     private var reconnectAttempts = 0
     private var eventHandlers: [String: [(PhoenixMessage) -> Void]] = [:]
     private var presenceHandlers: [(String, UserPresence) -> Void] = []
+    private var typingHandlers: [String: [(TypingIndicator) -> Void]] = [:]
+    private var readReceiptHandlers: [String: [(ReadReceipt) -> Void]] = [:]
+    private var typingTimers: [String: Task<Void, Never>] = [:]
 
     // MARK: - Initialization
 
@@ -207,6 +210,71 @@ public actor PhoenixChannelManager {
         presenceHandlers.append(handler)
     }
 
+    /// Register handler for typing indicators
+    public func onTyping(conversationId: String, handler: @escaping (TypingIndicator) -> Void) {
+        if typingHandlers[conversationId] == nil {
+            typingHandlers[conversationId] = []
+        }
+        typingHandlers[conversationId]?.append(handler)
+    }
+
+    /// Register handler for read receipts
+    public func onReadReceipt(conversationId: String, handler: @escaping (ReadReceipt) -> Void) {
+        if readReceiptHandlers[conversationId] == nil {
+            readReceiptHandlers[conversationId] = []
+        }
+        readReceiptHandlers[conversationId]?.append(handler)
+    }
+
+    /// Send typing indicator
+    public func sendTypingIndicator(conversationId: String, isTyping: Bool) async {
+        guard let channel = channels["conversation:\(conversationId)"] else {
+            print("[Phoenix] Cannot send typing indicator - channel not joined")
+            return
+        }
+
+        let payload: [String: Any] = ["typing": isTyping]
+
+        channel.push("typing", payload: payload)
+            .receive("ok") { _ in
+                print("[Phoenix] Typing indicator sent: \(isTyping)")
+            }
+            .receive("error") { message in
+                print("[Phoenix] Failed to send typing indicator: \(message.payload)")
+            }
+
+        // Auto-stop typing after 5 seconds
+        if isTyping {
+            let timerKey = "\(conversationId)_typing"
+            typingTimers[timerKey]?.cancel()
+            typingTimers[timerKey] = Task {
+                try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
+                await sendTypingIndicator(conversationId: conversationId, isTyping: false)
+            }
+        }
+    }
+
+    /// Send read receipt
+    public func sendReadReceipt(conversationId: String, messageId: String) async {
+        guard let channel = channels["conversation:\(conversationId)"] else {
+            print("[Phoenix] Cannot send read receipt - channel not joined")
+            return
+        }
+
+        let payload: [String: Any] = [
+            "message_id": messageId,
+            "read_at": ISO8601DateFormatter().string(from: Date())
+        ]
+
+        channel.push("read_receipt", payload: payload)
+            .receive("ok") { _ in
+                print("[Phoenix] Read receipt sent for message: \(messageId)")
+            }
+            .receive("error") { message in
+                print("[Phoenix] Failed to send read receipt: \(message.payload)")
+            }
+    }
+
     // MARK: - Private Methods
 
     private func setupChannelHandlers(_ channel: Channel, conversationId: String) {
@@ -225,9 +293,17 @@ public actor PhoenixChannelManager {
         }
 
         // Handle typing indicators
-        channel.on("user_typing") { message in
-            // Handle typing indicator
-            print("[Phoenix] User typing in \(conversationId): \(message.payload)")
+        channel.on("user_typing") { [weak self] message in
+            Task {
+                await self?.handleTypingIndicator(message, conversationId: conversationId)
+            }
+        }
+
+        // Handle read receipts
+        channel.on("read_receipt") { [weak self] message in
+            Task {
+                await self?.handleReadReceipt(message, conversationId: conversationId)
+            }
         }
 
         // Handle presence
@@ -288,6 +364,34 @@ public actor PhoenixChannelManager {
                 )
                 presenceHandlers.forEach { $0(conversationId, presence) }
             }
+        }
+    }
+
+    private func handleTypingIndicator(_ message: Message, conversationId: String) {
+        do {
+            let data = try JSONSerialization.data(withJSONObject: message.payload)
+            let indicator = try JSONDecoder().decode(TypingIndicator.self, from: data)
+
+            // Notify handlers
+            typingHandlers[conversationId]?.forEach { handler in
+                handler(indicator)
+            }
+        } catch {
+            print("[Phoenix] Failed to decode typing indicator: \(error)")
+        }
+    }
+
+    private func handleReadReceipt(_ message: Message, conversationId: String) {
+        do {
+            let data = try JSONSerialization.data(withJSONObject: message.payload)
+            let receipt = try JSONDecoder().decode(ReadReceipt.self, from: data)
+
+            // Notify handlers
+            readReceiptHandlers[conversationId]?.forEach { handler in
+                handler(receipt)
+            }
+        } catch {
+            print("[Phoenix] Failed to decode read receipt: \(error)")
         }
     }
 

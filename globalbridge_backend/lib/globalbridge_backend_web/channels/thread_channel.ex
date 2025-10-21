@@ -11,7 +11,8 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
   use GlobalbridgeBackendWeb, :channel
 
   alias GlobalbridgeBackend.Chat
-  alias GlobalbridgeBackend.Schemas.{Message, Thread}
+  alias GlobalbridgeBackend.Notifications
+  alias GlobalbridgeBackendWeb.Presence
   require Logger
 
   @doc """
@@ -50,17 +51,33 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
 
   @impl true
   def handle_info(:after_join, socket) do
-    # Send presence information to client
-    # This is async to not block the join response
+    # Track user presence in this thread
     thread_id = socket.assigns.thread_id
+    user_id = socket.assigns.user_id
 
-    # Broadcast user presence
-    push(socket, "presence_state", %{
-      user_id: socket.assigns.user_id,
-      online_at: System.system_time(:millisecond)
-    })
+    # Start tracking presence
+    {:ok, _} =
+      Presence.track_user(socket, user_id, %{
+        online_at: System.system_time(:millisecond),
+        thread_id: thread_id
+      })
+
+    # Push current presence state to newly joined user
+    push(socket, "presence_state", Presence.list(socket))
 
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info(:stop_typing, socket) do
+    # Auto-broadcast typing stopped
+    broadcast_from!(socket, "user_typing", %{
+      user_id: socket.assigns.user_id,
+      is_typing: false,
+      timestamp: System.system_time(:millisecond)
+    })
+
+    {:noreply, assign(socket, :typing_timer, nil)}
   end
 
   @doc """
@@ -114,9 +131,13 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     # Using Task.Supervisor for monitored async operations
     Task.Supervisor.start_child(GlobalbridgeBackend.TaskSupervisor, fn ->
       case Chat.create_message(thread_id, message_attrs) do
-        {:ok, _message} ->
+        {:ok, message} ->
           # Update thread last_message_at timestamp
           Chat.update_thread_timestamp(thread_id)
+
+          # Send push notifications to offline users
+          send_push_notifications_for_message(thread_id, message, user_id)
+
           :ok
 
         {:error, changeset} ->
@@ -192,12 +213,26 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
   def handle_in("typing", %{"is_typing" => is_typing}, socket) do
     user_id = socket.assigns.user_id
 
+    # Cancel existing typing timeout if present
+    if socket.assigns[:typing_timer] do
+      Process.cancel_timer(socket.assigns.typing_timer)
+    end
+
     # Broadcast typing indicator (ephemeral, not persisted)
     broadcast_from!(socket, "user_typing", %{
       user_id: user_id,
       is_typing: is_typing,
       timestamp: System.system_time(:millisecond)
     })
+
+    # Auto-stop typing after 3 seconds if no new typing events
+    socket =
+      if is_typing do
+        timer = Process.send_after(self(), :stop_typing, :timer.seconds(3))
+        assign(socket, :typing_timer, timer)
+      else
+        assign(socket, :typing_timer, nil)
+      end
 
     {:noreply, socket}
   end
@@ -209,10 +244,16 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
 
     # Update read receipt asynchronously
     Task.Supervisor.start_child(GlobalbridgeBackend.TaskSupervisor, fn ->
-      Chat.mark_message_read(thread_id, message_id, user_id)
+      case Chat.mark_message_read(thread_id, message_id, user_id) do
+        {:ok, _receipt} ->
+          Logger.debug("Marked message #{message_id} as read by user #{user_id}")
+
+        {:error, reason} ->
+          Logger.error("Failed to mark message as read: #{inspect(reason)}")
+      end
     end)
 
-    # Broadcast read receipt to other participants
+    # Broadcast read receipt to other participants immediately
     broadcast_from!(socket, "message_read", %{
       user_id: user_id,
       message_id: message_id,
@@ -220,6 +261,27 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     })
 
     {:reply, :ok, socket}
+  end
+
+  @impl true
+  def handle_in("get_read_receipts", %{"message_id" => message_id}, socket) do
+    thread_id = socket.assigns.thread_id
+
+    case Chat.get_message_read_receipts(thread_id, message_id) do
+      {:ok, receipts} ->
+        formatted_receipts =
+          Enum.map(receipts, fn receipt ->
+            %{
+              user_id: receipt.user_id,
+              read_at: receipt.read_at
+            }
+          end)
+
+        {:reply, {:ok, %{receipts: formatted_receipts}}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, %{reason: inspect(reason)}}, socket}
+    end
   end
 
   # Private helper functions
@@ -235,6 +297,50 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
         else
           {:error, :not_participant}
         end
+    end
+  end
+
+  defp send_push_notifications_for_message(thread_id, message, sender_id) do
+    # Get all thread participants except the sender
+    participants = get_thread_participants_except(thread_id, sender_id)
+
+    # Get sender info for notification
+    sender = get_user_info(sender_id)
+    sender_name = sender[:name] || "Someone"
+
+    # Send notification to each offline participant
+    Enum.each(participants, fn participant_id ->
+      # Check if user is online in this thread
+      unless Presence.user_online?(thread_id, participant_id) do
+        # User is offline, send push notification
+        Notifications.send_message_notification(%{
+          user_id: participant_id,
+          thread_id: thread_id,
+          message_id: message.id,
+          sender_name: sender_name,
+          message_content: truncate_message(message.content)
+        })
+      end
+    end)
+  end
+
+  defp get_thread_participants_except(_thread_id, _except_user_id) do
+    # TODO: Implement actual participant lookup
+    # For now, return empty list
+    []
+  end
+
+  defp get_user_info(_user_id) do
+    # TODO: Implement actual user lookup
+    # For now, return basic info
+    %{id: _user_id, name: "User"}
+  end
+
+  defp truncate_message(content, max_length \\ 100) do
+    if String.length(content) > max_length do
+      String.slice(content, 0, max_length) <> "..."
+    else
+      content
     end
   end
 end

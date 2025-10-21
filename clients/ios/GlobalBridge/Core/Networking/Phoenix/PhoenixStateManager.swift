@@ -17,7 +17,8 @@ public class PhoenixStateManager {
     public private(set) var connectionState: PhoenixConnectionState = .disconnected
     public private(set) var messages: [String: [PhoenixMessage]] = [:] // conversationId -> messages
     public private(set) var presences: [String: [String: UserPresence]] = [:] // conversationId -> userId -> presence
-    public private(set) var typingUsers: [String: Set<String>] = [:] // conversationId -> userIds
+    public private(set) var typingStates: [String: TypingState] = [:] // conversationId -> typing state
+    public private(set) var readReceipts: [String: ReadReceiptState] = [:] // conversationId -> receipt state
 
     // MARK: - Private Properties
 
@@ -53,15 +54,35 @@ public class PhoenixStateManager {
     public func joinConversation(_ conversationId: String) async throws {
         try await channelManager.joinConversation(conversationId)
 
-        // Initialize message storage
+        // Initialize storage
         if messages[conversationId] == nil {
             messages[conversationId] = []
+        }
+        if typingStates[conversationId] == nil {
+            typingStates[conversationId] = TypingState()
+        }
+        if readReceipts[conversationId] == nil {
+            readReceipts[conversationId] = ReadReceiptState()
         }
 
         // Set up message handler
         await channelManager.onMessage(conversationId: conversationId) { [weak self] message in
             Task { @MainActor in
                 self?.handleMessage(message, conversationId: conversationId)
+            }
+        }
+
+        // Set up typing indicator handler
+        await channelManager.onTyping(conversationId: conversationId) { [weak self] indicator in
+            Task { @MainActor in
+                self?.handleTypingIndicator(indicator, conversationId: conversationId)
+            }
+        }
+
+        // Set up read receipt handler
+        await channelManager.onReadReceipt(conversationId: conversationId) { [weak self] receipt in
+            Task { @MainActor in
+                self?.handleReadReceipt(receipt, conversationId: conversationId)
             }
         }
     }
@@ -71,7 +92,8 @@ public class PhoenixStateManager {
         await channelManager.leaveConversation(conversationId)
         messages.removeValue(forKey: conversationId)
         presences.removeValue(forKey: conversationId)
-        typingUsers.removeValue(forKey: conversationId)
+        typingStates.removeValue(forKey: conversationId)
+        readReceipts.removeValue(forKey: conversationId)
     }
 
     /// Send a message
@@ -102,6 +124,26 @@ public class PhoenixStateManager {
     /// Get presence for users in a conversation
     public func getPresence(for conversationId: String) -> [String: UserPresence] {
         return presences[conversationId] ?? [:]
+    }
+
+    /// Get typing state for a conversation
+    public func getTypingState(for conversationId: String) -> TypingState {
+        return typingStates[conversationId] ?? TypingState()
+    }
+
+    /// Get read receipt state for a conversation
+    public func getReadReceiptState(for conversationId: String) -> ReadReceiptState {
+        return readReceipts[conversationId] ?? ReadReceiptState()
+    }
+
+    /// Send typing indicator
+    public func sendTypingIndicator(conversationId: String, isTyping: Bool) async {
+        await channelManager.sendTypingIndicator(conversationId: conversationId, isTyping: isTyping)
+    }
+
+    /// Send read receipt
+    public func sendReadReceipt(conversationId: String, messageId: String) async {
+        await channelManager.sendReadReceipt(conversationId: conversationId, messageId: messageId)
     }
 
     // MARK: - Private Methods
@@ -150,6 +192,38 @@ public class PhoenixStateManager {
 
     private func updateConnectionState() async {
         connectionState = await channelManager.getConnectionState()
+    }
+
+    private func handleTypingIndicator(_ indicator: TypingIndicator, conversationId: String) {
+        if typingStates[conversationId] == nil {
+            typingStates[conversationId] = TypingState()
+        }
+
+        if indicator.isTyping {
+            typingStates[conversationId]?.typingUsers.insert(indicator.userId)
+        } else {
+            typingStates[conversationId]?.typingUsers.remove(indicator.userId)
+        }
+
+        typingStates[conversationId]?.lastUpdate = Date()
+
+        // Auto-clear typing indicator after 5 seconds
+        Task {
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            typingStates[conversationId]?.typingUsers.remove(indicator.userId)
+        }
+    }
+
+    private func handleReadReceipt(_ receipt: ReadReceipt, conversationId: String) {
+        if readReceipts[conversationId] == nil {
+            readReceipts[conversationId] = ReadReceiptState()
+        }
+
+        readReceipts[conversationId]?.markAsRead(
+            messageId: receipt.messageId,
+            userId: receipt.userId,
+            at: receipt.readAt
+        )
     }
 }
 

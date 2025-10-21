@@ -1,0 +1,248 @@
+defmodule GlobalbridgeBackend.Contexts.Accounts.Features do
+  @moduledoc """
+  Feature flag management based on user tiers (free, pro, enterprise).
+
+  This module defines feature flags and provides functions to check if a user
+  has access to specific features based on their tier.
+
+  ## Tiers
+
+  - **free**: Basic features only
+  - **pro**: Enhanced features for power users
+  - **enterprise**: All features including advanced capabilities
+
+  ## Usage
+
+      iex> Features.has_feature?(user, :e2ee)
+      true
+
+      iex> Features.get_user_features(user)
+      %{
+        e2ee: true,
+        group_calls: false,
+        file_sharing: true,
+        ...
+      }
+  """
+
+  alias GlobalbridgeBackend.Schemas.User
+
+  @type tier :: :free | :pro | :enterprise
+  @type feature :: atom()
+
+  @doc """
+  Feature definitions by tier.
+
+  Each tier includes all features from lower tiers.
+  """
+  def feature_definitions do
+    %{
+      # Free tier - basic messaging
+      free: [
+        :direct_messaging,     # 1-on-1 chats
+        :group_messaging,      # Group chats up to 10 members
+        :text_messages,        # Text messaging
+        :emoji_reactions       # React to messages
+      ],
+
+      # Pro tier - enhanced features
+      pro: [
+        :e2ee,                 # End-to-end encryption
+        :voice_calls,          # Voice calls
+        :video_calls,          # Video calls
+        :file_sharing,         # File attachments (up to 100MB)
+        :large_groups,         # Groups up to 100 members
+        :message_search,       # Search message history
+        :custom_themes,        # Custom UI themes
+        :priority_support      # Priority customer support
+      ],
+
+      # Enterprise tier - all features
+      enterprise: [
+        :admin_dashboard,      # Admin management dashboard
+        :analytics,            # Usage analytics
+        :sso_integration,      # Single sign-on
+        :unlimited_storage,    # Unlimited file storage
+        :unlimited_groups,     # Unlimited group size
+        :custom_branding,      # Custom branding options
+        :api_access,           # API access for integrations
+        :dedicated_support,    # Dedicated support team
+        :sla_guarantee,        # Service level agreement
+        :audit_logs           # Compliance audit logs
+      ]
+    }
+  end
+
+  @doc """
+  Get all features available for a specific tier.
+  Includes features from all lower tiers.
+
+  ## Examples
+
+      iex> Features.tier_features(:pro)
+      [:direct_messaging, :group_messaging, ..., :e2ee, :voice_calls, ...]
+  """
+  def tier_features(tier) when tier in [:free, :pro, :enterprise] do
+    definitions = feature_definitions()
+
+    case tier do
+      :free ->
+        definitions.free
+
+      :pro ->
+        definitions.free ++ definitions.pro
+
+      :enterprise ->
+        definitions.free ++ definitions.pro ++ definitions.enterprise
+    end
+  end
+
+  @doc """
+  Check if a user has access to a specific feature.
+
+  ## Examples
+
+      iex> user = %User{tier: "pro"}
+      iex> Features.has_feature?(user, :e2ee)
+      true
+
+      iex> user = %User{tier: "free"}
+      iex> Features.has_feature?(user, :voice_calls)
+      false
+  """
+  def has_feature?(%User{tier: tier_string}, feature) when is_binary(tier_string) do
+    tier = String.to_existing_atom(tier_string)
+    has_feature_for_tier?(tier, feature)
+  rescue
+    ArgumentError -> false
+  end
+
+  def has_feature?(%User{tier: nil}, _feature), do: false
+  def has_feature?(nil, _feature), do: false
+
+  @doc """
+  Get all features available to a user as a map.
+
+  Returns a map with feature names as keys and boolean values.
+
+  ## Examples
+
+      iex> user = %User{tier: "pro"}
+      iex> Features.get_user_features(user)
+      %{
+        direct_messaging: true,
+        voice_calls: true,
+        admin_dashboard: false,
+        ...
+      }
+  """
+  def get_user_features(%User{tier: tier_string} = user) when is_binary(tier_string) do
+    all_features = get_all_feature_names()
+
+    Map.new(all_features, fn feature ->
+      {feature, has_feature?(user, feature)}
+    end)
+  end
+
+  def get_user_features(%User{tier: nil}) do
+    # User has no tier, return all features as false
+    all_features = get_all_feature_names()
+    Map.new(all_features, fn feature -> {feature, false} end)
+  end
+
+  def get_user_features(nil), do: %{}
+
+  @doc """
+  Get tier from string or atom.
+
+  ## Examples
+
+      iex> Features.parse_tier("pro")
+      {:ok, :pro}
+
+      iex> Features.parse_tier(:enterprise)
+      {:ok, :enterprise}
+
+      iex> Features.parse_tier("invalid")
+      {:error, :invalid_tier}
+  """
+  def parse_tier(tier) when tier in ["free", "pro", "enterprise"] do
+    {:ok, String.to_existing_atom(tier)}
+  end
+
+  def parse_tier(tier) when tier in [:free, :pro, :enterprise] do
+    {:ok, tier}
+  end
+
+  def parse_tier(_), do: {:error, :invalid_tier}
+
+  @doc """
+  Upgrade user to a specific tier.
+
+  Returns {:ok, tier} or {:error, reason}.
+  """
+  def validate_tier_upgrade(current_tier, new_tier)
+      when current_tier in [:free, :pro, :enterprise] and
+             new_tier in [:free, :pro, :enterprise] do
+    tier_order = [:free, :pro, :enterprise]
+    current_index = Enum.find_index(tier_order, &(&1 == current_tier))
+    new_index = Enum.find_index(tier_order, &(&1 == new_tier))
+
+    if new_index >= current_index do
+      {:ok, new_tier}
+    else
+      {:error, :downgrade_not_allowed}
+    end
+  end
+
+  def validate_tier_upgrade(_, _), do: {:error, :invalid_tier}
+
+  @doc """
+  Get feature limits for a tier.
+
+  Returns a map with various limits for the tier.
+  """
+  def tier_limits(tier) when tier in [:free, :pro, :enterprise] do
+    case tier do
+      :free ->
+        %{
+          max_group_members: 10,
+          max_file_size_mb: 10,
+          max_storage_gb: 1,
+          max_call_participants: 2,
+          message_history_days: 30
+        }
+
+      :pro ->
+        %{
+          max_group_members: 100,
+          max_file_size_mb: 100,
+          max_storage_gb: 100,
+          max_call_participants: 10,
+          message_history_days: 365
+        }
+
+      :enterprise ->
+        %{
+          max_group_members: :unlimited,
+          max_file_size_mb: :unlimited,
+          max_storage_gb: :unlimited,
+          max_call_participants: :unlimited,
+          message_history_days: :unlimited
+        }
+    end
+  end
+
+  def tier_limits(_), do: %{}
+
+  # Private functions
+
+  defp has_feature_for_tier?(tier, feature) do
+    feature in tier_features(tier)
+  end
+
+  defp get_all_feature_names do
+    definitions = feature_definitions()
+    definitions.free ++ definitions.pro ++ definitions.enterprise
+  end
+end

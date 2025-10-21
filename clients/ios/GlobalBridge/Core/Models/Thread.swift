@@ -17,8 +17,12 @@ struct Thread: Identifiable, Codable, Equatable {
     var isArchived: Bool
     var isMuted: Bool
     let databaseShardId: String
+    var unreadCount: Int
+    var lastReadMessageId: UUID?
+    var encryptionVersion: Int
+    var encryptionSalt: String?
     let createdAt: Date
-    let updatedAt: Date
+    var updatedAt: Date
 
     enum ThreadType: String, Codable {
         case direct = "direct"
@@ -35,6 +39,10 @@ struct Thread: Identifiable, Codable, Equatable {
         isArchived: Bool = false,
         isMuted: Bool = false,
         databaseShardId: String? = nil,
+        unreadCount: Int = 0,
+        lastReadMessageId: UUID? = nil,
+        encryptionVersion: Int = 1,
+        encryptionSalt: String? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -46,6 +54,10 @@ struct Thread: Identifiable, Codable, Equatable {
         self.isArchived = isArchived
         self.isMuted = isMuted
         self.databaseShardId = databaseShardId ?? "thread_\(id.uuidString)"
+        self.unreadCount = unreadCount
+        self.lastReadMessageId = lastReadMessageId
+        self.encryptionVersion = encryptionVersion
+        self.encryptionSalt = encryptionSalt
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }

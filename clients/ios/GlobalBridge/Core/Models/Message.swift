@@ -19,6 +19,9 @@ struct Message: Identifiable, Codable, Equatable {
     var replyToId: UUID?
     var editedAt: Date?
     var deletedAt: Date?
+    var isEncrypted: Bool
+    var encryptionKeyId: String?
+    var ciphertext: Data?
     let createdAt: Date
     let updatedAt: Date
 
@@ -40,6 +43,9 @@ struct Message: Identifiable, Codable, Equatable {
         case failed = "failed"
     }
 
+    // Alias for backward compatibility
+    typealias Status = MessageStatus
+
     init(
         id: UUID = UUID(),
         threadId: UUID,
@@ -51,6 +57,9 @@ struct Message: Identifiable, Codable, Equatable {
         replyToId: UUID? = nil,
         editedAt: Date? = nil,
         deletedAt: Date? = nil,
+        isEncrypted: Bool = false,
+        encryptionKeyId: String? = nil,
+        ciphertext: Data? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -64,6 +73,9 @@ struct Message: Identifiable, Codable, Equatable {
         self.replyToId = replyToId
         self.editedAt = editedAt
         self.deletedAt = deletedAt
+        self.isEncrypted = isEncrypted
+        self.encryptionKeyId = encryptionKeyId
+        self.ciphertext = ciphertext
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }

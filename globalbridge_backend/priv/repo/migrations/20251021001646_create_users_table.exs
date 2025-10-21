@@ -10,6 +10,7 @@ defmodule GlobalbridgeBackend.Repo.Migrations.CreateUsersTable do
       add :display_name, :string
       add :avatar_url, :string
       add :status_message, :string
+      add :public_key, :text
       add :last_seen_at, :utc_datetime
       add :is_online, :boolean, default: false
 

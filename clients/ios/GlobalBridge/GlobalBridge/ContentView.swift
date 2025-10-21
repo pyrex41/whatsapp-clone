@@ -8,16 +8,16 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var store = Store(
+        initialState: AppState(),
+        reducer: appReducer,
+        environment: .preview
+    )
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        AppRootView(store: store)
     }
-}/// 
+}
 
 #Preview {
     ContentView()
