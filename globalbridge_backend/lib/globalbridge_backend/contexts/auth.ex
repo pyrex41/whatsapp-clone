@@ -60,7 +60,7 @@ defmodule GlobalbridgeBackend.Contexts.Auth do
           # Update last_seen and online status
           user
           |> User.update_changeset(%{
-            last_seen_at: DateTime.utc_now(),
+            last_seen_at: DateTime.utc_now() |> DateTime.truncate(:second),
             is_online: true
           })
           |> Repo.update()
@@ -117,7 +117,7 @@ defmodule GlobalbridgeBackend.Contexts.Auth do
         user
         |> User.update_changeset(%{
           is_online: is_online,
-          last_seen_at: if(is_online, do: DateTime.utc_now(), else: user.last_seen_at)
+          last_seen_at: if(is_online, do: DateTime.utc_now() |> DateTime.truncate(:second), else: user.last_seen_at)
         })
         |> Repo.update()
 

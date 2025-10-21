@@ -80,6 +80,65 @@ IO.puts("✓ Created user: #{alice.username} (#{alice.display_name})")
 
 IO.puts("✓ Created user: #{bob.username} (#{bob.display_name})")
 
+# Create test threads for development
+alias GlobalbridgeBackend.Repo
+alias GlobalbridgeBackend.Schemas.{Thread, ThreadParticipant}
+
+IO.puts("Creating test threads...")
+
+# Helper to create thread with participants without complex preloading
+create_thread_simple = fn attrs, participant_ids ->
+  attrs =
+    attrs
+    |> Map.put(:database_shard_id, Ecto.UUID.generate())
+    |> Map.put(:last_message_at, DateTime.utc_now() |> DateTime.truncate(:second))
+
+  {:ok, thread} = %Thread{}
+  |> Thread.create_changeset(attrs)
+  |> Repo.insert()
+
+  # Add participants
+  Enum.each(participant_ids, fn user_id ->
+    %ThreadParticipant{}
+    |> ThreadParticipant.create_changeset(%{
+      thread_id: thread.id,
+      user_id: user_id,
+      role: "member"
+    })
+    |> Repo.insert!()
+  end)
+
+  thread
+end
+
+# Thread 1: Direct message between testuser and alice
+thread1 = create_thread_simple.(%{
+  thread_type: "direct",
+  title: "Chat with Alice"
+}, [test_user.id, alice.id])
+IO.puts("✓ Created thread: #{thread1.title}")
+
+# Thread 2: Group chat
+thread2 = create_thread_simple.(%{
+  thread_type: "group",
+  title: "Team Discussion"
+}, [test_user.id, alice.id, bob.id])
+IO.puts("✓ Created thread: #{thread2.title}")
+
+# Thread 3: Direct message between testuser and bob
+thread3 = create_thread_simple.(%{
+  thread_type: "direct",
+  title: "Chat with Bob"
+}, [test_user.id, bob.id])
+IO.puts("✓ Created thread: #{thread3.title}")
+
+# Thread 4: Another group with demo user
+thread4 = create_thread_simple.(%{
+  thread_type: "group",
+  title: "Project Planning"
+}, [test_user.id, demo_user.id, alice.id])
+IO.puts("✓ Created thread: #{thread4.title}")
+
 IO.puts("\n" <> String.duplicate("=", 60))
 IO.puts("Database seeding complete!")
 IO.puts(String.duplicate("=", 60))
@@ -103,4 +162,5 @@ IO.puts("  Phone:    +15559876543")
 IO.puts("  Password: bob123")
 IO.puts("─────────────────────────────────────────────────────────────")
 IO.puts("\nYou can log in with either username OR phone number")
+IO.puts("\n4 test threads have been created for 'testuser'")
 IO.puts(String.duplicate("=", 60) <> "\n")

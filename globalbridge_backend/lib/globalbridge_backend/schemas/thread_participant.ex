@@ -29,7 +29,7 @@ defmodule GlobalbridgeBackend.Schemas.ThreadParticipant do
     |> cast(attrs, [:thread_id, :user_id, :role])
     |> validate_required([:thread_id, :user_id])
     |> validate_inclusion(:role, ["admin", "member"])
-    |> put_change(:joined_at, DateTime.utc_now())
+    |> put_change(:joined_at, DateTime.utc_now() |> DateTime.truncate(:second))
     |> put_change(:is_active, true)
     |> unique_constraint([:thread_id, :user_id])
     |> foreign_key_constraint(:thread_id)
@@ -42,7 +42,7 @@ defmodule GlobalbridgeBackend.Schemas.ThreadParticipant do
   def remove_changeset(participant, attrs \\ %{}) do
     participant
     |> cast(attrs, [:left_at, :is_active])
-    |> put_change(:left_at, DateTime.utc_now())
+    |> put_change(:left_at, DateTime.utc_now() |> DateTime.truncate(:second))
     |> put_change(:is_active, false)
   end
 end

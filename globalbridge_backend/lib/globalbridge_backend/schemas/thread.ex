@@ -36,7 +36,7 @@ defmodule GlobalbridgeBackend.Schemas.Thread do
     |> validate_required([:thread_type, :database_shard_id])
     |> validate_inclusion(:thread_type, ["direct", "group"])
     |> validate_length(:title, max: 100)
-    |> put_change(:last_message_at, DateTime.utc_now())
+    |> put_change(:last_message_at, DateTime.utc_now() |> DateTime.truncate(:second))
   end
 
   @doc """
