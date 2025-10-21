@@ -17,6 +17,12 @@ defmodule GlobalbridgeBackendWeb.FallbackController do
     |> json(%{error: "Unauthorized"})
   end
 
+  def call(conn, {:error, :forbidden}) do
+    conn
+    |> put_status(:forbidden)
+    |> json(%{error: "Forbidden"})
+  end
+
   def call(conn, {:error, :invalid_credentials}) do
     conn
     |> put_status(:unauthorized)

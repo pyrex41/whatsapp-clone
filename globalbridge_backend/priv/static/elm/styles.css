@@ -219,3 +219,281 @@ h1 {
     background-color: var(--border);
     transform: translateY(-1px);
 }
+
+/* Thread List Styles */
+.thread-list-page {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.thread-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.thread-list-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Search Bar */
+.search-bar {
+    margin-bottom: 1rem;
+}
+
+.search-input {
+    width: 100%;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
+}
+
+/* Thread Filters */
+.thread-filters {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 0.5rem 1rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+    background-color: var(--bg-tertiary);
+    border-color: var(--accent);
+}
+
+.filter-btn.active {
+    background-color: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+/* Thread List */
+.thread-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.thread-item {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.thread-item:hover {
+    background-color: var(--bg-tertiary);
+    border-color: var(--accent);
+    transform: translateX(4px);
+}
+
+.thread-item.selected {
+    background-color: var(--bg-tertiary);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.1);
+}
+
+.thread-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.thread-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.thread-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.thread-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.last-message {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.text-muted {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.unread-badge {
+    background-color: var(--accent);
+    color: white;
+    border-radius: 12px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    min-width: 20px;
+    text-align: center;
+}
+
+/* Bridge Badges and Status */
+.bridge-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.bridge-slack {
+    background-color: rgba(97, 31, 105, 0.3);
+    color: #e01e5a;
+    border: 1px solid rgba(224, 30, 90, 0.3);
+}
+
+.bridge-telegram {
+    background-color: rgba(0, 136, 204, 0.3);
+    color: #0088cc;
+    border: 1px solid rgba(0, 136, 204, 0.3);
+}
+
+.bridge-whatsapp {
+    background-color: rgba(37, 211, 102, 0.3);
+    color: #25d366;
+    border: 1px solid rgba(37, 211, 102, 0.3);
+}
+
+.bridge-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-text {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.status-connected .status-indicator {
+    background-color: var(--success);
+}
+
+.status-syncing .status-indicator {
+    background-color: var(--warning);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.status-disconnected .status-indicator {
+    background-color: var(--text-secondary);
+}
+
+.status-error .status-indicator {
+    background-color: var(--error);
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.4;
+    }
+}
+
+/* Empty States */
+.thread-list-empty,
+.thread-list-loading,
+.thread-list-error {
+    text-align: center;
+    padding: 3rem;
+    background-color: var(--bg-secondary);
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+}
+
+.thread-list-error {
+    border-color: var(--error);
+    color: var(--error);
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    justify-content: flex-end;
+}

@@ -2,7 +2,7 @@ module Page.Login exposing (Model, Msg(..), init, update, view)
 
 {-| Login page for GlobalBridge Messenger.
 
-Provides email/password authentication with form validation.
+Provides username/phone authentication with form validation.
 
 -}
 
@@ -30,9 +30,9 @@ init apiConfig csrfToken devMode =
     { form =
         if devMode then
             -- Developer mode preset credentials
-            { email = "dev@globalbridge.io"
+            { identifier = "devuser"
             , password = "dev123456"
-            , emailError = Nothing
+            , identifierError = Nothing
             , passwordError = Nothing
             , isSubmitting = False
             }
@@ -49,7 +49,7 @@ init apiConfig csrfToken devMode =
 
 
 type Msg
-    = EmailChanged String
+    = IdentifierChanged String
     | PasswordChanged String
     | FormSubmitted
     | LoginResponse (Result Api.ApiError Api.LoginResponse)
@@ -58,13 +58,13 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        EmailChanged email ->
+        IdentifierChanged identifier ->
             let
                 form =
                     model.form
 
                 updatedForm =
-                    { form | email = email, emailError = Nothing }
+                    { form | identifier = identifier, identifierError = Nothing }
             in
             ( { model | form = updatedForm }, Cmd.none )
 
@@ -129,20 +129,20 @@ update msg model =
 validateForm : LoginForm -> Result LoginForm Credentials
 validateForm form =
     let
-        emailResult =
-            Auth.validateEmail form.email
+        identifierResult =
+            Auth.validateIdentifier form.identifier
 
         passwordResult =
             Auth.validatePassword form.password
     in
-    case ( emailResult, passwordResult ) of
-        ( Ok email, Ok password ) ->
-            Ok { email = email, password = password, csrfToken = "" }
+    case ( identifierResult, passwordResult ) of
+        ( Ok identifier, Ok password ) ->
+            Ok { identifier = identifier, password = password, csrfToken = "" }
 
-        ( emailErr, passwordErr ) ->
+        ( identifierErr, passwordErr ) ->
             Err
                 { form
-                    | emailError = Result.toMaybe (Result.mapError identity emailErr)
+                    | identifierError = Result.toMaybe (Result.mapError identity identifierErr)
                     , passwordError = Result.toMaybe (Result.mapError identity passwordErr)
                 }
 
@@ -157,7 +157,7 @@ httpErrorToString error =
             "Request timed out"
 
         Api.BadStatus 401 _ ->
-            "Invalid email or password"
+            "Invalid username/phone or password"
 
         Api.BadStatus 403 _ ->
             "Access forbidden"
@@ -169,7 +169,7 @@ httpErrorToString error =
             "Invalid response: " ++ msg
 
         Api.Unauthorized ->
-            "Invalid email or password"
+            "Invalid username/phone or password"
 
         Api.NotFound ->
             "Service not found"
@@ -201,17 +201,17 @@ loginForm : LoginForm -> Html Msg
 loginForm form =
     Html.form [ class "login-form", onSubmit FormSubmitted ]
         [ div [ class "form-group" ]
-            [ label [ class "form-label" ] [ text "Email" ]
+            [ label [ class "form-label" ] [ text "Username or Phone" ]
             , input
-                [ type_ "email"
+                [ type_ "text"
                 , class "form-input"
-                , placeholder "you@example.com"
-                , value form.email
-                , onInput EmailChanged
+                , placeholder "username or +1234567890"
+                , value form.identifier
+                , onInput IdentifierChanged
                 , disabled form.isSubmitting
                 ]
                 []
-            , viewError form.emailError
+            , viewError form.identifierError
             ]
         , div [ class "form-group" ]
             [ label [ class "form-label" ] [ text "Password" ]
@@ -254,4 +254,4 @@ viewError maybeError =
 
 isFormValid : LoginForm -> Bool
 isFormValid form =
-    not (String.isEmpty form.email) && not (String.isEmpty form.password)
+    not (String.isEmpty form.identifier) && not (String.isEmpty form.password)

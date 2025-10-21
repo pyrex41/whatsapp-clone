@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1B40AF8E2EA83DEE0090F1F8 /* Auth0 in Frameworks */ = {isa = PBXBuildFile; productRef = 1B40AF8D2EA83DEE0090F1F8 /* Auth0 */; };
 		1B8132C12EA7137A00583728 /* SwiftPhoenixClient in Frameworks */ = {isa = PBXBuildFile; productRef = 1B8132C02EA7137A00583728 /* SwiftPhoenixClient */; };
 		1B8132C42EA7138E00583728 /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = 1B8132C32EA7138E00583728 /* SQLite */; };
 /* End PBXBuildFile section */
@@ -38,6 +39,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1B40AF8E2EA83DEE0090F1F8 /* Auth0 in Frameworks */,
 				1B8132C42EA7138E00583728 /* SQLite in Frameworks */,
 				1B8132C12EA7137A00583728 /* SwiftPhoenixClient in Frameworks */,
 			);
@@ -88,6 +90,7 @@
 			packageProductDependencies = (
 				1B8132C02EA7137A00583728 /* SwiftPhoenixClient */,
 				1B8132C32EA7138E00583728 /* SQLite */,
+				1B40AF8D2EA83DEE0090F1F8 /* Auth0 */,
 			);
 			productName = GlobalBridge;
 			productReference = 1B81327B2EA70FB200583728 /* GlobalBridge.app */;
@@ -120,6 +123,7 @@
 			packageReferences = (
 				1B8132BF2EA7137A00583728 /* XCRemoteSwiftPackageReference "SwiftPhoenixClient" */,
 				1B8132C22EA7138E00583728 /* XCRemoteSwiftPackageReference "SQLite" */,
+				1B40AF8C2EA83DEE0090F1F8 /* XCRemoteSwiftPackageReference "Auth0" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1B81327C2EA70FB200583728 /* Products */;
@@ -361,6 +365,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		1B40AF8C2EA83DEE0090F1F8 /* XCRemoteSwiftPackageReference "Auth0" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/auth0/Auth0.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.15.1;
+			};
+		};
 		1B8132BF2EA7137A00583728 /* XCRemoteSwiftPackageReference "SwiftPhoenixClient" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/davidstump/SwiftPhoenixClient";
@@ -380,6 +392,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		1B40AF8D2EA83DEE0090F1F8 /* Auth0 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1B40AF8C2EA83DEE0090F1F8 /* XCRemoteSwiftPackageReference "Auth0" */;
+			productName = Auth0;
+		};
 		1B8132C02EA7137A00583728 /* SwiftPhoenixClient */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 1B8132BF2EA7137A00583728 /* XCRemoteSwiftPackageReference "SwiftPhoenixClient" */;

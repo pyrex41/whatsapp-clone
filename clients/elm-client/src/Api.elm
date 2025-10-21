@@ -23,7 +23,7 @@ and authentication integration.
 
 import Auth exposing (Credentials, User)
 import Http
-import Json.Decode as Decode exposing (Decoder, field, int, list, maybe, string)
+import Json.Decode as Decode exposing (Decoder, at, field, int, list, maybe, string)
 import Json.Encode as Encode
 import Types exposing (Attachment, AttachmentType(..), Bridge, BridgeId, BridgePlatform(..), BridgeStatus(..), DeliveryStatus(..), Message, Thread, ThreadId)
 
@@ -146,7 +146,7 @@ threadEndpoint config threadId =
 -- HTTP REQUESTS
 
 
-{-| Login with email and password
+{-| Login with username/phone and password
 -}
 login : ApiConfig -> Credentials -> (Result ApiError LoginResponse -> msg) -> Cmd msg
 login config creds toMsg =
@@ -258,7 +258,7 @@ sendMessage config authToken threadId content toMsg =
 encodeCredentials : Credentials -> Encode.Value
 encodeCredentials creds =
     Encode.object
-        [ ( "identifier", Encode.string creds.email )
+        [ ( "identifier", Encode.string creds.identifier )
         , ( "password", Encode.string creds.password )
         ]
 
@@ -268,27 +268,32 @@ encodeCredentials creds =
 
 loginDecoder : Decoder LoginResponse
 loginDecoder =
-    Decode.map3 LoginResponse
-        (field "user" userDecoder)
-        (field "access_token" string)
-        (field "refresh_token" string)
+    field "data"
+        (Decode.map3 LoginResponse
+            (field "user" userDecoder)
+            (at ["tokens", "access_token"] string)
+            (at ["tokens", "refresh_token"] string)
+        )
 
 
 userDecoder : Decoder User
 userDecoder =
-    Decode.map3 User
+    Decode.map4 User
         (field "id" string)
-        (field "email" string)
-        (field "created_at" string)
+        (field "username" string)
+        (field "phone_number" string)
+        (field "inserted_at" string)
 
 
 bootstrapDecoder : Decoder BootstrapData
 bootstrapDecoder =
-    Decode.map4 BootstrapData
-        (field "user" userDecoder)
-        (field "threads" (Decode.list threadDecoder))
-        (field "bridges" (Decode.list bridgeDecoder))
-        (field "csrf_token" string)
+    field "data"
+        (Decode.map4 BootstrapData
+            (field "user" userDecoder)
+            (field "threads" (Decode.list threadDecoder))
+            (field "bridges" (Decode.list bridgeDecoder))
+            (field "csrf_token" string)
+        )
 
 
 threadDecoder : Decoder Thread

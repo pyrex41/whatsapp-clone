@@ -8,36 +8,38 @@
 import Foundation
 
 extension Thread {
-    static let sampleThreads: [Thread] = [
-        Thread(
-            threadType: .direct,
-            title: "Product Strategy",
-            avatarUrl: nil,
-            lastMessageAt: Date().addingTimeInterval(-60),
-            databaseShardId: "thread_product_strategy",
-            unreadCount: 2
-        ),
-        Thread(
-            threadType: .group,
-            title: "Bridge Integrations",
-            avatarUrl: nil,
-            lastMessageAt: Date().addingTimeInterval(-3600),
-            databaseShardId: "thread_bridge_integrations",
-            unreadCount: 0
-        ),
-        Thread(
-            threadType: .channel,
-            title: "QA Sync",
-            avatarUrl: nil,
-            lastMessageAt: Date().addingTimeInterval(-10800),
-            databaseShardId: "thread_qa_sync",
-            unreadCount: 5
-        )
-    ]
+    nonisolated static var sampleThreads: [Thread] {
+        [
+            Thread(
+                threadType: .direct,
+                title: "Product Strategy",
+                avatarUrl: nil,
+                lastMessageAt: Date().addingTimeInterval(-60),
+                databaseShardId: "thread_product_strategy",
+                unreadCount: 2
+            ),
+            Thread(
+                threadType: .group,
+                title: "Bridge Integrations",
+                avatarUrl: nil,
+                lastMessageAt: Date().addingTimeInterval(-3600),
+                databaseShardId: "thread_bridge_integrations",
+                unreadCount: 0
+            ),
+            Thread(
+                threadType: .channel,
+                title: "QA Sync",
+                avatarUrl: nil,
+                lastMessageAt: Date().addingTimeInterval(-10800),
+                databaseShardId: "thread_qa_sync",
+                unreadCount: 5
+            )
+        ]
+    }
 }
 
 extension Message {
-    static func samples(for threadId: UUID, sender: User = .sampleCurrent) -> [Message] {
+    nonisolated static func samples(for threadId: UUID, sender: User) -> [Message] {
         [
             Message(
                 threadId: threadId,
@@ -64,5 +66,9 @@ extension Message {
                 createdAt: Date().addingTimeInterval(-120)
             )
         ]
+    }
+
+    nonisolated static func samples(for threadId: UUID) -> [Message] {
+        samples(for: threadId, sender: User.sampleCurrent)
     }
 }

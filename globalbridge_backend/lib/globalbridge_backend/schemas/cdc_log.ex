@@ -11,15 +11,16 @@ defmodule GlobalbridgeBackend.Schemas.CDCLog do
   @foreign_key_type :binary_id
 
   schema "cdc_logs" do
-    field :table_name, :string
-    field :record_id, :binary_id
-    field :operation, :string  # "INSERT", "UPDATE", "DELETE"
-    field :old_data, :map
-    field :new_data, :map
-    field :changed_fields, {:array, :string}
-    field :user_id, :binary_id
-    field :device_id, :binary_id
-    field :timestamp, :utc_datetime
+    field(:table_name, :string)
+    field(:record_id, :binary_id)
+    # "INSERT", "UPDATE", "DELETE"
+    field(:operation, :string)
+    field(:old_data, :map)
+    field(:new_data, :map)
+    field(:changed_fields, {:array, :string})
+    field(:user_id, :binary_id)
+    field(:device_id, :binary_id)
+    field(:timestamp, :utc_datetime)
 
     timestamps(type: :utc_datetime, updated_at: false)
   end
@@ -42,6 +43,19 @@ defmodule GlobalbridgeBackend.Schemas.CDCLog do
     ])
     |> validate_required([:table_name, :record_id, :operation, :new_data])
     |> validate_inclusion(:operation, ["INSERT", "UPDATE", "DELETE"])
-    |> put_change(:timestamp, DateTime.utc_now())
+    |> ensure_timestamp()
+  end
+
+  defp ensure_timestamp(changeset) do
+    case get_field(changeset, :timestamp) do
+      nil ->
+        put_change(changeset, :timestamp, DateTime.utc_now() |> DateTime.truncate(:second))
+
+      %DateTime{} = dt ->
+        put_change(changeset, :timestamp, DateTime.truncate(dt, :second))
+
+      _ ->
+        changeset
+    end
   end
 end

@@ -8,6 +8,7 @@ defmodule GlobalbridgeBackend.Chat do
 
   alias GlobalbridgeBackend.Repo
   alias GlobalbridgeBackend.Schemas.{Message, Thread, ThreadParticipant}
+  alias GlobalbridgeBackend.Sync.CDCLogger
   import Ecto.Query
 
   @doc """
@@ -44,9 +45,19 @@ defmodule GlobalbridgeBackend.Chat do
         # Use the thread's shard database
         shard_repo = get_shard_repo(thread.database_shard_id)
 
+        attrs = Map.put(attrs, :thread_id, thread_id)
+
         %Message{}
         |> Message.create_changeset(attrs)
         |> shard_repo.insert()
+        |> case do
+          {:ok, message} ->
+            CDCLogger.log_message_insert(thread, message, user_id: message.sender_id)
+            {:ok, message}
+
+          error ->
+            error
+        end
     end
   end
 
@@ -69,9 +80,25 @@ defmodule GlobalbridgeBackend.Chat do
 
           message ->
             if message.sender_id == user_id do
+              old_snapshot = CDCLogger.message_to_map(thread, message)
+
               message
               |> Message.edit_changeset(%{content: new_content})
               |> shard_repo.update()
+              |> case do
+                {:ok, updated} ->
+                  CDCLogger.log_message_update(
+                    thread,
+                    updated,
+                    user_id: user_id,
+                    old_data: old_snapshot
+                  )
+
+                  {:ok, updated}
+
+                error ->
+                  error
+              end
             else
               {:error, :unauthorized}
             end
@@ -98,9 +125,25 @@ defmodule GlobalbridgeBackend.Chat do
 
           message ->
             if message.sender_id == user_id do
+              old_snapshot = CDCLogger.message_to_map(thread, message)
+
               message
               |> Message.delete_changeset()
               |> shard_repo.update()
+              |> case do
+                {:ok, deleted} ->
+                  CDCLogger.log_message_delete(
+                    thread,
+                    deleted,
+                    user_id: user_id,
+                    old_data: old_snapshot
+                  )
+
+                  {:ok, deleted}
+
+                error ->
+                  error
+              end
             else
               {:error, :unauthorized}
             end
@@ -213,7 +256,7 @@ defmodule GlobalbridgeBackend.Chat do
 
   # Private helpers
 
-  defp get_shard_repo(shard_id) do
+  defp get_shard_repo(_shard_id) do
     # For now, use the main Repo
     # TODO: Implement actual per-thread database sharding
     # This would return a dynamically configured Repo for the specific shard

@@ -1,5 +1,8 @@
 import Config
 
+# Allow anonymous WebSocket connections in development
+config :globalbridge_backend, dev_mode: true
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #

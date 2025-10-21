@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftPhoenixClient
+@preconcurrency import SwiftPhoenixClient
 
 private typealias SocketMessage = SwiftPhoenixClient.Message
 public typealias MessageHandler = @Sendable (PhoenixMessage) -> Void
@@ -30,6 +30,7 @@ public actor PhoenixChannelManager {
     private let config: PhoenixConfig
     private var socket: Socket?
     private var channels: [String: Channel] = [:]
+    private var channelJoinStates: [String: Bool] = [:] // Track if channel is fully joined
     private var connectionState: PhoenixConnectionState = .disconnected
     private var reconnectAttempts = 0
     private var eventHandlers: [String: [MessageHandler]] = [:]
@@ -37,6 +38,7 @@ public actor PhoenixChannelManager {
     private var typingHandlers: [String: [TypingHandler]] = [:]
     private var readReceiptHandlers: [String: [ReadReceiptHandler]] = [:]
     private var typingTimers: [String: Task<Void, Never>] = [:]
+    private var currentUserId: String?
 
     var currentConnectionState: PhoenixConnectionState {
         connectionState
@@ -128,39 +130,289 @@ public actor PhoenixChannelManager {
         return connectionState
     }
 
+    // MARK: - User Channel (Bootstrap)
+    
+    /// Join user channel for bootstrap operations
+    public func joinUserChannel(userId: String) async throws {
+        self.currentUserId = userId
+        let topic = "user:\(userId)"
+        
+        print("📥 [USER_CHANNEL] Joining user channel: \(topic)")
+        
+        guard let socket = socket else {
+            print("❌ [USER_CHANNEL] Socket not connected!")
+            throw PhoenixError.notConnected
+        }
+        
+        let channel = socket.channel(topic)
+        
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            var hasResumed = false
+            
+            channel.join()
+                .receive("ok") { response in
+                    print("✅ [USER_CHANNEL] Successfully joined: \(topic)")
+                    print("✅ [USER_CHANNEL] Response: \(response.payload)")
+                    
+                    guard !hasResumed else {
+                        print("⚠️ [USER_CHANNEL] Continuation already resumed, ignoring ok")
+                        return
+                    }
+                    hasResumed = true
+                    continuation.resume()
+                }
+                .receive("error") { message in
+                    print("❌ [USER_CHANNEL] Failed to join: \(topic)")
+                    print("❌ [USER_CHANNEL] Error: \(message.payload)")
+                    
+                    guard !hasResumed else {
+                        print("⚠️ [USER_CHANNEL] Continuation already resumed, ignoring error")
+                        return
+                    }
+                    hasResumed = true
+                    continuation.resume(throwing: PhoenixError.joinFailed(PhoenixPayload(message.payload)))
+                }
+                .receive("timeout") { _ in
+                    print("❌ [USER_CHANNEL] Timeout joining: \(topic)")
+                    
+                    guard !hasResumed else {
+                        print("⚠️ [USER_CHANNEL] Continuation already resumed, ignoring timeout")
+                        return
+                    }
+                    hasResumed = true
+                    continuation.resume(throwing: PhoenixError.timeout)
+                }
+        }
+        
+        // Store user channel
+        setChannel(channel, for: "user:\(userId)")
+        channelJoinStates[topic] = true
+    }
+    
+    /// Fetch bootstrap data via user channel
+    public func fetchBootstrap() async throws -> BootstrapResponse {
+        guard let userId = currentUserId else {
+            throw PhoenixError.notConnected
+        }
+        
+        let topic = "user:\(userId)"
+        print("📥 [BOOTSTRAP] Fetching bootstrap data from channel: \(topic)")
+        
+        guard let channel = channel(for: "user:\(userId)") else {
+            print("❌ [BOOTSTRAP] User channel not joined!")
+            throw PhoenixError.channelNotJoined
+        }
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            channel.push("bootstrap", payload: [:])
+                .receive("ok") { response in
+                    let payload = response.payload
+                    print("✅ [BOOTSTRAP] Received response: \(payload)")
+                    
+                    do {
+                        let data = try JSONSerialization.data(withJSONObject: payload)
+                        let decoder = JSONDecoder()
+                        decoder.dateDecodingStrategy = .custom { decoder in
+                            let container = try decoder.singleValueContainer()
+                            let dateString = try container.decode(String.self)
+                            
+                            let formatter = ISO8601DateFormatter()
+                            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                            
+                            if let date = formatter.date(from: dateString) {
+                                return date
+                            }
+                            
+                            formatter.formatOptions = [.withInternetDateTime]
+                            if let date = formatter.date(from: dateString) {
+                                return date
+                            }
+                            
+                            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date format: \(dateString)")
+                        }
+                        
+                        let bootstrap = try decoder.decode(BootstrapResponse.self, from: data)
+                        print("✅ [BOOTSTRAP] Parsed \(bootstrap.threads.count) threads")
+                        continuation.resume(returning: bootstrap)
+                    } catch {
+                        print("❌ [BOOTSTRAP] Failed to parse response: \(error)")
+                        continuation.resume(throwing: PhoenixError.decodingFailed(error))
+                    }
+                }
+                .receive("error") { message in
+                    print("❌ [BOOTSTRAP] Error response: \(message.payload)")
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
+                }
+                .receive("timeout") { _ in
+                    print("❌ [BOOTSTRAP] Request timed out")
+                    continuation.resume(throwing: PhoenixError.timeout)
+                }
+        }
+    }
+    
+    /// Create thread via user channel
+    public func createThread(
+        threadType: String,
+        title: String?,
+        participantIds: [String]
+    ) async throws -> ThreadData {
+        guard let userId = currentUserId else {
+            throw PhoenixError.notConnected
+        }
+        
+        guard let channel = channel(for: "user:\(userId)") else {
+            throw PhoenixError.channelNotJoined
+        }
+        
+        var payload: [String: Any] = [
+            "thread_type": threadType,
+            "participant_ids": participantIds
+        ]
+        
+        if let title = title {
+            payload["title"] = title
+        }
+        
+        print("🆕 [CREATE_THREAD] Creating thread: type=\(threadType), participants=\(participantIds)")
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            channel.push("create_thread", payload: payload)
+                .receive("ok") { response in
+                    let payload = response.payload
+                    print("✅ [CREATE_THREAD] Thread created: \(payload)")
+                    
+                    do {
+                        let data = try JSONSerialization.data(withJSONObject: payload)
+                        let decoder = JSONDecoder()
+                        decoder.dateDecodingStrategy = .custom { decoder in
+                            let container = try decoder.singleValueContainer()
+                            let dateString = try container.decode(String.self)
+                            
+                            let formatter = ISO8601DateFormatter()
+                            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                            
+                            if let date = formatter.date(from: dateString) {
+                                return date
+                            }
+                            
+                            formatter.formatOptions = [.withInternetDateTime]
+                            if let date = formatter.date(from: dateString) {
+                                return date
+                            }
+                            
+                            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date format: \(dateString)")
+                        }
+                        
+                        let thread = try decoder.decode(ThreadData.self, from: data)
+                        continuation.resume(returning: thread)
+                    } catch {
+                        print("❌ [CREATE_THREAD] Failed to parse: \(error)")
+                        continuation.resume(throwing: PhoenixError.decodingFailed(error))
+                    }
+                }
+                .receive("error") { message in
+                    print("❌ [CREATE_THREAD] Error: \(message.payload)")
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
+                }
+                .receive("timeout") { _ in
+                    print("❌ [CREATE_THREAD] Timeout")
+                    continuation.resume(throwing: PhoenixError.timeout)
+                }
+        }
+    }
+
     // MARK: - Channel Management
 
     /// Join a conversation channel
     public func joinConversation(_ conversationId: String) async throws {
+        print("📥 [JOIN] joinConversation called for: \(conversationId)")
+
         guard let socket = socket else {
+            print("❌ [JOIN] Socket not connected!")
             throw PhoenixError.notConnected
         }
 
         let topic = topic(for: conversationId)
+        print("📥 [JOIN] Topic: \(topic)")
+        print("📥 [JOIN] Current state - channel exists: \(channel(for: conversationId) != nil), join state: \(channelJoinStates[topic] as Any)")
 
-        // Check if already joined
-        if channel(for: conversationId) != nil {
+        // Check if already joined and in good state
+        if let _ = channel(for: conversationId), channelJoinStates[topic] == true {
+            print("✅ [JOIN] Already joined channel with confirmed state: \(topic)")
             return
         }
 
+        // If channel exists but join state is not confirmed, clean up and rejoin
+        if channel(for: conversationId) != nil && channelJoinStates[topic] != true {
+            print("⚠️ [JOIN] Channel exists but not in joined state, cleaning up: \(topic)")
+            removeChannel(for: conversationId)
+            channelJoinStates.removeValue(forKey: topic)
+        }
+
+        print("📥 [JOIN] Creating new channel for topic: \(topic)")
         let channel = socket.channel(topic)
         setChannel(channel, for: conversationId)
+        channelJoinStates[topic] = false // Mark as joining but not yet joined
 
+        print("📥 [JOIN] Setting up event handlers...")
         // Set up event handlers
         setupChannelHandlers(channel, conversationId: conversationId)
 
+        print("📥 [JOIN] Attempting to join channel...")
         // Join channel
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            channel.join()
-                .receive("ok") { _ in
-                    continuation.resume()
-                }
-                .receive("error") { message in
-                    continuation.resume(throwing: PhoenixError.joinFailed(PhoenixPayload(message.payload)))
-                }
-                .receive("timeout") { _ in
-                    continuation.resume(throwing: PhoenixError.timeout)
-                }
+        do {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                var hasResumed = false
+
+                channel.join()
+                    .receive("ok") { response in
+                        print("✅ [JOIN] Successfully joined channel: \(topic)")
+                        print("✅ [JOIN] Join response: \(response.payload)")
+
+                        guard !hasResumed else {
+                            print("⚠️ [JOIN] Continuation already resumed, ignoring ok")
+                            return
+                        }
+                        hasResumed = true
+
+                        // Resume continuation immediately
+                        continuation.resume()
+                    }
+                    .receive("error") { message in
+                        print("❌ [JOIN] Failed to join channel: \(topic)")
+                        print("❌ [JOIN] Error payload: \(message.payload)")
+
+                        guard !hasResumed else {
+                            print("⚠️ [JOIN] Continuation already resumed, ignoring error")
+                            return
+                        }
+                        hasResumed = true
+
+                        // Resume continuation with error
+                        continuation.resume(throwing: PhoenixError.joinFailed(PhoenixPayload(message.payload)))
+                    }
+                    .receive("timeout") { _ in
+                        print("❌ [JOIN] Timeout joining channel: \(topic)")
+
+                        guard !hasResumed else {
+                            print("⚠️ [JOIN] Continuation already resumed, ignoring timeout")
+                            return
+                        }
+                        hasResumed = true
+
+                        // Resume continuation with timeout error
+                        continuation.resume(throwing: PhoenixError.timeout)
+                    }
+            }
+
+            // Mark channel as joined - this runs on the actor's executor
+            markChannelAsJoined(topic)
+        } catch {
+            // Clean up on join failure
+            markChannelAsFailed(topic)
+            removeChannel(for: conversationId)
+            channelJoinStates.removeValue(forKey: topic)
+            throw error
         }
     }
 
@@ -206,8 +458,62 @@ public actor PhoenixChannelManager {
 
     /// Leave a conversation channel
     public func leaveConversation(_ conversationId: String) {
+        let topic = topic(for: conversationId)
         channel(for: conversationId)?.leave()
         removeChannel(for: conversationId)
+        channelJoinStates.removeValue(forKey: topic)
+    }
+
+    // MARK: - Private Channel State Helpers
+
+    private func markChannelAsJoined(_ topic: String) {
+        channelJoinStates[topic] = true
+        print("✅ [STATE] Channel marked as joined: \(topic)")
+    }
+
+    private func markChannelAsFailed(_ topic: String) {
+        channelJoinStates[topic] = false
+        print("❌ [STATE] Channel marked as failed: \(topic)")
+    }
+
+    private func isChannelJoined(for conversationId: String) -> Bool {
+        let topic = topic(for: conversationId)
+        return channelJoinStates[topic] == true
+    }
+
+    /// Wait for channel to be joined with timeout
+    private func waitForChannelJoin(conversationId: String, timeout: TimeInterval = 5.0) async throws {
+        let topic = topic(for: conversationId)
+        let startTime = Date()
+        var waitCount = 0
+
+        print("⏳ [WAIT] Starting to wait for channel join: \(topic)")
+        print("⏳ [WAIT] Current join state: \(channelJoinStates[topic] as Any)")
+
+        while !isChannelJoined(for: conversationId) {
+            waitCount += 1
+            let elapsed = Date().timeIntervalSince(startTime)
+
+            if elapsed > timeout {
+                print("⏱️ [WAIT] Timeout after \(waitCount) checks (\(elapsed)s) waiting for channel join: \(topic)")
+                print("⏱️ [WAIT] Final join state: \(channelJoinStates[topic] as Any)")
+                throw PhoenixError.timeout
+            }
+
+            // Check if channel join failed
+            if channelJoinStates[topic] == false && channel(for: conversationId) != nil {
+                print("❌ [WAIT] Channel join failed (state=false, channel exists): \(topic)")
+                throw PhoenixError.channelNotJoined
+            }
+
+            if waitCount % 10 == 0 {
+                print("⏳ [WAIT] Still waiting... (\(waitCount) checks, \(String(format: "%.2f", elapsed))s elapsed, state: \(channelJoinStates[topic] as Any))")
+            }
+
+            try await Task.sleep(nanoseconds: 50_000_000) // 50ms
+        }
+
+        print("✅ [WAIT] Channel join confirmed after \(waitCount) checks (\(Date().timeIntervalSince(startTime))s): \(topic)")
     }
 
     // MARK: - Message Sending
@@ -218,9 +524,27 @@ public actor PhoenixChannelManager {
         content: String,
         replyToId: String? = nil
     ) async throws -> PhoenixMessage {
+        let topic = topic(for: conversationId)
+        print("📤 [PHOENIX] sendMessage called - conversationId: \(conversationId), content: \"\(content)\", replyToId: \(replyToId ?? "nil")")
+        print("📤 [PHOENIX] Topic: \(topic)")
+        print("📤 [PHOENIX] Current join state: \(channelJoinStates[topic] as Any)")
+        print("📤 [PHOENIX] Channel exists: \(channel(for: conversationId) != nil)")
+
+        // Wait for channel to be fully joined before sending
+        if !isChannelJoined(for: conversationId) {
+            print("⏳ [PHOENIX] Channel not yet joined, waiting...")
+            try await waitForChannelJoin(conversationId: conversationId)
+            print("✅ [PHOENIX] Wait completed, channel should now be joined")
+        } else {
+            print("✅ [PHOENIX] Channel already joined, proceeding immediately")
+        }
+
         guard let channel = channel(for: conversationId) else {
+            print("❌ [PHOENIX] Channel not joined for conversation: \(conversationId)")
+            print("❌ [PHOENIX] Available channels: \(channels.keys)")
             throw PhoenixError.channelNotJoined
         }
+        print("✅ [PHOENIX] Channel found and joined for conversation: \(conversationId)")
 
         var payload: [String: Any] = [
             "content": content,
@@ -231,25 +555,37 @@ public actor PhoenixChannelManager {
             payload["reply_to_id"] = replyToId
         }
 
+        print("📤 [PHOENIX] Pushing 'new_message' to channel with payload: \(payload)")
+        print("📤 [PHOENIX] Channel state before push: \(channel)")
+
         return try await withCheckedThrowingContinuation { continuation in
-            channel.push("new_message", payload: payload)
-                .receive("ok") { [weak self] response in
+            let push = channel.push("new_message", payload: payload)
+            print("📤 [PHOENIX] Push object created: \(push)")
+
+            push.receive("ok") { [weak self] response in
+                    print("✅ [PHOENIX] Received 'ok' response: \(response.payload)")
                     guard let self else {
+                        print("❌ [PHOENIX] Self is nil in ok handler")
                         continuation.resume(throwing: PhoenixError.notConnected)
                         return
                     }
 
                     do {
+                        print("📤 [PHOENIX] Parsing response payload...")
                         let message = try self.parsePhoenixMessage(from: response.payload)
+                        print("✅ [PHOENIX] Message parsed successfully: id=\(message.id), conversationId=\(message.conversationId), senderId=\(message.senderId), content=\"\(message.content)\", status=\(message.status.rawValue)")
                         continuation.resume(returning: message)
                     } catch {
+                        print("❌ [PHOENIX] Failed to parse message: \(error)")
                         continuation.resume(throwing: PhoenixError.decodingFailed(error))
                     }
                 }
                 .receive("error") { message in
+                    print("❌ [PHOENIX] Received 'error' response: \(message.payload)")
                     continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
                 }
                 .receive("timeout") { _ in
+                    print("❌ [PHOENIX] Request timed out")
                     continuation.resume(throwing: PhoenixError.timeout)
                 }
         }
@@ -307,6 +643,17 @@ public actor PhoenixChannelManager {
 
     /// Send typing indicator
     public func sendTypingIndicator(conversationId: String, isTyping: Bool) async {
+        // Wait for channel to be joined (with a shorter timeout for typing)
+        if !isChannelJoined(for: conversationId) {
+            print("⏳ [TYPING] Channel not yet joined, waiting...")
+            do {
+                try await waitForChannelJoin(conversationId: conversationId, timeout: 2.0)
+            } catch {
+                print("⚠️ [TYPING] Channel join timeout, skipping typing indicator")
+                return
+            }
+        }
+
         guard let channel = channel(for: conversationId) else {
             print("[Phoenix] Cannot send typing indicator - channel not joined")
             return
@@ -357,19 +704,24 @@ public actor PhoenixChannelManager {
     // MARK: - Private Methods
 
     private func topic(for conversationId: String) -> String {
-        "conversation:\(conversationId)"
+        "thread:\(conversationId)"
     }
 
     nonisolated private func parsePhoenixMessage(from payload: [String: Any]) throws -> PhoenixMessage {
+        print("📦 [PHOENIX] Parsing payload: \(payload)")
+
         guard
             let id = payload["id"] as? String,
-            let conversationId = payload["conversation_id"] as? String,
+            let threadId = payload["thread_id"] as? String,
             let senderId = payload["sender_id"] as? String,
-            let content = payload["content"] as? String,
-            let timestampString = payload["timestamp"] as? String
+            let content = payload["content"] as? String
         else {
+            print("❌ [PHOENIX] Missing required fields in payload")
             throw PhoenixError.decodingFailed(PhoenixDecodingError.missingRequiredFields)
         }
+
+        // Backend sends created_at, not timestamp
+        let timestampString = (payload["created_at"] as? String) ?? (payload["timestamp"] as? String) ?? ISO8601DateFormatter().string(from: Date())
 
         let timestamp = parseISO8601Date(timestampString) ?? Date()
 
@@ -425,7 +777,7 @@ public actor PhoenixChannelManager {
 
         return PhoenixMessage(
             id: id,
-            conversationId: conversationId,
+            conversationId: threadId,
             senderId: senderId,
             content: content,
             timestamp: timestamp,

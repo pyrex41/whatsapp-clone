@@ -7,7 +7,7 @@ defmodule GlobalbridgeBackend.Contexts.Threads do
   import Ecto.Query, warn: false
 
   alias GlobalbridgeBackend.Repo
-  alias GlobalbridgeBackend.Schemas.{Thread, ThreadParticipant, User}
+  alias GlobalbridgeBackend.Schemas.{Thread, ThreadParticipant}
 
   @doc """
   Lists all threads with optional filtering.
@@ -51,7 +51,7 @@ defmodule GlobalbridgeBackend.Contexts.Threads do
   def get_thread!(id) do
     Thread
     |> Repo.get!(id)
-    |> Repo.preload([:thread_participants, participants: :user])
+    |> Repo.preload([:thread_participants, :participants])
   end
 
   @doc """
@@ -68,7 +68,7 @@ defmodule GlobalbridgeBackend.Contexts.Threads do
   def get_thread(id) do
     case Repo.get(Thread, id) do
       nil -> nil
-      thread -> Repo.preload(thread, [:thread_participants, participants: :user])
+      thread -> Repo.preload(thread, [:thread_participants, :participants])
     end
   end
 

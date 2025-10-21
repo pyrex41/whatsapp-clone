@@ -21,7 +21,9 @@ enum AppAction {
     case composerTextChanged(String)
     case sendMessage
     case messageSent(Result<Message, Error>)
+    case messageStatusUpdated(Message.ID, Message.Status)
 
     case receiveRealtimeMessage(Message)
     case typingIndicator(Thread.ID, userID: UUID, isTyping: Bool)
+    case handleOrphanedThread(Thread.ID)
 }

@@ -82,13 +82,13 @@ final class CDCManager {
 
     /// Perform bidirectional sync for a thread
     /// - Parameter threadId: The thread to sync
-    func syncThread(_ threadId: UUID) async throws {
+    func syncThread(_ threadId: UUID) async throws -> SyncSummary {
         print("🔄 Starting bidirectional sync for thread: \(threadId)")
 
         // Check network availability
-        guard phoenixManager.isNetworkAvailable() else {
+        guard await phoenixManager.isNetworkAvailable() else {
             print("⚠️ Network unavailable, skipping sync")
-            return
+            return SyncSummary(pulledCount: 0, pushedCount: 0)
         }
 
         // Get thread to access shard
@@ -100,8 +100,10 @@ final class CDCManager {
         let serverLogs = try await pullChanges(for: threadId)
 
         // Step 2: Apply server changes locally
+        var appliedRemote = 0
         if !serverLogs.isEmpty {
             try await applyRemoteChanges(serverLogs, for: threadId)
+            appliedRemote = serverLogs.count
         }
 
         // Step 3: Get unsynced local changes
@@ -110,11 +112,15 @@ final class CDCManager {
         )
 
         // Step 4: Push local changes to server
+        var pushedLocal = 0
         if !localLogs.isEmpty {
             try await pushChanges(localLogs, for: threadId)
+            pushedLocal = localLogs.count
         }
 
-        print("✅ Bidirectional sync completed for thread: \(threadId)")
+        print("✅ Bidirectional sync completed for thread: \(threadId) - Pulled: \(appliedRemote), Pushed: \(pushedLocal)")
+
+        return SyncSummary(pulledCount: appliedRemote, pushedCount: pushedLocal)
     }
 
     // MARK: - Task 13.3: Conflict Resolution
@@ -304,10 +310,10 @@ final class CDCManager {
 // MARK: - Protocol for Phoenix Manager
 
 /// Protocol for Phoenix Channel Manager to enable testing
-protocol PhoenixChannelManagerProtocol {
+protocol PhoenixChannelManagerProtocol: Sendable {
     func pullCDCLogs(threadId: String, since: Date?) async throws -> [CDCLog]
     func pushCDCLogs(_ logs: [CDCLog], threadId: String) async throws
-    func isNetworkAvailable() -> Bool
+    func isNetworkAvailable() async -> Bool
 }
 
 // MARK: - Error Types
@@ -331,3 +337,11 @@ enum CDCError: Error, LocalizedError {
         }
     }
 }
+
+// MARK: - Protocol Conformance
+
+protocol CDCManaging: Sendable {
+    func syncThread(_ threadId: UUID) async throws -> SyncSummary
+}
+
+extension CDCManager: CDCManaging {}

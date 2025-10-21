@@ -1,0 +1,33 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "jsx": "react-native",
+    "strict": true,
+    "allowJs": false,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "types": [
+      "expo-router",
+      "vitest/globals"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "~/*": [
+        "./src/*"
+      ]
+    }
+  },
+  "include": [
+    "app",
+    "src",
+    "detox.config.ts",
+    "vitest.setup.ts",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
+}

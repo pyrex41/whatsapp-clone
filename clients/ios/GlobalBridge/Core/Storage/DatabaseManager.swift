@@ -509,6 +509,74 @@ final class DatabaseManager {
         }
     }
 
+    /// Sync threads from backend via Phoenix channel
+    func syncThreadsFromBackend(phoenixManager: PhoenixChannelManager) async throws -> [Thread] {
+        print("📥 Syncing threads from backend...")
+        
+        // 1. Fetch bootstrap data via Phoenix channel
+        let bootstrap = try await phoenixManager.fetchBootstrap()
+        
+        // 2. Clear existing local threads
+        try await clearAllThreads()
+        
+        // 3. Insert backend threads into local database
+        for threadData in bootstrap.threads {
+            let thread = Thread(
+                id: UUID(uuidString: threadData.id)!,
+                threadType: Thread.ThreadType(rawValue: threadData.threadType)!,
+                title: threadData.title,
+                avatarUrl: nil,
+                lastMessageAt: threadData.lastMessageAt,
+                isArchived: threadData.isArchived,
+                isMuted: threadData.isMuted,
+                databaseShardId: threadData.databaseShardId,
+                createdAt: threadData.createdAt,
+                updatedAt: threadData.updatedAt
+            )
+            
+            // Create thread locally (without calling backend)
+            try await createThreadLocally(thread)
+        }
+        
+        print("✅ Synced \(bootstrap.threads.count) threads from backend")
+        return try await fetchThreads()
+    }
+
+    /// Create thread locally only (used during sync)
+    func createThreadLocally(_ thread: Thread) async throws {
+        try await ensureMainConnection()
+        guard let db = mainConnection else {
+            throw DatabaseError.connectionFailed("Main connection not available")
+        }
+        
+        let insert = threadsTable.insert(
+            threadId <- thread.id.uuidString,
+            threadType <- thread.threadType.rawValue,
+            threadTitle <- thread.title,
+            threadAvatarUrl <- thread.avatarUrl,
+            threadLastMessageAt <- thread.lastMessageAt,
+            threadIsArchived <- thread.isArchived,
+            threadIsMuted <- thread.isMuted,
+            threadDatabaseShardId <- thread.databaseShardId,
+            threadCreatedAt <- thread.createdAt,
+            threadUpdatedAt <- thread.updatedAt
+        )
+        
+        try db.run(insert)
+        _ = try await getThreadDatabase(shardId: thread.databaseShardId)
+    }
+
+    /// Clear all threads from database
+    private func clearAllThreads() async throws {
+        try await ensureMainConnection()
+        guard let db = mainConnection else {
+            throw DatabaseError.connectionFailed("Main connection not available")
+        }
+        
+        try db.run(threadsTable.delete())
+        print("🗑️ Cleared all local threads")
+    }
+
     /// Update a thread
     func updateThread(_ thread: Thread) async throws {
         try await ensureMainConnection()
@@ -545,6 +613,21 @@ final class DatabaseManager {
             print("✅ Thread updated: \(thread.id)")
         } catch {
             throw DatabaseError.updateFailed("Thread: \(error.localizedDescription)")
+        }
+    }
+
+    /// Create or update a thread record
+    func upsertThread(_ thread: Thread) async throws {
+        if let existing = try await fetchThread(id: thread.id) {
+            var updated = existing
+            updated.title = thread.title
+            updated.lastMessageAt = thread.lastMessageAt
+            updated.isArchived = thread.isArchived
+            updated.isMuted = thread.isMuted
+            updated.updatedAt = thread.updatedAt
+            try await updateThread(updated)
+        } else {
+            try await createThread(thread)
         }
     }
 
@@ -944,22 +1027,9 @@ final class DatabaseManager {
     // MARK: - Seeding Helpers
 
     func seedSampleDataIfNeeded(currentUser: User = .sampleCurrent) async throws {
-        try await ensureMainConnection()
-        let existing = try await fetchThreads()
-        guard existing.isEmpty else { return }
-
-        print("🌱 Seeding sample data into local database…")
-
-        for thread in Thread.sampleThreads {
-            try await createThread(thread)
-
-            let samples = Message.samples(for: thread.id, sender: currentUser)
-            for message in samples {
-                try await createMessage(message)
-            }
-        }
-
-        print("✅ Sample data seeded")
+        // Disabled: Sample data doesn't exist on backend
+        // Users should create threads through the UI which will create them on both client and backend
+        print("ℹ️ Sample data seeding disabled - create threads through the UI")
     }
 
     // MARK: - Cleanup

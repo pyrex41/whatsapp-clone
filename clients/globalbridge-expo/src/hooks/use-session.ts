@@ -3,7 +3,9 @@ import { useStore } from 'zustand';
 
 import { useSessionStore } from '~/state/session-store';
 
-export function useSession<T>(selector: (state: ReturnType<typeof useSessionStore.getState>) => T) {
+type SessionStoreState = ReturnType<typeof useSessionStore.getState>;
+
+export function useSession<T>(selector: (state: SessionStoreState) => T) {
   return useStore(useSessionStore, selector);
 }
 
@@ -20,6 +22,7 @@ export function useSessionActions() {
     () => ({
       loadSession: useSessionStore.getState().loadSession,
       login: useSessionStore.getState().login,
+      loginWithAuth0: useSessionStore.getState().loginWithAuth0,
       logout: useSessionStore.getState().logout,
       lock: useSessionStore.getState().lock,
       unlockWithBiometrics: useSessionStore.getState().unlockWithBiometrics,

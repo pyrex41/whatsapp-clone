@@ -2,7 +2,7 @@ defmodule GlobalbridgeBackendWeb.ThreadChannelTest do
   use GlobalbridgeBackendWeb.ChannelCase
 
   alias GlobalbridgeBackendWeb.UserSocket
-  alias GlobalbridgeBackend.{Repo, Chat}
+  alias GlobalbridgeBackend.{Repo, Chat, Auth.Guardian}
   alias GlobalbridgeBackend.Schemas.{Thread, ThreadParticipant, User}
 
   setup do
@@ -11,16 +11,16 @@ defmodule GlobalbridgeBackendWeb.ThreadChannelTest do
       Repo.insert!(%User{
         id: Ecto.UUID.generate(),
         username: "user1",
-        email: "user1@test.com",
-        phone: "+1234567890"
+        phone_number: "+1234567890",
+        password_hash: "hashed_password"
       })
 
     user2 =
       Repo.insert!(%User{
         id: Ecto.UUID.generate(),
         username: "user2",
-        email: "user2@test.com",
-        phone: "+1234567891"
+        phone_number: "+1234567891",
+        password_hash: "hashed_password"
       })
 
     # Create test thread
@@ -45,9 +45,44 @@ defmodule GlobalbridgeBackendWeb.ThreadChannelTest do
     {:ok, thread: thread, user1: user1, user2: user2}
   end
 
+  describe "cdc:pull response shape" do
+    test "returns changes array with next_cursor", %{thread: thread, user1: user1} do
+      # Connect and join thread
+      {:ok, token, _claims} = Guardian.encode_and_sign(user1)
+      {:ok, socket} = connect(UserSocket, %{"token" => token})
+      {:ok, _reply, socket} = subscribe_and_join(socket, "thread:#{thread.id}", %{})
+
+      # Insert a CDC log entry directly
+      alias GlobalbridgeBackend.Schemas.CDCLog
+      now = DateTime.utc_now()
+      record_id = Ecto.UUID.generate()
+
+      %CDCLog{}
+      |> CDCLog.create_changeset(%{
+        table_name: "messages",
+        record_id: record_id,
+        operation: "INSERT",
+        new_data: %{"id" => record_id, "thread_id" => thread.id, "inserted_at" => DateTime.to_iso8601(now), "updated_at" => DateTime.to_iso8601(now)},
+        timestamp: now
+      })
+      |> Repo.insert!()
+
+      # Pull CDC changes
+      ref = push(socket, "cdc:pull", %{})
+
+      assert_reply ref, :ok, %{"changes" => changes, "next_cursor" => next_cursor}
+      assert is_list(changes)
+      assert length(changes) >= 1
+      first = List.last(changes)
+      assert first["record_id"] == record_id
+      assert first["table_name"] == "messages"
+      assert is_binary(next_cursor) or is_nil(next_cursor)
+    end
+  end
+
   describe "join thread channel" do
     test "allows participant to join thread", %{thread: thread, user1: user1} do
-      token = "user:#{user1.id}"
+      {:ok, token, _claims} = GlobalbridgeBackend.Auth.Guardian.encode_and_sign(user1)
       {:ok, socket} = connect(UserSocket, %{"token" => token})
 
       {:ok, reply, socket} = subscribe_and_join(socket, "thread:#{thread.id}", %{})
@@ -63,11 +98,11 @@ defmodule GlobalbridgeBackendWeb.ThreadChannelTest do
         Repo.insert!(%User{
           id: Ecto.UUID.generate(),
           username: "other",
-          email: "other@test.com",
-          phone: "+1234567892"
+          phone_number: "+1234567892",
+          password_hash: "hashed_password"
         })
 
-      token = "user:#{other_user.id}"
+      {:ok, token, _claims} = Guardian.encode_and_sign(other_user)
       {:ok, socket} = connect(UserSocket, %{"token" => token})
 
       assert {:error, %{reason: "Not authorized to join this thread"}} =
@@ -79,7 +114,7 @@ defmodule GlobalbridgeBackendWeb.ThreadChannelTest do
     end
 
     test "denies join for non-existent thread", %{user1: user1} do
-      token = "user:#{user1.id}"
+      {:ok, token, _claims} = Guardian.encode_and_sign(user1)
       {:ok, socket} = connect(UserSocket, %{"token" => token})
 
       fake_thread_id = Ecto.UUID.generate()
@@ -92,18 +127,17 @@ defmodule GlobalbridgeBackendWeb.ThreadChannelTest do
   describe "new_message" do
     test "broadcasts message to all participants", %{thread: thread, user1: user1, user2: user2} do
       # Connect both users
-      token1 = "user:#{user1.id}"
+      {:ok, token1, _claims} = Guardian.encode_and_sign(user1)
       {:ok, socket1} = connect(UserSocket, %{"token" => token1})
-      {:ok, _, socket1} = subscribe_and_join(socket1, "thread:#{thread.id}", %{})
 
-      token2 = "user:#{user2.id}"
+      {:ok, token2, _claims} = Guardian.encode_and_sign(user2)
       {:ok, socket2} = connect(UserSocket, %{"token" => token2})
       {:ok, _, _socket2} = subscribe_and_join(socket2, "thread:#{thread.id}", %{})
 
       # User1 sends message
       ref = push(socket1, "new_message", %{"content" => "Hello, World!"})
 
-      assert_reply ref, :ok, %{id: message_id, timestamp: _timestamp}
+      assert_reply ref, :ok, %{id: message_id, client_timestamp: _client_timestamp}
 
       # Both users should receive the broadcast
       assert_broadcast "new_message", %{
@@ -119,7 +153,7 @@ defmodule GlobalbridgeBackendWeb.ThreadChannelTest do
     end
 
     test "handles media messages", %{thread: thread, user1: user1} do
-      token = "user:#{user1.id}"
+      {:ok, token, _claims} = Guardian.encode_and_sign(user1)
       {:ok, socket} = connect(UserSocket, %{"token" => token})
       {:ok, _, socket} = subscribe_and_join(socket, "thread:#{thread.id}", %{})
 
@@ -142,7 +176,7 @@ defmodule GlobalbridgeBackendWeb.ThreadChannelTest do
     end
 
     test "handles reply to message", %{thread: thread, user1: user1} do
-      token = "user:#{user1.id}"
+      {:ok, token, _claims} = Guardian.encode_and_sign(user1)
       {:ok, socket} = connect(UserSocket, %{"token" => token})
       {:ok, _, socket} = subscribe_and_join(socket, "thread:#{thread.id}", %{})
 
@@ -165,7 +199,7 @@ defmodule GlobalbridgeBackendWeb.ThreadChannelTest do
 
   describe "edit_message" do
     test "allows sender to edit their message", %{thread: thread, user1: user1} do
-      token = "user:#{user1.id}"
+      {:ok, token, _claims} = Guardian.encode_and_sign(user1)
       {:ok, socket} = connect(UserSocket, %{"token" => token})
       {:ok, _, socket} = subscribe_and_join(socket, "thread:#{thread.id}", %{})
 
@@ -192,7 +226,7 @@ defmodule GlobalbridgeBackendWeb.ThreadChannelTest do
 
   describe "delete_message" do
     test "allows sender to delete their message", %{thread: thread, user1: user1} do
-      token = "user:#{user1.id}"
+      {:ok, token, _claims} = Guardian.encode_and_sign(user1)
       {:ok, socket} = connect(UserSocket, %{"token" => token})
       {:ok, _, socket} = subscribe_and_join(socket, "thread:#{thread.id}", %{})
 
@@ -222,11 +256,10 @@ defmodule GlobalbridgeBackendWeb.ThreadChannelTest do
       user2: user2
     } do
       # Connect both users
-      token1 = "user:#{user1.id}"
+      {:ok, token1, _claims} = Guardian.encode_and_sign(user1)
       {:ok, socket1} = connect(UserSocket, %{"token" => token1})
-      {:ok, _, socket1} = subscribe_and_join(socket1, "thread:#{thread.id}", %{})
 
-      token2 = "user:#{user2.id}"
+      {:ok, token2, _claims} = Guardian.encode_and_sign(user2)
       {:ok, socket2} = connect(UserSocket, %{"token" => token2})
       {:ok, _, _socket2} = subscribe_and_join(socket2, "thread:#{thread.id}", %{})
 
@@ -250,11 +283,10 @@ defmodule GlobalbridgeBackendWeb.ThreadChannelTest do
       user2: user2
     } do
       # Connect both users
-      token1 = "user:#{user1.id}"
+      {:ok, token1, _claims} = Guardian.encode_and_sign(user1)
       {:ok, socket1} = connect(UserSocket, %{"token" => token1})
-      {:ok, _, socket1} = subscribe_and_join(socket1, "thread:#{thread.id}", %{})
 
-      token2 = "user:#{user2.id}"
+      {:ok, token2, _claims} = Guardian.encode_and_sign(user2)
       {:ok, socket2} = connect(UserSocket, %{"token" => token2})
       {:ok, _, socket2} = subscribe_and_join(socket2, "thread:#{thread.id}", %{})
 
@@ -278,7 +310,7 @@ defmodule GlobalbridgeBackendWeb.ThreadChannelTest do
 
   describe "latency optimization" do
     test "message broadcast happens before database write", %{thread: thread, user1: user1} do
-      token = "user:#{user1.id}"
+      {:ok, token, _claims} = Guardian.encode_and_sign(user1)
       {:ok, socket} = connect(UserSocket, %{"token" => token})
       {:ok, _, socket} = subscribe_and_join(socket, "thread:#{thread.id}", %{})
 

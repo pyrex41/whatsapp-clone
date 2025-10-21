@@ -4,7 +4,7 @@ module Auth exposing
     , Credentials
     , LoginForm
     , LoginError(..)
-    , validateEmail
+    , validateIdentifier
     , validatePassword
     , emptyLoginForm
     )
@@ -32,7 +32,8 @@ type AuthState
 -}
 type alias User =
     { id : String
-    , email : String
+    , username : String
+    , phoneNumber : String
     , createdAt : String
     }
 
@@ -40,7 +41,7 @@ type alias User =
 {-| Login credentials
 -}
 type alias Credentials =
-    { email : String
+    { identifier : String
     , password : String
     , csrfToken : String
     }
@@ -49,9 +50,9 @@ type alias Credentials =
 {-| Login form state with validation
 -}
 type alias LoginForm =
-    { email : String
+    { identifier : String
     , password : String
-    , emailError : Maybe String
+    , identifierError : Maybe String
     , passwordError : Maybe String
     , isSubmitting : Bool
     }
@@ -74,26 +75,26 @@ type LoginError
 -}
 emptyLoginForm : LoginForm
 emptyLoginForm =
-    { email = ""
+    { identifier = ""
     , password = ""
-    , emailError = Nothing
+    , identifierError = Nothing
     , passwordError = Nothing
     , isSubmitting = False
     }
 
 
-{-| Validate email format
+{-| Validate identifier (username or phone number)
 -}
-validateEmail : String -> Result String String
-validateEmail email =
-    if String.isEmpty email then
-        Err "Email is required"
+validateIdentifier : String -> Result String String
+validateIdentifier identifier =
+    if String.isEmpty identifier then
+        Err "Username or phone number is required"
 
-    else if not (String.contains "@" email && String.contains "." email) then
-        Err "Please enter a valid email address"
+    else if String.length identifier < 3 then
+        Err "Username or phone number must be at least 3 characters"
 
     else
-        Ok email
+        Ok identifier
 
 
 {-| Validate password requirements

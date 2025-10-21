@@ -16,15 +16,23 @@ struct DatabaseClient {
 
 struct RealtimeClient {
     var ensureConnection: @Sendable () async throws -> Void
-    var connect: @Sendable (_ threadID: UUID, _ handler: @Sendable @escaping (Message) -> Void) async -> Void
+    var connect: @Sendable (_ threadID: UUID, _ handler: @Sendable @escaping (Message) -> Void) async throws -> Void
     var disconnect: @Sendable (_ threadID: UUID) async -> Void
     var sendTyping: @Sendable (_ threadID: UUID, _ userID: UUID, _ isTyping: Bool) async -> Void
     var sendMessage: @Sendable (_ threadID: UUID, _ content: String, _ author: User, _ replyTo: UUID?) async throws -> Message
 }
 
+struct SyncClient {
+    var initialSync: @Sendable () async -> Void
+    var startMonitoring: @Sendable () async -> Void
+    var stopMonitoring: @Sendable () async -> Void
+    var syncThread: @Sendable (_ threadID: UUID) async -> Void
+}
+
 struct AppEnvironment {
     var database: DatabaseClient
     var realtime: RealtimeClient
+    var sync: SyncClient
     var uuid: @Sendable () -> UUID = { UUID() }
     var now: @Sendable () -> Date = { Date() }
 }
@@ -65,7 +73,14 @@ extension AppEnvironment {
             }
         )
 
-        return AppEnvironment(database: database, realtime: realtime)
+        let sync = SyncClient(
+            initialSync: { },
+            startMonitoring: { },
+            stopMonitoring: { },
+            syncThread: { _ in }
+        )
+
+        return AppEnvironment(database: database, realtime: realtime, sync: sync)
     }()
 
     static let live: AppEnvironment = {
@@ -78,23 +93,79 @@ extension AppEnvironment {
         let phoenixConfig = PhoenixConfig.development
         let phoenixManager = PhoenixChannelManager(config: phoenixConfig)
 
+        let threadService = ThreadService()
+
+        let syncActorTask = Task { () -> SyncActor in
+            let cdcManager = await MainActor.run {
+                CDCManager(
+                    databaseManager: databaseManager,
+                    phoenixManager: phoenixManager,
+                    deviceId: UUID()
+                )
+            }
+
+            return SyncActor(
+                phoenixManager: phoenixManager,
+                databaseManager: databaseManager,
+                cdcManager: cdcManager
+            )
+        }
+
         let database = DatabaseClient(
             loadThreads: {
                 _ = try await initializationTask.value
-                return try await databaseManager.fetchThreads()
+                
+                print("📥 [LOAD_THREADS] Starting thread load...")
+                
+                // Check if we should sync from backend
+                let localThreads = try await databaseManager.fetchThreads()
+                
+                if localThreads.isEmpty {
+                    print("📥 [LOAD_THREADS] No local threads, syncing from backend...")
+                    
+                    // Sync from backend via Phoenix bootstrap
+                    let syncedThreads = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
+                    
+                    print("✅ [LOAD_THREADS] Synced \(syncedThreads.count) threads from backend")
+                    return syncedThreads
+                } else {
+                    print("✅ [LOAD_THREADS] Loaded \(localThreads.count) threads from local DB")
+                    return localThreads
+                }
             },
             createThread: { title, creator in
                 _ = try await initializationTask.value
-                let now = Date()
-                let thread = Thread(
-                    threadType: .group,
+                
+                print("🆕 [CREATE_THREAD] Creating thread '\(title)' via backend...")
+                
+                // 1. Create thread on backend first via Phoenix
+                let threadData = try await phoenixManager.createThread(
+                    threadType: "group",
                     title: title,
-                    lastMessageAt: now,
-                    unreadCount: 0,
-                    createdAt: now,
-                    updatedAt: now
+                    participantIds: [creator.id.uuidString]
                 )
-                try await databaseManager.createThread(thread)
+                
+                print("✅ [CREATE_THREAD] Backend created thread: \(threadData.id)")
+                
+                // 2. Convert to local Thread model and create locally
+                let thread = Thread(
+                    id: UUID(uuidString: threadData.id)!,
+                    threadType: Thread.ThreadType(rawValue: threadData.threadType) ?? .group,
+                    title: threadData.title,
+                    avatarUrl: nil,
+                    lastMessageAt: threadData.lastMessageAt,
+                    isArchived: threadData.isArchived,
+                    isMuted: threadData.isMuted,
+                    databaseShardId: threadData.databaseShardId,
+                    createdAt: threadData.createdAt,
+                    updatedAt: threadData.updatedAt
+                )
+                
+                // 3. Create in local database (using the backend's ID and shard ID)
+                try await databaseManager.createThreadLocally(thread)
+                
+                print("✅ [CREATE_THREAD] Thread created locally with backend ID: \(thread.id)")
+                
                 return thread
             },
             loadMessages: { threadID in
@@ -128,23 +199,47 @@ extension AppEnvironment {
 
         let realtime = RealtimeClient(
             ensureConnection: {
-                try await phoenixManager.connect(authToken: nil)
+                // Get Auth0 token
+                let token = await AuthManager.shared.getAccessToken()
+                
+                if token == nil {
+                    print("🔐 [REALTIME] No auth token, attempting Auth0 login...")
+                    _ = try await AuthManager.shared.login()
+                }
+                
+                let authToken = await AuthManager.shared.getAccessToken()
+                print("🔌 [REALTIME] Connecting with Auth0 token...")
+                try await phoenixManager.connect(authToken: authToken)
+                
+                // Join user channel for bootstrap
+                if let userId = await AuthManager.shared.getUserId() {
+                    print("👤 [REALTIME] Joining user channel for: \(userId)")
+                    try await phoenixManager.joinUserChannel(userId: userId)
+                    print("✅ [REALTIME] User channel joined")
+                }
             },
             connect: { threadID, handler in
-                do {
-                    try await phoenixManager.connect(authToken: nil)
-                    let conversationId = threadID.uuidString
-                    try await phoenixManager.joinConversation(conversationId)
+                print("🔌 [CONNECT] Realtime connect called for thread: \(threadID)")
 
-                    await phoenixManager.onMessage(conversationId: conversationId) { phoenixMessage in
-                        guard let message = Message.fromPhoenix(phoenixMessage) else { return }
-                        Task { @MainActor in
-                            handler(message)
-                        }
+                // Get Auth0 token
+                let token = await AuthManager.shared.getAccessToken()
+                
+                print("🔌 [CONNECT] Connecting to Phoenix...")
+                try await phoenixManager.connect(authToken: token)
+                print("✅ [CONNECT] Phoenix connected")
+
+                let conversationId = threadID.uuidString
+                print("🔌 [CONNECT] Joining channel: thread:\(conversationId)")
+                try await phoenixManager.joinConversation(conversationId)
+                print("✅ [CONNECT] Channel joined successfully!")
+
+                await phoenixManager.onMessage(conversationId: conversationId) { phoenixMessage in
+                    guard let message = Message.fromPhoenix(phoenixMessage) else { return }
+                    Task { @MainActor in
+                        handler(message)
                     }
-                } catch {
-                    print("⚠️ Phoenix connect failed for thread \(threadID): \(error)")
                 }
+                print("✅ [CONNECT] Message handler registered for thread: \(threadID)")
             },
             disconnect: { threadID in
                 await phoenixManager.leaveConversation(threadID.uuidString)
@@ -153,22 +248,64 @@ extension AppEnvironment {
                 await phoenixManager.sendTypingIndicator(conversationId: threadID.uuidString, isTyping: isTyping)
             },
             sendMessage: { threadID, content, _, replyTo in
-                try await phoenixManager.connect(authToken: nil)
+                print("📤 [ENV] sendMessage called - thread: \(threadID.uuidString), content: \"\(content)\", replyTo: \(replyTo?.uuidString ?? "nil")")
+
+                // Get Auth0 token
+                let token = await AuthManager.shared.getAccessToken()
+                
+                print("📤 [ENV] Ensuring Phoenix connection with Auth0 token...")
+                try await phoenixManager.connect(authToken: token)
+                print("✅ [ENV] Phoenix connected")
+
+                print("📤 [ENV] Calling phoenixManager.sendMessage...")
                 let phoenixMessage = try await phoenixManager.sendMessage(
                     conversationId: threadID.uuidString,
                     content: content,
                     replyToId: replyTo?.uuidString
                 )
+                print("✅ [ENV] Phoenix response: id=\(phoenixMessage.id), conversationId=\(phoenixMessage.conversationId), senderId=\(phoenixMessage.senderId), content=\"\(phoenixMessage.content)\", status=\(phoenixMessage.status.rawValue)")
 
+                print("📤 [ENV] Converting PhoenixMessage to Message...")
                 guard let message = Message.fromPhoenix(phoenixMessage) else {
+                    print("❌ [ENV] Failed to convert PhoenixMessage to Message")
                     throw DatabaseError.insertFailed("Failed to convert Phoenix message")
                 }
+                print("✅ [ENV] Message converted successfully: id=\(message.id.uuidString)")
 
                 return message
             }
         )
 
-        return AppEnvironment(database: database, realtime: realtime)
+        let sync = SyncClient(
+            initialSync: {
+                _ = try? await initializationTask.value
+                do {
+                    let remoteThreads = try await threadService.fetchThreads()
+                    for thread in remoteThreads {
+                        try await databaseManager.upsertThread(thread)
+                    }
+                } catch {
+                    print("⚠️ Failed to fetch remote threads: \\(error.localizedDescription)")
+                }
+                let actor = await syncActorTask.value
+                await actor.syncAllThreads()
+            },
+            startMonitoring: {
+                let actor = await syncActorTask.value
+                await actor.startMonitoring()
+            },
+            stopMonitoring: {
+                let actor = await syncActorTask.value
+                await actor.stopMonitoring()
+            },
+            syncThread: { threadID in
+                _ = try? await initializationTask.value
+                let actor = await syncActorTask.value
+                _ = await actor.triggerSync(threadId: threadID)
+            }
+        )
+
+        return AppEnvironment(database: database, realtime: realtime, sync: sync)
     }()
 }
 

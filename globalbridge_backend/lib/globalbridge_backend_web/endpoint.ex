@@ -57,5 +57,14 @@ defmodule GlobalbridgeBackendWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+
+  # CORS configuration for development
+  # Allows requests from Elm client running on localhost:3000
+  plug CORSPlug,
+    origin: ["http://localhost:3000"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    headers: ["Authorization", "Content-Type", "Accept", "X-CSRF-Token"]
+
   plug GlobalbridgeBackendWeb.Router
 end

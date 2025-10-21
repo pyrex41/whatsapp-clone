@@ -47,7 +47,6 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     if (!hydrated || !pinConfigured) return;
-    // Attempt biometric unlock immediately if configured
     if (status === 'authenticated' && biometricsEnabled) {
       void unlockWithBiometrics();
     }

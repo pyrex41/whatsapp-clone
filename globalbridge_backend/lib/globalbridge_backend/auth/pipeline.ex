@@ -10,4 +10,15 @@ defmodule GlobalbridgeBackend.Auth.Pipeline do
   plug Guardian.Plug.VerifyHeader, scheme: "Bearer"
   plug Guardian.Plug.EnsureAuthenticated
   plug Guardian.Plug.LoadResource
+  plug :assign_current_user
+
+  @doc """
+  Assigns the Guardian resource to conn.assigns.current_user for easier access.
+  """
+  def assign_current_user(conn, _opts) do
+    case Guardian.Plug.current_resource(conn) do
+      nil -> conn
+      user -> Plug.Conn.assign(conn, :current_user, user)
+    end
+  end
 end

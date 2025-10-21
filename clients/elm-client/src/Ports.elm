@@ -1,20 +1,24 @@
 port module Ports exposing
-    ( storeSession
+    ( ChannelConfig
+    , ChannelError
+    , ChannelMessage
+    , SessionData
+    , auth0Login
+    , auth0Logout
     , clearSession
-    , onSessionRestored
     , initSocket
     , joinChannel
     , leaveChannel
-    , sendChannelMessage
-    , onSocketConnected
+    , onAuth0LoginComplete
+    , onAuth0LoginError
+    , onChannelError
     , onChannelJoined
     , onChannelLeft
     , onChannelMessage
-    , onChannelError
-    , SessionData
-    , ChannelConfig
-    , ChannelMessage
-    , ChannelError
+    , onSessionRestored
+    , onSocketConnected
+    , sendChannelMessage
+    , storeSession
     )
 
 {-| JavaScript interop ports for session management and Phoenix Channels.
@@ -27,6 +31,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 
 
+
 -- TYPES
 
 
@@ -34,6 +39,7 @@ type alias SessionData =
     { accessToken : String
     , refreshToken : String
     , userId : String
+    , username : String
     , email : String
     }
 
@@ -57,6 +63,7 @@ type alias ChannelError =
     }
 
 
+
 -- SESSION PORTS (Outbound: Elm -> JavaScript)
 
 
@@ -70,12 +77,14 @@ port storeSession : SessionData -> Cmd msg
 port clearSession : () -> Cmd msg
 
 
+
 -- SESSION PORTS (Inbound: JavaScript -> Elm)
 
 
 {-| Receive restored session data on app startup
 -}
 port onSessionRestored : (Maybe SessionData -> msg) -> Sub msg
+
 
 
 -- PHOENIX CHANNELS PORTS (Outbound: Elm -> JavaScript)
@@ -99,6 +108,7 @@ port leaveChannel : String -> Cmd msg
 {-| Send message to a channel
 -}
 port sendChannelMessage : { topic : String, event : String, payload : Encode.Value } -> Cmd msg
+
 
 
 -- PHOENIX CHANNELS PORTS (Inbound: JavaScript -> Elm)
@@ -127,3 +137,31 @@ port onChannelMessage : (ChannelMessage -> msg) -> Sub msg
 {-| Channel error occurred
 -}
 port onChannelError : (ChannelError -> msg) -> Sub msg
+
+
+
+-- AUTH0 PORTS (Outbound: Elm -> JavaScript)
+
+
+{-| Trigger Auth0 login flow
+-}
+port auth0Login : () -> Cmd msg
+
+
+{-| Trigger Auth0 logout
+-}
+port auth0Logout : () -> Cmd msg
+
+
+
+-- AUTH0 PORTS (Inbound: JavaScript -> Elm)
+
+
+{-| Auth0 login completed successfully with session data
+-}
+port onAuth0LoginComplete : (SessionData -> msg) -> Sub msg
+
+
+{-| Auth0 login failed with error message
+-}
+port onAuth0LoginError : (String -> msg) -> Sub msg

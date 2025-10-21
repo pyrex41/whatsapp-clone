@@ -66,6 +66,8 @@ defmodule GlobalbridgeBackendWeb.Router do
       post "/push", SyncController, :push
     end
 
+    get "/threads", ThreadController, :index
+
     # Protected API routes will go here
     # Example: resources for threads, messages, etc.
   end

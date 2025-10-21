@@ -13,7 +13,8 @@
     "test": "elm-test"
   },
   "dependencies": {
-    "phoenix": "^1.7.10"
+    "phoenix": "^1.7.10",
+    "@auth0/auth0-spa-js": "^2.1.3"
   },
   "devDependencies": {
     "vite": "^5.0.0",

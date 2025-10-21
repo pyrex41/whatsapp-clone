@@ -2,332 +2,149 @@
 //  SyncActorTests.swift
 //  GlobalBridge
 //
-//  Task 16.2: Tests for background sync actor with retry logic
+//  Updated tests for SyncActor with CDC integration
 //
 
 import XCTest
-import SQLite
 @testable import GlobalBridge
 
 @MainActor
 final class SyncActorTests: XCTestCase {
 
-    var syncActor: SyncActor!
-    var queueManager: OfflineQueueManager!
-    var databaseManager: DatabaseManager!
-    var stateManager: PhoenixStateManager!
-    var testThread: Thread!
+    private var syncActor: SyncActor!
+    private var databaseManager: DatabaseManager!
+    private var phoenixManager: MockPhoenixManager!
+    private var cdcManager: MockCDCManager!
+    private var testThread: Thread!
 
     override func setUp() async throws {
         try await super.setUp()
 
-        // Initialize DatabaseManager
         databaseManager = DatabaseManager.shared
         try await databaseManager.initialize()
 
-        // Create test thread
         testThread = Thread(
             id: UUID(),
             threadType: .direct,
             title: "Test Thread",
-            avatarUrl: nil,
-            lastMessageAt: nil,
-            isArchived: false,
-            isMuted: false,
             databaseShardId: "test-shard-\(UUID().uuidString)",
             createdAt: Date(),
             updatedAt: Date()
         )
-
         try await databaseManager.createThread(testThread)
 
-        // Initialize managers
-        queueManager = OfflineQueueManager(databaseManager: databaseManager)
-        stateManager = PhoenixStateManager(config: .development)
+        phoenixManager = MockPhoenixManager()
+        cdcManager = MockCDCManager()
 
-        // Initialize sync actor
         syncActor = SyncActor(
-            queueManager: queueManager,
-            stateManager: stateManager,
-            databaseManager: databaseManager
+            phoenixManager: phoenixManager,
+            databaseManager: databaseManager,
+            cdcManager: cdcManager
         )
     }
 
     override func tearDown() async throws {
-        // Stop sync actor
         await syncActor.stopMonitoring()
-
-        // Clean up test data
         try? await databaseManager.deleteThread(id: testThread.id)
         databaseManager.closeAllConnections()
 
         syncActor = nil
-        queueManager = nil
-        stateManager = nil
+        phoenixManager = nil
+        cdcManager = nil
         testThread = nil
+        databaseManager = nil
 
         try await super.tearDown()
     }
 
-    // MARK: - Connectivity Monitoring Tests
-
-    func testStartMonitoring_ShouldBeginWatchingConnectivity() async throws {
-        // When
+    func testStartMonitoring_ShouldBeginWatchingConnectivity() async {
         await syncActor.startMonitoring()
-
-        // Then
         let isMonitoring = await syncActor.isMonitoring
-        XCTAssertTrue(isMonitoring, "Should be monitoring connectivity")
+        XCTAssertTrue(isMonitoring)
     }
 
-    func testStopMonitoring_ShouldStopWatchingConnectivity() async throws {
-        // Given
+    func testStopMonitoring_ShouldStopWatchingConnectivity() async {
         await syncActor.startMonitoring()
-
-        // When
         await syncActor.stopMonitoring()
-
-        // Then
         let isMonitoring = await syncActor.isMonitoring
-        XCTAssertFalse(isMonitoring, "Should not be monitoring connectivity")
+        XCTAssertFalse(isMonitoring)
     }
 
-    // MARK: - Sync Trigger Tests
+    func testTriggerSync_SuccessReturnsSummary() async {
+        cdcManager.summaryToReturn = SyncSummary(pulledCount: 2, pushedCount: 1)
 
-    func testTriggerSync_WhenOnline_ShouldProcessQueue() async throws {
-        // Given
-        let messages = [
-            Message(id: UUID(), threadId: testThread.id, senderId: UUID(), content: "Msg 1"),
-            Message(id: UUID(), threadId: testThread.id, senderId: UUID(), content: "Msg 2")
-        ]
+        let result = await syncActor.triggerSync(threadId: testThread.id)
 
-        for message in messages {
-            try await queueManager.queueMessage(message, shardId: testThread.databaseShardId)
-        }
-
-        // When
-        let result = await syncActor.triggerSync(shardId: testThread.databaseShardId)
-
-        // Then
-        XCTAssertTrue(result.success, "Sync should succeed when online")
-        XCTAssertGreaterThan(result.syncedCount, 0, "Should sync at least one message")
+        XCTAssertTrue(result.success)
+        XCTAssertEqual(result.syncedCount, 3)
+        XCTAssertNil(result.error)
+        XCTAssertEqual(cdcManager.syncCallCount, 1)
+        XCTAssertEqual(cdcManager.lastThreadID, testThread.id)
     }
 
-    func testTriggerSync_WhenOffline_ShouldReturnFailure() async throws {
-        // Given - Simulate offline state
-        // This test assumes we can control the connectivity state
+    func testTriggerSync_WhenSyncFails_ShouldRetryAndReturnFailure() async {
+        cdcManager.shouldThrow = true
 
-        let messages = [
-            Message(id: UUID(), threadId: testThread.id, senderId: UUID(), content: "Offline msg")
-        ]
+        let result = await syncActor.triggerSync(threadId: testThread.id)
 
-        for message in messages {
-            try await queueManager.queueMessage(message, shardId: testThread.databaseShardId)
-        }
-
-        // When
-        // Note: This test would need a way to mock offline state
-        // For now, we'll test the behavior assuming online state
-        let result = await syncActor.triggerSync(shardId: testThread.databaseShardId)
-
-        // Then
-        // In a real implementation, this would fail when offline
-        // For testing purposes, we verify it attempts sync
-        XCTAssertNotNil(result, "Should return a sync result")
+        XCTAssertFalse(result.success)
+        XCTAssertNotNil(result.error)
+        XCTAssertEqual(cdcManager.syncCallCount, 6, "Should retry up to max attempts")
     }
 
-    // MARK: - Batch Processing Tests
-
-    func testSyncBatch_ShouldProcessInBatchesOf100() async throws {
-        // Given
-        let messageCount = 250
-        for i in 0..<messageCount {
-            let message = Message(
-                id: UUID(),
-                threadId: testThread.id,
-                senderId: UUID(),
-                content: "Batch message \(i)"
-            )
-            try await queueManager.queueMessage(message, shardId: testThread.databaseShardId)
-        }
-
-        // When
-        let result = await syncActor.triggerSync(shardId: testThread.databaseShardId)
-
-        // Then
-        // Should process in batches of 100
-        XCTAssertGreaterThan(result.syncedCount, 0, "Should sync messages")
-        XCTAssertLessThanOrEqual(result.batchSize, 100, "Batch size should not exceed 100")
-    }
-
-    func testSyncBatch_ShouldHandleEmptyQueue() async throws {
-        // Given - No queued messages
-
-        // When
-        let result = await syncActor.triggerSync(shardId: testThread.databaseShardId)
-
-        // Then
-        XCTAssertEqual(result.syncedCount, 0, "Should sync 0 messages from empty queue")
-        XCTAssertTrue(result.success, "Empty queue sync should succeed")
-    }
-
-    // MARK: - Retry Logic Tests
-
-    func testRetryLogic_ShouldUseExponentialBackoff() async throws {
-        // Given
-        let message = Message(
-            id: UUID(),
-            threadId: testThread.id,
-            senderId: UUID(),
-            content: "Retry test message"
-        )
-
-        try await queueManager.queueMessage(message, shardId: testThread.databaseShardId)
-
-        // When - Simulate multiple retries
-        var retryDelays: [TimeInterval] = []
-
-        for attempt in 0..<5 {
-            let delay = await syncActor.calculateRetryDelay(attemptNumber: attempt)
-            retryDelays.append(delay)
-        }
-
-        // Then - Should use exponential backoff
-        XCTAssertEqual(retryDelays[0], 1.0, "First retry should be 1 second")
-        XCTAssertEqual(retryDelays[1], 2.0, "Second retry should be 2 seconds")
-        XCTAssertEqual(retryDelays[2], 4.0, "Third retry should be 4 seconds")
-        XCTAssertEqual(retryDelays[3], 8.0, "Fourth retry should be 8 seconds")
-        XCTAssertEqual(retryDelays[4], 16.0, "Fifth retry should be 16 seconds")
-    }
-
-    func testRetryLogic_ShouldCapAtMaxDelay() async throws {
-        // When - Calculate delay for very high attempt number
-        let delay = await syncActor.calculateRetryDelay(attemptNumber: 20)
-
-        // Then - Should cap at maximum delay (e.g., 60 seconds)
-        XCTAssertLessThanOrEqual(delay, 60.0, "Delay should not exceed 60 seconds")
-    }
-
-    // MARK: - Error Handling Tests
-
-    func testSyncWithError_ShouldLogFailure() async throws {
-        // Given
-        let message = Message(
-            id: UUID(),
-            threadId: testThread.id,
-            senderId: UUID(),
-            content: "Error test message"
-        )
-
-        try await queueManager.queueMessage(message, shardId: testThread.databaseShardId)
-
-        // When - Trigger sync (may fail due to network issues)
-        let result = await syncActor.triggerSync(shardId: testThread.databaseShardId)
-
-        // Then
-        if !result.success {
-            XCTAssertNotNil(result.error, "Failed sync should have error")
-            XCTAssertGreaterThan(result.failedCount, 0, "Should track failed messages")
-        }
-    }
-
-    func testSyncWithInvalidShard_ShouldReturnError() async throws {
-        // When
-        let result = await syncActor.triggerSync(shardId: "invalid-shard-id")
-
-        // Then
-        XCTAssertFalse(result.success, "Sync with invalid shard should fail")
-        XCTAssertNotNil(result.error, "Should have error message")
-    }
-
-    // MARK: - Status Update Tests
-
-    func testMarkMessagesAsSent_AfterSuccessfulSync() async throws {
-        // Given
-        let messages = [
-            Message(id: UUID(), threadId: testThread.id, senderId: UUID(), content: "Msg 1"),
-            Message(id: UUID(), threadId: testThread.id, senderId: UUID(), content: "Msg 2")
-        ]
-
-        for message in messages {
-            try await queueManager.queueMessage(message, shardId: testThread.databaseShardId)
-        }
-
-        let initialCount = try await queueManager.getQueuedCount(shardId: testThread.databaseShardId)
-        XCTAssertEqual(initialCount, 2, "Should have 2 queued messages initially")
-
-        // When
-        let result = await syncActor.triggerSync(shardId: testThread.databaseShardId)
-
-        // Then
-        if result.success && result.syncedCount > 0 {
-            let finalCount = try await queueManager.getQueuedCount(shardId: testThread.databaseShardId)
-            XCTAssertLessThan(finalCount, initialCount, "Queue count should decrease after sync")
-        }
-    }
-
-    // MARK: - Multiple Shard Tests
-
-    func testSyncMultipleShards_ShouldHandleConcurrently() async throws {
-        // Given - Create another test thread
-        let testThread2 = Thread(
+    func testSyncAllThreads_ShouldInvokeSyncPerThread() async {
+        let extraThread = Thread(
             id: UUID(),
             threadType: .group,
-            title: "Test Thread 2",
-            avatarUrl: nil,
-            lastMessageAt: nil,
-            isArchived: false,
-            isMuted: false,
-            databaseShardId: "test-shard-2-\(UUID().uuidString)",
+            title: "Extra",
+            databaseShardId: "extra-shard-\(UUID().uuidString)",
             createdAt: Date(),
             updatedAt: Date()
         )
+        try await databaseManager.createThread(extraThread)
+        defer { try? await databaseManager.deleteThread(id: extraThread.id) }
 
-        try await databaseManager.createThread(testThread2)
+        await syncActor.syncAllThreads()
 
-        // Queue messages in both shards
-        let message1 = Message(id: UUID(), threadId: testThread.id, senderId: UUID(), content: "Shard 1 msg")
-        let message2 = Message(id: UUID(), threadId: testThread2.id, senderId: UUID(), content: "Shard 2 msg")
+        XCTAssertEqual(cdcManager.syncCallCount, 2)
+        XCTAssertTrue([testThread.id, extraThread.id].contains(cdcManager.lastThreadID ?? UUID()))
+    }
+}
 
-        try await queueManager.queueMessage(message1, shardId: testThread.databaseShardId)
-        try await queueManager.queueMessage(message2, shardId: testThread2.databaseShardId)
+// MARK: - Test Doubles
 
-        // When - Sync both shards
-        async let result1 = syncActor.triggerSync(shardId: testThread.databaseShardId)
-        async let result2 = syncActor.triggerSync(shardId: testThread2.databaseShardId)
+final class MockPhoenixManager: PhoenixChannelManagerProtocol {
+    var pulledLogs: [CDCLog] = []
+    var pushedLogs: [[CDCLog]] = []
+    var isConnected: Bool = true
 
-        let (r1, r2) = await (result1, result2)
-
-        // Then
-        XCTAssertNotNil(r1, "Should have result for shard 1")
-        XCTAssertNotNil(r2, "Should have result for shard 2")
-
-        // Cleanup
-        try await databaseManager.deleteThread(id: testThread2.id)
+    func pullCDCLogs(threadId: String, since: Date?) async throws -> [CDCLog] {
+        pulledLogs
     }
 
-    // MARK: - Performance Tests
+    func pushCDCLogs(_ logs: [CDCLog], threadId: String) async throws {
+        pushedLogs.append(logs)
+    }
 
-    func testSyncPerformance_ShouldHandleLargeQueue() async throws {
-        // Given
-        let messageCount = 500
-        for i in 0..<messageCount {
-            let message = Message(
-                id: UUID(),
-                threadId: testThread.id,
-                senderId: UUID(),
-                content: "Perf message \(i)"
-            )
-            try await queueManager.queueMessage(message, shardId: testThread.databaseShardId)
+    func isNetworkAvailable() async -> Bool {
+        isConnected
+    }
+}
+
+final class MockCDCManager: CDCManaging {
+    var summaryToReturn = SyncSummary(pulledCount: 0, pushedCount: 0)
+    var shouldThrow = false
+    private(set) var syncCallCount = 0
+    private(set) var lastThreadID: UUID?
+
+    func syncThread(_ threadId: UUID) async throws -> SyncSummary {
+        syncCallCount += 1
+        lastThreadID = threadId
+
+        if shouldThrow {
+            throw NSError(domain: "MockCDCManager", code: -1)
         }
 
-        // When
-        let startTime = Date()
-        let result = await syncActor.triggerSync(shardId: testThread.databaseShardId)
-        let duration = Date().timeIntervalSince(startTime)
-
-        // Then
-        XCTAssertLessThan(duration, 30.0, "Should sync 500 messages in under 30 seconds")
-        XCTAssertGreaterThan(result.syncedCount, 0, "Should sync some messages")
+        return summaryToReturn
     }
 }

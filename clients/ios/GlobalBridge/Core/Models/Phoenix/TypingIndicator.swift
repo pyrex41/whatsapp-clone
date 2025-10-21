@@ -21,7 +21,7 @@ public struct TypingIndicator: Codable, Sendable, Equatable {
         case timestamp
     }
 
-    public init(
+    public nonisolated init(
         userId: String,
         conversationId: String,
         isTyping: Bool,
@@ -48,7 +48,7 @@ public struct ReadReceipt: Codable, Sendable, Equatable {
         case readAt = "read_at"
     }
 
-    public init(
+    public nonisolated init(
         userId: String,
         conversationId: String,
         messageId: String,
@@ -99,7 +99,10 @@ public struct ReadReceiptState: Equatable {
     }
 
     public func readByUsers(for messageId: String) -> [String] {
-        Array(receipts[messageId]?.keys ?? [])
+        if let readerMap = receipts[messageId] {
+            return Array(readerMap.keys)
+        }
+        return []
     }
 
     public func readCount(for messageId: String) -> Int {

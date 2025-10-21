@@ -63,7 +63,7 @@ defmodule GlobalbridgeBackend.Schemas.Message do
     message
     |> cast(attrs, [:content])
     |> validate_required([:content])
-    |> put_change(:edited_at, DateTime.utc_now())
+    |> put_change(:edited_at, DateTime.utc_now() |> DateTime.truncate(:second))
   end
 
   @doc """
@@ -73,7 +73,7 @@ defmodule GlobalbridgeBackend.Schemas.Message do
     message
     |> change()
     |> put_change(:is_deleted, true)
-    |> put_change(:deleted_at, DateTime.utc_now())
+    |> put_change(:deleted_at, DateTime.utc_now() |> DateTime.truncate(:second))
   end
 
   defp validate_message_content(changeset) do

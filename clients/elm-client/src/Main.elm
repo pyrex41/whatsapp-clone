@@ -3,9 +3,10 @@ module Main exposing (main)
 import Api exposing (ApiConfig, defaultConfig)
 import Auth exposing (AuthState(..))
 import Browser
-import Html exposing (Html, div, text)
+import Html exposing (Html, button, div, h1, p, text)
 import Html.Attributes exposing (class)
-import Html.Events
+import Html.Events exposing (onClick)
+import Json.Encode
 import Page.Conversation as Conversation
 import Page.Login as Login
 import Page.ThreadList as ThreadList
@@ -14,6 +15,7 @@ import State.Bridges as Bridges
 import State.Messages as Messages
 import State.Threads as Threads
 import Types exposing (ThreadId)
+
 
 
 -- MAIN
@@ -27,6 +29,7 @@ main =
         , subscriptions = subscriptions
         , view = view
         }
+
 
 
 -- MODEL
@@ -51,6 +54,8 @@ type alias Model =
     { flags : Flags
     , apiConfig : ApiConfig
     , authState : AuthState
+    , accessToken : String
+    , refreshToken : String
     , currentPage : Page
     , threads : Threads.Model
     , messages : Messages.Model
@@ -75,6 +80,8 @@ init flags =
     ( { flags = flags
       , apiConfig = apiConfig
       , authState = Anonymous
+      , accessToken = ""
+      , refreshToken = ""
       , currentPage = LoginPage loginModel
       , threads = Threads.init
       , messages = Messages.init
@@ -82,6 +89,7 @@ init flags =
       }
     , Cmd.none
     )
+
 
 
 -- UPDATE
@@ -100,6 +108,12 @@ type Msg
     | NavigateToConversation ThreadId
     | NavigateToLogin
     | BootstrapLoaded (Result Api.ApiError Api.BootstrapData)
+    | Auth0LoginClicked
+    | Auth0LoginComplete Ports.SessionData
+    | Auth0LoginError String
+    | SocketConnected Bool
+    | UserChannelJoined { topic : String, data : Json.Encode.Value }
+    | BootstrapReceived { topic : String, event : String, payload : Json.Encode.Value }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -113,45 +127,52 @@ update msg model =
                             Login.update loginMsg loginModel
 
                         -- Handle successful login
-                        ( newAuthState, newPage, cmd ) =
+                        result =
                             case loginMsg of
                                 Login.LoginResponse (Ok response) ->
-                                    ( Authenticated response.user
-                                    , ThreadListPage (ThreadList.init model.threads)
-                                    , Cmd.batch
-                                        [ Ports.storeSession
-                                            { accessToken = response.accessToken
-                                            , refreshToken = response.refreshToken
-                                            , userId = response.user.id
-                                            , email = response.user.email
-                                            }
-                                        , Api.bootstrap model.apiConfig response.accessToken BootstrapLoaded
-                                        ]
-                                    )
+                                    { authState = Authenticated response.user
+                                    , accessToken = response.accessToken
+                                    , refreshToken = response.refreshToken
+                                    , page = ThreadListPage (ThreadList.init model.threads)
+                                    , cmd =
+                                        Cmd.batch
+                                            [ -- Don't use old login anymore - use Auth0
+                                              -- Ports.storeSession is for Auth0 flow only
+                                              Api.bootstrap model.apiConfig response.accessToken BootstrapLoaded
+                                            ]
+                                    }
 
                                 Login.LoginResponse (Err _) ->
-                                    ( AuthError Auth.InvalidCredentials
-                                    , LoginPage updatedLogin
-                                    , Cmd.none
-                                    )
+                                    { authState = AuthError Auth.InvalidCredentials
+                                    , accessToken = model.accessToken
+                                    , refreshToken = model.refreshToken
+                                    , page = LoginPage updatedLogin
+                                    , cmd = Cmd.none
+                                    }
 
                                 Login.FormSubmitted ->
-                                    ( Authenticating
-                                    , LoginPage updatedLogin
-                                    , Cmd.map LoginMsg loginCmd
-                                    )
+                                    { authState = Authenticating
+                                    , accessToken = model.accessToken
+                                    , refreshToken = model.refreshToken
+                                    , page = LoginPage updatedLogin
+                                    , cmd = Cmd.map LoginMsg loginCmd
+                                    }
 
                                 _ ->
-                                    ( model.authState
-                                    , LoginPage updatedLogin
-                                    , Cmd.map LoginMsg loginCmd
-                                    )
+                                    { authState = model.authState
+                                    , accessToken = model.accessToken
+                                    , refreshToken = model.refreshToken
+                                    , page = LoginPage updatedLogin
+                                    , cmd = Cmd.map LoginMsg loginCmd
+                                    }
                     in
                     ( { model
-                        | currentPage = newPage
-                        , authState = newAuthState
+                        | currentPage = result.page
+                        , authState = result.authState
+                        , accessToken = result.accessToken
+                        , refreshToken = result.refreshToken
                       }
-                    , cmd
+                    , result.cmd
                     )
 
                 _ ->
@@ -162,7 +183,8 @@ update msg model =
             let
                 user =
                     { id = sessionData.userId
-                    , email = sessionData.email
+                    , username = sessionData.username
+                    , phoneNumber = ""
                     , createdAt = ""
                     }
 
@@ -177,6 +199,8 @@ update msg model =
             in
             ( { model
                 | authState = Authenticated user
+                , accessToken = sessionData.accessToken
+                , refreshToken = sessionData.refreshToken
                 , currentPage = ThreadListPage (ThreadList.init model.threads)
               }
             , cmd
@@ -186,18 +210,103 @@ update msg model =
             -- No stored session, stay on login page
             ( model, Cmd.none )
 
+        Auth0LoginClicked ->
+            -- Trigger Auth0 login via port
+            ( { model | authState = Authenticating }
+            , Ports.auth0Login ()
+            )
+
+        Auth0LoginComplete sessionData ->
+            -- Auth0 login successful
+            let
+                user =
+                    { id = sessionData.userId
+                    , username = sessionData.username
+                    , phoneNumber = ""
+                    , createdAt = ""
+                    }
+
+                socketEndpoint =
+                    if model.apiConfig.baseUrl == "" then
+                        "ws://localhost:4000/socket"
+
+                    else
+                        String.replace "http" "ws" model.apiConfig.baseUrl ++ "/socket"
+            in
+            ( { model
+                | authState = Authenticated user
+                , accessToken = sessionData.accessToken
+                , refreshToken = sessionData.refreshToken
+                , currentPage = ThreadListPage (ThreadList.init model.threads)
+              }
+            , Cmd.batch
+                [ -- Initialize Phoenix socket with Auth0 token
+                  Ports.initSocket { endpoint = socketEndpoint, token = sessionData.accessToken }
+                , -- Store session
+                  Ports.storeSession sessionData
+                ]
+            )
+
+        Auth0LoginError errorMsg ->
+            ( { model | authState = AuthError (Auth.NetworkError errorMsg) }
+            , Cmd.none
+            )
+
+        SocketConnected isConnected ->
+            if isConnected && model.authState /= Anonymous then
+                -- Socket connected, join user channel for bootstrap
+                case model.authState of
+                    Authenticated user ->
+                        ( model
+                        , Ports.joinChannel
+                            { topic = "user:" ++ user.id
+                            , params = Json.Encode.object []
+                            }
+                        )
+
+                    _ ->
+                        ( model, Cmd.none )
+
+            else
+                ( model, Cmd.none )
+
+        UserChannelJoined { topic } ->
+            -- User channel joined, request bootstrap
+            ( model
+            , Ports.sendChannelMessage
+                { topic = topic
+                , event = "bootstrap"
+                , payload = Json.Encode.object []
+                }
+            )
+
+        BootstrapReceived { payload } ->
+            -- Bootstrap data received from user channel
+            -- Decode and update threads
+            ( model, Cmd.none )
+
         BootstrapLoaded (Ok bootstrapData) ->
             -- Initialize application state with bootstrap data
             let
                 ( threadsModel, threadsCmd ) =
-                    Threads.update model.apiConfig "" (Threads.ThreadsLoaded (Ok bootstrapData.threads)) model.threads
+                    Threads.update model.apiConfig model.accessToken (Threads.ThreadsLoaded (Ok bootstrapData.threads)) model.threads
 
                 ( bridgesModel, bridgesCmd ) =
                     Bridges.update (Bridges.LoadBridges bootstrapData.bridges) model.bridges
+
+                -- Update the current page with new threads state if on thread list
+                updatedPage =
+                    case model.currentPage of
+                        ThreadListPage threadListModel ->
+                            ThreadListPage { threadListModel | threadsState = threadsModel }
+
+                        other ->
+                            other
             in
             ( { model
                 | threads = threadsModel
                 , bridges = bridgesModel
+                , currentPage = updatedPage
               }
             , Cmd.batch
                 [ Cmd.map ThreadsMsg threadsCmd
@@ -217,6 +326,8 @@ update msg model =
         Logout ->
             ( { model
                 | authState = Anonymous
+                , accessToken = ""
+                , refreshToken = ""
                 , currentPage = LoginPage (Login.init model.apiConfig model.flags.csrfToken False)
                 , threads = Threads.init
                 , messages = Messages.init
@@ -255,7 +366,7 @@ update msg model =
 
                                     else
                                         Messages.update model.apiConfig
-                                            (getAuthToken model.authState)
+                                            (getAuthToken model)
                                             (Messages.SendMessage conversationModel.threadId conversationModel.composerText)
                                             model.messages
 
@@ -279,7 +390,7 @@ update msg model =
         ThreadsMsg threadsMsg ->
             let
                 token =
-                    getAuthToken model.authState
+                    getAuthToken model
 
                 ( newThreads, cmd ) =
                     Threads.update model.apiConfig token threadsMsg model.threads
@@ -300,7 +411,7 @@ update msg model =
         MessagesMsg messagesMsg ->
             let
                 token =
-                    getAuthToken model.authState
+                    getAuthToken model
 
                 ( newMessages, cmd ) =
                     Messages.update model.apiConfig token messagesMsg model.messages
@@ -347,7 +458,7 @@ update msg model =
                     Conversation.init threadId threadName model.messages
             in
             ( { model | currentPage = ConversationPage conversationModel }
-            , Cmd.map MessagesMsg (Messages.update model.apiConfig (getAuthToken model.authState) (Messages.LoadMessages threadId) model.messages |> Tuple.second)
+            , Cmd.map MessagesMsg (Messages.update model.apiConfig (getAuthToken model) (Messages.LoadMessages threadId) model.messages |> Tuple.second)
             )
 
         NavigateToLogin ->
@@ -359,6 +470,7 @@ update msg model =
             )
 
 
+
 -- SUBSCRIPTIONS
 
 
@@ -366,10 +478,16 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Ports.onSessionRestored SessionRestored
+        , Ports.onAuth0LoginComplete Auth0LoginComplete
+        , Ports.onAuth0LoginError Auth0LoginError
+        , Ports.onSocketConnected SocketConnected
+        , Ports.onChannelJoined UserChannelJoined
+        , Ports.onChannelMessage BootstrapReceived
         , Sub.map ThreadsMsg (Threads.subscriptions model.threads)
         , Sub.map MessagesMsg (Messages.subscriptions model.messages)
         , Sub.map BridgesMsg (Bridges.subscriptions model.bridges)
         ]
+
 
 
 -- VIEW
@@ -379,23 +497,42 @@ view : Model -> Html Msg
 view model =
     case model.authState of
         Anonymous ->
-            case model.currentPage of
-                LoginPage loginModel ->
-                    Html.map LoginMsg (Login.view loginModel)
-
-                _ ->
-                    div [ class "error" ] [ text "Error: Not authenticated" ]
+            viewAuth0Login
 
         Authenticating ->
             div [ class "loading-container" ]
-                [ text "Authenticating..." ]
+                [ text "Authenticating with Auth0..." ]
 
         Authenticated user ->
             viewAuthenticatedPage model user
 
         AuthError error ->
             div [ class "error-container" ]
-                [ text ("Authentication error: " ++ authErrorToString error) ]
+                [ div [] [ text ("Authentication error: " ++ authErrorToString error) ]
+                , button [ onClick Auth0LoginClicked, class "btn btn-primary mt-4" ]
+                    [ text "Try Again" ]
+                ]
+
+
+viewAuth0Login : Html Msg
+viewAuth0Login =
+    div [ class "auth0-login-container min-h-screen flex items-center justify-center bg-gray-100" ]
+        [ div [ class "auth0-card bg-white p-8 rounded-lg shadow-lg max-w-md w-full" ]
+            [ div [ class "text-center mb-8" ]
+                [ h1 [ class "text-3xl font-bold text-gray-900 mb-2" ]
+                    [ text "GlobalBridge" ]
+                , p [ class "text-gray-600" ]
+                    [ text "Secure messaging platform" ]
+                ]
+            , button
+                [ onClick Auth0LoginClicked
+                , class "w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
+                ]
+                [ text "Login with Auth0" ]
+            , div [ class "mt-4 text-center text-sm text-gray-500" ]
+                [ text "Secure authentication powered by Auth0" ]
+            ]
+        ]
 
 
 viewAuthenticatedPage : Model -> Auth.User -> Html Msg
@@ -427,6 +564,7 @@ viewConversationPage model threadId =
         ]
 
 
+
 -- HELPERS
 
 
@@ -449,12 +587,11 @@ authErrorToString error =
             "Unknown error: " ++ msg
 
 
-getAuthToken : AuthState -> String
-getAuthToken authState =
-    case authState of
+getAuthToken : Model -> String
+getAuthToken model =
+    case model.authState of
         Authenticated _ ->
-            -- TODO: Store and retrieve actual token
-            ""
+            model.accessToken
 
         _ ->
             ""

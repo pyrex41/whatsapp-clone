@@ -470,7 +470,7 @@ class MockPhoenixChannelManager {
         pushedLogs.append(contentsOf: logs)
     }
 
-    func isNetworkAvailable() -> Bool {
+    func isNetworkAvailable() async -> Bool {
         return isConnected
     }
 }

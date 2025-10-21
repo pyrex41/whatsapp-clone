@@ -30,7 +30,7 @@ struct Thread: Identifiable, Codable, Equatable {
         case channel = "channel"
     }
 
-    init(
+    nonisolated init(
         id: UUID = UUID(),
         threadType: ThreadType,
         title: String? = nil,

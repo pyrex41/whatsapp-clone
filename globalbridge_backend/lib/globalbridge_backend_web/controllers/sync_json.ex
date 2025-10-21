@@ -3,14 +3,16 @@ defmodule GlobalbridgeBackendWeb.SyncJSON do
   JSON rendering for sync controller responses.
   """
 
+  alias GlobalbridgeBackend.Sync
+
   @doc """
   Renders successful pull response with CDC changes.
   """
-  def pull_success(%{changes: changes, next_cursor: next_cursor}) do
+  def pull_success(%{changes: changes, cursor: cursor}) do
     %{
       data: %{
-        changes: Enum.map(changes, &render_cdc_change/1),
-        next_cursor: next_cursor
+        changes: Enum.map(changes, &Sync.format_change/1),
+        next_cursor: format_timestamp(cursor)
       }
     }
   end
@@ -25,21 +27,6 @@ defmodule GlobalbridgeBackendWeb.SyncJSON do
         failed: failed,
         results: results
       }
-    }
-  end
-
-  # Private rendering functions
-
-  defp render_cdc_change(change) do
-    %{
-      id: change.id,
-      table_name: change.table_name,
-      record_id: change.record_id,
-      operation: change.operation,
-      old_data: change.old_data,
-      new_data: change.new_data,
-      changed_fields: change.changed_fields,
-      timestamp: format_timestamp(change.timestamp)
     }
   end
 

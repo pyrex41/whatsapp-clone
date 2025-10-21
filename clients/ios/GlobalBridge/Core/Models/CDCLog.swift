@@ -27,7 +27,7 @@ struct CDCLog: Identifiable, Codable, Equatable {
         case delete = "delete"
     }
 
-    init(
+    nonisolated init(
         id: UUID = UUID(),
         tableName: String,
         recordId: UUID,
@@ -68,7 +68,7 @@ struct SyncState: Identifiable, Codable, Equatable {
     let createdAt: Date
     let updatedAt: Date
 
-    init(
+    nonisolated init(
         id: UUID = UUID(),
         deviceId: UUID,
         threadId: UUID? = nil,

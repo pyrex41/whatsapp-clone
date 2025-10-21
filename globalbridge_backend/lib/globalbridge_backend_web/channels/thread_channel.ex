@@ -12,6 +12,7 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
 
   alias GlobalbridgeBackend.Chat
   alias GlobalbridgeBackend.Notifications
+  alias GlobalbridgeBackend.Sync
   alias GlobalbridgeBackendWeb.Presence
   require Logger
 
@@ -24,8 +25,12 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
   def join("thread:" <> thread_id, _payload, socket) do
     user_id = socket.assigns.user_id
 
+    Logger.info("🔌 Channel join attempt: thread=#{thread_id}, user=#{user_id}")
+
     case authorize_user(thread_id, user_id) do
       {:ok, thread} ->
+        Logger.info("✅ Channel join authorized: thread=#{thread_id}, user=#{user_id}")
+
         # Assign thread info to socket for fast access
         socket =
           socket
@@ -38,13 +43,15 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
         {:ok, %{thread_id: thread_id, joined_at: DateTime.utc_now()}, socket}
 
       {:error, :not_participant} ->
+        Logger.warning("❌ Channel join denied (not participant): thread=#{thread_id}, user=#{user_id}")
         {:error, %{reason: "Not authorized to join this thread"}}
 
       {:error, :thread_not_found} ->
+        Logger.warning("❌ Channel join denied (thread not found): thread=#{thread_id}, user=#{user_id}")
         {:error, %{reason: "Thread not found"}}
 
       {:error, reason} ->
-        Logger.error("Failed to join thread #{thread_id}: #{inspect(reason)}")
+        Logger.error("❌ Channel join failed: thread=#{thread_id}, user=#{user_id}, reason=#{inspect(reason)}")
         {:error, %{reason: "Unable to join thread"}}
     end
   end
@@ -55,6 +62,8 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     thread_id = socket.assigns.thread_id
     user_id = socket.assigns.user_id
 
+    Logger.debug("👋 After join: tracking presence for user=#{user_id} in thread=#{thread_id}")
+
     # Start tracking presence
     {:ok, _} =
       Presence.track_user(socket, user_id, %{
@@ -64,6 +73,8 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
 
     # Push current presence state to newly joined user
     push(socket, "presence_state", Presence.list(socket))
+
+    Logger.debug("📊 Presence state pushed to user=#{user_id}")
 
     {:noreply, socket}
   end
@@ -93,9 +104,17 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     thread_id = socket.assigns.thread_id
     user_id = socket.assigns.user_id
 
+    # Truncate content for logging if it's too long
+    truncated_content = truncate_message(content, 50)
+
+    Logger.info("📥 [MSG] Received message from user #{user_id} in thread #{thread_id}: \"#{truncated_content}\"")
+    Logger.debug("📦 [MSG] Full payload: #{inspect(payload)}")
+
     # Generate message ID immediately for client feedback
     message_id = Ecto.UUID.generate()
     client_timestamp = System.system_time(:millisecond)
+
+    Logger.debug("🆔 [MSG] Generated message_id: #{message_id}, client_timestamp: #{client_timestamp}")
 
     # Build message struct
     message_attrs = %{
@@ -125,13 +144,19 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
       client_timestamp: client_timestamp
     }
 
+    Logger.info("📡 [MSG] Broadcasting message #{message_id} to thread:#{thread_id}")
     broadcast!(socket, "new_message", broadcast_message)
+    Logger.info("✅ [MSG] Message #{message_id} broadcast complete, queuing for persistence")
 
     # Persist to database asynchronously
     # Using Task.Supervisor for monitored async operations
     Task.Supervisor.start_child(GlobalbridgeBackend.TaskSupervisor, fn ->
+      Logger.debug("💾 [MSG] Starting database persistence for message #{message_id}")
+
       case Chat.create_message(thread_id, message_attrs) do
         {:ok, message} ->
+          Logger.info("✅ [MSG] Message #{message_id} persisted to database successfully")
+
           # Update thread last_message_at timestamp
           Chat.update_thread_timestamp(thread_id)
 
@@ -141,7 +166,7 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
           :ok
 
         {:error, changeset} ->
-          Logger.error("Failed to persist message #{message_id}: #{inspect(changeset.errors)}")
+          Logger.error("❌ [MSG] Failed to persist message #{message_id}: #{inspect(changeset.errors)}")
           # Optionally broadcast error to sender only
           push(socket, "message_error", %{
             temp_id: message_id,
@@ -150,8 +175,11 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
       end
     end)
 
-    # Reply immediately to sender with message ID
-    {:reply, {:ok, %{id: message_id, timestamp: client_timestamp}}, socket}
+    # Reply immediately to sender with full message (iOS expects complete message object)
+    Logger.debug("↩️  [MSG] Replying to sender with full message: #{message_id}")
+
+    # Return the same format as broadcast so iOS can parse it
+    {:reply, {:ok, broadcast_message}, socket}
   end
 
   @impl true
@@ -284,6 +312,44 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     end
   end
 
+  @impl true
+  def handle_in("cdc:pull", payload, socket) do
+    thread = socket.assigns.thread
+    since = parse_since(payload)
+
+    {changes, cursor} = Sync.pull_changes(thread, since: since)
+
+    response = %{
+      "changes" => Enum.map(changes, &Sync.format_change/1),
+      "next_cursor" => format_cursor(cursor)
+    }
+
+    {:reply, {:ok, response}, socket}
+  end
+
+  @impl true
+  def handle_in("cdc:push", %{"logs" => changes} = _payload, socket) when is_list(changes) do
+    thread = socket.assigns.thread
+    user_id = socket.assigns.user_id
+
+    results = Sync.apply_changes(thread, changes, user_id)
+
+    applied = Enum.count(results, &match?(%{"success" => true}, &1))
+    failed = Enum.count(results, &match?(%{"success" => false}, &1))
+
+    response = %{
+      "applied" => applied,
+      "failed" => failed,
+      "results" => results
+    }
+
+    {:reply, {:ok, response}, socket}
+  end
+
+  def handle_in("cdc:push", _payload, socket) do
+    {:reply, {:error, %{reason: "Missing required parameter: logs"}}, socket}
+  end
+
   # Private helper functions
 
   defp authorize_user(thread_id, user_id) do
@@ -330,10 +396,10 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     []
   end
 
-  defp get_user_info(_user_id) do
+  defp get_user_info(user_id) do
     # TODO: Implement actual user lookup
     # For now, return basic info
-    %{id: _user_id, name: "User"}
+    %{id: user_id, name: "User"}
   end
 
   defp truncate_message(content, max_length \\ 100) do
@@ -343,4 +409,25 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
       content
     end
   end
+
+  defp parse_since(payload) do
+    payload
+    |> Map.get("since")
+    |> case do
+      nil -> nil
+      "" -> nil
+      value when is_binary(value) ->
+        case DateTime.from_iso8601(value) do
+          {:ok, datetime, _} -> datetime
+          _ -> nil
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  defp format_cursor(nil), do: nil
+  defp format_cursor(%DateTime{} = datetime), do: DateTime.to_iso8601(datetime)
+  defp format_cursor(value), do: value
 end

@@ -14,68 +14,24 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
       iex> get_repo("abc-123-def")
       GlobalbridgeBackend.Repos.ThreadRepo.Shard_abc_123_def
   """
-  def get_repo(shard_id) do
-    repo_name = repo_module_name(shard_id)
-
-    # Check if repo is already started
-    case Process.whereis(repo_name) do
-      nil ->
-        # Start the repo dynamically
-        start_repo(shard_id)
-        repo_name
-
-      _pid ->
-        repo_name
-    end
+  def get_repo(_shard_id) do
+    # For now, use the primary Repo. Dynamic per-thread repos can be
+    # reinstated once supervision tree integration is finalized.
+    GlobalbridgeBackend.Repo
   end
 
   @doc """
   Starts a dynamic repository for a thread shard.
   """
-  def start_repo(shard_id) do
-    repo_name = repo_module_name(shard_id)
-    db_path = database_path(shard_id)
-
-    # Ensure the threads directory exists
-    ensure_threads_directory()
-
-    # Define the repo module dynamically with config
-    repo_config = [
-      adapter: Ecto.Adapters.SQLite3,
-      database: db_path,
-      pool_size: 5,
-      name: repo_name
-    ]
-
-    # Start the repo directly without dynamic module definition
-    # The repo module is created on-demand by Supervisor
-    case DynamicSupervisor.start_child(
-           GlobalbridgeBackend.DynamicRepoSupervisor,
-           {Ecto.Repo, [otp_app: :globalbridge_backend] ++ repo_config}
-         ) do
-      {:ok, _pid} ->
-        # Run migrations on the new database
-        run_thread_migrations(repo_name)
-        {:ok, repo_name}
-
-      {:error, {:already_started, _pid}} ->
-        {:ok, repo_name}
-
-      error ->
-        error
-    end
+  def start_repo(_shard_id) do
+    {:ok, GlobalbridgeBackend.Repo}
   end
 
   @doc """
   Stops a dynamic repository for a thread shard.
   """
-  def stop_repo(shard_id) do
-    repo_name = repo_module_name(shard_id)
-
-    case Process.whereis(repo_name) do
-      nil -> :ok
-      _pid -> Supervisor.stop(repo_name)
-    end
+  def stop_repo(_shard_id) do
+    :ok
   end
 
   @doc """
@@ -99,11 +55,8 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
 
   # Private functions
 
-  defp repo_module_name(shard_id) do
-    # Convert shard_id to a valid module name
-    # Replace hyphens with underscores
-    sanitized_id = String.replace(shard_id, "-", "_")
-    Module.concat([GlobalbridgeBackend.Repos.ThreadRepo, "Shard_#{sanitized_id}"])
+  defp repo_module_name(_shard_id) do
+    GlobalbridgeBackend.Repo
   end
 
   defp ensure_threads_directory do

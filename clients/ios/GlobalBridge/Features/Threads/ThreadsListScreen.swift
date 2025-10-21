@@ -24,7 +24,10 @@ struct ThreadsListScreen: View {
                         )
                         .contentShape(Rectangle())
                         .onTapGesture {
+                            print("👆 [UI] Thread tapped: \(thread.id) - \(thread.title ?? "Untitled")")
+                            print("👆 [UI] Sending .threadSelected action...")
                             store.send(.threadSelected(thread.id))
+                            print("👆 [UI] .threadSelected action sent")
                         }
                     }
                 }
