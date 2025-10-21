@@ -118,8 +118,7 @@ final class DatabaseManager {
         print("🗄️ Initializing DatabaseManager...")
 
         do {
-            // Initialize main database
-            try await initializeMainDatabase()
+            try await ensureMainConnection()
             print("✅ DatabaseManager initialized successfully")
         } catch {
             print("❌ DatabaseManager initialization failed: \(error)")
@@ -147,7 +146,14 @@ final class DatabaseManager {
         }
     }
 
+    private func ensureMainConnection() async throws {
+        if mainConnection == nil {
+            try await initializeMainDatabase()
+        }
+    }
+
     private func createMainTables() async throws {
+        try await ensureMainConnection()
         guard let db = mainConnection else {
             throw DatabaseError.connectionFailed("Main connection not available")
         }
@@ -432,6 +438,7 @@ final class DatabaseManager {
 
     /// Create a new thread
     func createThread(_ thread: Thread) async throws {
+        try await ensureMainConnection()
         guard let db = mainConnection else {
             throw DatabaseError.connectionFailed("Main connection not available")
         }
@@ -472,6 +479,7 @@ final class DatabaseManager {
 
     /// Fetch all threads
     func fetchThreads() async throws -> [Thread] {
+        try await ensureMainConnection()
         guard let db = mainConnection else {
             throw DatabaseError.connectionFailed("Main connection not available")
         }
@@ -503,6 +511,7 @@ final class DatabaseManager {
 
     /// Update a thread
     func updateThread(_ thread: Thread) async throws {
+        try await ensureMainConnection()
         guard let db = mainConnection else {
             throw DatabaseError.connectionFailed("Main connection not available")
         }
@@ -849,6 +858,7 @@ final class DatabaseManager {
 
     /// Fetch thread by ID (public version)
     func fetchThread(id: UUID) async throws -> Thread? {
+        try await ensureMainConnection()
         guard let db = mainConnection else {
             throw DatabaseError.connectionFailed("Main connection not available")
         }
@@ -876,6 +886,7 @@ final class DatabaseManager {
     // MARK: - Helper Methods
 
     private func updateThreadLastMessage(threadId: UUID, timestamp: Date) async throws {
+        try await ensureMainConnection()
         guard let db = mainConnection else { return }
 
         let threadRow = threadsTable.filter(self.threadId == threadId.uuidString)
@@ -928,6 +939,27 @@ final class DatabaseManager {
         }
 
         return dict
+    }
+
+    // MARK: - Seeding Helpers
+
+    func seedSampleDataIfNeeded(currentUser: User = .sampleCurrent) async throws {
+        try await ensureMainConnection()
+        let existing = try await fetchThreads()
+        guard existing.isEmpty else { return }
+
+        print("🌱 Seeding sample data into local database…")
+
+        for thread in Thread.sampleThreads {
+            try await createThread(thread)
+
+            let samples = Message.samples(for: thread.id, sender: currentUser)
+            for message in samples {
+                try await createMessage(message)
+            }
+        }
+
+        print("✅ Sample data seeded")
     }
 
     // MARK: - Cleanup

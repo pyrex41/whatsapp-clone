@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 struct DatabaseClient {
     var loadThreads: @Sendable () async throws -> [Thread]
@@ -57,7 +58,61 @@ extension AppEnvironment {
         return AppEnvironment(database: database, realtime: realtime)
     }()
 
-    static let live: AppEnvironment = .preview
+    static let live: AppEnvironment = {
+        let databaseManager = DatabaseManager.shared
+        let initializationTask = Task { @MainActor in
+            try await databaseManager.initialize()
+            try await databaseManager.seedSampleDataIfNeeded()
+        }
+
+        let database = DatabaseClient(
+            loadThreads: {
+                try await initializationTask.value
+                try await databaseManager.fetchThreads()
+            },
+            createThread: { title, creator in
+                _ = try await initializationTask.value
+                let now = Date()
+                let thread = Thread(
+                    threadType: .group,
+                    title: title,
+                    lastMessageAt: now,
+                    unreadCount: 0,
+                    createdAt: now,
+                    updatedAt: now
+                )
+                try await databaseManager.createThread(thread)
+                return thread
+            },
+            loadMessages: { threadID in
+                _ = try await initializationTask.value
+                try await databaseManager.fetchMessages(threadId: threadID, limit: 200, offset: 0)
+            },
+            createMessage: { threadID, content, author in
+                _ = try await initializationTask.value
+                let now = Date()
+                let message = Message(
+                    threadId: threadID,
+                    senderId: author.id,
+                    content: content,
+                    messageType: .text,
+                    status: .sent,
+                    createdAt: now,
+                    updatedAt: now
+                )
+                try await databaseManager.createMessage(message)
+                return message
+            }
+        )
+
+        let realtime = RealtimeClient(
+            connect: { _, _ in },
+            disconnect: { _ in },
+            sendTyping: { _, _, _ in }
+        )
+
+        return AppEnvironment(database: database, realtime: realtime)
+    }()
 }
 
 // MARK: - In-memory preview data store
@@ -70,16 +125,18 @@ actor InMemoryDataStore {
     private var realtimeHandlers: [UUID: [(Message) -> Void]] = [:]
 
     init(
-        threads: [Thread] = Thread.sampleThreads,
+        threads: [Thread]? = nil,
         messages: [UUID: [Message]] = [:]
     ) {
+        let initialThreads = threads ?? Thread.sampleThreads
+
         var messageMap: [UUID: [Message]] = messages
         if messageMap.isEmpty {
-            for thread in threads {
-                messageMap[thread.id] = Message.samples(for: thread.id)
+            for thread in initialThreads {
+                messageMap[thread.id] = Message.samples(for: thread.id, sender: User.sampleCurrent)
             }
         }
-        self.threads = threads
+        self.threads = initialThreads
         self.messages = messageMap
     }
 
