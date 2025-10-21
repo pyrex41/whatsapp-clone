@@ -1106,7 +1106,7 @@
           "10",
           "11"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1160,8 +1160,8 @@
               2,
               4
             ],
-            "details": "Integrate Phoenix channels in ChatView to send messages via MessageComposer and listen for incoming messages. Update the message list optimistically on send and on receive. Handle connection states and errors.",
-            "status": "pending",
+            "details": "Integrate Phoenix channels in ChatView to send messages via MessageComposer and listen for incoming messages. Update the message list optimistically on send and on receive. Handle connection states and errors.\n<info added on 2025-10-21T04:57:49.202Z>\nOn thread selection, the reducer invokes environment.realtime.connect(threadID) and wires its handler to dispatch .receiveRealtimeMessage for inbound events. In the preview environment, RealtimeClient replays messages via the in-memory actor to simulate server pushes. The .messageSent success path reconciles and updates the message list with the confirmed send. A .typingIndicator action is stubbed for upcoming Phoenix typing events.\n</info added on 2025-10-21T04:57:49.202Z>",
+            "status": "done",
             "testStrategy": "Test message sending and receiving in a simulated environment. Verify optimistic updates and real-time UI refreshes. Check error handling for failed sends.",
             "parentId": "undefined"
           }
@@ -1845,8 +1845,8 @@
             "title": "Create shared timestamp formatting utility",
             "description": "Develop a shared utility function to format server timestamps into human-readable strings.",
             "dependencies": [],
-            "details": "Implement a utility module in the shared utilities folder that takes a timestamp and formats it according to the PRD schema, ensuring it's reusable across the application.",
-            "status": "pending",
+            "details": "Implement a utility module in the shared utilities folder that takes a timestamp and formats it according to the PRD schema, ensuring it's reusable across the application.\n<info added on 2025-10-21T04:58:59.069Z>\nAdded Core/Utilities/TimestampFormatter.swift implementing shared helpers for chat timestamps. Exposes formatRelative and formatAbsolute functions that accept Date or epoch seconds and return strings aligned with the PRD schema. Designed for reuse across UI surfaces (MessageRow, notifications) and structured to easily add locale-aware patterns in the next subtask.\n</info added on 2025-10-21T04:58:59.069Z>",
+            "status": "done",
             "testStrategy": "Unit tests to verify correct formatting of various timestamp inputs.",
             "parentId": "undefined"
           },
@@ -1857,8 +1857,8 @@
             "dependencies": [
               1
             ],
-            "details": "Modify the utility to accept a locale parameter and use internationalization libraries to format timestamps appropriately for different locales, ensuring consistency.",
-            "status": "pending",
+            "details": "Modify the utility to accept a locale parameter and use internationalization libraries to format timestamps appropriately for different locales, ensuring consistency.\n<info added on 2025-10-21T04:59:51.104Z>\nTimestampFormatter leverages RelativeDateTimeFormatter and two DateFormatter instances, automatically respecting the current Locale so strings adapt to user settings.\n</info added on 2025-10-21T04:59:51.104Z>",
+            "status": "done",
             "testStrategy": "Unit tests with different locales to confirm proper formatting.",
             "parentId": "undefined"
           },
@@ -1905,15 +1905,32 @@
       },
       {
         "id": 24,
-        "title": "Run Backend Database Migrations",
-        "description": "Execute database migrations to apply the notifications table and read receipts table schemas, along with any other pending migrations, ensuring the backend database is up-to-date.",
-        "details": "Navigate to the Elixir backend project directory. Run `mix ecto.migrate` in the terminal to execute all pending migrations, including those for the notifications table (which may include fields for notification types, user IDs, timestamps, and related metadata as per the PRD) and the read_receipts table (likely with fields for message IDs, user IDs, and read timestamps, as implemented in Task 17). Ensure the database configuration in `config/dev.exs` or `config/prod.exs` is set correctly for the environment (e.g., using SQLite for local development). If any migrations fail, review error messages for issues like missing dependencies or schema conflicts, and resolve them (e.g., by checking foreign key constraints or data types). After migration, use a database tool like SQLite Browser or `mix ecto.gen.migration` to inspect the schema and confirm the tables exist with the expected columns. Consider running in a staging environment first to avoid production issues. Also, verify that any CDC log triggers or sharding logic (from Task 2) are not affected by the new tables.",
-        "testStrategy": "After running `mix ecto.migrate`, connect to the database using a tool like `sqlite3` or an Elixir console (e.g., `iex -S mix`) and execute SQL queries to list tables (`SELECT name FROM sqlite_master WHERE type='table';`) and verify 'notifications' and 'read_receipts' are present. Query the schema of each table (e.g., `PRAGMA table_info(notifications);`) to ensure columns match the expected schema (e.g., id, user_id, type, created_at for notifications; id, message_id, user_id, read_at for read_receipts). Insert test data into the tables and query it back to confirm data integrity. Run the application's tests (if any) that depend on these tables to ensure no regressions. In a multi-environment setup, repeat on staging and production after deployment, checking logs for migration success messages.",
+        "title": "Add iOS Swift Files to Xcode Project",
+        "description": "Manually add 12 new Swift files to the GlobalBridge.xcodeproj following the clients/ios/XCODE_SETUP.md guide, including views for chat, threads, typing indicators, presence, notifications, and modified Phoenix managers, then verify no build errors.",
+        "details": "Follow the step-by-step instructions in clients/ios/XCODE_SETUP.md to manually integrate the Swift files into the Xcode project. The files to add include: TypingIndicator.swift, TypingIndicatorView.swift, MessageCellView.swift, ChatView.swift, ThreadListView.swift, PresenceBadgeView.swift, NotificationManager.swift, and the modified PhoenixChannelManager/PhoenixStateManager. Open GlobalBridge.xcodeproj in Xcode, navigate to the project navigator, right-click on the appropriate group (e.g., Views for UI components, Managers for state and notification handling), select 'Add Files to GlobalBridge...', and choose the file paths. Ensure files are added to the correct targets and groups as specified in the setup guide. For modified files like PhoenixChannelManager and PhoenixStateManager, confirm the changes are applied before adding. After adding all files, build the project (Product → Build) and address any import or dependency issues. Consider SwiftUI-specific considerations like ensuring proper module imports and that files conform to Swift 6 strict concurrency if applicable. Verify that the project structure matches the PRD folder layout.",
+        "testStrategy": "Open GlobalBridge.xcodeproj in Xcode and perform a clean build (Product → Clean Build Folder, then Product → Build). Run the app on an iOS simulator to ensure it launches without crashes. Check the build log for any compilation errors, warnings, or missing file references. Verify that all 12 files are listed in the project navigator under their respective groups and that they can be accessed (e.g., no 'file not found' errors). Test basic functionality by navigating to views like ChatView or ThreadListView in the simulator to confirm they render without runtime errors. If any errors occur, review the XCODE_SETUP.md for troubleshooting steps and re-add or adjust file inclusions as needed.",
         "status": "pending",
         "dependencies": [
-          2,
+          6,
+          11,
+          12,
           17,
+          21,
           22
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "Implement Local Notifications with WebSocket Simulation",
+        "description": "Implement local notifications on iOS that simulate push notification UX using WebSocket events from the Phoenix backend, displaying in-app banners when the app is in the foreground and system notifications when in the background, without relying on APNS.",
+        "details": "Backend Implementation: Modify the Phoenix channel to emit a 'notification' event whenever a new message arrives in a thread. This can be done in the channel module (e.g., MessagingChannel) by broadcasting the event after a message is successfully created or received. Ensure the event payload includes relevant details like message content, sender, and thread ID for display purposes. iOS Implementation: In the iOS app, listen for the 'notification' event on the WebSocket channel connection. Use Swift's NotificationCenter or a custom observer to detect the event. If the app is in the foreground, display an in-app banner using SwiftUI's overlay or a custom view (e.g., a toast notification with message preview). If the app is in the background, request authorization for local notifications if not already granted, then use UNUserNotificationCenter to schedule and add a local notification with the message details. Handle tap navigation by setting up a UNNotificationAction or custom category to navigate to the relevant thread view upon tapping the notification. Simulate the push UX by ensuring the notification mimics APNS behavior, including sound, badge updates, and deep linking. Consider edge cases like app killed state (use background fetch or silent notifications if needed, but focus on active states as per mobile week approach). Integrate with existing state management to update UI accordingly.",
+        "testStrategy": "Test Foreground Banner: Run the app in the simulator or device, ensure it's in the foreground, send a message via another client or mock the WebSocket event, and verify that an in-app banner appears with the message details without triggering a system notification. Test Background Notification: Background the app, send a message, and check that a local notification appears in the notification center with correct title, body, and tap action. Verify that tapping the notification navigates to the thread view. Test Tap Navigation: From background notification, tap it and assert the app opens to the correct thread. Use UI tests with XCUITest to automate these scenarios, mocking WebSocket events if possible. Perform integration tests by running backend and iOS app together, simulating real message sends. Edge Case Testing: Test with app killed (though limited without APNS), and ensure no duplicate notifications. Verify on different iOS versions for compatibility.",
+        "status": "pending",
+        "dependencies": [
+          3,
+          10
         ],
         "priority": "high",
         "subtasks": []
@@ -1929,7 +1946,7 @@
       ],
       "created": "2025-10-21T04:46:09.225Z",
       "description": "Tasks for mvp context",
-      "updated": "2025-10-21T04:57:30.655Z"
+      "updated": "2025-10-21T05:00:07.096Z"
     }
   }
 }
