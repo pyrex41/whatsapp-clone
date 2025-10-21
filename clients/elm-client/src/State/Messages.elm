@@ -1,5 +1,5 @@
 module State.Messages exposing
-    ( Model
+    ( Model(..)
     , Msg(..)
     , init
     , update
@@ -79,7 +79,7 @@ update apiConfig authToken msg model =
     case msg of
         LoadMessages threadId ->
             ( Loading threadId
-            , Cmd.none -- TODO: Implement Api.getMessages
+            , Api.getMessages apiConfig authToken threadId (MessagesLoaded threadId)
             )
 
         MessagesLoaded threadId (Ok messages) ->
@@ -103,9 +103,12 @@ update apiConfig authToken msg model =
                             , content = content
                             , senderId = "current-user" -- TODO: Get from auth state
                             , senderName = "You"
+                            , senderAvatar = Nothing
                             , createdAt = "" -- Will be filled by server
                             , encrypted = False
                             , bridgeOrigin = Nothing
+                            , deliveryStatus = Types.Pending
+                            , attachments = []
                             }
                     in
                     ( Sending optimisticMessage (Ready threadId (messages ++ [ optimisticMessage ]))

@@ -4,6 +4,7 @@ module Api exposing
     , bootstrap
     , getThreads
     , getThread
+    , getMessages
     , sendMessage
     , LoginResponse
     , BootstrapData
@@ -22,9 +23,9 @@ and authentication integration.
 
 import Auth exposing (Credentials, User)
 import Http
-import Json.Decode as Decode exposing (Decoder, field, maybe, string)
+import Json.Decode as Decode exposing (Decoder, field, int, list, maybe, string)
 import Json.Encode as Encode
-import Types exposing (Bridge, BridgeId, BridgePlatform(..), BridgeStatus(..), Message, Thread, ThreadId)
+import Types exposing (Attachment, AttachmentType(..), Bridge, BridgeId, BridgePlatform(..), BridgeStatus(..), DeliveryStatus(..), Message, Thread, ThreadId)
 
 
 -- CONFIGURATION
@@ -216,6 +217,21 @@ getThread config authToken threadId toMsg =
         }
 
 
+{-| Get all messages for a specific thread
+-}
+getMessages : ApiConfig -> String -> ThreadId -> (Result ApiError (List Message) -> msg) -> Cmd msg
+getMessages config authToken threadId toMsg =
+    Http.request
+        { method = "GET"
+        , headers = withAuth authToken
+        , url = threadEndpoint config threadId ++ "/messages"
+        , body = Http.emptyBody
+        , expect = Http.expectJson (toMsg << Result.mapError httpErrorToApiError) (list messageDecoder)
+        , timeout = config.timeout
+        , tracker = Nothing
+        }
+
+
 {-| Send a message to a thread
 -}
 sendMessage : ApiConfig -> String -> ThreadId -> String -> (Result ApiError Message -> msg) -> Cmd msg
@@ -289,15 +305,23 @@ threadDecoder =
 
 messageDecoder : Decoder Message
 messageDecoder =
-    Decode.map8 Message
-        (field "id" string)
-        (field "thread_id" string)
-        (field "content" string)
-        (field "sender_id" string)
-        (field "sender_name" string)
-        (field "created_at" string)
-        (Decode.oneOf [ field "encrypted" Decode.bool, Decode.succeed False ])
-        (maybe (field "bridge_origin" string))
+    Decode.succeed Message
+        |> andMap (field "id" string)
+        |> andMap (field "thread_id" string)
+        |> andMap (field "content" string)
+        |> andMap (field "sender_id" string)
+        |> andMap (field "sender_name" string)
+        |> andMap (maybe (field "sender_avatar" string))
+        |> andMap (field "created_at" string)
+        |> andMap (Decode.oneOf [ field "encrypted" Decode.bool, Decode.succeed False ])
+        |> andMap (maybe (field "bridge_origin" string))
+        |> andMap (Decode.oneOf [ field "delivery_status" deliveryStatusDecoder, Decode.succeed Sent ])
+        |> andMap (Decode.oneOf [ field "attachments" (list attachmentDecoder), Decode.succeed [] ])
+
+
+andMap : Decoder a -> Decoder (a -> b) -> Decoder b
+andMap =
+    Decode.map2 (|>)
 
 
 bridgeDecoder : Decoder Bridge
@@ -360,3 +384,63 @@ bridgeConfigDecoder =
     Decode.map2 Types.BridgeConfig
         (maybe (field "channel_id" string))
         (maybe (field "channel_name" string))
+
+
+deliveryStatusDecoder : Decoder DeliveryStatus
+deliveryStatusDecoder =
+    Decode.string
+        |> Decode.andThen
+            (\str ->
+                case String.toLower str of
+                    "pending" ->
+                        Decode.succeed Pending
+
+                    "sent" ->
+                        Decode.succeed Sent
+
+                    "delivered" ->
+                        Decode.succeed Delivered
+
+                    "read" ->
+                        Decode.succeed Read
+
+                    "failed" ->
+                        Decode.succeed Failed
+
+                    _ ->
+                        Decode.succeed Sent
+            )
+
+
+attachmentTypeDecoder : Decoder AttachmentType
+attachmentTypeDecoder =
+    Decode.string
+        |> Decode.andThen
+            (\str ->
+                case String.toLower str of
+                    "image" ->
+                        Decode.succeed Image
+
+                    "video" ->
+                        Decode.succeed Video
+
+                    "audio" ->
+                        Decode.succeed Audio
+
+                    "document" ->
+                        Decode.succeed Document
+
+                    _ ->
+                        Decode.succeed Other
+            )
+
+
+attachmentDecoder : Decoder Attachment
+attachmentDecoder =
+    Decode.map6 Attachment
+        (field "id" string)
+        (field "type" attachmentTypeDecoder)
+        (field "file_name" string)
+        (field "file_size" int)
+        (field "url" string)
+        (maybe (field "thumbnail_url" string))

@@ -6,6 +6,7 @@ import Browser
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
 import Html.Events
+import Page.Conversation as Conversation
 import Page.Login as Login
 import Page.ThreadList as ThreadList
 import Ports
@@ -43,7 +44,7 @@ Each page maintains its own state and lifecycle.
 type Page
     = LoginPage Login.Model
     | ThreadListPage ThreadList.Model
-    | ConversationPage ThreadId
+    | ConversationPage Conversation.Model
 
 
 type alias Model =
@@ -89,6 +90,7 @@ init flags =
 type Msg
     = LoginMsg Login.Msg
     | ThreadListMsg ThreadList.Msg
+    | ConversationMsg Conversation.Msg
     | SessionRestored (Maybe Ports.SessionData)
     | Logout
     | ThreadsMsg Threads.Msg
@@ -237,6 +239,43 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        ConversationMsg conversationMsg ->
+            case model.currentPage of
+                ConversationPage conversationModel ->
+                    let
+                        ( updatedConversation, cmd ) =
+                            Conversation.update conversationMsg conversationModel
+
+                        -- Handle SendMessage by triggering Messages state update
+                        ( newMessages, messagesCmd ) =
+                            case conversationMsg of
+                                Conversation.SendMessage ->
+                                    if String.isEmpty (String.trim conversationModel.composerText) then
+                                        ( model.messages, Cmd.none )
+
+                                    else
+                                        Messages.update model.apiConfig
+                                            (getAuthToken model.authState)
+                                            (Messages.SendMessage conversationModel.threadId conversationModel.composerText)
+                                            model.messages
+
+                                _ ->
+                                    ( model.messages, Cmd.none )
+
+                        -- Update conversation page with new messages state
+                        updatedPage =
+                            ConversationPage { updatedConversation | messagesState = newMessages }
+                    in
+                    ( { model | currentPage = updatedPage, messages = newMessages }
+                    , Cmd.batch
+                        [ Cmd.map ConversationMsg cmd
+                        , Cmd.map MessagesMsg messagesCmd
+                        ]
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
         ThreadsMsg threadsMsg ->
             let
                 token =
@@ -265,8 +304,17 @@ update msg model =
 
                 ( newMessages, cmd ) =
                     Messages.update model.apiConfig token messagesMsg model.messages
+
+                -- Update ConversationPage if it's the current page
+                updatedPage =
+                    case model.currentPage of
+                        ConversationPage conversationModel ->
+                            ConversationPage { conversationModel | messagesState = newMessages }
+
+                        other ->
+                            other
             in
-            ( { model | messages = newMessages }
+            ( { model | messages = newMessages, currentPage = updatedPage }
             , Cmd.map MessagesMsg cmd
             )
 
@@ -285,8 +333,21 @@ update msg model =
             )
 
         NavigateToConversation threadId ->
-            ( { model | currentPage = ConversationPage threadId }
-            , Cmd.map MessagesMsg (Cmd.batch [ Cmd.none ])
+            let
+                -- Find thread name from threads state
+                threadName =
+                    Threads.getThreads model.threads
+                        |> List.filter (\t -> t.id == threadId)
+                        |> List.head
+                        |> Maybe.map .name
+                        |> Maybe.withDefault "Conversation"
+
+                -- Create conversation model
+                conversationModel =
+                    Conversation.init threadId threadName model.messages
+            in
+            ( { model | currentPage = ConversationPage conversationModel }
+            , Cmd.map MessagesMsg (Messages.update model.apiConfig (getAuthToken model.authState) (Messages.LoadMessages threadId) model.messages |> Tuple.second)
             )
 
         NavigateToLogin ->
@@ -352,8 +413,8 @@ viewAuthenticatedPage model user =
                 ThreadListPage threadListModel ->
                     Html.map ThreadListMsg (ThreadList.view threadListModel)
 
-                ConversationPage threadId ->
-                    viewConversationPage model threadId
+                ConversationPage conversationModel ->
+                    Html.map ConversationMsg (Conversation.view conversationModel)
             ]
         ]
 

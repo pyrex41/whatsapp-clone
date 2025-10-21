@@ -8,6 +8,9 @@ module Types exposing
     , BridgeConfig
     , Message
     , MessageId
+    , DeliveryStatus(..)
+    , Attachment
+    , AttachmentType(..)
     )
 
 {-| Core domain types for GlobalBridge Messenger.
@@ -55,9 +58,38 @@ type alias Message =
     , content : String
     , senderId : String
     , senderName : String
+    , senderAvatar : Maybe String
     , createdAt : String
     , encrypted : Bool
     , bridgeOrigin : Maybe String
+    , deliveryStatus : DeliveryStatus
+    , attachments : List Attachment
+    }
+
+
+type DeliveryStatus
+    = Pending
+    | Sent
+    | Delivered
+    | Read
+    | Failed
+
+
+type AttachmentType
+    = Image
+    | Video
+    | Audio
+    | Document
+    | Other
+
+
+type alias Attachment =
+    { id : String
+    , attachmentType : AttachmentType
+    , fileName : String
+    , fileSize : Int
+    , url : String
+    , thumbnailUrl : Maybe String
     }
 
 

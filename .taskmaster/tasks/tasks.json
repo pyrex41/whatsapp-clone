@@ -2515,7 +2515,7 @@
         "description": "Create a conversation view in the Elm web client that displays a real-time message stream using Phoenix Channels, including a message composer with optimistic send logic, delivery receipts, read status, typing indicators, message metadata, attachment handling, virtualization, auto-scroll, formatting, and error handling with retry.",
         "details": "Begin by defining Elm types for Message, including fields like id, content, timestamp, sender (with user info), bridgeOrigin, encryptionStatus, deliveryStatus (Sent, Delivered, Read), and attachments (as stubs with type, size, and URL). Integrate with the overall app state from Task 5, adding a Conversation module with sub-models for messages, composer state, and UI flags (e.g., autoScrollEnabled, typingUsers).\n\nImplement the conversation view using Elm's Html module, rendering a message list with virtualization (e.g., using a library like elm-virtual-dom or custom scrolling logic to render only visible messages for performance). Display message metadata such as timestamp (formatted as relative time, e.g., '2 minutes ago'), sender name/avatar, bridge origin badge (Slack/Telegram), and encryption status icon. Handle attachments as stubs, showing placeholders with download links or previews.\n\nBuild the message composer with a text input field, supporting optimistic send logic: immediately add the message to the local state and UI, then send via Phoenix Channel (using Task 3's interop), updating status on confirmation or handling failures with retry (e.g., exponential backoff). Implement delivery receipts and read status by subscribing to channel events for message acknowledgments and read markers, updating the message list in real-time.\n\nAdd typing indicators by listening to channel events for 'typing' broadcasts, displaying a list of currently typing users (e.g., 'Alice is typing...'). Enable auto-scroll to the bottom on new messages, with a flag to disable if the user has scrolled up manually.\n\nIncorporate message formatting using Elm's string manipulation or a library like elm-markdown for links (auto-linking URLs) and mentions (highlighting @usernames). Implement error handling for failed sends: display error messages in the composer, allow manual retry, and log errors for debugging.\n\nEnsure responsive design with keyboard navigation (e.g., Enter to send, Escape to cancel). Integrate with Task 4's API client for fetching historical messages on thread load. Consider accessibility features like ARIA labels for screen readers. Handle edge cases such as message edits/deletions via real-time updates and offline scenarios by queuing sends.",
         "testStrategy": "Verify the conversation view by loading the app, navigating to a thread (assuming Task 6 is complete), and checking the message list renders with virtualization (e.g., scroll through many messages without performance issues using browser dev tools' performance tab). Test real-time messaging by opening multiple browser tabs, sending messages, and confirming they appear instantly via Phoenix Channels (monitor network tab for WebSocket traffic).\n\nTest the message composer by typing a message, sending it, and verifying optimistic UI update (message appears immediately), then confirm delivery status changes on receipt (e.g., from Sent to Delivered). Simulate failed sends by disconnecting the network, send a message, and check error display with retry button; reconnect and verify retry succeeds.\n\nCheck delivery receipts and read status by sending messages between tabs and marking as read, ensuring status updates propagate. Test typing indicators by simulating typing events via channel broadcasts and confirming the UI shows/hides indicators correctly.\n\nValidate message metadata display by inspecting rendered elements for timestamps, sender info, bridge badges, and encryption icons. Test attachments by uploading stubs and verifying placeholders with correct types/sizes.\n\nAssess auto-scroll by sending messages while scrolled to bottom (should auto-scroll) and scrolled up (should not). Test message formatting by sending messages with URLs and @mentions, confirming they render as links/highlights. Use Elm's test framework (elm-test) for unit tests on update functions, e.g., asserting state changes on message send/receive. Perform integration tests with Task 3's interop by mocking channel events and verifying port communications.",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [
           "3",
           "4",
@@ -2591,7 +2591,8 @@
         ],
         "complexity": 8,
         "recommendedSubtasks": 5,
-        "expansionPrompt": "Divide into subtasks for defining message types and view with virtualization, implementing the composer with optimistic UI, adding delivery receipts and typing indicators, and handling formatting and errors."
+        "expansionPrompt": "Divide into subtasks for defining message types and view with virtualization, implementing the composer with optimistic UI, adding delivery receipts and typing indicators, and handling formatting and errors.",
+        "updatedAt": "2025-10-21T16:38:28.861Z"
       },
       {
         "id": "8",
@@ -3292,7 +3293,7 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-10-21T16:33:20.376Z",
+      "lastModified": "2025-10-21T16:38:28.863Z",
       "taskCount": 20,
       "completedCount": 6,
       "tags": [
