@@ -1838,7 +1838,7 @@
           "12",
           "3"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1869,8 +1869,8 @@
             "dependencies": [
               2
             ],
-            "details": "Integrate the timestamp utility into the MessageRow component, positioning the timestamp appropriately in the UI layout, and ensure it renders correctly with message content.",
-            "status": "pending",
+            "details": "Integrate the timestamp utility into the MessageRow component, positioning the timestamp appropriately in the UI layout, and ensure it renders correctly with message content.\n<info added on 2025-10-21T05:00:37.204Z>\nRenders TimestampFormatter.string(for: message.createdAt) beneath each message bubble using caption2 typography.\n</info added on 2025-10-21T05:00:37.204Z>",
+            "status": "done",
             "testStrategy": "UI tests to check timestamp visibility and positioning in the chat interface.",
             "parentId": "undefined"
           },
@@ -1881,8 +1881,8 @@
             "dependencies": [
               3
             ],
-            "details": "Update the data flow to pass server timestamps to the MessageRow component, applying the formatting utility to ensure real-time display of human-readable timestamps.",
-            "status": "pending",
+            "details": "Update the data flow to pass server timestamps to the MessageRow component, applying the formatting utility to ensure real-time display of human-readable timestamps.\n<info added on 2025-10-21T05:01:16.526Z>\nUpdate ChatScreen to load messages via the database actor/RealtimeClient and pass the server-sourced Message.createdAt to each MessageRow. Normalize createdAt to an ISO-8601 string or Date before passing, and ensure MessageRow invokes the shared timestamp formatter on that value. Provide a fallback for unsynced messages (use a local queued timestamp and mark pending) and replace with the server createdAt on sync. Align prop types and timezone/locale handling with the formatter utility.\n</info added on 2025-10-21T05:01:16.526Z>",
+            "status": "done",
             "testStrategy": "Integration tests verifying timestamps from server data are formatted and displayed accurately.",
             "parentId": "undefined"
           },
@@ -1893,8 +1893,8 @@
             "dependencies": [
               4
             ],
-            "details": "Conduct a final check to ensure the timestamps match the PRD specifications, including format, placement, and locale handling, and make any necessary refinements to the UI.",
-            "status": "pending",
+            "details": "Conduct a final check to ensure the timestamps match the PRD specifications, including format, placement, and locale handling, and make any necessary refinements to the UI.\n<info added on 2025-10-21T05:01:50.156Z>\nVerification complete: timestamps render beneath each message bubble in local time; the message list layout mirrors the PRD; shared formatting utilities are consistently used across the app. No refinements needed; ready to mark this subtask done.\n</info added on 2025-10-21T05:01:50.156Z>",
+            "status": "done",
             "testStrategy": "Snapshot tests to capture the final UI state and ensure no regressions.",
             "parentId": "undefined"
           }
@@ -1919,7 +1919,50 @@
           22
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add UI View Swift Files to Xcode Project",
+            "description": "Manually add the Swift files for UI components such as TypingIndicatorView.swift, MessageCellView.swift, ChatView.swift, ThreadListView.swift, and PresenceBadgeView.swift to the GlobalBridge.xcodeproj, following the XCODE_SETUP.md guide.",
+            "dependencies": [],
+            "details": "Open GlobalBridge.xcodeproj in Xcode, navigate to the Views group in the project navigator, right-click and select 'Add Files to GlobalBridge...'. Choose the file paths for TypingIndicatorView.swift, MessageCellView.swift, ChatView.swift, ThreadListView.swift, and PresenceBadgeView.swift. Ensure they are added to the correct targets and groups as per the guide, considering SwiftUI imports and Swift 6 concurrency.",
+            "status": "pending",
+            "testStrategy": "Build the project after adding these files and check for any immediate compilation errors related to these views."
+          },
+          {
+            "id": 2,
+            "title": "Add Manager and Indicator Swift Files to Xcode Project",
+            "description": "Manually add the remaining Swift files including TypingIndicator.swift, NotificationManager.swift, and the modified PhoenixChannelManager and PhoenixStateManager to the project.",
+            "dependencies": [
+              1
+            ],
+            "details": "After adding the UI views, proceed to add TypingIndicator.swift to the appropriate group (e.g., Indicators), NotificationManager.swift to Managers, and the modified PhoenixChannelManager and PhoenixStateManager files. Confirm modifications are applied before adding. Use the 'Add Files to GlobalBridge...' option in Xcode, ensuring correct target assignments and module imports for SwiftUI and Phoenix integration.",
+            "status": "pending",
+            "testStrategy": "Perform a clean build and verify that manager files integrate without import errors or dependency issues."
+          },
+          {
+            "id": 3,
+            "title": "Verify Project Structure and Resolve Build Errors",
+            "description": "Check that all 12 Swift files are correctly integrated into the project structure matching the PRD folder layout, and address any build errors or warnings.",
+            "dependencies": [
+              2
+            ],
+            "details": "After adding all files, perform a full build (Product → Build) in Xcode. Review the build log for errors, missing imports, or dependency issues. Ensure the project structure aligns with the XCODE_SETUP.md guide, including proper grouping (e.g., Views, Managers). Fix any Swift 6 strict concurrency warnings or SwiftUI-specific problems by adjusting code as needed.",
+            "status": "pending",
+            "testStrategy": "Run Product → Clean Build Folder followed by Build, and inspect the build log for zero errors and warnings. Confirm file references are correct."
+          },
+          {
+            "id": 4,
+            "title": "Test Basic Functionality in iOS Simulator",
+            "description": "Run the app on an iOS simulator to verify it launches without crashes and basic functionality works after adding the Swift files.",
+            "dependencies": [
+              3
+            ],
+            "details": "With all files added and build errors resolved, select an iOS simulator (e.g., iPhone 15), and run the app (Product → Run). Ensure the app launches successfully, and test basic interactions like navigating to chat or thread views if implemented. Monitor for runtime errors related to the new files.",
+            "status": "pending",
+            "testStrategy": "Launch the app on simulator, check for crashes, and verify that UI elements from the added views render correctly without errors."
+          }
+        ]
       },
       {
         "id": 25,
@@ -1933,7 +1976,76 @@
           10
         ],
         "priority": "high",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Modify Phoenix Channel for Notification Event Emission",
+            "description": "Update the MessagingChannel in the Phoenix backend to broadcast a 'notification' event upon new message arrival, including payload details like content, sender, and thread ID.",
+            "dependencies": [],
+            "details": "In the channel module, add broadcasting logic after message creation or reception. Ensure the event is emitted via the WebSocket channel with structured payload for iOS consumption. This simulates push notification triggers without APNS.",
+            "status": "pending",
+            "testStrategy": "Test by sending messages and verifying event emission via WebSocket logs or a test client."
+          },
+          {
+            "id": 2,
+            "title": "Implement iOS WebSocket Event Listening",
+            "description": "Set up the iOS app to listen for the 'notification' event on the WebSocket channel connection using Swift's NotificationCenter or a custom observer.",
+            "dependencies": [
+              1
+            ],
+            "details": "Integrate with the existing Phoenix channel connection in the iOS app. Use Swift's NotificationCenter to observe the event. Parse the event payload to extract message details for notification display. Ensure real-time handling without blocking the UI.",
+            "status": "pending",
+            "testStrategy": "Mock WebSocket events in the simulator and verify that the app detects and processes them correctly."
+          },
+          {
+            "id": 3,
+            "title": "Implement Foreground In-App Banner",
+            "description": "Display an in-app banner notification when the app is in the foreground, using SwiftUI overlay or a custom toast view with message preview.",
+            "dependencies": [
+              2
+            ],
+            "details": "Upon detecting the event while app is active, create a SwiftUI view for the banner showing sender, message snippet, and thread ID. Use overlay or modal presentation. Include animation and auto-dismiss after a few seconds. Update app badge if applicable.",
+            "status": "pending",
+            "testStrategy": "Run app in foreground, trigger event, and check banner appearance, content accuracy, and dismissal behavior."
+          },
+          {
+            "id": 4,
+            "title": "Set Up Background Local Notifications",
+            "description": "Configure local notifications for background state, requesting authorization and using UNUserNotificationCenter to schedule notifications with sound, badge, and details.",
+            "dependencies": [
+              2
+            ],
+            "details": "Check and request notification permissions if needed. When app is in background, schedule a UNUserNotification with the event payload details. Mimic APNS by including sound, badge increment, and deep link info. Handle app killed state via background fetch if necessary.",
+            "status": "pending",
+            "testStrategy": "Put app in background, trigger event, and verify system notification delivery with correct content and actions."
+          },
+          {
+            "id": 5,
+            "title": "Handle Notification Tap Navigation",
+            "description": "Implement tap actions on notifications to navigate to the relevant thread view, using UNNotificationAction or custom categories.",
+            "dependencies": [
+              4
+            ],
+            "details": "Set up notification categories with actions for tapping. Upon tap, extract thread ID from notification payload and navigate to the thread view in the app. Integrate with existing navigation stack, ensuring deep linking works from both foreground banners and background notifications.",
+            "status": "pending",
+            "testStrategy": "Tap on notifications (both in-app and system) and confirm navigation to the correct thread with updated UI."
+          },
+          {
+            "id": 6,
+            "title": "Comprehensive Testing for Edge Cases",
+            "description": "Test the notification system across various states including offline, app restart, multiple messages, and concurrency issues.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "details": "Cover edge cases like app killed state, network interruptions, rapid message sequences, and UI state management during notifications. Use simulators and devices for testing. Ensure integration with state management for UI updates and handle conflicts or duplicates.",
+            "status": "pending",
+            "testStrategy": "Simulate offline scenarios, app restarts, and high-load events to verify queuing, sync, and notification behavior without failures."
+          }
+        ]
       }
     ],
     "metadata": {
@@ -1946,7 +2058,7 @@
       ],
       "created": "2025-10-21T04:46:09.225Z",
       "description": "Tasks for mvp context",
-      "updated": "2025-10-21T05:00:07.096Z"
+      "updated": "2025-10-21T05:02:06.222Z"
     }
   }
 }
