@@ -18,11 +18,14 @@ struct ThreadsListScreen: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     ForEach(threadsState.filteredItems, id: \.id) { thread in
-                        ThreadRow(thread: thread, isSelected: thread.id == threadsState.selectedThreadID)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                store.send(.threadSelected(thread.id))
-                            }
+                        ThreadRow(
+                            thread: thread,
+                            isSelected: thread.id == threadsState.selectedThreadID
+                        )
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            store.send(.threadSelected(thread.id))
+                        }
                     }
                 }
             }
@@ -73,7 +76,7 @@ struct ThreadsListScreen: View {
     }
 }
 
-private struct ThreadRow: View {
+struct ThreadRow: View {
     let thread: Thread
     let isSelected: Bool
 
@@ -129,5 +132,74 @@ private struct ThreadRow: View {
             .map { $0.first.map(String.init) ?? "" }
             .joined()
             .uppercased() ?? "GB"
+    }
+}
+
+struct ThreadsListCompactView: View {
+    @ObservedObject var store: Store<AppState, AppAction>
+
+    private var threadsState: ThreadsState { store.state.threads }
+
+    var body: some View {
+        List {
+            Section {
+                if threadsState.isLoading && threadsState.items.isEmpty {
+                    ProgressView("Loading threads…")
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else {
+                    ForEach(threadsState.filteredItems, id: \.id) { thread in
+                        NavigationLink(value: thread.id) {
+                            ThreadRow(
+                                thread: thread,
+                                isSelected: thread.id == threadsState.selectedThreadID
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        .overlay {
+            if let message = threadsState.errorMessage {
+                VStack(spacing: 12) {
+                    Text("Unable to load threads")
+                        .font(.headline)
+                    Text(message)
+                        .font(.subheadline)
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+            }
+        }
+        .navigationTitle("Threads")
+        .searchable(
+            text: store.binding(
+                get: { $0.threads.searchQuery },
+                send: AppAction.setSearchQuery
+            ),
+            prompt: "Search conversations"
+        )
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    store.send(.toggleCreationSheet(true))
+                } label: {
+                    Image(systemName: "square.and.pencil")
+                }
+                .accessibilityLabel("New thread")
+            }
+        }
+        .sheet(isPresented: creationSheetBinding) {
+            ThreadCreationSheet(store: store)
+        }
+    }
+
+    private var creationSheetBinding: Binding<Bool> {
+        Binding(
+            get: { store.state.threads.showCreationSheet },
+            set: { isPresented in
+                store.send(.toggleCreationSheet(isPresented))
+            }
+        )
     }
 }
