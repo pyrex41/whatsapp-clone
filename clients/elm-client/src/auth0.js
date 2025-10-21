@@ -14,13 +14,15 @@ let isInitialized = false
 const AUTH0_DOMAIN = import.meta.env.VITE_AUTH0_DOMAIN || 'dev-1672riu03fjuf7so.us.auth0.com'
 const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || '9rodqnNHxJxghoDbYFmDVyXIytKIHzdE'
 const AUTH0_AUDIENCE = import.meta.env.VITE_AUTH0_AUDIENCE || 'globalbridge-api'
+const AUTH0_REDIRECT_URI = import.meta.env.VITE_AUTH0_REDIRECT_URI || window.location.origin
 
 const AUTH0_CONFIG = {
   domain: AUTH0_DOMAIN,
   clientId: AUTH0_CLIENT_ID,
   authorizationParams: {
     audience: AUTH0_AUDIENCE,
-    redirect_uri: window.location.origin
+    scope: 'openid profile email offline_access',
+    redirect_uri: AUTH0_REDIRECT_URI
   },
   cacheLocation: 'localstorage',
   useRefreshTokens: true

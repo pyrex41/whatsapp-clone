@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UserNotifications
+import Auth0
 
 @main
 struct GlobalBridgeApp: App {
@@ -57,7 +58,10 @@ struct GlobalBridgeApp: App {
     }
 
     private func handleDeepLink(_ url: URL) {
-        // Handle deep links for navigation
+        // Auth0 handles its own callbacks automatically when using custom URL schemes
+        // No need to manually handle Auth0 URLs
+        
+        // Handle other deep links for navigation
         print("Deep link: \(url)")
     }
 }
