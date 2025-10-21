@@ -7,6 +7,7 @@ import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
 import Html.Events
 import Page.Login as Login
+import Page.ThreadList as ThreadList
 import Ports
 import State.Bridges as Bridges
 import State.Messages as Messages
@@ -41,7 +42,7 @@ Each page maintains its own state and lifecycle.
 -}
 type Page
     = LoginPage Login.Model
-    | ThreadListPage
+    | ThreadListPage ThreadList.Model
     | ConversationPage ThreadId
 
 
@@ -87,6 +88,7 @@ init flags =
 
 type Msg
     = LoginMsg Login.Msg
+    | ThreadListMsg ThreadList.Msg
     | SessionRestored (Maybe Ports.SessionData)
     | Logout
     | ThreadsMsg Threads.Msg
@@ -113,7 +115,7 @@ update msg model =
                             case loginMsg of
                                 Login.LoginResponse (Ok response) ->
                                     ( Authenticated response.user
-                                    , ThreadListPage
+                                    , ThreadListPage (ThreadList.init model.threads)
                                     , Cmd.batch
                                         [ Ports.storeSession
                                             { accessToken = response.accessToken
@@ -173,7 +175,7 @@ update msg model =
             in
             ( { model
                 | authState = Authenticated user
-                , currentPage = ThreadListPage
+                , currentPage = ThreadListPage (ThreadList.init model.threads)
               }
             , cmd
             )
@@ -221,6 +223,20 @@ update msg model =
             , Ports.clearSession ()
             )
 
+        ThreadListMsg threadListMsg ->
+            case model.currentPage of
+                ThreadListPage threadListModel ->
+                    let
+                        ( updatedThreadList, cmd ) =
+                            ThreadList.update threadListMsg threadListModel
+                    in
+                    ( { model | currentPage = ThreadListPage updatedThreadList }
+                    , Cmd.map ThreadListMsg cmd
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
         ThreadsMsg threadsMsg ->
             let
                 token =
@@ -228,8 +244,17 @@ update msg model =
 
                 ( newThreads, cmd ) =
                     Threads.update model.apiConfig token threadsMsg model.threads
+
+                -- Update ThreadList view if it's the current page
+                updatedPage =
+                    case model.currentPage of
+                        ThreadListPage threadListModel ->
+                            ThreadListPage { threadListModel | threadsState = newThreads }
+
+                        other ->
+                            other
             in
-            ( { model | threads = newThreads }
+            ( { model | threads = newThreads, currentPage = updatedPage }
             , Cmd.map ThreadsMsg cmd
             )
 
@@ -255,7 +280,7 @@ update msg model =
             )
 
         NavigateToThreadList ->
-            ( { model | currentPage = ThreadListPage }
+            ( { model | currentPage = ThreadListPage (ThreadList.init model.threads) }
             , Cmd.none
             )
 
@@ -324,35 +349,11 @@ viewAuthenticatedPage model user =
                 LoginPage _ ->
                     div [] [ text "Redirecting..." ]
 
-                ThreadListPage ->
-                    viewThreadListPage model user
+                ThreadListPage threadListModel ->
+                    Html.map ThreadListMsg (ThreadList.view threadListModel)
 
                 ConversationPage threadId ->
                     viewConversationPage model threadId
-            ]
-        ]
-
-
-viewThreadListPage : Model -> Auth.User -> Html Msg
-viewThreadListPage model user =
-    div [ class "thread-list-container" ]
-        [ div [ class "welcome-message" ]
-            [ text ("Welcome, " ++ user.email ++ "!") ]
-        , div [ class "placeholder" ]
-            [ text "TODO: Thread list view (Task 6)" ]
-        , div [ class "thread-list-status" ]
-            [ case model.threads of
-                Threads.Loading ->
-                    text "Loading threads..."
-
-                Threads.Ready threads ->
-                    text (String.fromInt (List.length threads) ++ " threads loaded")
-
-                Threads.Error err ->
-                    text ("Error: " ++ err)
-
-                Threads.NotLoaded ->
-                    text "Threads not loaded"
             ]
         ]
 

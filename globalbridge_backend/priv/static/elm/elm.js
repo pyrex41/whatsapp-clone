@@ -5479,7 +5479,12 @@ var $author$project$State$Bridges$LoadBridges = function (a) {
 var $author$project$Main$LoginMsg = function (a) {
 	return {$: 'LoginMsg', a: a};
 };
-var $author$project$Main$ThreadListPage = {$: 'ThreadListPage'};
+var $author$project$Main$ThreadListMsg = function (a) {
+	return {$: 'ThreadListMsg', a: a};
+};
+var $author$project$Main$ThreadListPage = function (a) {
+	return {$: 'ThreadListPage', a: a};
+};
 var $author$project$State$Threads$ThreadsLoaded = function (a) {
 	return {$: 'ThreadsLoaded', a: a};
 };
@@ -6505,6 +6510,9 @@ var $author$project$Main$getAuthToken = function (authState) {
 		return '';
 	}
 };
+var $author$project$Page$ThreadList$init = function (threadsState) {
+	return {createFormError: $elm$core$Maybe$Nothing, createFormName: '', filterBridgeType: $elm$core$Maybe$Nothing, searchQuery: '', selectedThreadId: $elm$core$Maybe$Nothing, showCreateForm: false, threadsState: threadsState};
+};
 var $elm$core$Platform$Cmd$map = _Platform_map;
 var $elm$json$Json$Encode$object = function (pairs) {
 	return _Json_wrap(
@@ -6738,6 +6746,298 @@ var $author$project$Page$Login$update = F2(
 				}
 		}
 	});
+var $elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $author$project$Page$ThreadList$filterByBridgeType = F2(
+	function (maybePlatform, threads) {
+		if (maybePlatform.$ === 'Nothing') {
+			return threads;
+		} else {
+			var platform = maybePlatform.a;
+			return A2(
+				$elm$core$List$filter,
+				function (thread) {
+					var _v1 = thread.bridge;
+					if (_v1.$ === 'Nothing') {
+						return false;
+					} else {
+						var bridge = _v1.a;
+						return _Utils_eq(bridge.platform, platform);
+					}
+				},
+				threads);
+		}
+	});
+var $author$project$Page$ThreadList$filterBySearch = F2(
+	function (query, threads) {
+		if ($elm$core$String$isEmpty(query)) {
+			return threads;
+		} else {
+			var lowerQuery = $elm$core$String$toLower(query);
+			return A2(
+				$elm$core$List$filter,
+				function (thread) {
+					return A2(
+						$elm$core$String$contains,
+						lowerQuery,
+						$elm$core$String$toLower(thread.name));
+				},
+				threads);
+		}
+	});
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $elm$core$Basics$min = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) < 0) ? x : y;
+	});
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $elm$core$Tuple$pair = F2(
+	function (a, b) {
+		return _Utils_Tuple2(a, b);
+	});
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
+var $author$project$Page$ThreadList$selectNextThread = function (model) {
+	var _v0 = model.threadsState;
+	if (_v0.$ === 'Ready') {
+		var threads = _v0.a;
+		var filteredThreads = A2(
+			$author$project$Page$ThreadList$filterByBridgeType,
+			model.filterBridgeType,
+			A2($author$project$Page$ThreadList$filterBySearch, model.searchQuery, threads));
+		var currentIndex = function () {
+			var _v1 = model.selectedThreadId;
+			if (_v1.$ === 'Nothing') {
+				return -1;
+			} else {
+				var threadId = _v1.a;
+				return A2(
+					$elm$core$Maybe$withDefault,
+					-1,
+					A2(
+						$elm$core$Maybe$map,
+						$elm$core$Tuple$first,
+						$elm$core$List$head(
+							A2(
+								$elm$core$List$filter,
+								function (_v2) {
+									var t = _v2.b;
+									return _Utils_eq(t.id, threadId);
+								},
+								A2($elm$core$List$indexedMap, $elm$core$Tuple$pair, filteredThreads)))));
+			}
+		}();
+		var nextIndex = A2(
+			$elm$core$Basics$min,
+			currentIndex + 1,
+			$elm$core$List$length(filteredThreads) - 1);
+		var nextThread = $elm$core$List$head(
+			A2($elm$core$List$drop, nextIndex, filteredThreads));
+		return _Utils_update(
+			model,
+			{
+				selectedThreadId: A2(
+					$elm$core$Maybe$map,
+					function ($) {
+						return $.id;
+					},
+					nextThread)
+			});
+	} else {
+		return model;
+	}
+};
+var $author$project$Page$ThreadList$selectPreviousThread = function (model) {
+	var _v0 = model.threadsState;
+	if (_v0.$ === 'Ready') {
+		var threads = _v0.a;
+		var filteredThreads = A2(
+			$author$project$Page$ThreadList$filterByBridgeType,
+			model.filterBridgeType,
+			A2($author$project$Page$ThreadList$filterBySearch, model.searchQuery, threads));
+		var currentIndex = function () {
+			var _v1 = model.selectedThreadId;
+			if (_v1.$ === 'Nothing') {
+				return 0;
+			} else {
+				var threadId = _v1.a;
+				return A2(
+					$elm$core$Maybe$withDefault,
+					0,
+					A2(
+						$elm$core$Maybe$map,
+						$elm$core$Tuple$first,
+						$elm$core$List$head(
+							A2(
+								$elm$core$List$filter,
+								function (_v2) {
+									var t = _v2.b;
+									return _Utils_eq(t.id, threadId);
+								},
+								A2($elm$core$List$indexedMap, $elm$core$Tuple$pair, filteredThreads)))));
+			}
+		}();
+		var prevIndex = A2($elm$core$Basics$max, currentIndex - 1, 0);
+		var prevThread = $elm$core$List$head(
+			A2($elm$core$List$drop, prevIndex, filteredThreads));
+		return _Utils_update(
+			model,
+			{
+				selectedThreadId: A2(
+					$elm$core$Maybe$map,
+					function ($) {
+						return $.id;
+					},
+					prevThread)
+			});
+	} else {
+		return model;
+	}
+};
+var $author$project$Page$ThreadList$validateThreadName = function (name) {
+	return $elm$core$String$isEmpty(name) ? $elm$core$Result$Err('Thread name is required') : (($elm$core$String$length(name) < 3) ? $elm$core$Result$Err('Thread name must be at least 3 characters') : (($elm$core$String$length(name) > 100) ? $elm$core$Result$Err('Thread name must be less than 100 characters') : $elm$core$Result$Ok(name)));
+};
+var $author$project$Page$ThreadList$update = F2(
+	function (msg, model) {
+		switch (msg.$) {
+			case 'ThreadsMsg':
+				var threadsMsg = msg.a;
+				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+			case 'SearchQueryChanged':
+				var query = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{searchQuery: query, selectedThreadId: $elm$core$Maybe$Nothing}),
+					$elm$core$Platform$Cmd$none);
+			case 'FilterByBridgeType':
+				var bridgeType = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{filterBridgeType: bridgeType, selectedThreadId: $elm$core$Maybe$Nothing}),
+					$elm$core$Platform$Cmd$none);
+			case 'SelectThread':
+				var threadId = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							selectedThreadId: $elm$core$Maybe$Just(threadId)
+						}),
+					$elm$core$Platform$Cmd$none);
+			case 'ShowCreateForm':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{createFormError: $elm$core$Maybe$Nothing, createFormName: '', showCreateForm: true}),
+					$elm$core$Platform$Cmd$none);
+			case 'HideCreateForm':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{createFormError: $elm$core$Maybe$Nothing, createFormName: '', showCreateForm: false}),
+					$elm$core$Platform$Cmd$none);
+			case 'CreateFormNameChanged':
+				var name = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{createFormError: $elm$core$Maybe$Nothing, createFormName: name}),
+					$elm$core$Platform$Cmd$none);
+			case 'SubmitCreateThread':
+				var _v1 = $author$project$Page$ThreadList$validateThreadName(model.createFormName);
+				if (_v1.$ === 'Ok') {
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{createFormName: '', showCreateForm: false}),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					var error = _v1.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								createFormError: $elm$core$Maybe$Just(error)
+							}),
+						$elm$core$Platform$Cmd$none);
+				}
+			default:
+				var key = msg.a;
+				switch (key) {
+					case 'ArrowDown':
+						return _Utils_Tuple2(
+							$author$project$Page$ThreadList$selectNextThread(model),
+							$elm$core$Platform$Cmd$none);
+					case 'ArrowUp':
+						return _Utils_Tuple2(
+							$author$project$Page$ThreadList$selectPreviousThread(model),
+							$elm$core$Platform$Cmd$none);
+					case 'Enter':
+						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+					default:
+						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				}
+		}
+	});
 var $author$project$State$Bridges$Ready = function (a) {
 	return {$: 'Ready', a: a};
 };
@@ -6852,17 +7152,6 @@ var $author$project$State$Messages$apiErrorToString = function (error) {
 			return 'Server error: ' + msg;
 	}
 };
-var $elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			$elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
-	});
 var $author$project$Api$buildUrl = F2(
 	function (config, path) {
 		return config.baseUrl + ('/api/' + (config.apiVersion + path));
@@ -7175,7 +7464,8 @@ var $author$project$Main$update = F2(
 									var response = loginMsg.a.a;
 									return _Utils_Tuple3(
 										$author$project$Auth$Authenticated(response.user),
-										$author$project$Main$ThreadListPage,
+										$author$project$Main$ThreadListPage(
+											$author$project$Page$ThreadList$init(model.threads)),
 										$elm$core$Platform$Cmd$batch(
 											_List_fromArray(
 												[
@@ -7230,7 +7520,8 @@ var $author$project$Main$update = F2(
 							model,
 							{
 								authState: $author$project$Auth$Authenticated(user),
-								currentPage: $author$project$Main$ThreadListPage
+								currentPage: $author$project$Main$ThreadListPage(
+									$author$project$Page$ThreadList$init(model.threads))
 							}),
 						cmd);
 				} else {
@@ -7289,23 +7580,54 @@ var $author$project$Main$update = F2(
 							threads: $author$project$State$Threads$init
 						}),
 					$author$project$Ports$clearSession(_Utils_Tuple0));
+			case 'ThreadListMsg':
+				var threadListMsg = msg.a;
+				var _v9 = model.currentPage;
+				if (_v9.$ === 'ThreadListPage') {
+					var threadListModel = _v9.a;
+					var _v10 = A2($author$project$Page$ThreadList$update, threadListMsg, threadListModel);
+					var updatedThreadList = _v10.a;
+					var cmd = _v10.b;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								currentPage: $author$project$Main$ThreadListPage(updatedThreadList)
+							}),
+						A2($elm$core$Platform$Cmd$map, $author$project$Main$ThreadListMsg, cmd));
+				} else {
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				}
 			case 'ThreadsMsg':
 				var threadsMsg = msg.a;
 				var token = $author$project$Main$getAuthToken(model.authState);
-				var _v9 = A4($author$project$State$Threads$update, model.apiConfig, token, threadsMsg, model.threads);
-				var newThreads = _v9.a;
-				var cmd = _v9.b;
+				var _v11 = A4($author$project$State$Threads$update, model.apiConfig, token, threadsMsg, model.threads);
+				var newThreads = _v11.a;
+				var cmd = _v11.b;
+				var updatedPage = function () {
+					var _v12 = model.currentPage;
+					if (_v12.$ === 'ThreadListPage') {
+						var threadListModel = _v12.a;
+						return $author$project$Main$ThreadListPage(
+							_Utils_update(
+								threadListModel,
+								{threadsState: newThreads}));
+					} else {
+						var other = _v12;
+						return other;
+					}
+				}();
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{threads: newThreads}),
+						{currentPage: updatedPage, threads: newThreads}),
 					A2($elm$core$Platform$Cmd$map, $author$project$Main$ThreadsMsg, cmd));
 			case 'MessagesMsg':
 				var messagesMsg = msg.a;
 				var token = $author$project$Main$getAuthToken(model.authState);
-				var _v10 = A4($author$project$State$Messages$update, model.apiConfig, token, messagesMsg, model.messages);
-				var newMessages = _v10.a;
-				var cmd = _v10.b;
+				var _v13 = A4($author$project$State$Messages$update, model.apiConfig, token, messagesMsg, model.messages);
+				var newMessages = _v13.a;
+				var cmd = _v13.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -7313,9 +7635,9 @@ var $author$project$Main$update = F2(
 					A2($elm$core$Platform$Cmd$map, $author$project$Main$MessagesMsg, cmd));
 			case 'BridgesMsg':
 				var bridgesMsg = msg.a;
-				var _v11 = A2($author$project$State$Bridges$update, bridgesMsg, model.bridges);
-				var newBridges = _v11.a;
-				var cmd = _v11.b;
+				var _v14 = A2($author$project$State$Bridges$update, bridgesMsg, model.bridges);
+				var newBridges = _v14.a;
+				var cmd = _v14.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -7325,7 +7647,10 @@ var $author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{currentPage: $author$project$Main$ThreadListPage}),
+						{
+							currentPage: $author$project$Main$ThreadListPage(
+								$author$project$Page$ThreadList$init(model.threads))
+						}),
 					$elm$core$Platform$Cmd$none);
 			case 'NavigateToConversation':
 				var threadId = msg.a;
@@ -7643,6 +7968,645 @@ var $elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		$elm$json$Json$Decode$succeed(msg));
 };
+var $author$project$Page$ThreadList$CreateFormNameChanged = function (a) {
+	return {$: 'CreateFormNameChanged', a: a};
+};
+var $author$project$Page$ThreadList$HideCreateForm = {$: 'HideCreateForm'};
+var $author$project$Page$ThreadList$SubmitCreateThread = {$: 'SubmitCreateThread'};
+var $author$project$Page$ThreadList$viewCreateForm = function (model) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('modal-overlay'),
+				$elm$html$Html$Events$onClick($author$project$Page$ThreadList$HideCreateForm)
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('modal-content')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$h2,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Create New Thread')
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('form-group')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$label,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('form-label')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Thread Name')
+									])),
+								A2(
+								$elm$html$Html$input,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$type_('text'),
+										$elm$html$Html$Attributes$class('form-input'),
+										$elm$html$Html$Attributes$placeholder('e.g., Team Chat'),
+										$elm$html$Html$Attributes$value(model.createFormName),
+										$elm$html$Html$Events$onInput($author$project$Page$ThreadList$CreateFormNameChanged)
+									]),
+								_List_Nil),
+								function () {
+								var _v0 = model.createFormError;
+								if (_v0.$ === 'Just') {
+									var error = _v0.a;
+									return A2(
+										$elm$html$Html$p,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('form-error')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text(error)
+											]));
+								} else {
+									return $elm$html$Html$text('');
+								}
+							}()
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('modal-actions')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('btn btn-secondary'),
+										$elm$html$Html$Events$onClick($author$project$Page$ThreadList$HideCreateForm)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Cancel')
+									])),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('btn btn-primary'),
+										$elm$html$Html$Events$onClick($author$project$Page$ThreadList$SubmitCreateThread),
+										$elm$html$Html$Attributes$disabled(
+										$elm$core$String$isEmpty(model.createFormName))
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Create Thread')
+									]))
+							]))
+					]))
+			]));
+};
+var $author$project$Page$ThreadList$FilterByBridgeType = function (a) {
+	return {$: 'FilterByBridgeType', a: a};
+};
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
+var $elm$html$Html$Attributes$classList = function (classes) {
+	return $elm$html$Html$Attributes$class(
+		A2(
+			$elm$core$String$join,
+			' ',
+			A2(
+				$elm$core$List$map,
+				$elm$core$Tuple$first,
+				A2($elm$core$List$filter, $elm$core$Tuple$second, classes))));
+};
+var $author$project$Page$ThreadList$viewFilters = function (model) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('thread-filters')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$button,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('filter-btn'),
+						$elm$html$Html$Attributes$classList(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								'active',
+								_Utils_eq(model.filterBridgeType, $elm$core$Maybe$Nothing))
+							])),
+						$elm$html$Html$Events$onClick(
+						$author$project$Page$ThreadList$FilterByBridgeType($elm$core$Maybe$Nothing))
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('All')
+					])),
+				A2(
+				$elm$html$Html$button,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('filter-btn'),
+						$elm$html$Html$Attributes$classList(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								'active',
+								_Utils_eq(
+									model.filterBridgeType,
+									$elm$core$Maybe$Just($author$project$Types$Slack)))
+							])),
+						$elm$html$Html$Events$onClick(
+						$author$project$Page$ThreadList$FilterByBridgeType(
+							$elm$core$Maybe$Just($author$project$Types$Slack)))
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('📧 Slack')
+					])),
+				A2(
+				$elm$html$Html$button,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('filter-btn'),
+						$elm$html$Html$Attributes$classList(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								'active',
+								_Utils_eq(
+									model.filterBridgeType,
+									$elm$core$Maybe$Just($author$project$Types$Telegram)))
+							])),
+						$elm$html$Html$Events$onClick(
+						$author$project$Page$ThreadList$FilterByBridgeType(
+							$elm$core$Maybe$Just($author$project$Types$Telegram)))
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('✈️ Telegram')
+					])),
+				A2(
+				$elm$html$Html$button,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('filter-btn'),
+						$elm$html$Html$Attributes$classList(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								'active',
+								_Utils_eq(
+									model.filterBridgeType,
+									$elm$core$Maybe$Just($author$project$Types$WhatsApp)))
+							])),
+						$elm$html$Html$Events$onClick(
+						$author$project$Page$ThreadList$FilterByBridgeType(
+							$elm$core$Maybe$Just($author$project$Types$WhatsApp)))
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('💬 WhatsApp')
+					]))
+			]));
+};
+var $author$project$Page$ThreadList$ShowCreateForm = {$: 'ShowCreateForm'};
+var $author$project$Page$ThreadList$viewHeader = A2(
+	$elm$html$Html$div,
+	_List_fromArray(
+		[
+			$elm$html$Html$Attributes$class('thread-list-header')
+		]),
+	_List_fromArray(
+		[
+			A2(
+			$elm$html$Html$h2,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('thread-list-title')
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text('Conversations')
+				])),
+			A2(
+			$elm$html$Html$button,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('btn btn-primary'),
+					$elm$html$Html$Events$onClick($author$project$Page$ThreadList$ShowCreateForm)
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text('+ New Thread')
+				]))
+		]));
+var $author$project$Page$ThreadList$SearchQueryChanged = function (a) {
+	return {$: 'SearchQueryChanged', a: a};
+};
+var $author$project$Page$ThreadList$viewSearchBar = function (model) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('search-bar')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$input,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$type_('text'),
+						$elm$html$Html$Attributes$class('search-input'),
+						$elm$html$Html$Attributes$placeholder('Search threads...'),
+						$elm$html$Html$Attributes$value(model.searchQuery),
+						$elm$html$Html$Events$onInput($author$project$Page$ThreadList$SearchQueryChanged)
+					]),
+				_List_Nil)
+			]));
+};
+var $elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $elm$html$Html$ul = _VirtualDom_node('ul');
+var $author$project$Page$ThreadList$SelectThread = function (a) {
+	return {$: 'SelectThread', a: a};
+};
+var $elm$html$Html$li = _VirtualDom_node('li');
+var $elm$html$Html$span = _VirtualDom_node('span');
+var $author$project$Page$ThreadList$bridgePlatformClass = function (platform) {
+	switch (platform.$) {
+		case 'Slack':
+			return 'bridge-slack';
+		case 'Telegram':
+			return 'bridge-telegram';
+		default:
+			return 'bridge-whatsapp';
+	}
+};
+var $author$project$Page$ThreadList$bridgePlatformIcon = function (platform) {
+	switch (platform.$) {
+		case 'Slack':
+			return '📧';
+		case 'Telegram':
+			return '✈️';
+		default:
+			return '💬';
+	}
+};
+var $author$project$Page$ThreadList$bridgePlatformName = function (platform) {
+	switch (platform.$) {
+		case 'Slack':
+			return 'Slack';
+		case 'Telegram':
+			return 'Telegram';
+		default:
+			return 'WhatsApp';
+	}
+};
+var $author$project$Page$ThreadList$viewBridgeBadge = function (maybeBridge) {
+	if (maybeBridge.$ === 'Nothing') {
+		return $elm$html$Html$text('');
+	} else {
+		var bridge = maybeBridge.a;
+		return A2(
+			$elm$html$Html$span,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('bridge-badge'),
+					$elm$html$Html$Attributes$class(
+					$author$project$Page$ThreadList$bridgePlatformClass(bridge.platform))
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text(
+					$author$project$Page$ThreadList$bridgePlatformIcon(bridge.platform) + (' ' + $author$project$Page$ThreadList$bridgePlatformName(bridge.platform)))
+				]));
+	}
+};
+var $author$project$Page$ThreadList$bridgeStatusClass = function (status) {
+	switch (status.$) {
+		case 'Connected':
+			return 'status-connected';
+		case 'Syncing':
+			return 'status-syncing';
+		case 'Disconnected':
+			return 'status-disconnected';
+		default:
+			return 'status-error';
+	}
+};
+var $author$project$Page$ThreadList$bridgeStatusText = function (status) {
+	switch (status.$) {
+		case 'Connected':
+			return 'Connected';
+		case 'Syncing':
+			return 'Syncing...';
+		case 'Disconnected':
+			return 'Disconnected';
+		default:
+			return 'Error';
+	}
+};
+var $author$project$Page$ThreadList$viewBridgeStatus = function (maybeBridge) {
+	if (maybeBridge.$ === 'Nothing') {
+		return $elm$html$Html$text('');
+	} else {
+		var bridge = maybeBridge.a;
+		return A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('bridge-status')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$span,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('status-indicator'),
+							$elm$html$Html$Attributes$class(
+							$author$project$Page$ThreadList$bridgeStatusClass(bridge.status))
+						]),
+					_List_Nil),
+					A2(
+					$elm$html$Html$span,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('status-text')
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text(
+							$author$project$Page$ThreadList$bridgeStatusText(bridge.status))
+						]))
+				]));
+	}
+};
+var $author$project$Page$ThreadList$truncate = F2(
+	function (maxLength, str) {
+		return (_Utils_cmp(
+			$elm$core$String$length(str),
+			maxLength) < 1) ? str : (A2($elm$core$String$left, maxLength - 3, str) + '...');
+	});
+var $author$project$Page$ThreadList$viewLastMessage = function (maybeMessage) {
+	if (maybeMessage.$ === 'Nothing') {
+		return A2(
+			$elm$html$Html$span,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('last-message text-muted')
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text('No messages yet')
+				]));
+	} else {
+		var message = maybeMessage.a;
+		return A2(
+			$elm$html$Html$span,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('last-message')
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text(
+					A2($author$project$Page$ThreadList$truncate, 50, message.content))
+				]));
+	}
+};
+var $author$project$Page$ThreadList$viewUnreadCount = function (count) {
+	return (count > 0) ? A2(
+		$elm$html$Html$span,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('unread-badge')
+			]),
+		_List_fromArray(
+			[
+				$elm$html$Html$text(
+				$elm$core$String$fromInt(count))
+			])) : $elm$html$Html$text('');
+};
+var $author$project$Page$ThreadList$viewThread = F2(
+	function (selectedId, thread) {
+		var isSelected = _Utils_eq(
+			selectedId,
+			$elm$core$Maybe$Just(thread.id));
+		return A2(
+			$elm$html$Html$li,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('thread-item'),
+					$elm$html$Html$Attributes$classList(
+					_List_fromArray(
+						[
+							_Utils_Tuple2('selected', isSelected)
+						])),
+					$elm$html$Html$Events$onClick(
+					$author$project$Page$ThreadList$SelectThread(thread.id))
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('thread-content')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('thread-header')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$span,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('thread-name')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text(thread.name)
+										])),
+									$author$project$Page$ThreadList$viewBridgeBadge(thread.bridge)
+								])),
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('thread-meta')
+								]),
+							_List_fromArray(
+								[
+									$author$project$Page$ThreadList$viewLastMessage(thread.lastMessage),
+									$author$project$Page$ThreadList$viewUnreadCount(thread.unreadCount)
+								])),
+							$author$project$Page$ThreadList$viewBridgeStatus(thread.bridge)
+						]))
+				]));
+	});
+var $author$project$Page$ThreadList$viewThreads = function (model) {
+	var _v0 = model.threadsState;
+	switch (_v0.$) {
+		case 'NotLoaded':
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('thread-list-empty')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$p,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Threads not loaded')
+							]))
+					]));
+		case 'Loading':
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('thread-list-loading')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$p,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Loading threads...')
+							]))
+					]));
+		case 'Error':
+			var err = _v0.a;
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('thread-list-error')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$p,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Error: ' + err)
+							]))
+					]));
+		default:
+			var threads = _v0.a;
+			var filteredThreads = A2(
+				$author$project$Page$ThreadList$filterByBridgeType,
+				model.filterBridgeType,
+				A2($author$project$Page$ThreadList$filterBySearch, model.searchQuery, threads));
+			return $elm$core$List$isEmpty(filteredThreads) ? A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('thread-list-empty')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$p,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('No threads found')
+							])),
+						((model.searchQuery !== '') || (!_Utils_eq(model.filterBridgeType, $elm$core$Maybe$Nothing))) ? A2(
+						$elm$html$Html$p,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('text-muted')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Try adjusting your filters')
+							])) : A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('btn btn-primary'),
+								$elm$html$Html$Events$onClick($author$project$Page$ThreadList$ShowCreateForm)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Create your first thread')
+							]))
+					])) : A2(
+				$elm$html$Html$ul,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('thread-list')
+					]),
+				A2(
+					$elm$core$List$map,
+					$author$project$Page$ThreadList$viewThread(model.selectedThreadId),
+					filteredThreads));
+	}
+};
+var $author$project$Page$ThreadList$view = function (model) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('thread-list-page')
+			]),
+		_List_fromArray(
+			[
+				$author$project$Page$ThreadList$viewHeader,
+				$author$project$Page$ThreadList$viewSearchBar(model),
+				$author$project$Page$ThreadList$viewFilters(model),
+				$author$project$Page$ThreadList$viewThreads(model),
+				model.showCreateForm ? $author$project$Page$ThreadList$viewCreateForm(model) : $elm$html$Html$text('')
+			]));
+};
 var $author$project$Main$viewConversationPage = F2(
 	function (model, threadId) {
 		return A2(
@@ -7662,64 +8626,6 @@ var $author$project$Main$viewConversationPage = F2(
 					_List_fromArray(
 						[
 							$elm$html$Html$text('TODO: Conversation view for thread ' + (threadId + ' (Task 7)'))
-						]))
-				]));
-	});
-var $author$project$Main$viewThreadListPage = F2(
-	function (model, user) {
-		return A2(
-			$elm$html$Html$div,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$class('thread-list-container')
-				]),
-			_List_fromArray(
-				[
-					A2(
-					$elm$html$Html$div,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$class('welcome-message')
-						]),
-					_List_fromArray(
-						[
-							$elm$html$Html$text('Welcome, ' + (user.email + '!'))
-						])),
-					A2(
-					$elm$html$Html$div,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$class('placeholder')
-						]),
-					_List_fromArray(
-						[
-							$elm$html$Html$text('TODO: Thread list view (Task 6)')
-						])),
-					A2(
-					$elm$html$Html$div,
-					_List_fromArray(
-						[
-							$elm$html$Html$Attributes$class('thread-list-status')
-						]),
-					_List_fromArray(
-						[
-							function () {
-							var _v0 = model.threads;
-							switch (_v0.$) {
-								case 'Loading':
-									return $elm$html$Html$text('Loading threads...');
-								case 'Ready':
-									var threads = _v0.a;
-									return $elm$html$Html$text(
-										$elm$core$String$fromInt(
-											$elm$core$List$length(threads)) + ' threads loaded');
-								case 'Error':
-									var err = _v0.a;
-									return $elm$html$Html$text('Error: ' + err);
-								default:
-									return $elm$html$Html$text('Threads not loaded');
-							}
-						}()
 						]))
 				]));
 	});
@@ -7780,7 +8686,11 @@ var $author$project$Main$viewAuthenticatedPage = F2(
 												$elm$html$Html$text('Redirecting...')
 											]));
 								case 'ThreadListPage':
-									return A2($author$project$Main$viewThreadListPage, model, user);
+									var threadListModel = _v0.a;
+									return A2(
+										$elm$html$Html$map,
+										$author$project$Main$ThreadListMsg,
+										$author$project$Page$ThreadList$view(threadListModel));
 								default:
 									var threadId = _v0.a;
 									return A2($author$project$Main$viewConversationPage, model, threadId);

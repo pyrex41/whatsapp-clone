@@ -2446,7 +2446,7 @@
         "description": "Build a thread list view in the Elm web client that displays personal and bridged threads with Slack/Telegram badges, unread indicators, bridge status, and sync health. Integrate REST endpoint for initial data, Phoenix Channel subscriptions for real-time updates, filtering/search, thread creation UI, and responsive layout with keyboard navigation.",
         "details": "Begin by defining Elm types for Thread, including fields like id, name, isBridged, bridgeType (Slack/Telegram), unreadCount, bridgeStatus (Connected, Syncing, Error), and syncHealth. Create a ThreadList module within the Elm architecture, integrating with the overall app state from Task 5. Implement the view using Elm's Html module, rendering a list of threads with badges for bridged threads (e.g., icons or text labels), unread message counters (e.g., red badges), and status indicators (e.g., colored dots or text). Add filtering and search functionality using an input field that filters threads by name or bridge type, updating the list reactively. Include a thread creation UI, such as a button that opens a modal or form for entering thread name and selecting bridge options, with form validation. For responsive layout, use CSS classes or Elm's styling to ensure the list adapts to different screen sizes, with keyboard navigation (e.g., arrow keys to select threads, Enter to open). Integrate with Task 4's REST API client to fetch initial thread data from /api/threads on page load or refresh, handling JSON decoding for threads. Subscribe to Phoenix Channels via Task 3's JavaScript interop for real-time updates, using ports to listen for thread changes (e.g., new threads, updates to unread counts or status), and update the Elm model accordingly. Ensure the view is part of the main app routing and state, requiring authentication from Task 2. Handle edge cases like empty thread lists, loading states, and error handling for failed API calls or channel disconnections. Consider performance by implementing virtual scrolling for large thread lists if needed. Update the main Elm application to include this view in the page union type and routing logic.",
         "testStrategy": "Verify the thread list view renders correctly by loading the app in a browser, navigating to the thread list page, and checking for the presence of thread items, badges for bridged threads (e.g., Slack/Telegram icons), unread indicators, and status displays using browser developer tools. Test initial data hydration by mocking the /api/threads endpoint response and confirming threads load on page refresh, using Elm's test framework to assert JSON decoding works for various thread structures. Test real-time updates by simulating Phoenix Channel messages via the JavaScript adapter (using Jest mocks), ensuring the Elm model updates and the view re-renders with new thread data, unread counts, or status changes. Validate filtering and search by entering text in the search input and confirming the list filters threads by name or bridge type, with unit tests in elm-test for the filter logic. Test thread creation UI by interacting with the creation button/form, submitting valid/invalid data, and verifying new threads appear in the list after successful API calls (mocked). Check responsive layout by resizing the browser window and ensuring the list adapts (e.g., mobile view stacks items), and test keyboard navigation by using arrow keys to select threads and Enter to trigger actions, asserting focus changes in integration tests. Run end-to-end tests with a tool like Cypress to simulate user flows, including authentication (from Task 2), data loading, and real-time updates, ensuring no errors in console and correct state persistence.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "2",
           "3",
@@ -2506,7 +2506,8 @@
         ],
         "complexity": 6,
         "recommendedSubtasks": 4,
-        "expansionPrompt": "Expand into subtasks for defining thread types and view rendering, integrating REST API for data fetching, adding Phoenix Channel subscriptions, and implementing filtering/search with responsive layout."
+        "expansionPrompt": "Expand into subtasks for defining thread types and view rendering, integrating REST API for data fetching, adding Phoenix Channel subscriptions, and implementing filtering/search with responsive layout.",
+        "updatedAt": "2025-10-21T16:33:20.374Z"
       },
       {
         "id": "7",
@@ -3291,9 +3292,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-10-21T16:23:14.471Z",
+      "lastModified": "2025-10-21T16:33:20.376Z",
       "taskCount": 20,
-      "completedCount": 5,
+      "completedCount": 6,
       "tags": [
         "elm"
       ]
