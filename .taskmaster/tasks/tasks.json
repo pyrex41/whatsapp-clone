@@ -1961,6 +1961,128 @@
             "details": "With all files added and build errors resolved, select an iOS simulator (e.g., iPhone 15), and run the app (Product → Run). Ensure the app launches successfully, and test basic interactions like navigating to chat or thread views if implemented. Monitor for runtime errors related to the new files.",
             "status": "pending",
             "testStrategy": "Launch the app on simulator, check for crashes, and verify that UI elements from the added views render correctly without errors."
+          },
+          {
+            "id": 5,
+            "title": "Add UI View Swift Files to Xcode Project",
+            "description": "Add the Swift files for UI views including TypingIndicatorView.swift, MessageCellView.swift, ChatView.swift, ThreadListView.swift, and PresenceBadgeView.swift to the GlobalBridge.xcodeproj following the XCODE_SETUP.md guide.",
+            "dependencies": [
+              6,
+              11,
+              12,
+              17,
+              21,
+              22
+            ],
+            "details": "Open GlobalBridge.xcodeproj in Xcode, navigate to the Views group in the project navigator, right-click and select 'Add Files to GlobalBridge...'. Choose the file paths for TypingIndicatorView.swift, MessageCellView.swift, ChatView.swift, ThreadListView.swift, and PresenceBadgeView.swift. Ensure they are added to the correct target and group as per the guide, and verify SwiftUI imports are correct.",
+            "status": "pending",
+            "testStrategy": "Build the project after adding to check for immediate compilation errors related to these files."
+          },
+          {
+            "id": 6,
+            "title": "Add Typing Indicator Swift Files",
+            "description": "Add TypingIndicator.swift and related typing indicator files to the Xcode project.",
+            "dependencies": [
+              6,
+              11,
+              12,
+              17,
+              21,
+              22
+            ],
+            "details": "In Xcode, add TypingIndicator.swift to the appropriate group (e.g., Views or Indicators). Follow the XCODE_SETUP.md for exact placement and ensure it integrates with SwiftUI components. Confirm the file is added to the target and check for any required dependencies like SwiftUI frameworks.",
+            "status": "pending",
+            "testStrategy": "Perform a partial build focusing on the added files to verify no syntax errors."
+          },
+          {
+            "id": 7,
+            "title": "Add Manager Swift Files to Xcode Project",
+            "description": "Add NotificationManager.swift and the modified PhoenixChannelManager and PhoenixStateManager Swift files to the project.",
+            "dependencies": [
+              6,
+              11,
+              12,
+              17,
+              21,
+              22
+            ],
+            "details": "Navigate to the Managers group in Xcode, right-click and select 'Add Files to GlobalBridge...'. Add NotificationManager.swift, PhoenixChannelManager.swift, and PhoenixStateManager.swift. Ensure modifications are applied as per the guide, and files are added to the correct targets with proper module imports for Phoenix integration.",
+            "status": "pending",
+            "testStrategy": "Build the project and check for import errors or dependency issues with Phoenix libraries."
+          },
+          {
+            "id": 8,
+            "title": "Verify Project Structure After File Addition",
+            "description": "Verify that all added Swift files are correctly placed in the project structure matching the PRD folder layout.",
+            "dependencies": [
+              5,
+              6,
+              7
+            ],
+            "details": "After adding all files, inspect the project navigator in Xcode to ensure files are in the correct groups (e.g., Views for UI files, Managers for state files). Compare with the XCODE_SETUP.md guide and PRD specifications to confirm the structure aligns, including any subfolders or groupings.",
+            "status": "pending",
+            "testStrategy": "Use Xcode's project navigator to visually verify file placements and run a build to ensure no missing references."
+          },
+          {
+            "id": 9,
+            "title": "Resolve Build Errors Post-Addition",
+            "description": "Address any compilation errors, import issues, or dependency problems after adding the Swift files.",
+            "dependencies": [
+              5,
+              6,
+              7,
+              8
+            ],
+            "details": "Perform a full build (Product → Build) in Xcode. Review the build log for errors related to the new files, such as missing imports, concurrency issues in Swift 6, or incorrect target memberships. Fix issues by adjusting imports, adding dependencies, or correcting code as needed per the guide.",
+            "status": "pending",
+            "testStrategy": "Iteratively build and fix errors, then run a clean build to confirm resolution."
+          },
+          {
+            "id": 10,
+            "title": "Test Basic Functionality in iOS Simulator",
+            "description": "Run the app on an iOS simulator to test basic functionality of the added Swift files without crashes.",
+            "dependencies": [
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "details": "After resolving build errors, select an iOS simulator (e.g., iPhone 15), and run the app (Product → Run). Ensure the app launches successfully and basic UI elements like views and managers function without runtime errors. Monitor for any crashes or unexpected behavior.",
+            "status": "pending",
+            "testStrategy": "Observe app launch in simulator, interact with basic features, and check console logs for errors."
+          },
+          {
+            "id": 11,
+            "title": "Verify Swift 6 Strict Concurrency Compliance",
+            "description": "Ensure all added Swift files comply with Swift 6 strict concurrency rules.",
+            "dependencies": [
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "details": "Review the code in the added files for concurrency issues, such as actor isolation or async/await usage. Make necessary adjustments to conform to Swift 6 standards, ensuring no warnings or errors related to concurrency in the build log.",
+            "status": "pending",
+            "testStrategy": "Build with Swift 6 settings enabled and check for concurrency-related warnings or errors."
+          },
+          {
+            "id": 12,
+            "title": "Final Build and Verification Check",
+            "description": "Perform a final clean build and verify the entire project integrates correctly with no errors.",
+            "dependencies": [
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11
+            ],
+            "details": "Execute Product → Clean Build Folder followed by Product → Build in Xcode. Confirm all 12 files are integrated, the project builds successfully, and matches the expected structure. Address any remaining issues and document the final state.",
+            "status": "pending",
+            "testStrategy": "Run the app on simulator post-final build, verify no crashes, and check build logs for zero errors."
           }
         ]
       },
@@ -2044,6 +2166,99 @@
             "details": "Cover edge cases like app killed state, network interruptions, rapid message sequences, and UI state management during notifications. Use simulators and devices for testing. Ensure integration with state management for UI updates and handle conflicts or duplicates.",
             "status": "pending",
             "testStrategy": "Simulate offline scenarios, app restarts, and high-load events to verify queuing, sync, and notification behavior without failures."
+          },
+          {
+            "id": 7,
+            "title": "Modify Phoenix Channel for Notification Event Emission",
+            "description": "Update the MessagingChannel in the Phoenix backend to broadcast a 'notification' event after a new message is created or received in a thread.",
+            "dependencies": [],
+            "details": "Locate the MessagingChannel module and add code to broadcast the 'notification' event with payload including message content, sender, and thread ID. Ensure this happens synchronously after message processing to guarantee real-time emission.",
+            "status": "pending",
+            "testStrategy": "Use Phoenix test framework to simulate message creation and verify the event is broadcasted with correct payload."
+          },
+          {
+            "id": 8,
+            "title": "Implement iOS WebSocket Event Listening",
+            "description": "Set up the iOS app to listen for the 'notification' event on the WebSocket channel connection using Swift's NotificationCenter or a custom observer.",
+            "dependencies": [
+              7
+            ],
+            "details": "In the iOS app's WebSocket handler, subscribe to the 'notification' event. Parse the event payload to extract message details. Use NotificationCenter to post a local notification internally for further processing based on app state.",
+            "status": "pending",
+            "testStrategy": "Mock WebSocket events in unit tests and verify that the listener captures and processes the event correctly."
+          },
+          {
+            "id": 9,
+            "title": "Implement Foreground In-App Banner Display",
+            "description": "Create and display an in-app banner notification using SwiftUI when the app is in the foreground upon receiving a WebSocket notification event.",
+            "dependencies": [
+              8
+            ],
+            "details": "Check app state to confirm foreground status. Use SwiftUI's overlay or a custom toast view to show a banner with message preview, sender, and thread info. Animate the banner appearance and auto-dismiss after a few seconds.",
+            "status": "pending",
+            "testStrategy": "Run app in foreground mode, simulate WebSocket event, and verify banner displays with correct details without system notification."
+          },
+          {
+            "id": 10,
+            "title": "Set Up Background Local Notifications",
+            "description": "Configure the iOS app to schedule and display system notifications when in the background, requesting authorization if needed.",
+            "dependencies": [
+              8
+            ],
+            "details": "Use UNUserNotificationCenter to request authorization for notifications. Upon background event, create a UNNotificationRequest with message details, sound, badge update, and deep link category. Schedule it immediately for delivery.",
+            "status": "pending",
+            "testStrategy": "Put app in background, simulate event, and check that system notification appears with sound and badge, without in-app banner."
+          },
+          {
+            "id": 11,
+            "title": "Handle Notification Tap Navigation",
+            "description": "Implement deep linking and navigation to the relevant thread view when a notification is tapped.",
+            "dependencies": [
+              9,
+              10
+            ],
+            "details": "Set up a UNNotificationAction or custom category for the notification. In the app delegate or scene delegate, handle the notification response to navigate to the thread view using the thread ID from the payload. Integrate with existing navigation stack.",
+            "status": "pending",
+            "testStrategy": "Tap on a background notification and verify app opens to the correct thread view with updated UI."
+          },
+          {
+            "id": 12,
+            "title": "Integrate with Existing State Management",
+            "description": "Ensure notification events update the app's state management for UI consistency, such as marking messages as read or updating thread lists.",
+            "dependencies": [
+              8
+            ],
+            "details": "Connect the notification event handler to the app's state manager (e.g., Combine or Redux-like store). Update relevant state variables like unread counts or thread data upon event receipt, triggering UI refreshes.",
+            "status": "pending",
+            "testStrategy": "Simulate notification event and verify that state updates reflect in UI components like thread lists and unread badges."
+          },
+          {
+            "id": 13,
+            "title": "Handle Edge Cases for App States",
+            "description": "Address scenarios like app killed state, silent notifications, or background fetch to ensure notifications work across all app lifecycles.",
+            "dependencies": [
+              10
+            ],
+            "details": "Implement background fetch or silent push simulation for killed app state. Use UIApplication background tasks to process events. Handle cases where WebSocket is disconnected by queuing notifications locally.",
+            "status": "pending",
+            "testStrategy": "Kill the app, simulate event via background fetch, and verify notification delivery upon app relaunch."
+          },
+          {
+            "id": 14,
+            "title": "Comprehensive Testing for Edge Cases",
+            "description": "Conduct thorough testing including concurrency, UI updates, and various app states to ensure robust notification behavior.",
+            "dependencies": [
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "details": "Test in simulator and device for foreground/background transitions, offline/online switches, multiple rapid events, and integration with existing features like message queuing. Use automated tests for event handling and manual tests for UX.",
+            "status": "pending",
+            "testStrategy": "Combine unit tests for logic, integration tests for WebSocket, and end-to-end tests simulating real user scenarios across devices."
           }
         ]
       }
