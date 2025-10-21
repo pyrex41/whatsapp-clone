@@ -60,3 +60,8 @@ config :globalbridge_backend, GlobalbridgeBackend.Repo,
   database: Path.expand("../priv/shared_dbs/users.db", Path.dirname(__ENV__.file)),
   pool_size: 10,
   show_sensitive_data_on_connection_error: true
+
+# Additional shared databases
+# Note: These are configured but will be accessed via custom Repo modules
+# bridges.db - stores bridge sessions and metadata
+# sync_state.db - stores synchronization state for multi-device support

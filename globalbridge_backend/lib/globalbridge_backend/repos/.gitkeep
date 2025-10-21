@@ -1,0 +1,4 @@
+# Custom Repo modules for multi-database setup
+# - BridgeRepo (bridges.db)
+# - SyncStateRepo (sync_state.db)
+# - ThreadRepo (threads/*.db - dynamic sharding)

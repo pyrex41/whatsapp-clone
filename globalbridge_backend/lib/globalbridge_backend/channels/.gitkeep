@@ -1,0 +1,4 @@
+# Phoenix Channels for real-time messaging
+# - ThreadChannel
+# - PresenceChannel
+# - NotificationChannel

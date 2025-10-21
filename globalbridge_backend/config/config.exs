@@ -11,6 +11,19 @@ config :globalbridge_backend,
   generators: [timestamp_type: :utc_datetime, binary_id: true],
   ecto_repos: [GlobalbridgeBackend.Repo]
 
+# SQLite Adapter Configuration
+# Using ecto_sqlite3 for all environments
+config :globalbridge_backend, GlobalbridgeBackend.Repo,
+  adapter: Ecto.Adapters.SQLite3,
+  # WAL mode for better concurrency
+  journal_mode: :wal,
+  # Enable foreign keys
+  foreign_keys: :on,
+  # Cache configuration
+  cache_size: -64000,
+  # Busy timeout (5 seconds)
+  busy_timeout: 5000
+
 # Configures the endpoint
 config :globalbridge_backend, GlobalbridgeBackendWeb.Endpoint,
   url: [host: "localhost"],

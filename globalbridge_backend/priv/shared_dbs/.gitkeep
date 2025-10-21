@@ -1,0 +1,4 @@
+# This directory stores shared SQLite databases
+# - users.db: User accounts and authentication
+# - bridges.db: Bridge sessions and metadata
+# - sync_state.db: Multi-device synchronization state

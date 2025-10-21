@@ -1,0 +1,6 @@
+# Ecto schemas for database tables
+# - User
+# - Thread
+# - Message
+# - Device
+# - etc.
