@@ -29,7 +29,7 @@ struct User: Identifiable, Codable, Equatable {
     }
 
     struct Preferences: Codable, Equatable {
-        var locale: Locale.Identifier
+        var locale: String
         var enableReadReceipts: Bool
         var enableTypingIndicators: Bool
         var theme: Theme
@@ -40,15 +40,19 @@ struct User: Identifiable, Codable, Equatable {
             case dark
         }
 
-        static let `default` = Preferences(
-            locale: Locale.current.identifier,
-            enableReadReceipts: true,
-            enableTypingIndicators: true,
-            theme: .system
-        )
+        nonisolated static let defaultLocaleIdentifier = "en_US"
+
+        nonisolated static func defaultPreferences() -> Preferences {
+            Preferences(
+                locale: defaultLocaleIdentifier,
+                enableReadReceipts: true,
+                enableTypingIndicators: true,
+                theme: .system
+            )
+        }
     }
 
-    init(
+    nonisolated init(
         id: UUID = UUID(),
         handle: String,
         displayName: String,
@@ -58,7 +62,7 @@ struct User: Identifiable, Codable, Equatable {
         status: UserStatus = .active,
         publicKey: String? = nil,
         devicePublicKeys: [UUID: String] = [:],
-        preferences: Preferences = .default,
+        preferences: Preferences? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -71,18 +75,20 @@ struct User: Identifiable, Codable, Equatable {
         self.status = status
         self.publicKey = publicKey
         self.devicePublicKeys = devicePublicKeys
-        self.preferences = preferences
+        self.preferences = preferences ?? Preferences.defaultPreferences()
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
 }
 
 extension User {
-    static let sampleCurrent = User(
-        handle: "reuben",
-        displayName: "Reuben Brooks",
-        avatarURL: nil,
-        email: "reuben@example.com",
-        devicePublicKeys: [UUID(): "DEVICE_PUBLIC_KEY_SAMPLE"]
-    )
+    nonisolated static var sampleCurrent: User {
+        User(
+            handle: "reuben",
+            displayName: "Reuben Brooks",
+            avatarURL: nil,
+            email: "reuben@example.com",
+            devicePublicKeys: [UUID(): "DEVICE_PUBLIC_KEY_SAMPLE"]
+        )
+    }
 }

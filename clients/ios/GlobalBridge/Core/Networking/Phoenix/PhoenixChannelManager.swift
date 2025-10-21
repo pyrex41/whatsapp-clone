@@ -164,25 +164,25 @@ public actor PhoenixChannelManager {
         }
     }
 
-    private func deliverNewMessage(_ message: PhoenixMessage, conversationId: String) {
+    private func deliverNewMessage(_ message: PhoenixMessage, conversationId: String) async {
         eventHandlers[conversationId]?.forEach { handler in
             handler(message)
         }
     }
 
-    private func deliverMessageUpdate(_ message: PhoenixMessage, conversationId: String) {
+    private func deliverMessageUpdate(_ message: PhoenixMessage, conversationId: String) async {
         eventHandlers[conversationId]?.forEach { handler in
             handler(message)
         }
     }
 
-    private func deliverTypingIndicator(_ indicator: TypingIndicator, conversationId: String) {
+    private func deliverTypingIndicator(_ indicator: TypingIndicator, conversationId: String) async {
         typingHandlers[conversationId]?.forEach { handler in
             handler(indicator)
         }
     }
 
-    private func deliverReadReceipt(_ receipt: ReadReceipt, conversationId: String) {
+    private func deliverReadReceipt(_ receipt: ReadReceipt, conversationId: String) async {
         readReceiptHandlers[conversationId]?.forEach { handler in
             handler(receipt)
         }
@@ -192,7 +192,7 @@ public actor PhoenixChannelManager {
         conversationId: String,
         joinedUserIds: [String],
         leftUserIds: [String]
-    ) {
+    ) async {
         for userId in joinedUserIds {
             let presence = UserPresence(userId: userId, status: .online, lastSeen: nil)
             presenceHandlers.forEach { $0(conversationId, presence) }
@@ -623,15 +623,15 @@ public actor PhoenixChannelManager {
 
 // MARK: - Error Types
 
-public struct PhoenixPayload: @unchecked Sendable, CustomStringConvertible {
-    let raw: [String: Any]
+public struct PhoenixPayload: Sendable, CustomStringConvertible {
+    private let descriptionValue: String
 
-    init(_ raw: [String: Any]) {
-        self.raw = raw
+    public nonisolated init(_ raw: [String: Any]) {
+        self.descriptionValue = raw.description
     }
 
-    public var description: String {
-        raw.description
+    public nonisolated var description: String {
+        descriptionValue
     }
 }
 

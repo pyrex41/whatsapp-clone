@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftPhoenixClient
 
 /// Extension to PhoenixChannelManager to support CDC sync operations
 extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
@@ -15,8 +16,8 @@ extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
     ///   - threadId: Thread ID to pull changes for
     ///   - since: Optional timestamp to fetch changes since
     /// - Returns: Array of CDC logs from server
-    public func pullCDCLogs(threadId: String, since: Date?) async throws -> [CDCLog] {
-        guard let channel = channels["conversation:\(threadId)"] else {
+    func pullCDCLogs(threadId: String, since: Date?) async throws -> [CDCLog] {
+        guard let channel = channel(for: threadId) else {
             throw PhoenixError.channelNotJoined
         }
 
@@ -45,7 +46,7 @@ extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
                     }
                 }
                 .receive("error") { message in
-                    continuation.resume(throwing: PhoenixError.sendFailed(message.payload))
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
                 }
                 .receive("timeout") { _ in
                     continuation.resume(throwing: PhoenixError.timeout)
@@ -57,8 +58,8 @@ extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
     /// - Parameters:
     ///   - logs: CDC logs to push
     ///   - threadId: Thread ID these logs belong to
-    public func pushCDCLogs(_ logs: [CDCLog], threadId: String) async throws {
-        guard let channel = channels["conversation:\(threadId)"] else {
+    func pushCDCLogs(_ logs: [CDCLog], threadId: String) async throws {
+        guard let channel = channel(for: threadId) else {
             throw PhoenixError.channelNotJoined
         }
 
@@ -100,7 +101,7 @@ extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
                     continuation.resume()
                 }
                 .receive("error") { message in
-                    continuation.resume(throwing: PhoenixError.sendFailed(message.payload))
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
                 }
                 .receive("timeout") { _ in
                     continuation.resume(throwing: PhoenixError.timeout)
@@ -110,8 +111,8 @@ extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
 
     /// Check if network is available
     /// - Returns: True if connected, false otherwise
-    public func isNetworkAvailable() -> Bool {
-        switch connectionState {
+    func isNetworkAvailable() async -> Bool {
+        switch getConnectionState() {
         case .connected:
             return true
         default:
