@@ -1135,8 +1135,8 @@
             "title": "Create MessageComposer component",
             "description": "Develop the MessageComposer view for composing and preparing messages to send.",
             "dependencies": [],
-            "details": "Create a separate SwiftUI View for MessageComposer with a TextField for input and a Button for sending. Include basic validation like non-empty text. Style it to fit the chat UI theme.",
-            "status": "pending",
+            "details": "Create a separate SwiftUI View for MessageComposer with a TextField for input and a Button for sending. Include basic validation like non-empty text. Style it to fit the chat UI theme.\n<info added on 2025-10-21T04:55:34.399Z>\nAdded Features/Chat/MessageComposerView.swift: SwiftUI view with a bound TextField and a send button styled with SF Symbol badges. Exposes bindings for text and isSending so the parent controls validation and enabled/disabled behavior, and the button reflects sending status via its badge. Styling aligns with the chat UI theme.\n</info added on 2025-10-21T04:55:34.399Z>",
+            "status": "done",
             "testStrategy": "Unit test the composer for input handling and button states. UI test to ensure it appears correctly in the chat view.",
             "parentId": "undefined"
           },
@@ -1147,8 +1147,8 @@
             "dependencies": [
               3
             ],
-            "details": "In MessageComposer, add an action to the send button that captures the input text, clears the field, and triggers the send process. Prepare the message data structure for integration with Phoenix.",
-            "status": "pending",
+            "details": "In MessageComposer, add an action to the send button that captures the input text, clears the field, and triggers the send process. Prepare the message data structure for integration with Phoenix.\n<info added on 2025-10-21T04:56:18.547Z>\nConnect MessageComposer’s send action in ChatScreen to store.send(.sendMessage). Update the reducer to handle .sendMessage by reading state.composerText, returning if empty or state.isSending, creating an optimistic message (localTempId, threadId, text, authorId, createdAt, isOptimistic:true, deliveryState:.sending), appending it to state.messages, clearing state.composerText, and enqueuing via CDCManager when offline (deliveryState:.queued). Track state.isSending to prevent duplicate sends. Disable the send button when the input is empty or while isSending is true.\n</info added on 2025-10-21T04:56:18.547Z>\n<info added on 2025-10-21T04:57:09.988Z>\nIn the .sendMessage reducer, guard composer.text is non-empty and composer.isSending is false; set composer.isSending = true, capture text, clear composer.text, and start an async effect calling environment.database.createMessage(threadId, text) that emits .messageSent(Result<Message, Error>). Handle .messageSent(.success msg) by setting composer.isSending = false, appending msg to state.messages, and clearing chat.messageError; handle .messageSent(.failure err) by setting composer.isSending = false and updating chat.messageError for UI surfacing.\n</info added on 2025-10-21T04:57:09.988Z>",
+            "status": "done",
             "testStrategy": "Test the send button action with mock sends, verifying input is cleared and message is prepared correctly.",
             "parentId": "undefined"
           },
@@ -1902,6 +1902,21 @@
         "complexity": 2,
         "recommendedSubtasks": 0,
         "expansionPrompt": ""
+      },
+      {
+        "id": 24,
+        "title": "Run Backend Database Migrations",
+        "description": "Execute database migrations to apply the notifications table and read receipts table schemas, along with any other pending migrations, ensuring the backend database is up-to-date.",
+        "details": "Navigate to the Elixir backend project directory. Run `mix ecto.migrate` in the terminal to execute all pending migrations, including those for the notifications table (which may include fields for notification types, user IDs, timestamps, and related metadata as per the PRD) and the read_receipts table (likely with fields for message IDs, user IDs, and read timestamps, as implemented in Task 17). Ensure the database configuration in `config/dev.exs` or `config/prod.exs` is set correctly for the environment (e.g., using SQLite for local development). If any migrations fail, review error messages for issues like missing dependencies or schema conflicts, and resolve them (e.g., by checking foreign key constraints or data types). After migration, use a database tool like SQLite Browser or `mix ecto.gen.migration` to inspect the schema and confirm the tables exist with the expected columns. Consider running in a staging environment first to avoid production issues. Also, verify that any CDC log triggers or sharding logic (from Task 2) are not affected by the new tables.",
+        "testStrategy": "After running `mix ecto.migrate`, connect to the database using a tool like `sqlite3` or an Elixir console (e.g., `iex -S mix`) and execute SQL queries to list tables (`SELECT name FROM sqlite_master WHERE type='table';`) and verify 'notifications' and 'read_receipts' are present. Query the schema of each table (e.g., `PRAGMA table_info(notifications);`) to ensure columns match the expected schema (e.g., id, user_id, type, created_at for notifications; id, message_id, user_id, read_at for read_receipts). Insert test data into the tables and query it back to confirm data integrity. Run the application's tests (if any) that depend on these tables to ensure no regressions. In a multi-environment setup, repeat on staging and production after deployment, checking logs for migration success messages.",
+        "status": "pending",
+        "dependencies": [
+          2,
+          17,
+          22
+        ],
+        "priority": "high",
+        "subtasks": []
       }
     ],
     "metadata": {
@@ -1914,7 +1929,7 @@
       ],
       "created": "2025-10-21T04:46:09.225Z",
       "description": "Tasks for mvp context",
-      "updated": "2025-10-21T04:54:36.375Z"
+      "updated": "2025-10-21T04:57:30.655Z"
     }
   }
 }
