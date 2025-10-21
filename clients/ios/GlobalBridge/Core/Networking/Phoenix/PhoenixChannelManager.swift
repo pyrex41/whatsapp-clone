@@ -156,7 +156,7 @@ public actor PhoenixChannelManager {
                     continuation.resume()
                 }
                 .receive("error") { message in
-                    continuation.resume(throwing: PhoenixError.joinFailed(message.payload))
+                    continuation.resume(throwing: PhoenixError.joinFailed(PhoenixPayload(message.payload)))
                 }
                 .receive("timeout") { _ in
                     continuation.resume(throwing: PhoenixError.timeout)
@@ -247,7 +247,7 @@ public actor PhoenixChannelManager {
                     }
                 }
                 .receive("error") { message in
-                    continuation.resume(throwing: PhoenixError.sendFailed(message.payload))
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
                 }
                 .receive("timeout") { _ in
                     continuation.resume(throwing: PhoenixError.timeout)
@@ -269,7 +269,7 @@ public actor PhoenixChannelManager {
                     continuation.resume()
                 }
                 .receive("error") { message in
-                    continuation.resume(throwing: PhoenixError.sendFailed(message.payload))
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
                 }
         }
     }
@@ -623,12 +623,24 @@ public actor PhoenixChannelManager {
 
 // MARK: - Error Types
 
-public enum PhoenixError: Error, LocalizedError {
+public struct PhoenixPayload: @unchecked Sendable, CustomStringConvertible {
+    let raw: [String: Any]
+
+    init(_ raw: [String: Any]) {
+        self.raw = raw
+    }
+
+    public var description: String {
+        raw.description
+    }
+}
+
+public enum PhoenixError: Error, LocalizedError, Sendable {
     case notConnected
     case connectionTimeout
     case channelNotJoined
-    case joinFailed([String: Any])
-    case sendFailed([String: Any])
+    case joinFailed(PhoenixPayload)
+    case sendFailed(PhoenixPayload)
     case decodingFailed(Error)
     case timeout
 
@@ -641,9 +653,9 @@ public enum PhoenixError: Error, LocalizedError {
         case .channelNotJoined:
             return "Channel not joined"
         case .joinFailed(let payload):
-            return "Failed to join channel: \(payload)"
+            return "Failed to join channel: \(payload.description)"
         case .sendFailed(let payload):
-            return "Failed to send message: \(payload)"
+            return "Failed to send message: \(payload.description)"
         case .decodingFailed(let error):
             return "Failed to decode response: \(error.localizedDescription)"
         case .timeout:

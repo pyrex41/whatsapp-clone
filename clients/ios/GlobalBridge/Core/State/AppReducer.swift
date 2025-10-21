@@ -14,9 +14,9 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         return .run { send in
             do {
                 let threads = try await environment.database.loadThreads()
-                await send(.threadsLoaded(.success(threads)))
+                await MainActor.run { send(.threadsLoaded(.success(threads))) }
             } catch {
-                await send(.threadsLoaded(.failure(error)))
+                await MainActor.run { send(.threadsLoaded(.failure(error))) }
             }
         }
 
@@ -30,7 +30,7 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 state.threads.selectedThreadID = firstThread.id
                 state.chat.currentThread = firstThread
                 return .run { send in
-                    await send(.loadMessages(firstThread.id))
+                    await MainActor.run { send(.loadMessages(firstThread.id)) }
                 }
             }
             return .none
@@ -58,13 +58,13 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         }
         commands.append(
             .run { send in
-                await send(.loadMessages(threadID))
+                await MainActor.run { send(.loadMessages(threadID)) }
             }
         )
         commands.append(
             .run { send in
                 await environment.realtime.connect(threadID) { message in
-                    await send(.receiveRealtimeMessage(message))
+                    await MainActor.run { send(.receiveRealtimeMessage(message)) }
                 }
             }
         )
@@ -94,9 +94,9 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         return .run { send in
             do {
                 let thread = try await environment.database.createThread(title, user)
-                await send(.threadCreated(.success(thread)))
+                await MainActor.run { send(.threadCreated(.success(thread))) }
             } catch {
-                await send(.threadCreated(.failure(error)))
+                await MainActor.run { send(.threadCreated(.failure(error))) }
             }
         }
 
@@ -111,7 +111,7 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             state.chat.currentThread = thread
             state.chat.messages = Message.samples(for: thread.id, sender: state.user)
             return .run { send in
-                await send(.loadMessages(thread.id))
+                await MainActor.run { send(.loadMessages(thread.id)) }
             }
 
         case let .failure(error):
@@ -124,9 +124,9 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         return .run { send in
             do {
                 let messages = try await environment.database.loadMessages(threadID)
-                await send(.messagesLoaded(threadID, .success(messages)))
+                await MainActor.run { send(.messagesLoaded(threadID, .success(messages))) }
             } catch {
-                await send(.messagesLoaded(threadID, .failure(error)))
+                await MainActor.run { send(.messagesLoaded(threadID, .failure(error))) }
             }
         }
 
@@ -164,9 +164,9 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         return .run { send in
             do {
                 let message = try await environment.database.createMessage(threadID, text, state.user)
-                await send(.messageSent(.success(message)))
+                await MainActor.run { send(.messageSent(.success(message))) }
             } catch {
-                await send(.messageSent(.failure(error)))
+                await MainActor.run { send(.messageSent(.failure(error))) }
             }
         }
 

@@ -232,7 +232,7 @@ class FeatureFlags {
         let limits: TierLimits?
     }
 
-    private struct FeatureResponse: Codable {
+    private nonisolated struct FeatureResponse: Codable {
         let data: FeatureData
 
         struct FeatureData: Codable {
@@ -242,7 +242,7 @@ class FeatureFlags {
         }
     }
 
-    private struct FeatureCheckResponse: Codable {
+    private nonisolated struct FeatureCheckResponse: Codable {
         let data: FeatureCheckData
 
         struct FeatureCheckData: Codable {
