@@ -1,0 +1,23 @@
+{
+  "name": "globalbridge-elm-client",
+  "version": "0.1.0",
+  "description": "Elm web client for GlobalBridge Messenger",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "elm": "elm",
+    "elm:make": "elm make src/Main.elm --output=public/elm.js",
+    "elm:make:opt": "elm make src/Main.elm --output=public/elm.js --optimize",
+    "test": "elm-test"
+  },
+  "dependencies": {
+    "phoenix": "^1.7.10"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "vite-plugin-elm": "^3.0.0",
+    "elm-test": "^0.19.1-revision12"
+  }
+}

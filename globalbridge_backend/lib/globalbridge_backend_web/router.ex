@@ -1,6 +1,14 @@
 defmodule GlobalbridgeBackendWeb.Router do
   use GlobalbridgeBackendWeb, :router
 
+  pipeline :browser do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_flash
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
     plug CORSPlug
@@ -8,6 +16,20 @@ defmodule GlobalbridgeBackendWeb.Router do
 
   pipeline :auth do
     plug GlobalbridgeBackend.Auth.Pipeline
+  end
+
+  # Elm Web Client
+  scope "/", GlobalbridgeBackendWeb do
+    pipe_through :browser
+
+    get "/", PageController, :elm_client
+  end
+
+  # Bootstrap endpoint for Elm client initial data
+  scope "/api/bootstrap", GlobalbridgeBackendWeb do
+    pipe_through [:api, :auth]
+
+    get "/", BootstrapController, :index
   end
 
   scope "/api/auth", GlobalbridgeBackendWeb do
