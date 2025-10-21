@@ -33,7 +33,9 @@ public class PhoenixStateManager {
     }
 
     deinit {
-        updateTask?.cancel()
+        MainActor.assumeIsolated {
+            updateTask?.cancel()
+        }
     }
 
     // MARK: - Public Methods
@@ -144,6 +146,11 @@ public class PhoenixStateManager {
     /// Send read receipt
     public func sendReadReceipt(conversationId: String, messageId: String) async {
         await channelManager.sendReadReceipt(conversationId: conversationId, messageId: messageId)
+    }
+
+    /// Access the current connection state from off the main actor
+    public nonisolated func currentConnectionState() async -> PhoenixConnectionState {
+        await MainActor.run { connectionState }
     }
 
     // MARK: - Private Methods

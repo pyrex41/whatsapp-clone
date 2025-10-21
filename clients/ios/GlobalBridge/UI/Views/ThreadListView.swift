@@ -6,11 +6,16 @@
 //
 
 import SwiftUI
+import Observation
 
 /// Displays list of conversation threads with presence indicators
 struct ThreadListView: View {
-    @ObservedObject var phoenixState: PhoenixStateManager
+    @Bindable var phoenixState: PhoenixStateManager
     @State private var threads: [ThreadViewModel] = []
+
+    init(phoenixState: PhoenixStateManager) {
+        self._phoenixState = Bindable(phoenixState)
+    }
 
     var body: some View {
         NavigationView {

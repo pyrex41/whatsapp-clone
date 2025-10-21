@@ -185,7 +185,7 @@ final class DatabaseManager {
         })
 
         // Create indexes for participants
-        try db.run(participantsTable.createIndex([participantThreadId, participantUserId], unique: true, ifNotExists: true))
+        try db.run(participantsTable.createIndex(participantThreadId, participantUserId, unique: true, ifNotExists: true))
         try db.run(participantsTable.createIndex(participantUserId, ifNotExists: true))
         try db.run(participantsTable.createIndex(participantIsActive, ifNotExists: true))
 
@@ -266,7 +266,7 @@ final class DatabaseManager {
         })
 
         // Create indexes for CDC logs
-        try connection.run(cdcLogsTable.createIndex([cdcTableName, cdcRecordId], ifNotExists: true))
+        try connection.run(cdcLogsTable.createIndex(cdcTableName, cdcRecordId, ifNotExists: true))
         try connection.run(cdcLogsTable.createIndex(cdcTimestamp, ifNotExists: true))
 
         // Add is_synced column for CDC logs
@@ -296,7 +296,7 @@ final class DatabaseManager {
         // Create indexes for sync states
         try connection.run(syncStatesTable.createIndex(syncDeviceId, ifNotExists: true))
         try connection.run(syncStatesTable.createIndex(syncThreadId, ifNotExists: true))
-        try connection.run(syncStatesTable.createIndex([syncEntityType, syncEntityId], ifNotExists: true))
+        try connection.run(syncStatesTable.createIndex(syncEntityType, syncEntityId, ifNotExists: true))
         try connection.run(syncStatesTable.createIndex(syncIsSynced, ifNotExists: true))
 
         // Task 13.1: Create SQLite triggers for automatic CDC logging
@@ -940,6 +940,10 @@ final class DatabaseManager {
     }
 
     deinit {
-        closeAllConnections()
+        MainActor.assumeIsolated {
+            threadConnections.removeAll()
+            mainConnection = nil
+            print("✅ All database connections closed")
+        }
     }
 }

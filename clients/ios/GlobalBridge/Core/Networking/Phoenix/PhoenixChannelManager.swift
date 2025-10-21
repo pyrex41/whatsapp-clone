@@ -8,6 +8,12 @@
 import Foundation
 import SwiftPhoenixClient
 
+private typealias SocketMessage = SwiftPhoenixClient.Message
+public typealias MessageHandler = @Sendable (PhoenixMessage) -> Void
+public typealias PresenceHandler = @Sendable (String, UserPresence) -> Void
+public typealias TypingHandler = @Sendable (TypingIndicator) -> Void
+public typealias ReadReceiptHandler = @Sendable (ReadReceipt) -> Void
+
 /// Connection state for Phoenix channels
 public enum PhoenixConnectionState: Sendable {
     case disconnected
@@ -26,11 +32,34 @@ public actor PhoenixChannelManager {
     private var channels: [String: Channel] = [:]
     private var connectionState: PhoenixConnectionState = .disconnected
     private var reconnectAttempts = 0
-    private var eventHandlers: [String: [(PhoenixMessage) -> Void]] = [:]
-    private var presenceHandlers: [(String, UserPresence) -> Void] = []
-    private var typingHandlers: [String: [(TypingIndicator) -> Void]] = [:]
-    private var readReceiptHandlers: [String: [(ReadReceipt) -> Void]] = [:]
+    private var eventHandlers: [String: [MessageHandler]] = [:]
+    private var presenceHandlers: [PresenceHandler] = []
+    private var typingHandlers: [String: [TypingHandler]] = [:]
+    private var readReceiptHandlers: [String: [ReadReceiptHandler]] = [:]
     private var typingTimers: [String: Task<Void, Never>] = [:]
+
+    var currentConnectionState: PhoenixConnectionState {
+        connectionState
+    }
+
+    func channel(for conversationId: String) -> Channel? {
+        channels[topic(for: conversationId)]
+    }
+
+    func setChannel(_ channel: Channel, for conversationId: String) {
+        channels[topic(for: conversationId)] = channel
+    }
+
+    func removeChannel(for conversationId: String) {
+        channels.removeValue(forKey: topic(for: conversationId))
+    }
+
+    private var isConnected: Bool {
+        if case .connected = connectionState {
+            return true
+        }
+        return false
+    }
 
     // MARK: - Initialization
 
@@ -42,7 +71,7 @@ public actor PhoenixChannelManager {
 
     /// Connect to Phoenix server
     public func connect(authToken: String? = nil) async throws {
-        guard connectionState != .connected else { return }
+        guard !isConnected else { return }
 
         connectionState = .connecting
 
@@ -62,15 +91,22 @@ public actor PhoenixChannelManager {
         } : nil
 
         socket?.onOpen { [weak self] in
-            Task { await self?.handleConnect() }
+            Task { [weak self] in
+                await self?.handleConnect()
+            }
         }
 
         socket?.onClose { [weak self] in
-            Task { await self?.handleDisconnect() }
+            Task { [weak self] in
+                await self?.handleDisconnect()
+            }
         }
 
-        socket?.onError { [weak self] error in
-            Task { await self?.handleError(error) }
+        socket?.onError { [weak self] error, _ in
+            Task { [weak self] in
+                guard let self else { return }
+                await self.handleError(error)
+            }
         }
 
         socket?.connect()
@@ -100,15 +136,15 @@ public actor PhoenixChannelManager {
             throw PhoenixError.notConnected
         }
 
-        let topic = "conversation:\(conversationId)"
+        let topic = topic(for: conversationId)
 
         // Check if already joined
-        if channels[topic] != nil {
+        if channel(for: conversationId) != nil {
             return
         }
 
         let channel = socket.channel(topic)
-        channels[topic] = channel
+        setChannel(channel, for: conversationId)
 
         // Set up event handlers
         setupChannelHandlers(channel, conversationId: conversationId)
@@ -128,11 +164,50 @@ public actor PhoenixChannelManager {
         }
     }
 
+    private func deliverNewMessage(_ message: PhoenixMessage, conversationId: String) {
+        eventHandlers[conversationId]?.forEach { handler in
+            handler(message)
+        }
+    }
+
+    private func deliverMessageUpdate(_ message: PhoenixMessage, conversationId: String) {
+        eventHandlers[conversationId]?.forEach { handler in
+            handler(message)
+        }
+    }
+
+    private func deliverTypingIndicator(_ indicator: TypingIndicator, conversationId: String) {
+        typingHandlers[conversationId]?.forEach { handler in
+            handler(indicator)
+        }
+    }
+
+    private func deliverReadReceipt(_ receipt: ReadReceipt, conversationId: String) {
+        readReceiptHandlers[conversationId]?.forEach { handler in
+            handler(receipt)
+        }
+    }
+
+    private func deliverPresenceDiff(
+        conversationId: String,
+        joinedUserIds: [String],
+        leftUserIds: [String]
+    ) {
+        for userId in joinedUserIds {
+            let presence = UserPresence(userId: userId, status: .online, lastSeen: nil)
+            presenceHandlers.forEach { $0(conversationId, presence) }
+        }
+
+        for userId in leftUserIds {
+            let presence = UserPresence(userId: userId, status: .offline, lastSeen: Date())
+            presenceHandlers.forEach { $0(conversationId, presence) }
+        }
+    }
+
     /// Leave a conversation channel
     public func leaveConversation(_ conversationId: String) {
-        let topic = "conversation:\(conversationId)"
-        channels[topic]?.leave()
-        channels.removeValue(forKey: topic)
+        channel(for: conversationId)?.leave()
+        removeChannel(for: conversationId)
     }
 
     // MARK: - Message Sending
@@ -143,7 +218,7 @@ public actor PhoenixChannelManager {
         content: String,
         replyToId: String? = nil
     ) async throws -> PhoenixMessage {
-        guard let channel = channels["conversation:\(conversationId)"] else {
+        guard let channel = channel(for: conversationId) else {
             throw PhoenixError.channelNotJoined
         }
 
@@ -158,10 +233,14 @@ public actor PhoenixChannelManager {
 
         return try await withCheckedThrowingContinuation { continuation in
             channel.push("new_message", payload: payload)
-                .receive("ok") { response in
+                .receive("ok") { [weak self] response in
+                    guard let self else {
+                        continuation.resume(throwing: PhoenixError.notConnected)
+                        return
+                    }
+
                     do {
-                        let data = try JSONSerialization.data(withJSONObject: response.payload)
-                        let message = try JSONDecoder().decode(PhoenixMessage.self, from: data)
+                        let message = try self.parsePhoenixMessage(from: response.payload)
                         continuation.resume(returning: message)
                     } catch {
                         continuation.resume(throwing: PhoenixError.decodingFailed(error))
@@ -178,7 +257,7 @@ public actor PhoenixChannelManager {
 
     /// Mark conversation as read
     public func markAsRead(conversationId: String, messageId: String) async throws {
-        guard let channel = channels["conversation:\(conversationId)"] else {
+        guard let channel = channel(for: conversationId) else {
             throw PhoenixError.channelNotJoined
         }
 
@@ -198,7 +277,7 @@ public actor PhoenixChannelManager {
     // MARK: - Event Handlers
 
     /// Register handler for incoming messages
-    public func onMessage(conversationId: String, handler: @escaping (PhoenixMessage) -> Void) {
+    public func onMessage(conversationId: String, handler: @escaping MessageHandler) {
         if eventHandlers[conversationId] == nil {
             eventHandlers[conversationId] = []
         }
@@ -206,12 +285,12 @@ public actor PhoenixChannelManager {
     }
 
     /// Register handler for presence updates
-    public func onPresence(handler: @escaping (String, UserPresence) -> Void) {
+    public func onPresence(handler: @escaping PresenceHandler) {
         presenceHandlers.append(handler)
     }
 
     /// Register handler for typing indicators
-    public func onTyping(conversationId: String, handler: @escaping (TypingIndicator) -> Void) {
+    public func onTyping(conversationId: String, handler: @escaping TypingHandler) {
         if typingHandlers[conversationId] == nil {
             typingHandlers[conversationId] = []
         }
@@ -219,7 +298,7 @@ public actor PhoenixChannelManager {
     }
 
     /// Register handler for read receipts
-    public func onReadReceipt(conversationId: String, handler: @escaping (ReadReceipt) -> Void) {
+    public func onReadReceipt(conversationId: String, handler: @escaping ReadReceiptHandler) {
         if readReceiptHandlers[conversationId] == nil {
             readReceiptHandlers[conversationId] = []
         }
@@ -228,7 +307,7 @@ public actor PhoenixChannelManager {
 
     /// Send typing indicator
     public func sendTypingIndicator(conversationId: String, isTyping: Bool) async {
-        guard let channel = channels["conversation:\(conversationId)"] else {
+        guard let channel = channel(for: conversationId) else {
             print("[Phoenix] Cannot send typing indicator - channel not joined")
             return
         }
@@ -256,7 +335,7 @@ public actor PhoenixChannelManager {
 
     /// Send read receipt
     public func sendReadReceipt(conversationId: String, messageId: String) async {
-        guard let channel = channels["conversation:\(conversationId)"] else {
+        guard let channel = channel(for: conversationId) else {
             print("[Phoenix] Cannot send read receipt - channel not joined")
             return
         }
@@ -277,121 +356,208 @@ public actor PhoenixChannelManager {
 
     // MARK: - Private Methods
 
+    private func topic(for conversationId: String) -> String {
+        "conversation:\(conversationId)"
+    }
+
+    nonisolated private func parsePhoenixMessage(from payload: [String: Any]) throws -> PhoenixMessage {
+        guard
+            let id = payload["id"] as? String,
+            let conversationId = payload["conversation_id"] as? String,
+            let senderId = payload["sender_id"] as? String,
+            let content = payload["content"] as? String,
+            let timestampString = payload["timestamp"] as? String
+        else {
+            throw PhoenixError.decodingFailed(PhoenixDecodingError.missingRequiredFields)
+        }
+
+        let timestamp = parseISO8601Date(timestampString) ?? Date()
+
+        let statusString = (payload["status"] as? String) ?? PhoenixMessage.MessageStatus.sent.rawValue
+        guard let status = PhoenixMessage.MessageStatus(rawValue: statusString) else {
+            throw PhoenixError.decodingFailed(PhoenixDecodingError.unknownStatus(statusString))
+        }
+
+        var metadata: PhoenixMessage.MessageMetadata?
+        if let metadataPayload = payload["metadata"] as? [String: Any] {
+            let replyToId = metadataPayload["reply_to_id"] as? String
+            let edited = metadataPayload["edited"] as? Bool
+            let editedAt = (metadataPayload["edited_at"] as? String).flatMap(parseISO8601Date)
+
+            var attachments: [PhoenixMessage.MessageMetadata.Attachment]?
+            if let attachmentsPayload = metadataPayload["attachments"] as? [[String: Any]] {
+                attachments = attachmentsPayload.compactMap { attachmentDict in
+                    guard
+                        let attachmentId = attachmentDict["id"] as? String,
+                        let type = attachmentDict["type"] as? String,
+                        let url = attachmentDict["url"] as? String,
+                        let name = attachmentDict["name"] as? String
+                    else {
+                        return nil
+                    }
+
+                    let size: Int?
+                    if let intSize = attachmentDict["size"] as? Int {
+                        size = intSize
+                    } else if let numberSize = attachmentDict["size"] as? NSNumber {
+                        size = numberSize.intValue
+                    } else {
+                        size = nil
+                    }
+
+                    return PhoenixMessage.MessageMetadata.Attachment(
+                        id: attachmentId,
+                        type: type,
+                        url: url,
+                        name: name,
+                        size: size
+                    )
+                }
+            }
+
+            metadata = PhoenixMessage.MessageMetadata(
+                replyToId: replyToId,
+                edited: edited,
+                editedAt: editedAt,
+                attachments: attachments
+            )
+        }
+
+        return PhoenixMessage(
+            id: id,
+            conversationId: conversationId,
+            senderId: senderId,
+            content: content,
+            timestamp: timestamp,
+            status: status,
+            metadata: metadata
+        )
+    }
+
+    nonisolated private func parseTypingIndicator(from payload: [String: Any]) throws -> TypingIndicator {
+        guard
+            let userId = payload["user_id"] as? String,
+            let conversationId = payload["conversation_id"] as? String
+        else {
+            throw PhoenixError.decodingFailed(PhoenixDecodingError.missingRequiredFields)
+        }
+
+        let rawTyping = payload["is_typing"]
+        let isTyping: Bool
+        if let boolValue = rawTyping as? Bool {
+            isTyping = boolValue
+        } else if let intValue = rawTyping as? Int {
+            isTyping = intValue != 0
+        } else if let stringValue = rawTyping as? String {
+            isTyping = (stringValue as NSString).boolValue
+        } else {
+            isTyping = true
+        }
+
+        let timestampString = payload["timestamp"] as? String
+        let timestamp = timestampString.flatMap(parseISO8601Date) ?? Date()
+
+        return TypingIndicator(
+            userId: userId,
+            conversationId: conversationId,
+            isTyping: isTyping,
+            timestamp: timestamp
+        )
+    }
+
+    nonisolated private func parseReadReceipt(from payload: [String: Any]) throws -> ReadReceipt {
+        guard
+            let userId = payload["user_id"] as? String,
+            let conversationId = payload["conversation_id"] as? String,
+            let messageId = payload["message_id"] as? String
+        else {
+            throw PhoenixError.decodingFailed(PhoenixDecodingError.missingRequiredFields)
+        }
+
+        let readAtString = payload["read_at"] as? String
+        let readAt = readAtString.flatMap(parseISO8601Date) ?? Date()
+
+        return ReadReceipt(
+            userId: userId,
+            conversationId: conversationId,
+            messageId: messageId,
+            readAt: readAt
+        )
+    }
+
+    nonisolated private func parseISO8601Date(_ string: String) -> Date? {
+        if let date = iso8601WithFractional.date(from: string) {
+            return date
+        }
+        return iso8601Basic.date(from: string)
+    }
+
+    nonisolated private var iso8601WithFractional: ISO8601DateFormatter {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }
+
+    nonisolated private var iso8601Basic: ISO8601DateFormatter {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }
+
     private func setupChannelHandlers(_ channel: Channel, conversationId: String) {
         // Handle new messages
-        channel.on("new_message") { [weak self] message in
-            Task {
-                await self?.handleNewMessage(message, conversationId: conversationId)
+        channel.on("new_message") { [self] socketMessage in
+            do {
+                let message = try self.parsePhoenixMessage(from: socketMessage.payload)
+                Task { await self.deliverNewMessage(message, conversationId: conversationId) }
+            } catch {
+                print("[Phoenix] Failed to decode message: \(error)")
             }
         }
 
         // Handle message updates
-        channel.on("message_updated") { [weak self] message in
-            Task {
-                await self?.handleMessageUpdate(message, conversationId: conversationId)
+        channel.on("message_updated") { [self] socketMessage in
+            do {
+                let message = try self.parsePhoenixMessage(from: socketMessage.payload)
+                Task { await self.deliverMessageUpdate(message, conversationId: conversationId) }
+            } catch {
+                print("[Phoenix] Failed to decode message update: \(error)")
             }
         }
 
         // Handle typing indicators
-        channel.on("user_typing") { [weak self] message in
-            Task {
-                await self?.handleTypingIndicator(message, conversationId: conversationId)
+        channel.on("user_typing") { [self] socketMessage in
+            do {
+                let indicator = try self.parseTypingIndicator(from: socketMessage.payload)
+                Task { await self.deliverTypingIndicator(indicator, conversationId: conversationId) }
+            } catch {
+                print("[Phoenix] Failed to decode typing indicator: \(error)")
             }
         }
 
         // Handle read receipts
-        channel.on("read_receipt") { [weak self] message in
-            Task {
-                await self?.handleReadReceipt(message, conversationId: conversationId)
+        channel.on("read_receipt") { [self] socketMessage in
+            do {
+                let receipt = try self.parseReadReceipt(from: socketMessage.payload)
+                Task { await self.deliverReadReceipt(receipt, conversationId: conversationId) }
+            } catch {
+                print("[Phoenix] Failed to decode read receipt: \(error)")
             }
         }
 
         // Handle presence
-        channel.on("presence_diff") { [weak self] message in
+        channel.on("presence_diff") { [self] socketMessage in
+            let payload = socketMessage.payload
+            let joins = (payload["joins"] as? [String: Any])?.keys.map { String($0) } ?? []
+            let leaves = (payload["leaves"] as? [String: Any])?.keys.map { String($0) } ?? []
+
             Task {
-                await self?.handlePresenceDiff(message, conversationId: conversationId)
-            }
-        }
-    }
-
-    private func handleNewMessage(_ message: Message, conversationId: String) {
-        do {
-            let data = try JSONSerialization.data(withJSONObject: message.payload)
-            let phoenixMessage = try JSONDecoder().decode(PhoenixMessage.self, from: data)
-
-            // Notify handlers
-            eventHandlers[conversationId]?.forEach { handler in
-                handler(phoenixMessage)
-            }
-        } catch {
-            print("[Phoenix] Failed to decode message: \(error)")
-        }
-    }
-
-    private func handleMessageUpdate(_ message: Message, conversationId: String) {
-        do {
-            let data = try JSONSerialization.data(withJSONObject: message.payload)
-            let phoenixMessage = try JSONDecoder().decode(PhoenixMessage.self, from: data)
-
-            // Notify handlers
-            eventHandlers[conversationId]?.forEach { handler in
-                handler(phoenixMessage)
-            }
-        } catch {
-            print("[Phoenix] Failed to decode message update: \(error)")
-        }
-    }
-
-    private func handlePresenceDiff(_ message: Message, conversationId: String) {
-        // Parse presence diff and notify handlers
-        if let joins = message.payload["joins"] as? [String: Any] {
-            for (userId, _) in joins {
-                let presence = UserPresence(
-                    userId: userId,
-                    status: .online,
-                    lastSeen: nil
+                await self.deliverPresenceDiff(
+                    conversationId: conversationId,
+                    joinedUserIds: joins,
+                    leftUserIds: leaves
                 )
-                presenceHandlers.forEach { $0(conversationId, presence) }
             }
-        }
-
-        if let leaves = message.payload["leaves"] as? [String: Any] {
-            for (userId, _) in leaves {
-                let presence = UserPresence(
-                    userId: userId,
-                    status: .offline,
-                    lastSeen: Date()
-                )
-                presenceHandlers.forEach { $0(conversationId, presence) }
-            }
-        }
-    }
-
-    private func handleTypingIndicator(_ message: Message, conversationId: String) {
-        do {
-            let data = try JSONSerialization.data(withJSONObject: message.payload)
-            let indicator = try JSONDecoder().decode(TypingIndicator.self, from: data)
-
-            // Notify handlers
-            typingHandlers[conversationId]?.forEach { handler in
-                handler(indicator)
-            }
-        } catch {
-            print("[Phoenix] Failed to decode typing indicator: \(error)")
-        }
-    }
-
-    private func handleReadReceipt(_ message: Message, conversationId: String) {
-        do {
-            let data = try JSONSerialization.data(withJSONObject: message.payload)
-            let receipt = try JSONDecoder().decode(ReadReceipt.self, from: data)
-
-            // Notify handlers
-            readReceiptHandlers[conversationId]?.forEach { handler in
-                handler(receipt)
-            }
-        } catch {
-            print("[Phoenix] Failed to decode read receipt: \(error)")
         }
     }
 
@@ -441,7 +607,7 @@ public actor PhoenixChannelManager {
         let timeout = config.connectionTimeout
         let startTime = Date()
 
-        while connectionState != .connected {
+        while !isConnected {
             if Date().timeIntervalSince(startTime) > timeout {
                 throw PhoenixError.connectionTimeout
             }
@@ -484,4 +650,9 @@ public enum PhoenixError: Error, LocalizedError {
             return "Request timeout"
         }
     }
+}
+
+private enum PhoenixDecodingError: Error {
+    case missingRequiredFields
+    case unknownStatus(String)
 }

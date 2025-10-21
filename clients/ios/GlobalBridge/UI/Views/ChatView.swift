@@ -6,16 +6,27 @@
 //
 
 import SwiftUI
+import Observation
 
 /// Main chat view displaying messages, typing indicators, and presence
 struct ChatView: View {
-    @ObservedObject var phoenixState: PhoenixStateManager
+    @Bindable var phoenixState: PhoenixStateManager
     let conversationId: String
     let currentUserId: String
 
     @State private var messageText = ""
     @State private var isTyping = false
     @FocusState private var isInputFocused: Bool
+
+    init(
+        phoenixState: PhoenixStateManager,
+        conversationId: String,
+        currentUserId: String
+    ) {
+        self._phoenixState = Bindable(phoenixState)
+        self.conversationId = conversationId
+        self.currentUserId = currentUserId
+    }
 
     var body: some View {
         VStack(spacing: 0) {

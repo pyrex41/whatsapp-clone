@@ -8,6 +8,7 @@
 import Foundation
 import UserNotifications
 import UIKit
+import Combine
 
 /// Manages push notifications for the app
 @MainActor
