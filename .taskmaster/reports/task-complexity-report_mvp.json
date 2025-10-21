@@ -1,157 +1,21 @@
 {
 	"meta": {
-		"generatedAt": "2025-10-20T23:04:13.186Z",
-		"tasksAnalyzed": 22,
-		"totalTasks": 23,
-		"analysisCount": 22,
+		"generatedAt": "2025-10-21T05:03:16.961Z",
+		"tasksAnalyzed": 4,
+		"totalTasks": 25,
+		"analysisCount": 4,
 		"thresholdScore": 5,
 		"projectName": "Taskmaster",
 		"usedResearch": false
 	},
 	"complexityAnalysis": [
 		{
-			"taskId": 1,
-			"taskTitle": "Set up Phoenix project with Elixir",
-			"complexityScore": 4,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "This is a standard project setup task involving running commands, adding dependencies, and configuring basic structure, with a note on database sharding that adds minor complexity but doesn't require expansion. Implementation effort is low to medium, with straightforward testing."
-		},
-		{
-			"taskId": 2,
-			"taskTitle": "Implement database schema for users, threads, and messages",
-			"complexityScore": 8,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down into subtasks for creating schemas for each entity (users, threads, messages, bridges, CDC log), implementing migrations, and setting up the sharding strategy with per-thread databases.",
-			"reasoning": "High complexity due to multi-database sharding architecture, Ecto schemas, migrations, triggers for CDC, and ensuring isolation across thread databases. Requires careful handling of dependencies and relationships, with extensive testing for sharding."
-		},
-		{
-			"taskId": 3,
-			"taskTitle": "Set up Phoenix Channels for real-time messaging",
-			"complexityScore": 6,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Involves creating a channel module, handling joins and broadcasts, and integrating with WebSocket, with a latency requirement. Medium complexity as it's standard Phoenix functionality, but testing latency adds some challenge."
-		},
-		{
-			"taskId": 4,
-			"taskTitle": "Implement user authentication and authorization",
-			"complexityScore": 5,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Standard JWT auth with Phoenix.Token, controllers, and plugs. Medium complexity, depending on dependencies, with testing for flows and access control."
-		},
-		{
-			"taskId": 5,
-			"taskTitle": "Create contexts for threads and messages",
-			"complexityScore": 4,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "CRUD operations using Ecto contexts. Low-medium complexity, straightforward implementation with unit testing."
-		},
-		{
-			"taskId": 6,
-			"taskTitle": "Set up iOS project with Swift 6 and SwiftUI",
-			"complexityScore": 3,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Detailed step-by-step setup, but it's a one-time project initialization with dependencies. Low complexity for experienced users, with basic testing."
-		},
-		{
-			"taskId": 7,
-			"taskTitle": "Implement state management with Swiftea (TEA/MVU)",
-			"complexityScore": 5,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Integrating a library for MVU pattern, defining states and updates. Medium complexity, requires understanding of TEA and integration with SwiftUI."
-		},
-		{
-			"taskId": 8,
-			"taskTitle": "Create data models for User, Thread, Message",
-			"complexityScore": 2,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Simple struct definitions with Codable. Very low complexity, basic testing for encoding/decoding."
-		},
-		{
-			"taskId": 9,
-			"taskTitle": "Set up local SQLite storage with DatabaseManager",
-			"complexityScore": 7,
-			"recommendedSubtasks": 2,
-			"expansionPrompt": "Subtasks for creating the DatabaseManager class, setting up tables for each entity, and implementing per-thread database handling.",
-			"reasoning": "High complexity due to per-thread database sharding, using SQLite.swift, and ensuring persistence. Requires careful management of multiple databases."
-		},
-		{
-			"taskId": 10,
-			"taskTitle": "Implement Phoenix Channel client for real-time sync",
-			"complexityScore": 6,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Setting up WebSocket client with actor for connections and events. Medium-high complexity due to real-time integration and state management."
-		},
-		{
-			"taskId": 11,
-			"taskTitle": "Build thread list and creation views",
-			"complexityScore": 4,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "SwiftUI views with bindings to state. Medium complexity, standard UI development with testing for interactions."
-		},
-		{
-			"taskId": 12,
-			"taskTitle": "Implement chat view and message composer",
-			"complexityScore": 5,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "UI components for chat, integrating with Phoenix. Medium complexity, with testing for sending/receiving."
-		},
-		{
-			"taskId": 13,
-			"taskTitle": "Implement manual CDC for client-side sync",
-			"complexityScore": 8,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Subtasks for setting up CDC log with triggers, implementing push/pull logic in an actor, and handling conflicts.",
-			"reasoning": "High complexity involving change tracking, sync mechanisms, and conflict resolution. Requires robust testing for offline scenarios."
-		},
-		{
-			"taskId": 14,
-			"taskTitle": "Create sync controller on backend",
-			"complexityScore": 6,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Endpoints for sync with validation and Ecto operations. Medium-high, with integration testing."
-		},
-		{
-			"taskId": 16,
-			"taskTitle": "Implement offline message queuing",
-			"complexityScore": 7,
-			"recommendedSubtasks": 2,
-			"expansionPrompt": "Subtasks for queuing logic using CDC and background sync actor.",
-			"reasoning": "High complexity for offline handling, queuing, and sync on reconnect. Testing involves simulating offline states."
-		},
-		{
-			"taskId": 17,
-			"taskTitle": "Add typing indicators and read receipts",
-			"complexityScore": 5,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Real-time broadcasting and UI updates. Medium complexity, with multi-user testing."
-		},
-		{
 			"taskId": 18,
 			"taskTitle": "Prepare AI abstraction layer",
 			"complexityScore": 3,
 			"recommendedSubtasks": 0,
 			"expansionPrompt": "",
-			"reasoning": "Defining protocols and placeholders. Low complexity, basic setup."
-		},
-		{
-			"taskId": 19,
-			"taskTitle": "Implement feature flag system",
-			"complexityScore": 4,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Backend and iOS flag checks. Medium complexity, with testing for gating."
+			"reasoning": "This task involves defining a protocol and creating placeholder implementations for AI providers, which is straightforward with low technical challenges given the existing subtasks and low priority. No further expansion is needed as subtasks are already defined."
 		},
 		{
 			"taskId": 20,
@@ -159,31 +23,23 @@
 			"complexityScore": 3,
 			"recommendedSubtasks": 0,
 			"expansionPrompt": "",
-			"reasoning": "Adding fields and placeholders. Low complexity, preparatory."
+			"reasoning": "The task focuses on adding database fields and placeholder crypto functions for future Signal Protocol integration, with moderate effort but low complexity due to existing subtasks and low priority. Further expansion is unnecessary as subtasks are already outlined."
 		},
 		{
-			"taskId": 21,
-			"taskTitle": "Expose online/offline presence indicators",
+			"taskId": 24,
+			"taskTitle": "Add iOS Swift Files to Xcode Project",
 			"complexityScore": 5,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Using Phoenix Presence for tracking and UI updates. Medium complexity, with channel and UI testing."
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the task into subtasks for adding each group of Swift files (e.g., views, managers), verifying project structure, resolving build errors, and testing basic functionality in the simulator.",
+			"reasoning": "Manually adding 12 Swift files to Xcode involves multiple steps, potential build issues, and verification, with medium priority and dependencies on several completed tasks. Recommended subtasks to handle file addition, integration, and testing systematically."
 		},
 		{
-			"taskId": 22,
-			"taskTitle": "Enable foreground push notifications",
-			"complexityScore": 5,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Configuring notifications for events. Medium complexity, with testing in foreground."
-		},
-		{
-			"taskId": 23,
-			"taskTitle": "Display message timestamps in chat UI",
-			"complexityScore": 2,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Formatting and displaying timestamps. Very low complexity, basic UI addition."
+			"taskId": 25,
+			"taskTitle": "Implement Local Notifications with WebSocket Simulation",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Expand into subtasks covering backend event emission, iOS event listening, foreground banner implementation, background notification setup, tap navigation handling, and comprehensive testing for edge cases.",
+			"reasoning": "This high-priority task requires backend modifications, iOS notification logic for foreground/background states, real-time WebSocket integration, and handling edge cases, posing significant technical challenges in concurrency, UI updates, and testing. Expansion into subtasks is recommended for manageable implementation."
 		}
 	]
 }
