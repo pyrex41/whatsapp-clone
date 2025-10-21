@@ -21,11 +21,12 @@ type alias Model =
     { form : LoginForm
     , csrfToken : String
     , devMode : Bool
+    , apiConfig : Api.ApiConfig
     }
 
 
-init : String -> Bool -> Model
-init csrfToken devMode =
+init : Api.ApiConfig -> String -> Bool -> Model
+init apiConfig csrfToken devMode =
     { form =
         if devMode then
             -- Developer mode preset credentials
@@ -40,6 +41,7 @@ init csrfToken devMode =
             Auth.emptyLoginForm
     , csrfToken = csrfToken
     , devMode = devMode
+    , apiConfig = apiConfig
     }
 
 
@@ -50,7 +52,7 @@ type Msg
     = EmailChanged String
     | PasswordChanged String
     | FormSubmitted
-    | LoginResponse (Result Http.Error Api.LoginResponse)
+    | LoginResponse (Result Api.ApiError Api.LoginResponse)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -90,7 +92,7 @@ update msg model =
                             { credentials | csrfToken = model.csrfToken }
                     in
                     ( { model | form = updatedForm }
-                    , Api.login creds LoginResponse
+                    , Api.login model.apiConfig creds LoginResponse
                     )
 
                 Err form ->
@@ -145,29 +147,35 @@ validateForm form =
                 }
 
 
-httpErrorToString : Http.Error -> String
+httpErrorToString : Api.ApiError -> String
 httpErrorToString error =
     case error of
-        Http.BadUrl _ ->
-            "Invalid URL"
-
-        Http.Timeout ->
-            "Request timed out"
-
-        Http.NetworkError ->
+        Api.NetworkError ->
             "Network error - please check your connection"
 
-        Http.BadStatus 401 ->
+        Api.Timeout ->
+            "Request timed out"
+
+        Api.BadStatus 401 _ ->
             "Invalid email or password"
 
-        Http.BadStatus 403 ->
+        Api.BadStatus 403 _ ->
             "Access forbidden"
 
-        Http.BadStatus _ ->
+        Api.BadStatus _ _ ->
             "Server error - please try again later"
 
-        Http.BadBody _ ->
-            "Invalid response from server"
+        Api.BadBody msg ->
+            "Invalid response: " ++ msg
+
+        Api.Unauthorized ->
+            "Invalid email or password"
+
+        Api.NotFound ->
+            "Service not found"
+
+        Api.ServerError msg ->
+            "Server error: " ++ msg
 
 
 -- VIEW

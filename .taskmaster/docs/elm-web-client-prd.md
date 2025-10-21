@@ -98,8 +98,3 @@
 - **Auth Token Handling in Browser:** Lean on Phoenix session cookies and refresh endpoints; document fallback local-storage usage with encryption.
 - **Feature Divergence from Native Client:** Establish shared UX checklist and weekly parity reviews between squads.
 
-## Open Questions
-1. Should the Elm app live under the existing Phoenix repo or a separate workspace consumed via assets pipeline?
-2. Do we need admin-only capabilities (impersonation, bridge configuration) in v1?
-3. What is the minimum viable analytics/telemetry sink for early testing (console vs. hosted service)?
-
