@@ -7,6 +7,7 @@ import SwiftUI
 
 struct ChatScreen: View {
     @ObservedObject var store: Store<AppState, AppAction>
+    @FocusState private var composerFocused: Bool
 
     private var chatState: ChatState { store.state.chat }
 
@@ -29,26 +30,25 @@ struct ChatScreen: View {
                             .padding(.horizontal, 8)
                         }
                         .onChange(of: chatState.messages.count) { _, _ in
-                            if let lastMessage = chatState.messages.last {
-                                withAnimation {
-                                    proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                                }
+                            guard let lastMessage = chatState.messages.last else { return }
+                            withAnimation {
+                                proxy.scrollTo(lastMessage.id, anchor: .bottom)
                             }
+                        }
                     }
-                }
 
-                if !chatState.typingUsers.isEmpty {
-                    Text("Someone is typing…")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 4)
-                }
+                    if !chatState.typingUsers.isEmpty {
+                        Text("Someone is typing…")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 4)
+                    }
 
-                Divider()
+                    Divider()
 
-                MessageComposerView(
+                    MessageComposerView(
                         text: store.binding(
                             get: { $0.chat.composer.text },
                             send: AppAction.composerTextChanged
@@ -56,10 +56,15 @@ struct ChatScreen: View {
                         isSending: chatState.composer.isSending,
                         onSend: {
                             store.send(.sendMessage)
-                        }
+                            composerFocused = true
+                        },
+                        isFocused: $composerFocused
                     )
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
+                }
+                .onAppear {
+                    composerFocused = true
                 }
                 .toolbar {
                     ToolbarItem(placement: .principal) {
