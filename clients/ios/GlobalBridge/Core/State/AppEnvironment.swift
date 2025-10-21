@@ -11,12 +11,15 @@ struct DatabaseClient {
     var createThread: @Sendable (_ title: String, _ creator: User) async throws -> Thread
     var loadMessages: @Sendable (_ threadID: UUID) async throws -> [Message]
     var createMessage: @Sendable (_ threadID: UUID, _ content: String, _ author: User) async throws -> Message
+    var storeMessage: @Sendable (_ message: Message) async throws -> Void
 }
 
 struct RealtimeClient {
+    var ensureConnection: @Sendable () async throws -> Void
     var connect: @Sendable (_ threadID: UUID, _ handler: @Sendable @escaping (Message) -> Void) async -> Void
     var disconnect: @Sendable (_ threadID: UUID) async -> Void
     var sendTyping: @Sendable (_ threadID: UUID, _ userID: UUID, _ isTyping: Bool) async -> Void
+    var sendMessage: @Sendable (_ threadID: UUID, _ content: String, _ author: User, _ replyTo: UUID?) async throws -> Message
 }
 
 struct AppEnvironment {
@@ -42,17 +45,24 @@ extension AppEnvironment {
             },
             createMessage: { threadID, content, author in
                 await store.createMessage(threadID: threadID, content: content, author: author)
+            },
+            storeMessage: { message in
+                await store.saveMessage(message)
             }
         )
 
         let realtime = RealtimeClient(
+            ensureConnection: { },
             connect: { threadID, handler in
                 await store.registerRealtimeHandler(threadID: threadID, handler: handler)
             },
             disconnect: { threadID in
                 await store.unregisterRealtimeHandler(threadID: threadID)
             },
-            sendTyping: { _, _, _ in }
+            sendTyping: { _, _, _ in },
+            sendMessage: { threadID, content, author, _ in
+                await store.createMessage(threadID: threadID, content: content, author: author)
+            }
         )
 
         return AppEnvironment(database: database, realtime: realtime)
@@ -65,10 +75,13 @@ extension AppEnvironment {
             try await databaseManager.seedSampleDataIfNeeded()
         }
 
+        let phoenixConfig = PhoenixConfig.development
+        let phoenixManager = PhoenixChannelManager(config: phoenixConfig)
+
         let database = DatabaseClient(
             loadThreads: {
-                try await initializationTask.value
-                try await databaseManager.fetchThreads()
+                _ = try await initializationTask.value
+                return try await databaseManager.fetchThreads()
             },
             createThread: { title, creator in
                 _ = try await initializationTask.value
@@ -86,7 +99,7 @@ extension AppEnvironment {
             },
             loadMessages: { threadID in
                 _ = try await initializationTask.value
-                try await databaseManager.fetchMessages(threadId: threadID, limit: 200, offset: 0)
+                return try await databaseManager.fetchMessages(threadId: threadID, limit: 200, offset: 0)
             },
             createMessage: { threadID, content, author in
                 _ = try await initializationTask.value
@@ -102,13 +115,57 @@ extension AppEnvironment {
                 )
                 try await databaseManager.createMessage(message)
                 return message
+            },
+            storeMessage: { message in
+                _ = try await initializationTask.value
+                do {
+                    try await databaseManager.createMessage(message)
+                } catch {
+                    print("⚠️ Failed to store message \(message.id): \(error)")
+                }
             }
         )
 
         let realtime = RealtimeClient(
-            connect: { _, _ in },
-            disconnect: { _ in },
-            sendTyping: { _, _, _ in }
+            ensureConnection: {
+                try await phoenixManager.connect(authToken: nil)
+            },
+            connect: { threadID, handler in
+                do {
+                    try await phoenixManager.connect(authToken: nil)
+                    let conversationId = threadID.uuidString
+                    try await phoenixManager.joinConversation(conversationId)
+
+                    await phoenixManager.onMessage(conversationId: conversationId) { phoenixMessage in
+                        guard let message = Message.fromPhoenix(phoenixMessage) else { return }
+                        Task { @MainActor in
+                            handler(message)
+                        }
+                    }
+                } catch {
+                    print("⚠️ Phoenix connect failed for thread \(threadID): \(error)")
+                }
+            },
+            disconnect: { threadID in
+                await phoenixManager.leaveConversation(threadID.uuidString)
+            },
+            sendTyping: { threadID, _, isTyping in
+                await phoenixManager.sendTypingIndicator(conversationId: threadID.uuidString, isTyping: isTyping)
+            },
+            sendMessage: { threadID, content, _, replyTo in
+                try await phoenixManager.connect(authToken: nil)
+                let phoenixMessage = try await phoenixManager.sendMessage(
+                    conversationId: threadID.uuidString,
+                    content: content,
+                    replyToId: replyTo?.uuidString
+                )
+
+                guard let message = Message.fromPhoenix(phoenixMessage) else {
+                    throw DatabaseError.insertFailed("Failed to convert Phoenix message")
+                }
+
+                return message
+            }
         )
 
         return AppEnvironment(database: database, realtime: realtime)
@@ -176,16 +233,20 @@ actor InMemoryDataStore {
             createdAt: now,
             updatedAt: now
         )
-        messages[threadID, default: []].append(message)
-        if let index = threads.firstIndex(where: { $0.id == threadID }) {
-            threads[index].lastMessageAt = now
-            threads[index].updatedAt = now
+        saveMessage(message)
+        return message
+    }
+
+    func saveMessage(_ message: Message) {
+        messages[message.threadId, default: []].append(message)
+        if let index = threads.firstIndex(where: { $0.id == message.threadId }) {
+            threads[index].lastMessageAt = message.createdAt
+            threads[index].updatedAt = message.updatedAt
             threads[index].unreadCount = 0
         }
-        realtimeHandlers[threadID]?.forEach { handler in
+        realtimeHandlers[message.threadId]?.forEach { handler in
             handler(message)
         }
-        return message
     }
 
     func registerRealtimeHandler(threadID: UUID, handler: @escaping (Message) -> Void) {

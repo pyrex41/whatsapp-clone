@@ -11,7 +11,16 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         guard state.threads.hasLoaded == false else { return .none }
         state.threads.isLoading = true
         state.threads.errorMessage = nil
-        return .run(priority: nil) { send in
+
+        let ensureRealtime = Command<AppAction>.run(priority: nil) { _ in
+            do {
+                try await environment.realtime.ensureConnection()
+            } catch {
+                print("⚠️ Realtime connection failed: \(error)")
+            }
+        }
+
+        let loadThreads = Command<AppAction>.run(priority: nil) { send in
             do {
                 let threads = try await environment.database.loadThreads()
                 send(.threadsLoaded(.success(threads)))
@@ -19,6 +28,8 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 send(.threadsLoaded(.failure(error)))
             }
         }
+
+        return .merge(ensureRealtime, loadThreads)
 
     case let .threadsLoaded(result):
         state.threads.isLoading = false
@@ -159,14 +170,15 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
               state.chat.composer.isSending == false
         else { return .none }
 
-        let text = state.chat.composer.text
+        let text = state.chat.composer.text.trimmingCharacters(in: .whitespacesAndNewlines)
         let currentUser = state.user
         state.chat.composer.isSending = true
         state.chat.composer.text = ""
 
         return .run(priority: nil) { send in
             do {
-                let message = try await environment.database.createMessage(threadID, text, currentUser)
+                let message = try await environment.realtime.sendMessage(threadID, text, currentUser, nil)
+                try await environment.database.storeMessage(message)
                 send(.messageSent(.success(message)))
             } catch {
                 send(.messageSent(.failure(error)))
@@ -186,11 +198,30 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         return .none
 
     case let .receiveRealtimeMessage(message):
-        guard state.chat.currentThread?.id == message.threadId else { return .none }
+        guard state.chat.currentThread?.id == message.threadId else {
+            if let index = state.threads.items.firstIndex(where: { $0.id == message.threadId }) {
+                state.threads.items[index].lastMessageAt = message.createdAt
+                state.threads.items[index].updatedAt = message.updatedAt
+                let updatedThread = state.threads.items.remove(at: index)
+                state.threads.items.insert(updatedThread, at: 0)
+            }
+            return .fireAndForget {
+                try? await environment.database.storeMessage(message)
+            }
+        }
         if !state.chat.messages.contains(where: { $0.id == message.id }) {
             state.chat.messages.append(message)
+            if let index = state.threads.items.firstIndex(where: { $0.id == message.threadId }) {
+                state.threads.items[index].lastMessageAt = message.createdAt
+                state.threads.items[index].updatedAt = message.updatedAt
+                let updatedThread = state.threads.items.remove(at: index)
+                state.threads.items.insert(updatedThread, at: 0)
+                state.chat.currentThread = updatedThread
+            }
         }
-        return .none
+        return .fireAndForget {
+            try? await environment.database.storeMessage(message)
+        }
 
     case let .typingIndicator(threadID, userID, isTyping):
         guard state.chat.currentThread?.id == threadID,

@@ -46,7 +46,7 @@ struct Message: Identifiable, Codable, Equatable {
     // Alias for backward compatibility
     typealias Status = MessageStatus
 
-    init(
+    nonisolated init(
         id: UUID = UUID(),
         threadId: UUID,
         senderId: UUID,
@@ -78,5 +78,54 @@ struct Message: Identifiable, Codable, Equatable {
         self.ciphertext = ciphertext
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+}
+
+extension Message {
+    nonisolated static func fromPhoenix(_ phoenixMessage: PhoenixMessage) -> Message? {
+        guard
+            let messageId = UUID(uuidString: phoenixMessage.id),
+            let threadId = UUID(uuidString: phoenixMessage.conversationId),
+            let senderId = UUID(uuidString: phoenixMessage.senderId)
+        else {
+            return nil
+        }
+
+        let status: MessageStatus
+        switch phoenixMessage.status {
+        case .sending:
+            status = .pending
+        case .sent:
+            status = .sent
+        case .delivered:
+            status = .delivered
+        case .read:
+            status = .read
+        case .failed:
+            status = .failed
+        }
+
+        var replyTo: UUID?
+        if let reply = phoenixMessage.metadata?.replyToId {
+            replyTo = UUID(uuidString: reply)
+        }
+
+        return Message(
+            id: messageId,
+            threadId: threadId,
+            senderId: senderId,
+            content: phoenixMessage.content,
+            messageType: .text,
+            status: status,
+            metadata: nil,
+            replyToId: replyTo,
+            editedAt: phoenixMessage.metadata?.editedAt,
+            deletedAt: nil,
+            isEncrypted: false,
+            encryptionKeyId: nil,
+            ciphertext: nil,
+            createdAt: phoenixMessage.timestamp,
+            updatedAt: phoenixMessage.timestamp
+        )
     }
 }
