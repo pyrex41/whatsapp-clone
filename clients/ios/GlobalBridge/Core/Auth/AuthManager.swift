@@ -69,7 +69,6 @@ final class AuthManager: ObservableObject {
             .webAuth(clientId: auth0ClientId, domain: auth0Domain)
             .scope("openid profile email offline_access")
             .audience(auth0Audience)
-            .useHTTPS()
             .start()
         
         // Store credentials securely
@@ -102,7 +101,6 @@ final class AuthManager: ObservableObject {
         // Clear Auth0 session
         try await Auth0
             .webAuth(clientId: auth0ClientId, domain: auth0Domain)
-            .useHTTPS()
             .clearSession()
         
         // Clear stored credentials
