@@ -12,6 +12,8 @@ defmodule GlobalbridgeBackend.Application do
       GlobalbridgeBackendWeb.Telemetry,
       {DNSCluster, query: Application.get_env(:globalbridge_backend, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: GlobalbridgeBackend.PubSub},
+      # Task supervisor for async operations (message persistence, read receipts)
+      {Task.Supervisor, name: GlobalbridgeBackend.TaskSupervisor},
       # Start a worker by calling: GlobalbridgeBackend.Worker.start_link(arg)
       # {GlobalbridgeBackend.Worker, arg},
       # Start to serve requests, typically the last entry

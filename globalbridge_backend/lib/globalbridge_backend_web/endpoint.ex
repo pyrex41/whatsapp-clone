@@ -11,6 +11,16 @@ defmodule GlobalbridgeBackendWeb.Endpoint do
     same_site: "Lax"
   ]
 
+  # WebSocket endpoint for real-time messaging
+  socket "/socket", GlobalbridgeBackendWeb.UserSocket,
+    websocket: [
+      connect_info: [:peer_data, :x_headers],
+      timeout: 45_000,
+      # Optimize for low latency
+      compress: false
+    ],
+    longpoll: false
+
   socket "/live", Phoenix.LiveView.Socket,
     websocket: [connect_info: [session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]
