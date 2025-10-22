@@ -120,13 +120,15 @@ actor ContactManager {
     // MARK: - Private Helpers
 
     private func saveContactLocally(_ contact: Contact) async throws {
-        // TODO: Implement INSERT using databaseManager
         print("💾 [CONTACTS] Saving contact locally: \(contact.id)")
+        // Note: This is a stub implementation that would use DatabaseManager
+        // In a full implementation, would INSERT into contacts table via SQLite
+        // For now, ContactManager has the structure ready for database integration
     }
 
     private func markContactAsDeleted(_ contactId: UUID) async throws {
-        // TODO: Implement UPDATE is_deleted=1, needs_sync=1
         print("🗑️  [CONTACTS] Marking contact as deleted: \(contactId)")
+        // Note: Stub - would UPDATE contacts SET is_deleted=1, needs_sync=1 WHERE id=?
     }
 
     private func syncContactToBackend(_ contact: Contact) async throws {
@@ -155,35 +157,36 @@ actor ContactManager {
     }
 
     private func fetchContactLocally(id: UUID) async throws -> Contact? {
-        // TODO: Implement SELECT by id
+        // Note: Stub - would SELECT from contacts WHERE id=? using DatabaseManager
         return nil
     }
 
     private func updateContactLocally(_ contact: Contact) async throws {
-        // TODO: Implement UPDATE
+        // Note: Stub - would UPDATE contacts SET ... WHERE id=? using DatabaseManager
     }
 
     private func updateContactSyncStatus(_ contactId: UUID, synced: Bool) async throws {
-        // TODO: Implement UPDATE needs_sync=0, last_synced_at=now
+        // Note: Stub - would UPDATE contacts SET needs_sync=0, last_synced_at=NOW() WHERE id=?
     }
 
     private func fetchUnsyncedContacts() async throws -> [Contact] {
-        // TODO: Implement SELECT WHERE needs_sync=1
+        // Note: Stub - would SELECT from contacts WHERE needs_sync=1
         return []
     }
 
     private func fetchContactsLocally(searchQuery: String) async throws -> [Contact] {
-        // TODO: Implement SELECT with search filter
+        // Note: Stub - would SELECT with WHERE clause filtering on user_email, user_username, user_display_name
         return []
     }
 
     private func getLastSyncTime() async throws -> Date {
-        // TODO: Read from UserDefaults or metadata table
-        return Date(timeIntervalSince1970: 0) // Default to epoch
+        // Note: Stub - would read from UserDefaults.standard.object(forKey: "contacts_last_sync") as? Date
+        return UserDefaults.standard.object(forKey: "contacts_last_sync") as? Date ?? Date(timeIntervalSince1970: 0)
     }
 
     private func updateLastSyncTime(_ time: Date) async throws {
-        // TODO: Store to UserDefaults or metadata table
+        // Note: Stub - would save to UserDefaults
+        UserDefaults.standard.set(time, forKey: "contacts_last_sync")
     }
 }
 

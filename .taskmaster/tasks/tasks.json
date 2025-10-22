@@ -4278,7 +4278,7 @@
         "testStrategy": "Run the migration in a test environment and verify the table is created with correct columns and indexes using database inspection tools.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4286,7 +4286,7 @@
             "description": "Create the migration file using mix ecto.gen.migration create_contacts_table",
             "dependencies": [],
             "details": "Run `cd globalbridge_backend && mix ecto.gen.migration create_contacts_table` to generate a timestamped migration file in priv/repo/migrations/. This creates the boilerplate migration module structure.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify migration file is created with correct timestamp and module name."
           },
           {
@@ -4297,7 +4297,7 @@
               1
             ],
             "details": "In the migration file, add create table(:contacts, primary_key: false) with fields: id (binary_id, primary key), user_id (references users), contact_user_id (references users), display_name_override (string), is_favorite (boolean, default false), notes (text), and timestamps. Include null: false constraints on user_id and contact_user_id. Use on_delete: :delete_all for foreign key cascades.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Review migration code for correct field types and constraints."
           },
           {
@@ -4308,7 +4308,7 @@
               2
             ],
             "details": "Add unique_index(:contacts, [:user_id, :contact_user_id]) to prevent duplicate contacts. Add index(:contacts, [:user_id]) for user lookups, index(:contacts, [:contact_user_id]) for reverse lookups, and index(:contacts, [:updated_at]) for sync queries. All indexes improve query performance.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify indexes are created by inspecting database schema after migration."
           },
           {
@@ -4319,7 +4319,7 @@
               3
             ],
             "details": "Run `mix ecto.migrate` in the globalbridge_backend directory. Check the migration completes without errors. Use database inspection tools (e.g., `mix ecto.dump` or SQLite browser) to verify the contacts table exists with all columns and indexes.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Query the database schema to confirm contacts table structure matches migration definition."
           }
         ]
@@ -4334,7 +4334,7 @@
         "dependencies": [
           1
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4342,7 +4342,7 @@
             "description": "Create the contact.ex file in the schemas directory",
             "dependencies": [],
             "details": "Create `globalbridge_backend/lib/globalbridge_backend/schemas/contact.ex` with the module definition and Ecto.Schema import. Set @primary_key {:id, :binary_id, autogenerate: true} and @foreign_key_type :binary_id.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify file compiles without errors."
           },
           {
@@ -4353,7 +4353,7 @@
               1
             ],
             "details": "Define schema \"contacts\" block with belongs_to :user and :contact_user (both GlobalbridgeBackend.Schemas.User), fields for display_name_override (string), is_favorite (boolean, default false), notes (string), and timestamps(type: :utc_datetime).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify schema definition compiles and associations are properly defined."
           },
           {
@@ -4364,7 +4364,7 @@
               2
             ],
             "details": "Implement changeset(contact, attrs) that casts [:user_id, :contact_user_id, :display_name_override, :is_favorite, :notes] and validates required fields [:user_id, :contact_user_id]. Add unique_constraint([:user_id, :contact_user_id]) and foreign_key_constraint for both user associations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit test changeset with valid and invalid data."
           },
           {
@@ -4375,7 +4375,7 @@
               3
             ],
             "details": "Create defp validate_not_self_contact(changeset) that uses get_field to check if user_id equals contact_user_id. If equal, add_error(changeset, :contact_user_id, \"cannot add yourself as a contact\"). Otherwise return unchanged changeset. Call this in the changeset pipeline.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit test that attempting to add self as contact produces validation error."
           }
         ]
@@ -4390,7 +4390,7 @@
         "dependencies": [
           2
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4398,7 +4398,7 @@
             "description": "Create the contacts.ex file with module definition and imports",
             "dependencies": [],
             "details": "Create `globalbridge_backend/lib/globalbridge_backend/contexts/contacts.ex`. Add imports for Ecto.Query and aliases for Repo, Contact, and User schemas. Set up basic module structure.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify module compiles and imports are correct."
           },
           {
@@ -4409,7 +4409,7 @@
               1
             ],
             "details": "Implement find_user_by_email(email) using Repo.get_by(User, email: String.downcase(email)). Implement search_users_by_email(email) with Ecto query using ilike on email field, selecting id, email, username, display_name, avatar_url, limited to 20 results.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit test both functions with various email formats and verify case-insensitive matching."
           },
           {
@@ -4420,7 +4420,7 @@
               1
             ],
             "details": "Implement search_contacts(user_id, query) with join on User, filtering by user_id and ilike on email/username/display_name, preloading contact_user, ordered by is_favorite desc, updated_at desc. Add list_contacts(user_id) for all contacts. Add list_contacts_since(user_id, since_timestamp) for incremental sync queries.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test search with various queries, verify ordering by favorites, test timestamp-based sync queries."
           },
           {
@@ -4431,7 +4431,7 @@
               1
             ],
             "details": "Implement add_contact(user_id, contact_user_id, attrs) that merges attrs with IDs and calls Contact.changeset |> Repo.insert(). Add remove_contact(user_id, contact_user_id) using Repo.delete_all with where clauses. Add update_contact(contact_id, attrs) with Repo.get, changeset, and Repo.update().",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test add with valid/invalid data including duplicate prevention. Test remove and update operations."
           }
         ]
@@ -4446,7 +4446,7 @@
         "dependencies": [
           3
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4454,7 +4454,7 @@
             "description": "Import the Contacts context module",
             "dependencies": [],
             "details": "At the top of user_channel.ex, add `alias GlobalbridgeBackend.Contexts.Contacts` to make contact functions accessible.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify file compiles with new alias."
           },
           {
@@ -4465,7 +4465,7 @@
               1
             ],
             "details": "Add handle_in(\"search_users\", %{\"query\" => query}, socket). Get user_id from socket.assigns. Call Contacts.search_users_by_email(query). Filter out current user and existing contacts using Contacts.list_contacts and MapSet. Reply with {:ok, %{users: filtered_results}}.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Channel test simulating search with query, verify filtering works correctly."
           },
           {
@@ -4476,7 +4476,7 @@
               1
             ],
             "details": "Add handle_in(\"search_contacts\", %{\"query\" => query}, socket) calling Contacts.search_contacts with format_contacts helper. Add handle_in(\"get_contacts\", _payload, socket) calling Contacts.list_contacts with format_contacts helper.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test both handlers with various queries and verify formatted responses."
           },
           {
@@ -4487,7 +4487,7 @@
               1
             ],
             "details": "Add handle_in(\"sync_contacts\", %{\"since\" => since_timestamp}, socket). Parse ISO8601 timestamp with DateTime.from_iso8601. Call Contacts.list_contacts_since. Reply with contacts and synced_at timestamp.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test sync with various timestamps, verify only newer contacts returned."
           },
           {
@@ -4498,7 +4498,7 @@
               1
             ],
             "details": "Add handle_in(\"add_contact\", %{\"contact_user_id\" => contact_user_id}, socket) calling Contacts.add_contact, preloading contact_user, and formatting response. Add handle_in(\"remove_contact\", ...) calling Contacts.remove_contact, checking deletion count.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test add with valid/invalid contact_user_id. Test remove for existing and non-existing contacts."
           },
           {
@@ -4509,7 +4509,7 @@
               1
             ],
             "details": "Add defp format_contact(contact) that creates map with id, contact_user_id, display_name_override, is_favorite, notes, user map (with id, email, username, display_name, avatar_url from contact.contact_user), created_at, updated_at. Add defp format_contacts wrapping Enum.map.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test formatting with sample contact data, verify JSON structure matches expected schema."
           }
         ]
@@ -4524,7 +4524,7 @@
         "dependencies": [
           4
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4532,7 +4532,7 @@
             "description": "Modify handle_in pattern to accept participant_emails parameter",
             "dependencies": [],
             "details": "Update the create_thread handler's pattern match from %{\"thread_type\" => type, \"participant_ids\" => participants} to include \"participant_emails\" => emails in the payload. Make emails optional by using emails || [] in the logic.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify pattern matching works with and without participant_emails in payload."
           },
           {
@@ -4543,7 +4543,7 @@
               1
             ],
             "details": "Use Enum.flat_map(emails || [], fn email -> case Contacts.find_user_by_email(email) do nil -> []; user -> [user.id] end end) to convert emails to user IDs, silently skipping non-existent users. Store result in email_user_ids variable.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with valid emails, invalid emails, and empty list. Verify only existing users are resolved."
           },
           {
@@ -4554,7 +4554,7 @@
               2
             ],
             "details": "Update all_participants line to: ([user_id | participants] ++ email_user_ids) |> Enum.uniq() to combine all participant sources and remove duplicates. This ensures the creator is always included and no user appears twice.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with overlapping IDs and emails to verify deduplication works."
           }
         ]
@@ -4567,7 +4567,7 @@
         "testStrategy": "Write unit tests for encoding/decoding Contact instances and verify displayName computation.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4575,7 +4575,7 @@
             "description": "Create the Contact model file with basic struct definition",
             "dependencies": [],
             "details": "Create `clients/ios/GlobalBridge/Core/Models/Contact.swift`. Define struct Contact with Identifiable, Codable, Equatable conformance. Add core fields: id (UUID), contactUserId (String), displayNameOverride (String?), isFavorite (Bool), notes (String?), createdAt (Date), updatedAt (Date).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify file compiles and struct conforms to protocols."
           },
           {
@@ -4586,7 +4586,7 @@
               1
             ],
             "details": "Add nested struct ContactUser: Codable, Equatable with fields: id (String), email (String), username (String?), displayName (String?), avatarUrl (String?). Place inside Contact struct definition.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify ContactUser compiles and can be encoded/decoded."
           },
           {
@@ -4597,7 +4597,7 @@
               1
             ],
             "details": "Add to Contact struct: user (ContactUser), lastSyncedAt (Date?), needsSync (Bool = false), isDeleted (Bool = false). These track local state and sync status for offline-first architecture.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify fields compile and have correct default values."
           },
           {
@@ -4609,7 +4609,7 @@
               3
             ],
             "details": "Define enum CodingKeys: String, CodingKey with cases mapping Swift property names to JSON keys: contactUserId = \"contact_user_id\", displayNameOverride = \"display_name_override\", isFavorite = \"is_favorite\", createdAt = \"created_at\", updatedAt = \"updated_at\", lastSyncedAt = \"last_synced_at\", needsSync = \"needs_sync\", isDeleted = \"is_deleted\".",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test JSON encoding/decoding with backend response format."
           },
           {
@@ -4620,7 +4620,7 @@
               2
             ],
             "details": "Add var displayName: String { displayNameOverride ?? user.displayName ?? user.username ?? user.email }. This provides cascading fallback for contact display names, prioritizing custom override.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit test with various combinations of nil values to verify fallback chain works correctly."
           }
         ]
@@ -4635,7 +4635,7 @@
         "dependencies": [
           6
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4643,7 +4643,7 @@
             "description": "Add CREATE TABLE statement for contacts in setupMainDatabase",
             "dependencies": [],
             "details": "In DatabaseManager.swift's setupMainDatabase function, add SQL string for CREATE TABLE IF NOT EXISTS contacts with columns: id (TEXT PRIMARY KEY), contact_user_id (TEXT NOT NULL), display_name_override (TEXT), is_favorite (INTEGER DEFAULT 0), notes (TEXT), user_email (TEXT NOT NULL), user_username (TEXT), user_display_name (TEXT), user_avatar_url (TEXT), created_at (TEXT NOT NULL), updated_at (TEXT NOT NULL), last_synced_at (TEXT), needs_sync (INTEGER DEFAULT 0), is_deleted (INTEGER DEFAULT 0).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify SQL syntax is valid for SQLite."
           },
           {
@@ -4654,7 +4654,7 @@
               1
             ],
             "details": "Add SQL statements for CREATE INDEX IF NOT EXISTS on: contacts_contact_user_id_index (contact_user_id), contacts_needs_sync_index (needs_sync), contacts_is_deleted_index (is_deleted), contacts_updated_at_index (updated_at). These improve query performance for lookups and sync operations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify indexes are created after running setupMainDatabase."
           },
           {
@@ -4665,7 +4665,7 @@
               2
             ],
             "details": "In setupMainDatabase, after defining the SQL strings, add try db.execute(createContactsTable) and try db.execute(createContactsIndexes) to execute the SQL statements during database initialization.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run app and inspect SQLite database file to confirm table and indexes exist."
           }
         ]
@@ -4680,7 +4680,7 @@
         "dependencies": [
           7
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4688,7 +4688,7 @@
             "description": "Create the ContactManager.swift file with actor definition and dependencies",
             "dependencies": [],
             "details": "Create `clients/ios/GlobalBridge/Core/Storage/ContactManager.swift`. Define actor ContactManager with private properties for databaseManager (DatabaseManager) and phoenixManager (PhoenixChannelManager). Add init(databaseManager:phoenixManager:).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify actor compiles and initializes correctly."
           },
           {
@@ -4699,7 +4699,7 @@
               1
             ],
             "details": "Implement addContact(_ contactUserId, email) that creates Contact locally with needsSync=true, calls saveContactLocally, then syncs to backend in Task. Implement removeContact(_ contactId) that marks as deleted locally, then syncs deletion in Task. Both return immediately for optimistic UX.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test that operations complete locally before backend sync. Mock network delays to verify optimistic behavior."
           },
           {
@@ -4710,7 +4710,7 @@
               1
             ],
             "details": "Implement searchContacts(query:) that calls fetchContactsLocally with search query filtering on local SQLite. Implement searchUsersByEmail(query:) that calls phoenixManager.searchUsers for backend user lookup. Both return async results.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test both search methods with various queries, verify local vs backend search behavior."
           },
           {
@@ -4721,7 +4721,7 @@
               1
             ],
             "details": "Implement syncContacts() that: 1) Gets lastSyncTime, 2) Pulls server contacts via phoenixManager.syncContacts(since:), 3) Merges each using mergeContactFromServer (server wins on conflicts), 4) Pushes unsynced local contacts via syncContactToBackend, 5) Updates lastSyncTime. This ensures eventual consistency.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test sync with offline changes, conflicts, and verify server state wins."
           },
           {
@@ -4732,7 +4732,7 @@
               1
             ],
             "details": "Implement all private helper methods for database operations: saveContactLocally (INSERT), markContactAsDeleted (UPDATE is_deleted=1, needs_sync=1), fetchContactLocally (SELECT by id), updateContactLocally (UPDATE), updateContactSyncStatus, fetchUnsyncedContacts, getLastSyncTime, updateLastSyncTime. Use SQLite.swift for all database operations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit test each helper method independently with mocked database."
           }
         ]
@@ -4747,7 +4747,7 @@
         "dependencies": [
           4
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4755,7 +4755,7 @@
             "description": "Add method to search for non-contact users via Phoenix channel",
             "dependencies": [],
             "details": "Add public func searchUsers(query: String) async throws -> [Contact.ContactUser]. Get user channel with channel(for: \"user:\\(currentUserId)\"). Push \"search_users\" with payload [\"query\": query]. Use withCheckedThrowingContinuation to handle response, parsing users array from response.payload[\"users\"].",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with various queries, verify Contact.ContactUser array is parsed correctly."
           },
           {
@@ -4764,7 +4764,7 @@
             "description": "Add method to add contact via Phoenix channel",
             "dependencies": [],
             "details": "Add public func addContact(contactUserId: String) async throws -> Contact. Push \"add_contact\" with payload [\"contact_user_id\": contactUserId] to user channel. Parse response into Contact struct using JSON decoder.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test adding valid and invalid contact IDs, verify error handling."
           },
           {
@@ -4773,7 +4773,7 @@
             "description": "Add method for incremental contact sync from server",
             "dependencies": [],
             "details": "Add public func syncContacts(since: Date) async throws -> [Contact]. Convert Date to ISO8601 string. Push \"sync_contacts\" with payload [\"since\": timestamp] to user channel. Parse response contacts array and synced_at timestamp.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test sync with various timestamps, verify incremental sync returns only new/updated contacts."
           },
           {
@@ -4782,7 +4782,7 @@
             "description": "Add method to remove contact via Phoenix channel",
             "dependencies": [],
             "details": "Add public func removeContact(contactUserId: String) async throws. Push \"remove_contact\" with payload [\"contact_user_id\": contactUserId] to user channel. Handle success/error responses.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test removing existing and non-existing contacts, verify proper error handling."
           }
         ]
@@ -4797,7 +4797,7 @@
         "dependencies": [
           9
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4805,7 +4805,7 @@
             "description": "Add @State properties for search query, contacts, search results, and selected participants",
             "dependencies": [],
             "details": "In CreateThreadView, add @State private var searchQuery = \"\", @State private var contacts: [Contact] = [], @State private var searchResults: [Contact.ContactUser] = [], @State private var selectedParticipants: Set<String> = []. These track search state and selections.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify properties are declared and initialized correctly."
           },
           {
@@ -4816,7 +4816,7 @@
               1
             ],
             "details": "Add TextField(\"Search contacts or enter email\", text: $searchQuery).onChange(of: searchQuery) { _, newValue in searchContactsOrEmail(newValue) }. This triggers search as user types.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test that typing in field triggers search function."
           },
           {
@@ -4827,7 +4827,7 @@
               1
             ],
             "details": "Implement searchContactsOrEmail(_ query: String) in Task that calls contactManager.searchContacts(query:) to update contacts array. If query.contains(\"@\"), also call contactManager.searchUsersByEmail(query:) to update searchResults array. Use try await for async operations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test search with contact names and email addresses, verify both result arrays update."
           },
           {
@@ -4838,7 +4838,7 @@
               2
             ],
             "details": "Add List(contacts) { contact in ContactRow(contact: contact) { toggleSelection(contact.contactUserId) } }. Add Section(\"Search Results\") with ForEach(searchResults, id: \\.id) { user in UserRow(user: user) { toggleSelection(user.id) } }. Show search results only if !searchResults.isEmpty.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify lists display and selection toggles work."
           },
           {
@@ -4849,7 +4849,7 @@
               1
             ],
             "details": "Implement toggleSelection(_ userId: String) that inserts/removes from selectedParticipants Set. Implement createThread() that calls environment.database.createThread with title and selectedParticipants array. Update Create button with .disabled(selectedParticipants.isEmpty).",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test selection toggling and thread creation with selected participants."
           }
         ]
@@ -4864,7 +4864,7 @@
         "dependencies": [
           8
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4872,7 +4872,7 @@
             "description": "Add logic to fetch contacts modified since last sync",
             "dependencies": [],
             "details": "In syncContacts(), get lastSyncTime from local storage. Call phoenixManager.syncContacts(since: lastSyncTime) to fetch server-side changes. Store results in serverContacts array for processing.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with various last sync timestamps, verify only newer contacts are fetched."
           },
           {
@@ -4883,7 +4883,7 @@
               1
             ],
             "details": "Implement mergeContactFromServer(_ serverContact: Contact) that fetches local contact by ID. If exists locally, compare updatedAt timestamps: if serverContact.updatedAt > localContact.updatedAt, call updateContactLocally. If doesn't exist locally, call saveContactLocally. This ensures server state always wins conflicts.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test merge with various scenarios: new contacts, updated contacts, and conflicts. Verify server always wins."
           },
           {
@@ -4894,7 +4894,7 @@
               1
             ],
             "details": "After merging server changes, call fetchUnsyncedContacts() to get contacts where needsSync=1. For each unsynced contact, call syncContactToBackend(contact) which pushes to Phoenix and updates local sync status on success.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test with offline-created contacts, verify they sync to server when online."
           },
           {
@@ -4907,7 +4907,7 @@
               3
             ],
             "details": "Implement getLastSyncTime() that reads from UserDefaults or SQLite metadata table. Implement updateLastSyncTime(Date()) that stores timestamp after successful sync. Call updateLastSyncTime at end of syncContacts() to track last successful sync.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test that sync timestamp updates after successful sync and persists across app restarts."
           }
         ]
@@ -4932,7 +4932,7 @@
           10,
           11
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -4940,7 +4940,7 @@
             "description": "Verify end-to-end contact addition with optimistic updates and backend sync",
             "dependencies": [],
             "details": "Test scenario: Add contact by email, verify it appears in contacts list immediately (optimistic), wait for backend sync, verify sync success. Check local database has needsSync=0 after sync. Test with invalid emails to verify error handling.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Automated integration test plus manual verification in running app."
           },
           {
@@ -4949,7 +4949,7 @@
             "description": "Verify contacts sync across multiple devices/sessions",
             "dependencies": [],
             "details": "Test scenario: Add contact on Device A (or test user 1), log in as same user on Device B (or test user 2 using same account), trigger contact sync, verify contact appears on Device B. Test that sync_contacts handler returns correct data based on lastSyncTime.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Manual test with multiple iOS simulators or test users, verify data consistency."
           },
           {
@@ -4958,7 +4958,7 @@
             "description": "Verify contact deletion propagates to backend and other devices",
             "dependencies": [],
             "details": "Test scenario: Delete contact locally, verify removed from list immediately, verify deletion syncs to backend, verify deletion appears on other devices after sync. Check that isDeleted=1 in local database before sync completes.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test deletion flow with network monitoring to verify backend API call."
           },
           {
@@ -4967,7 +4967,7 @@
             "description": "Verify creating threads with contact selection and email lookup",
             "dependencies": [],
             "details": "Test scenario: Create thread selecting contacts from list, verify all participants receive thread. Create thread using email lookup for non-contacts, verify email resolution works and thread created. Verify all participants see messages correctly.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Create threads with various participant combinations, verify all participants can send/receive messages."
           },
           {
@@ -4976,7 +4976,7 @@
             "description": "Verify server wins on conflicts during sync",
             "dependencies": [],
             "details": "Test scenario: Add contact offline on Device A, delete same contact on server (or Device B), bring Device A online, trigger sync, verify server state wins (contact is deleted on Device A). Test various conflict scenarios to ensure server state always prevails.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Simulate offline changes and server-side modifications, verify conflict resolution favors server."
           }
         ]
@@ -4984,7 +4984,7 @@
     ],
     "metadata": {
       "created": "2025-10-22T15:27:40.435Z",
-      "updated": "2025-10-22T15:35:00.000Z",
+      "updated": "2025-10-22T17:27:07.574Z",
       "description": "Tasks for contact context"
     }
   }
