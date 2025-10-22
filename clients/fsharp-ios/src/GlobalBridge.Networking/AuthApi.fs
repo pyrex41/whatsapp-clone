@@ -86,27 +86,26 @@ module AuthApi =
         (deviceId: string option)
         : Task<UserProfile option> =
         task {
-            try
-                use client = clientFactory()
-                client.BaseAddress <- baseAddress
-                let payload : Auth0LoginRequest =
-                    { AccessToken = accessToken
-                      DeviceId = deviceId |> Option.map ValueSome |> Option.defaultValue ValueNone }
-                use content = JsonContent.Create(payload)
-                use! response = client.PostAsync("auth/auth0/login", content)
-                if not response.IsSuccessStatusCode then
-                    return None
-                use! stream = response.Content.ReadAsStreamAsync()
+            use client = clientFactory()
+            client.BaseAddress <- baseAddress
+            let payload : Auth0LoginRequest =
+                { AccessToken = accessToken
+                  DeviceId = deviceId |> Option.map ValueSome |> Option.defaultValue ValueNone }
+            use content = JsonContent.Create(payload)
+            let! response = client.PostAsync("auth/auth0/login", content)
+            if not response.IsSuccessStatusCode then
+                return None
+            else
+                let! stream = response.Content.ReadAsStreamAsync()
                 let! mapped = JsonSerializer.DeserializeAsync<Auth0LoginResponse>(stream, jsonOptions)
-                if isNull (box mapped) then return None
+                if obj.ReferenceEquals(mapped, null) then
+                    return None
                 else
                     let profile : UserProfile =
                         { Subject = mapped.Subject
                           Name = mapped.Name |> ValueOption.toOption
                           Email = mapped.Email |> ValueOption.toOption }
                     return Some profile
-            with _ ->
-                return None
         }
 
     let refreshToken
