@@ -12,40 +12,41 @@ struct InAppBannerView: View {
     var onTap: (() -> Void)?
     var onDismiss: (() -> Void)?
 
-    @State private var offsetY: CGFloat = -20
+    @State private var offsetY: CGFloat = -16
     @State private var isVisible: Bool = false
 
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
+        HStack(alignment: .center, spacing: 14) {
             avatarView
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(item.title)
-                        .font(.headline)
+                        .font(.title3.weight(.semibold))
                         .lineLimit(1)
                     if item.count > 1 {
                         Text("\(item.count) new")
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Capsule().fill(Color.blue.opacity(0.15)))
+                            .font(.caption)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(Capsule().fill(Color.blue.opacity(0.18)))
                     }
                 }
                 Text(item.subtitle)
-                    .font(.subheadline)
+                    .font(.body)
                     .foregroundColor(.secondary)
-                    .lineLimit(2)
+                    .lineLimit(3)
             }
             Spacer(minLength: 8)
             Button(action: { onDismiss?() }) {
                 Image(systemName: "xmark")
                     .foregroundColor(.secondary)
-                    .font(.system(size: 12, weight: .semibold))
-                    .padding(8)
+                    .font(.system(size: 14, weight: .semibold))
+                    .padding(10)
             }
             .buttonStyle(.plain)
         }
-        .padding(12)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color(.secondarySystemBackground))
@@ -53,10 +54,9 @@ struct InAppBannerView: View {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .stroke(Color.black.opacity(0.06))
                 )
-                .shadow(color: Color.black.opacity(0.10), radius: 10, x: 0, y: 6)
+                .shadow(color: Color.black.opacity(0.12), radius: 12, x: 0, y: 8)
         )
         .padding(.horizontal, 12)
-        .padding(.top, 4)
         .offset(y: offsetY)
         .opacity(isVisible ? 1 : 0)
         .gesture(dragToDismiss)
@@ -97,10 +97,10 @@ struct InAppBannerView: View {
         ZStack {
             Circle().fill(Color.blue.opacity(0.2))
             Text(initials(from: item.title))
-                .font(.subheadline.weight(.semibold))
+                .font(.headline.weight(.semibold))
                 .foregroundColor(.blue)
         }
-        .frame(width: 36, height: 36)
+        .frame(width: 44, height: 44)
     }
 
     private func initials(from title: String) -> String {

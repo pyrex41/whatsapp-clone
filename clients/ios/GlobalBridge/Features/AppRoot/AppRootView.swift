@@ -40,11 +40,9 @@ struct AppRootView: View {
                     navPath.removeAll()
                 }
             }
-            .overlay(
+            .safeAreaInset(edge: .top) {
                 InAppBannerContainer()
-                    .ignoresSafeArea(edges: .top),
-                alignment: .top
-            )
+            }
         } else {
             let _ = print("📱 [APP_ROOT] Using NavigationSplitView")
             NavigationSplitView {
@@ -55,11 +53,9 @@ struct AppRootView: View {
             .onAppear {
                 store.send(.onAppear)
             }
-            .overlay(
+            .safeAreaInset(edge: .top) {
                 InAppBannerContainer()
-                    .ignoresSafeArea(edges: .top),
-                alignment: .top
-            )
+            }
         }
     }
 }
