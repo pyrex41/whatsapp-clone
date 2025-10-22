@@ -38,6 +38,15 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         state.threads.hasLoaded = true
         switch result {
         case let .success(threads):
+            // Update user from bootstrap if available
+            let user = MainActor.assumeIsolated {
+                AuthManager.shared.getBootstrappedUser()
+            }
+            if let bootstrappedUser = user {
+                print("👤 [LOADED] Updating app state with bootstrapped user: \(bootstrappedUser.id)")
+                state.user = bootstrappedUser
+            }
+            
             state.threads.items = threads
             if let firstThread = threads.first {
                 print("📋 [LOADED] Auto-selecting first thread: \(firstThread.id)")

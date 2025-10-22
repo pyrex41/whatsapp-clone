@@ -510,16 +510,20 @@ final class DatabaseManager {
     }
 
     /// Sync threads from backend via Phoenix channel
-    func syncThreadsFromBackend(phoenixManager: PhoenixChannelManager) async throws -> [Thread] {
-        print("📥 Syncing threads from backend...")
+    func syncThreadsFromBackend(phoenixManager: PhoenixChannelManager) async throws -> ([Thread], User) {
+        print("📥 Syncing threads and user from backend...")
         
         // 1. Fetch bootstrap data via Phoenix channel
         let bootstrap = try await phoenixManager.fetchBootstrap()
         
-        // 2. Clear existing local threads
+        // 2. Convert UserData to User
+        let user = User.from(bootstrap.user)
+        print("👤 [SYNC] Received user from backend: \(user.id) - \(user.displayName)")
+        
+        // 3. Clear existing local threads
         try await clearAllThreads()
         
-        // 3. Insert backend threads into local database
+        // 4. Insert backend threads into local database
         for threadData in bootstrap.threads {
             let thread = Thread(
                 id: UUID(uuidString: threadData.id)!,
@@ -538,8 +542,9 @@ final class DatabaseManager {
             try await createThreadLocally(thread)
         }
         
-        print("✅ Synced \(bootstrap.threads.count) threads from backend")
-        return try await fetchThreads()
+        let threads = try await fetchThreads()
+        print("✅ Synced \(bootstrap.threads.count) threads and user from backend")
+        return (threads, user)
     }
 
     /// Create thread locally only (used during sync)
@@ -683,7 +688,7 @@ final class DatabaseManager {
             let insert = messagesTable.insert(
                 messageId <- message.id.uuidString,
                 messageThreadId <- message.threadId.uuidString,
-                messageSenderId <- message.senderId.uuidString,
+                messageSenderId <- message.senderId,  // Now a String, not UUID
                 messageContent <- message.content,
                 messageType <- message.messageType.rawValue,
                 messageStatus <- message.status.rawValue,
@@ -741,7 +746,7 @@ final class DatabaseManager {
                 let message = Message(
                     id: UUID(uuidString: row[messageId])!,
                     threadId: UUID(uuidString: row[messageThreadId])!,
-                    senderId: UUID(uuidString: row[messageSenderId])!,
+                    senderId: row[messageSenderId],  // Now a String, not UUID
                     content: row[messageContent],
                     messageType: Message.MessageType(rawValue: row[messageType])!,
                     status: Message.Status(rawValue: row[messageStatus])!,
@@ -1005,7 +1010,7 @@ final class DatabaseManager {
         var dict: [String: String] = [
             "id": message.id.uuidString,
             "thread_id": message.threadId.uuidString,
-            "sender_id": message.senderId.uuidString,
+            "sender_id": message.senderId,  // Now a String, not UUID
             "content": message.content,
             "message_type": message.messageType.rawValue,
             "status": message.status.rawValue,

@@ -18,7 +18,7 @@ struct RealtimeClient {
     var ensureConnection: @Sendable () async throws -> Void
     var connect: @Sendable (_ threadID: UUID, _ handler: @Sendable @escaping (Message) -> Void) async throws -> Void
     var disconnect: @Sendable (_ threadID: UUID) async -> Void
-    var sendTyping: @Sendable (_ threadID: UUID, _ userID: UUID, _ isTyping: Bool) async -> Void
+    var sendTyping: @Sendable (_ threadID: UUID, _ userID: String, _ isTyping: Bool) async -> Void  // Changed userID from UUID to String
     var sendMessage: @Sendable (_ threadID: UUID, _ content: String, _ author: User, _ replyTo: UUID?) async throws -> Message
 }
 
@@ -124,9 +124,14 @@ extension AppEnvironment {
                     print("📥 [LOAD_THREADS] No local threads, syncing from backend...")
                     
                     // Sync from backend via Phoenix bootstrap
-                    let syncedThreads = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
+                    let (syncedThreads, user) = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
                     
                     print("✅ [LOAD_THREADS] Synced \(syncedThreads.count) threads from backend")
+                    print("👤 [LOAD_THREADS] Setting user: \(user.id)")
+                    
+                    // Store the bootstrapped user so it's available to the app
+                    await AuthManager.shared.setBootstrappedUser(user)
+                    
                     return syncedThreads
                 } else {
                     print("✅ [LOAD_THREADS] Loaded \(localThreads.count) threads from local DB")
@@ -137,12 +142,14 @@ extension AppEnvironment {
                 _ = try await initializationTask.value
                 
                 print("🆕 [CREATE_THREAD] Creating thread '\(title)' via backend...")
+                print("🆕 [CREATE_THREAD] Using creator ID from backend: \(creator.id)")
                 
                 // 1. Create thread on backend first via Phoenix
+                // Use the backend-provided user ID (which comes from UserData.id from bootstrap)
                 let threadData = try await phoenixManager.createThread(
                     threadType: "group",
                     title: title,
-                    participantIds: [creator.id.uuidString]
+                    participantIds: [creator.id]  // creator.id is already a String
                 )
                 
                 print("✅ [CREATE_THREAD] Backend created thread: \(threadData.id)")

@@ -11,7 +11,7 @@ import Foundation
 struct Message: Identifiable, Codable, Equatable {
     let id: UUID
     let threadId: UUID
-    let senderId: UUID
+    let senderId: String  // Changed from UUID to String to match backend
     var content: String
     var messageType: MessageType
     var status: MessageStatus
@@ -49,7 +49,7 @@ struct Message: Identifiable, Codable, Equatable {
     nonisolated init(
         id: UUID = UUID(),
         threadId: UUID,
-        senderId: UUID,
+        senderId: String,  // Changed from UUID to String
         content: String,
         messageType: MessageType = .text,
         status: MessageStatus = .pending,
@@ -85,8 +85,7 @@ extension Message {
     nonisolated static func fromPhoenix(_ phoenixMessage: PhoenixMessage) -> Message? {
         guard
             let messageId = UUID(uuidString: phoenixMessage.id),
-            let threadId = UUID(uuidString: phoenixMessage.conversationId),
-            let senderId = UUID(uuidString: phoenixMessage.senderId)
+            let threadId = UUID(uuidString: phoenixMessage.conversationId)
         else {
             return nil
         }
@@ -113,7 +112,7 @@ extension Message {
         return Message(
             id: messageId,
             threadId: threadId,
-            senderId: senderId,
+            senderId: phoenixMessage.senderId,  // Now a String
             content: phoenixMessage.content,
             messageType: .text,
             status: status,

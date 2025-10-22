@@ -51,6 +51,13 @@ final class AuthManager: ObservableObject {
     private var refreshToken: String?
     private var tokenExpiresAt: Date?
     private var refreshTask: Task<Void, Never>?
+    private var bootstrappedUser: User?
+    
+    // MARK: - Auth Bypass for Testing
+    // Set this to true to bypass Auth0 and use test credentials
+    private let authBypassEnabled = true
+    private let testUserId = "test-user-123"
+    private let testAccessToken = "test-token-for-backend-integration"
     
     // Auth0 Configuration from Auth0Config
     private var auth0Domain: String {
@@ -66,10 +73,30 @@ final class AuthManager: ObservableObject {
     }
 
     private init() {
-        // Check if we have stored credentials
-        Task {
-            await restoreSession()
+        // Check if auth bypass is enabled
+        if authBypassEnabled {
+            print("⚠️ [AUTH BYPASS] Authentication bypass is ENABLED")
+            print("⚠️ [AUTH BYPASS] Using test credentials for backend integration testing")
+            setupBypassAuth()
+        } else {
+            // Check if we have stored credentials
+            Task {
+                await restoreSession()
+            }
         }
+    }
+    
+    /// Setup bypass authentication for testing
+    private func setupBypassAuth() {
+        self.isAuthenticated = true
+        self.userId = testUserId
+        self.accessToken = testAccessToken
+        self.tokenExpiresAt = Date().addingTimeInterval(86400) // 24 hours from now
+        
+        print("✅ [AUTH BYPASS] Bypass authentication configured")
+        print("   User ID: \(testUserId)")
+        print("   Token: \(testAccessToken)")
+        print("   Expires: \(tokenExpiresAt?.description ?? "unknown")")
     }
     
     /// Restore session from stored credentials
@@ -103,6 +130,12 @@ final class AuthManager: ObservableObject {
     
     /// Login with Auth0
     func login() async throws -> String {
+        // If bypass is enabled, return immediately
+        if authBypassEnabled {
+            print("⚠️ [AUTH BYPASS] Login bypassed, returning test token")
+            return testAccessToken
+        }
+        
         print("🔐 [AUTH] Starting Auth0 login...")
         print("📱 [AUTH] Bundle ID: \(Bundle.main.bundleIdentifier ?? "unknown")")
         print("🔍 [AUTH] Auth0 Configuration:")
@@ -195,6 +228,11 @@ final class AuthManager: ObservableObject {
     
     /// Get current access token, refreshing if needed
     func getAccessToken() async -> String? {
+        // If bypass is enabled, always return test token
+        if authBypassEnabled {
+            return testAccessToken
+        }
+        
         // Check if token needs refresh
         if needsRefresh() {
             print("🔄 [AUTH] Token needs refresh, attempting refresh...")
@@ -257,6 +295,11 @@ final class AuthManager: ObservableObject {
     
     /// Check if token needs refresh
     func needsRefresh() -> Bool {
+        // If bypass is enabled, token never needs refresh
+        if authBypassEnabled {
+            return false
+        }
+        
         guard let expiresAt = tokenExpiresAt else {
             return true
         }
@@ -328,5 +371,16 @@ final class AuthManager: ObservableObject {
     /// Clear any stored errors
     func clearError() {
         authError = nil
+    }
+    
+    /// Store the bootstrapped user from backend
+    func setBootstrappedUser(_ user: User) {
+        print("💾 [AUTH] Storing bootstrapped user: \(user.id)")
+        self.bootstrappedUser = user
+    }
+    
+    /// Retrieve the bootstrapped user
+    func getBootstrappedUser() -> User? {
+        bootstrappedUser
     }
 }

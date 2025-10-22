@@ -15,12 +15,21 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
   @impl true
   def join("user:" <> user_id, _payload, socket) do
     # Verify user owns this channel
-    if socket.assigns.user_id == user_id do
+    # For test user, check both UUID and auth0_id to support bypass mode
+    socket_user_id = socket.assigns.user_id
+    socket_user = socket.assigns[:user]
+    socket_auth0_id = if socket_user, do: socket_user.auth0_id, else: nil
+
+    authorized? =
+      socket_user_id == user_id or
+        socket_auth0_id == user_id
+
+    if authorized? do
       Logger.info("✅ [USER_CHANNEL] User #{user_id} joined their channel")
       {:ok, %{joined_at: DateTime.utc_now()}, socket}
     else
       Logger.warning(
-        "❌ [USER_CHANNEL] Unauthorized join attempt: socket_user=#{socket.assigns.user_id}, channel_user=#{user_id}"
+        "❌ [USER_CHANNEL] Unauthorized join attempt: socket_user=#{socket_user_id}, socket_auth0_id=#{socket_auth0_id}, channel_user=#{user_id}"
       )
 
       {:error, %{reason: "Unauthorized"}}

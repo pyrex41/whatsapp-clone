@@ -8,21 +8,32 @@ defmodule GlobalbridgeBackend.Auth.Auth0Verifier do
   alias GlobalbridgeBackend.Schemas.User
   require Logger
 
+  # Auth bypass for testing - matches iOS test token
+  @test_token "test-token-for-backend-integration"
+  @test_user_id "test-user-123"
+
   @doc """
   Verify an Auth0 JWT token and return the associated user.
   Creates a new user if one doesn't exist.
+  Supports test token bypass for development/testing.
   """
   def verify_and_get_user(token) do
-    Logger.info("🔐 [AUTH0] Attempting to verify token: #{String.slice(token, 0, 20)}...")
-
-    with {:ok, claims} <- decode_jwt(token),
-         :ok <- verify_auth0_token(claims),
-         {:ok, user} <- ensure_user_exists(claims) do
-      {:ok, user}
+    # Check for test token bypass
+    if token == @test_token do
+      Logger.warning("⚠️ [AUTH BYPASS] Test token detected - returning test user")
+      get_or_create_test_user()
     else
-      {:error, reason} ->
-        Logger.error("❌ [AUTH0] Token verification failed: #{inspect(reason)}")
-        {:error, reason}
+      Logger.info("🔐 [AUTH0] Attempting to verify token: #{String.slice(token, 0, 20)}...")
+
+      with {:ok, claims} <- decode_jwt(token),
+           :ok <- verify_auth0_token(claims),
+           {:ok, user} <- ensure_user_exists(claims) do
+        {:ok, user}
+      else
+        {:error, reason} ->
+          Logger.error("❌ [AUTH0] Token verification failed: #{inspect(reason)}")
+          {:error, reason}
+      end
     end
   end
 
@@ -122,5 +133,41 @@ defmodule GlobalbridgeBackend.Auth.Auth0Verifier do
 
     # Add timestamp to ensure uniqueness
     "#{base}_#{:os.system_time(:millisecond)}"
+  end
+
+  # Get or create the test user for auth bypass testing.
+  defp get_or_create_test_user do
+    # Try to find existing test user by auth0_id
+    case Repo.get_by(User, auth0_id: @test_user_id) do
+      nil ->
+        # Create test user
+        Logger.info("👤 [AUTH BYPASS] Creating test user: #{@test_user_id}")
+
+        attrs = %{
+          auth0_id: @test_user_id,
+          email: "test@example.com",
+          username: "test_user",
+          display_name: "Test User",
+          phone_number: "+10000000000",
+          password_hash: "test_bypass"
+        }
+
+        case User.create_changeset(%User{}, attrs) |> Repo.insert() do
+          {:ok, user} ->
+            Logger.info("✅ [AUTH BYPASS] Test user created: id=#{user.id}")
+            {:ok, user}
+
+          {:error, changeset} ->
+            Logger.error(
+              "❌ [AUTH BYPASS] Test user creation failed: #{inspect(changeset.errors)}"
+            )
+
+            {:error, :user_creation_failed}
+        end
+
+      user ->
+        Logger.info("✅ [AUTH BYPASS] Test user found: id=#{user.id}")
+        {:ok, user}
+    end
   end
 end
