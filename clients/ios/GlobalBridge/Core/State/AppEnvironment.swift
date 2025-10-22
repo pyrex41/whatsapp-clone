@@ -293,7 +293,15 @@ extension AppEnvironment {
                                 await MainActor.run {
                                     InAppBannerCenter.shared.present(event: event)
                                 }
+                                // Ensure thread exists locally and persist message for non-active threads
+                                if (try? await databaseManager.fetchThread(id: message.threadId)) == nil {
+                                    if let remote = try? await threadService.fetchThreads().first(where: { $0.id == message.threadId }) {
+                                        try? await databaseManager.upsertThread(remote)
+                                    }
+                                }
+                                try? await databaseManager.createMessage(message)
                             }
+                            
                         }
                     }
                 }
@@ -309,16 +317,16 @@ extension AppEnvironment {
                 print("✅ [CONNECT] Phoenix connected")
 
                 let conversationId = threadID.uuidString
-                print("🔌 [CONNECT] Joining channel: thread:\(conversationId)")
-                try await phoenixManager.joinConversation(conversationId)
-                print("✅ [CONNECT] Channel joined successfully!")
-
+                // Register UI handler BEFORE joining to avoid missing early events
                 await phoenixManager.onMessage(conversationId: conversationId) { phoenixMessage in
                     guard let message = Message.fromPhoenix(phoenixMessage) else { return }
                     Task { @MainActor in
                         handler(message)
                     }
                 }
+                print("🔌 [CONNECT] Joining channel: thread:\(conversationId)")
+                try await phoenixManager.joinConversation(conversationId)
+                print("✅ [CONNECT] Channel joined successfully!")
                 print("✅ [CONNECT] Message handler registered for thread: \(threadID)")
             },
             disconnect: { threadID in

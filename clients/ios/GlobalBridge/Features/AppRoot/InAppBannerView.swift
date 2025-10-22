@@ -48,8 +48,12 @@ struct InAppBannerView: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.12), radius: 16, x: 0, y: 10)
+                .fill(Color(.secondarySystemBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color.black.opacity(0.06))
+                )
+                .shadow(color: Color.black.opacity(0.10), radius: 10, x: 0, y: 6)
         )
         .padding(.horizontal, 12)
         .padding(.top, 4)
@@ -123,4 +127,3 @@ struct InAppBannerView: View {
         onDismiss: {}
     )
 }
-
