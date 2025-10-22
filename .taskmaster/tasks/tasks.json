@@ -2110,13 +2110,14 @@
         "mvp"
       ],
       "created": "2025-10-21T14:12:24.679Z",
-      "description": "Tasks for mvp context"
+      "description": "Tasks for mvp context",
+      "updated": "2025-10-21T14:12:24.679Z"
     }
   },
   "elm": {
     "tasks": [
       {
-        "id": "1",
+        "id": 1,
         "title": "Elm Web Client: Project Scaffolding & Build Setup",
         "description": "Set up the foundational structure and build configuration for an Elm 0.19 Single Page Application integrated with Vite and Phoenix backend, including project directories, Elm package configuration, and development server with hot reload.",
         "details": "Begin by initializing the Elm project structure. Create the following directories at the root level: `src/` for Elm source files, `tests/` for test files, and `public/` for static assets. Initialize an Elm project using `elm init`, which will generate `elm.json`. Update `elm.json` to include required packages: add `elm/browser` for browser interactions, `elm/http` for HTTP requests, and `elm/json` for JSON handling. Ensure Elm version is set to 0.19.\n\nNext, integrate Vite for build tooling. Install Vite and esbuild as dependencies (e.g., via npm or yarn). Configure Vite in `vite.config.js` to handle Elm compilation: use the `vite-plugin-elm` plugin to compile Elm files, and set up bundling to include `phoenix.js` for Phoenix integration. Configure the output to serve static files from the `public/` directory.\n\nFor Phoenix integration, ensure the Phoenix application is set up to serve static files from the build output directory (typically `dist/` or similar). Update Phoenix's `endpoint.ex` to serve static files from the Elm build directory, and configure routes to handle SPA routing (e.g., fallback to `index.html` for client-side routing).\n\nSet up the development server with hot reload: Configure Vite's dev server to proxy API requests to the Phoenix backend (running on a different port, e.g., 4000). Enable hot module replacement for Elm files using the plugin. Add scripts in `package.json` for development (e.g., `vite dev`) and build (e.g., `vite build`).\n\nConsiderations: Ensure compatibility between Elm 0.19 and Vite/esbuild. Handle CORS if the dev server proxies to Phoenix. For production, ensure the build process minifies and optimizes the bundle. If using a monorepo, ensure paths are correctly configured.",
@@ -2166,7 +2167,7 @@
         "updatedAt": "2025-10-21T15:24:17.804Z"
       },
       {
-        "id": "2",
+        "id": 2,
         "title": "Elm Web Client: Authentication Flow Implementation",
         "description": "Implement Guardian token-based authentication for the Elm web client, including a login view with email/password form, HTTP client for authentication endpoints, session persistence, and comprehensive auth state management.",
         "details": "Begin by defining the authentication model in Elm, including types for AuthState (Authenticated, Anonymous, Loading, Error) and related data structures for user info, tokens, and CSRF tokens. Create a login view component using Elm's Html module, featuring an email/password form with validation (e.g., email format checks and password length requirements). Implement form submission handling to prevent default behavior and trigger authentication requests.\n\nDevelop an Elm HTTP client module for interacting with the backend. Use Elm's Http module to create functions for POST requests to /api/auth/login (sending email and password as JSON) and /api/auth/refresh (using the refresh token). Handle responses by decoding JSON payloads into Elm types, including success (with access/refresh tokens) and error cases (e.g., invalid credentials). Integrate CSRF token handling by extracting the token from the boot payload (assumed to be available via a port or initial model) and including it in request headers.\n\nImplement session persistence using httpOnly cookies by sending tokens to the backend for storage on successful login, ensuring the Elm app doesn't handle sensitive tokens directly. Add logic for automatic token refresh: check token expiry (e.g., via a timer or on API calls) and call the refresh endpoint, updating the auth state accordingly. Handle refresh failures by transitioning to Anonymous state and prompting re-login.\n\nFor developer mode, add preset credentials (e.g., via environment variables or a debug flag) that auto-populate the login form for QA purposes. Ensure this is only active in development builds. Manage auth state centrally using Elm's update pattern, with messages for login attempts, successes, failures, refreshes, and logouts. Consider integrating with Elm's Browser module for navigation guards (e.g., redirecting unauthenticated users to login).\n\nConsiderations: Ensure all HTTP requests include proper error handling and loading states to provide user feedback. Use Elm's Task module for asynchronous operations if needed. Test for edge cases like network failures, expired tokens, and CSRF mismatches. Maintain security by not logging sensitive data and ensuring tokens are not stored in local storage.",
@@ -2232,7 +2233,7 @@
         "updatedAt": "2025-10-21T15:31:50.899Z"
       },
       {
-        "id": "3",
+        "id": 3,
         "title": "Elm Web Client: Phoenix Channels JavaScript Interop",
         "description": "Create a JavaScript adapter module for phoenix.js socket client to enable Elm integration with Phoenix Channels, implementing Elm ports for bidirectional communication including subscribe, unsubscribe, send, and receive operations, along with port handlers for channel events, per-thread subscription management, automatic reconnection with exponential backoff on token refresh, and a heartbeat/keepalive mechanism.",
         "details": "Begin by creating a JavaScript adapter module (e.g., `phoenixAdapter.js`) that wraps the phoenix.js library for socket and channel management. Initialize a Phoenix Socket instance with configuration for the backend endpoint, including authentication tokens retrieved from Elm via ports. Implement Elm ports for bidirectional communication: outgoing ports for commands like `subscribeToChannel`, `unsubscribeFromChannel`, `sendMessage`, and incoming ports for events like `channelMessageReceived`, `channelJoined`, `channelLeft`, `channelError`. Ensure ports are typed comprehensively using Elm's port types, e.g., `port subscribeToChannel : { topic : String, params : Value } -> Cmd msg` and `port channelMessageReceived : (String, Value) -> Sub msg`. Build port handlers in JavaScript to manage Phoenix Channel events, translating them into Elm subscriptions. Implement per-thread channel subscription management by maintaining a map of channel instances keyed by topic or thread ID, allowing multiple concurrent subscriptions without conflicts. For automatic reconnection, integrate exponential backoff logic (e.g., starting at 1 second, doubling up to a max of 30 seconds) triggered on disconnection, and refresh authentication tokens via Elm ports before reconnecting. Add a heartbeat/keepalive mechanism by sending periodic ping messages (e.g., every 30 seconds) and monitoring for pong responses to detect stale connections. Include comprehensive error handling for connection failures, invalid messages, and authentication issues, logging errors and sending them back to Elm via ports. Ensure the adapter is modular and testable, with functions for socket creation, channel joining/leaving, and message sending. Consider security by validating all incoming data and avoiding direct exposure of sensitive tokens in logs. Finally, integrate this into the Elm app by importing the JavaScript module in the Elm index.html or via Vite bundling, and wire up the ports in the main Elm module.",
@@ -2307,7 +2308,7 @@
         "updatedAt": "2025-10-21T15:35:29.367Z"
       },
       {
-        "id": "4",
+        "id": 4,
         "title": "Elm Web Client: REST API Client & Bootstrap Endpoint",
         "description": "Build a comprehensive Elm HTTP client for interacting with REST endpoints, including integration with the /api/bootstrap endpoint to fetch threads, user profile, and bridge summary data. Implement JSON decoders, encoders, error handling, retry logic, configuration, logging, cancellation, versioning, and a type-safe API contract layer.",
         "details": "Start by creating an Elm module for the REST API client, such as `Api.elm`, to centralize HTTP interactions. Define a configuration record for the API client, including base URL (e.g., configurable for development/production), timeout settings (e.g., 10 seconds), default headers (e.g., Content-Type: application/json), and API version prefix (/api/v1/). Implement a type-safe API contract layer using Elm's type system, defining union types for endpoints (e.g., Bootstrap, Threads, UserProfile) and request/response types (e.g., BootstrapRequest with fields for user ID, and BootstrapResponse with decoders for threads list, user profile object, and bridge summary).\n\nDevelop JSON decoders using Elm's Json.Decode module for all API responses, ensuring they handle nested structures and optional fields gracefully (e.g., decode threads as a list of records with id, title, and participants). Create encoders for request payloads using Json.Encode, such as for bootstrap requests that might include query parameters or body data. Implement error handling by defining custom error types (e.g., NetworkError, DecodeError, ServerError) and mapping HTTP errors to user-friendly messages (e.g., 'Unable to connect to server' for network issues).\n\nAdd request retry logic with exponential backoff: for retryable errors (e.g., 5xx status codes), implement a function that retries up to a configurable limit (e.g., 3 times) with increasing delays (e.g., 1s, 2s, 4s). Include request/response logging for debugging, using Elm's Debug.log or integrating with a logging port to output details like request URL, method, status code, and response body in development mode. Implement request cancellation using Elm's Task module, allowing ongoing requests to be aborted (e.g., via a cancel token or subscription management).\n\nFor the /api/bootstrap endpoint specifically, create a dedicated function that sends a GET request (or POST if needed), applies authentication headers (e.g., Bearer token from auth state), and decodes the response into the defined types. Ensure the client supports API versioning by prefixing endpoints with /api/v1/. Consider integrating with the authentication state from Task 2 to automatically include auth tokens in requests. Handle edge cases like rate limiting by respecting Retry-After headers in retry logic. Use Elm's Http module for all requests, leveraging its built-in support for JSON and error handling.",
@@ -2372,7 +2373,7 @@
         "updatedAt": "2025-10-21T16:17:55.919Z"
       },
       {
-        "id": "5",
+        "id": 5,
         "title": "Elm Web Client: State Management & Elm Architecture",
         "description": "Design and implement comprehensive application state management for the Elm web client following The Elm Architecture, including page state union types, message routing, update functions, subscriptions, isolated state modules, persistence, debugging utilities, and validation.",
         "details": "Begin by structuring the Elm application around The Elm Architecture (Model-View-Update). Define a top-level Model as a record containing sub-models for Auth, Threads, Messages, Bridges, and UI, each with their own union types for states like Loading, Ready, Error, and NotAuthorized. For example, create Auth.Model with variants such as Authenticated { user : User, token : String }, Anonymous, Loading, and Error String. Implement corresponding Msg types for each module, such as AuthMsg, ThreadsMsg, etc., and a top-level Msg union type to route messages. Build update functions for each module, handling state transitions (e.g., from Loading to Ready upon successful API response), and a main update function that delegates to sub-updates. Integrate subscriptions for real-time updates from Phoenix Channels, such as subscribing to thread messages or bridge events, using Elm's Sub type. Create isolated modules (e.g., Auth.elm, Threads.elm) with their own init, update, and view functions for modularity. Implement state persistence using Elm's ports to localStorage for critical data like auth tokens and user preferences, with serialization/deserialization via JSON. Add debugging utilities, including time-travel debugging by enabling elm-debugger in the main function (e.g., main = Browser.element { init = init, update = update, subscriptions = subscriptions, view = view } |> Debug.toTimeTravel). Document state transition flows in comments or a separate markdown file, detailing how messages trigger updates across modules. Build state validation and invariant checks, such as ensuring authenticated state has a valid token, using custom types or functions that raise errors in development. Consider performance by avoiding unnecessary re-renders and using lazy views where applicable. Ensure integration with existing API client (Task 4) for fetching initial data and with auth (Task 2) for state initialization.",
@@ -2441,7 +2442,7 @@
         "updatedAt": "2025-10-21T16:23:14.469Z"
       },
       {
-        "id": "6",
+        "id": 6,
         "title": "Elm Web Client: Thread List View with Real-time Updates",
         "description": "Build a thread list view in the Elm web client that displays personal and bridged threads with Slack/Telegram badges, unread indicators, bridge status, and sync health. Integrate REST endpoint for initial data, Phoenix Channel subscriptions for real-time updates, filtering/search, thread creation UI, and responsive layout with keyboard navigation.",
         "details": "Begin by defining Elm types for Thread, including fields like id, name, isBridged, bridgeType (Slack/Telegram), unreadCount, bridgeStatus (Connected, Syncing, Error), and syncHealth. Create a ThreadList module within the Elm architecture, integrating with the overall app state from Task 5. Implement the view using Elm's Html module, rendering a list of threads with badges for bridged threads (e.g., icons or text labels), unread message counters (e.g., red badges), and status indicators (e.g., colored dots or text). Add filtering and search functionality using an input field that filters threads by name or bridge type, updating the list reactively. Include a thread creation UI, such as a button that opens a modal or form for entering thread name and selecting bridge options, with form validation. For responsive layout, use CSS classes or Elm's styling to ensure the list adapts to different screen sizes, with keyboard navigation (e.g., arrow keys to select threads, Enter to open). Integrate with Task 4's REST API client to fetch initial thread data from /api/threads on page load or refresh, handling JSON decoding for threads. Subscribe to Phoenix Channels via Task 3's JavaScript interop for real-time updates, using ports to listen for thread changes (e.g., new threads, updates to unread counts or status), and update the Elm model accordingly. Ensure the view is part of the main app routing and state, requiring authentication from Task 2. Handle edge cases like empty thread lists, loading states, and error handling for failed API calls or channel disconnections. Consider performance by implementing virtual scrolling for large thread lists if needed. Update the main Elm application to include this view in the page union type and routing logic.",
@@ -2510,7 +2511,7 @@
         "updatedAt": "2025-10-21T16:33:20.374Z"
       },
       {
-        "id": "7",
+        "id": 7,
         "title": "Elm Web Client: Conversation View with Real-time Messaging",
         "description": "Create a conversation view in the Elm web client that displays a real-time message stream using Phoenix Channels, including a message composer with optimistic send logic, delivery receipts, read status, typing indicators, message metadata, attachment handling, virtualization, auto-scroll, formatting, and error handling with retry.",
         "details": "Begin by defining Elm types for Message, including fields like id, content, timestamp, sender (with user info), bridgeOrigin, encryptionStatus, deliveryStatus (Sent, Delivered, Read), and attachments (as stubs with type, size, and URL). Integrate with the overall app state from Task 5, adding a Conversation module with sub-models for messages, composer state, and UI flags (e.g., autoScrollEnabled, typingUsers).\n\nImplement the conversation view using Elm's Html module, rendering a message list with virtualization (e.g., using a library like elm-virtual-dom or custom scrolling logic to render only visible messages for performance). Display message metadata such as timestamp (formatted as relative time, e.g., '2 minutes ago'), sender name/avatar, bridge origin badge (Slack/Telegram), and encryption status icon. Handle attachments as stubs, showing placeholders with download links or previews.\n\nBuild the message composer with a text input field, supporting optimistic send logic: immediately add the message to the local state and UI, then send via Phoenix Channel (using Task 3's interop), updating status on confirmation or handling failures with retry (e.g., exponential backoff). Implement delivery receipts and read status by subscribing to channel events for message acknowledgments and read markers, updating the message list in real-time.\n\nAdd typing indicators by listening to channel events for 'typing' broadcasts, displaying a list of currently typing users (e.g., 'Alice is typing...'). Enable auto-scroll to the bottom on new messages, with a flag to disable if the user has scrolled up manually.\n\nIncorporate message formatting using Elm's string manipulation or a library like elm-markdown for links (auto-linking URLs) and mentions (highlighting @usernames). Implement error handling for failed sends: display error messages in the composer, allow manual retry, and log errors for debugging.\n\nEnsure responsive design with keyboard navigation (e.g., Enter to send, Escape to cancel). Integrate with Task 4's API client for fetching historical messages on thread load. Consider accessibility features like ARIA labels for screen readers. Handle edge cases such as message edits/deletions via real-time updates and offline scenarios by queuing sends.",
@@ -2595,7 +2596,7 @@
         "updatedAt": "2025-10-21T16:52:09.413Z"
       },
       {
-        "id": "8",
+        "id": 8,
         "title": "Elm Web Client: Message Composer with Optimistic UI",
         "description": "Develop a comprehensive message input component for the Elm web client featuring multi-line text support, optimistic UI updates for message sending, failure handling with rollback and error messages, typing indicator emission, attachment upload UI stubs, @ mentions autocomplete, keyboard shortcuts, character count indicator, paste event handling for text and images, and message editing capabilities.",
         "details": "Begin by extending the existing Conversation module from Task 7 to include a detailed MessageComposer sub-module. Define Elm types for the composer state, including fields like inputText (String), attachments (List AttachmentStub), isEditing (Maybe MessageId), characterCount (Int), and flags for optimistic sending (e.g., pendingMessages : List OptimisticMessage). Implement the message input component using Elm's Html module with a textarea for multi-line support, ensuring it auto-resizes based on content height (using CSS or Elm's style attributes). For optimistic UI, upon sending a message, immediately add it to the conversation view's message list with a 'sending' status, and use Phoenix Channels (via Task 3) to emit the actual send; on failure, rollback by removing the optimistic message and display an error message (e.g., via a toast notification or inline alert). Integrate typing indicator emission by sending 'typing' events through Phoenix Channels when the user starts typing (debounced to avoid spam). Create attachment upload UI as stubs for MVP, including a file input button that accepts images/files, displaying placeholders or previews without full upload logic yet. Implement @ mentions autocomplete by parsing the input text for '@' triggers, querying a user list (fetched via REST API from Task 4), and showing a dropdown with matching users; on selection, insert the mention into the textarea. Add keyboard shortcuts: Ctrl+Enter (or Cmd+Enter on Mac) to send the message, and perhaps Shift+Enter for new lines. Build a character count indicator that updates in real-time, warning or limiting at a max length (e.g., 2000 characters). Handle paste events using Elm's on 'paste' event, checking for text or images; for images, treat as attachments. For message editing, allow selecting a sent message to edit by toggling the composer into edit mode, pre-filling the textarea, and on save, update via API and reflect in UI. Ensure all features integrate with the overall app state from Task 5, using appropriate Msg types and update functions. Consider accessibility, such as ARIA labels for inputs and keyboard navigation for autocomplete. Use Elm's Cmd for side effects like API calls and channel emissions.",
@@ -2661,7 +2662,7 @@
         "expansionPrompt": "Split into subtasks for extending the composer state and UI, implementing optimistic sending and failure handling, adding typing indicators and @mentions, and supporting attachments and editing."
       },
       {
-        "id": "9",
+        "id": 9,
         "title": "Elm Web Client: Security Hardening & Session Management",
         "description": "Implement comprehensive security measures for the Elm web client, including secure session handling with Guardian tokens, CSRF protection, XSS prevention, CSP headers, rate limiting, secure WebSocket validation, token refresh, session timeout, encrypted local storage, audit logging, clickjacking protection, and documentation of best practices.",
         "details": "Begin by enhancing the authentication module from Task 2 to handle secure session management: store Guardian tokens in httpOnly cookies via JavaScript interop (using ports to communicate with a small JS helper for cookie setting, as Elm cannot directly access cookies). Implement CSRF token validation by fetching and including CSRF tokens in all mutation requests through the API client in Task 4, validating them on the server side (ensure the API client module includes CSRF token handling in request headers). For XSS prevention, sanitize message content during rendering in the conversation view from Task 7 using Elm's Html module with careful escaping and avoiding raw HTML injection; consider integrating a library like elm-community/html-extra for safe rendering. Add Content Security Policy (CSP) headers by configuring the Vite build in Task 1 to include CSP meta tags or headers in the HTML template, restricting script sources to self and trusted domains. Implement client-side rate limiting using Elm's Time module to throttle API requests (e.g., limit mutations to 10 per minute) and display user feedback on limits. For secure WebSocket connections, extend the Phoenix Channels interop in Task 3 to validate connections with token-based authentication and implement reconnection with token refresh on failure. Build a token refresh mechanism in the auth state from Task 5, automatically retrying failed requests with refreshed tokens via subscriptions and update functions. Handle session timeout by monitoring token expiry in the state management module, triggering logout and redirect on timeout. Add secure local storage encryption for sensitive data (e.g., user preferences) using Elm's ports to interface with JavaScript's localStorage with encryption (e.g., using crypto-js via JS interop). Implement security audit logging by extending the API client to log security events (e.g., failed logins, token refreshes) to a backend endpoint. Prevent clickjacking by adding X-Frame-Options headers in the Vite config and using Elm's Html to include frame-busting scripts if necessary. Finally, document security best practices in a README or dedicated doc, covering topics like input validation, secure coding in Elm, and integration with Phoenix backend security.",
@@ -2739,7 +2740,7 @@
         "expansionPrompt": "Break down into subtasks for enhancing auth with secure tokens, implementing CSRF and XSS prevention, adding CSP and rate limiting, and integrating audit logging with session management."
       },
       {
-        "id": "10",
+        "id": 10,
         "title": "Elm Web Client: Bridge Status Panel & Management",
         "description": "Develop a comprehensive bridge status panel for the Elm web client, displaying per-thread bridge statuses with visual indicators, sync timestamps, reconnect actions, re-auth flows, configuration details, activation wizard, activity feed, and removal confirmation.",
         "details": "Begin by extending the Elm application state from Task 5 to include a Bridges module with types for Bridge (id, threadId, status: Connected | Syncing | Paused | Error, lastSyncTimestamp, config: {slackChannel, telegramChat}, activityFeed: List ActivityItem where ActivityItem is {type: SyncedMessage | Error, timestamp, details}). Integrate with the REST API client from Task 4 to fetch bridge data via /api/bridges/:id/actions for actions like reconnect, activate, remove, and handle re-auth triggers for expired OAuth by redirecting to auth flow from Task 2. Implement the per-thread bridge status pane as a collapsible panel in the thread view (building on Task 6), using Elm's Html module for visual indicators (e.g., colored icons for status: green for Connected, yellow for Syncing, red for Error). Add action buttons for reconnect (sends API request and updates state optimistically), and for re-auth, trigger the auth flow. Display configuration details in a modal or expandable section. Create a bridge activation wizard as a step-by-step modal with forms for selecting platform (Slack/Telegram), entering credentials, and validating connection. Show the activity feed as a scrollable list with timestamps and error details. Implement the removal confirmation flow with a dialog prompting for confirmation, then API call to delete and update state. Ensure all UI components are responsive and integrate with the overall app routing and state management. Handle errors gracefully, displaying user-friendly messages and retry options. Consider accessibility with ARIA labels for indicators and keyboard navigation for actions.",
@@ -2807,7 +2808,7 @@
         "expansionPrompt": "Expand into subtasks for extending state for bridges, building the status panel UI, integrating API for actions like reconnect, and adding the activation wizard with removal confirmation."
       },
       {
-        "id": "11",
+        "id": 11,
         "title": "Elm Web Client: Developer Debug Panel & QA Utilities",
         "description": "Build a comprehensive developer utilities panel for the Elm web client that includes toggles for visibility, displays raw Phoenix Channel payloads, CDC log entries with filtering, a WebSocket event inspector with JSON formatting, sandbox controls for seeding demo threads, message timeline replay functionality, performance metrics display, a window.Globalbridge.debug API for QA automation, a console logging adapter with log level controls, and test data generation utilities.",
         "details": "Implement the developer debug panel as a new Elm module (e.g., `DebugPanel.elm`) integrated into the main application state from Task 5, using a toggleable overlay or sidebar view that can be activated via a keyboard shortcut (e.g., Ctrl+Shift+D) or a hidden menu item. For displaying raw Phoenix Channel payloads, subscribe to incoming ports from the Phoenix adapter in Task 3 and render them in a scrollable log area with timestamps and JSON formatting using Elm's `Json.Encode` for pretty-printing. Integrate CDC log entries by extending the REST API client in Task 4 to fetch logs from a new endpoint (e.g., `/api/debug/cdc-logs`), implement filtering controls (e.g., by thread ID, timestamp range, or log level) using Elm's Html input elements, and display results in a table or list view. Create a WebSocket event inspector by capturing and displaying all WebSocket messages (incoming/outgoing) from Task 3's adapter, with a JSON formatter that collapses/expands objects and highlights syntax errors. Add sandbox controls to seed demo threads by calling API endpoints via Task 4 to generate test data (e.g., `/api/debug/seed-threads`), including UI buttons or forms to specify parameters like thread count or types. Implement message timeline replay by leveraging the conversation view from Task 7, adding controls to pause/resume and scrub through historical messages fetched via API, with playback indicators. Build a performance metrics display showing latency (e.g., round-trip times for API calls), message throughput (e.g., messages per second from Channels), and memory usage, polled periodically and visualized with simple charts using Elm's Html. Expose a `window.Globalbridge.debug` API via JavaScript interop (ports) for QA automation, allowing external scripts to trigger actions like seeding data or toggling the panel. Create a console logging adapter that intercepts Elm's Debug.log calls and routes them to a configurable console output with log level filters (e.g., Debug, Info, Warn, Error), controllable via the panel. Develop test data generation utilities as Elm functions that produce mock threads, messages, and bridges for development, accessible via the panel's UI. Ensure the panel is conditionally rendered only in development mode (e.g., via an Elm flag or environment check) to avoid exposing it in production. Handle performance by virtualizing long lists (e.g., logs) and using Elm's lazy rendering. Consider accessibility with keyboard navigation and ARIA labels for all interactive elements.",
@@ -2886,7 +2887,7 @@
         "expansionPrompt": "Divide into subtasks for creating the debug panel module, displaying channel payloads and logs, implementing sandbox controls and timeline replay, and adding performance metrics with the debug API."
       },
       {
-        "id": "12",
+        "id": 12,
         "title": "Elm Web Client: Comprehensive Test Suite Implementation",
         "description": "Develop a robust test suite for the Elm web client encompassing Elm unit tests for core state transitions, fuzzer tests for critical flows, Cypress end-to-end tests for user scenarios, integration tests for real-time features, accessibility helpers, mock data generators, CI integration, and documentation.",
         "details": "Begin by setting up elm-test for unit testing, focusing on core state transitions in the application state management from Task 5, such as verifying Msg handling in update functions for auth states (e.g., login success/failure), thread updates, and message sending. Implement fuzzer tests using elm-test's fuzzing capabilities to generate random inputs for message handling (e.g., fuzzing Message types with varying content lengths and attachments), auth flows (e.g., fuzzing email/password combinations and token validations), and channel subscriptions (e.g., fuzzing subscription/unsubscription sequences with random thread IDs). For the Cypress smoke suite, create end-to-end tests for critical user flows: login (navigating to login page, entering credentials, verifying redirect on success), sending a message (selecting a thread, typing in composer, submitting, and checking optimistic UI updates), and viewing threads (loading thread list, filtering/searching, and verifying real-time updates). Include tests for Phoenix Channel reconnection scenarios by simulating network disconnections in Cypress (e.g., using cy.intercept to mock WebSocket failures and verify automatic reconnection with exponential backoff from Task 3). Develop integration tests for auth token refresh by mocking expired tokens in the API client from Task 4 and confirming seamless refresh without user interruption. Test bridge status updates and reconnection by integrating with the bridge panel from Task 10, simulating status changes via mocked API responses and verifying UI indicators update correctly. Add accessibility testing helpers as Elm modules or Cypress plugins, such as functions to check ARIA labels, keyboard navigation, and screen reader compatibility for components like the thread list and message composer. Build mock data generators using Elm's Random module or external libraries for creating realistic test data (e.g., generators for User, Thread, Message, and Bridge types with varying edge cases like empty lists or error states). Integrate the test suite into a CI pipeline by configuring scripts in package.json or CI config files (e.g., GitHub Actions) to run elm-test for unit/fuzzer tests and Cypress for E2E tests on pull requests and merges, including coverage reporting with tools like elm-coverage. Document testing patterns and examples in a dedicated README or wiki, covering how to write new elm-test cases (e.g., using Test.describe and Test.fuzz), Cypress test structures (e.g., page object models for login and thread views), and best practices for mocking Phoenix Channels and API responses. Ensure all tests are runnable in development environments and handle asynchronous operations properly, such as waiting for Channel events in Cypress using cy.wait or custom commands.",
@@ -2983,7 +2984,7 @@
         "expansionPrompt": "Split into subtasks for setting up elm-test for unit/fuzzer tests, creating Cypress E2E tests, adding integration tests for real-time features, building mock generators, and integrating CI with documentation."
       },
       {
-        "id": "13",
+        "id": 13,
         "title": "Elm Web Client: Error Handling & User Feedback",
         "description": "Implement a comprehensive error handling system for the Elm web client, including user-friendly error messages, toast notifications, error boundaries, recovery suggestions, offline detection, retry mechanisms, connection indicators, graceful degradation, error reporting, and fatal error pages.",
         "details": "Begin by extending the Elm application state from Task 5 to include error-related types and states, such as a global ErrorState record with fields for current errors (List Error), connection status (Online | Offline), and retry queues. Define Elm types for Error, including variants like HttpError (with status code and message), ChannelError (for Phoenix socket issues), AuthError, and FatalError, each with user-friendly message mappings (e.g., avoid technical jargon by translating '500 Internal Server Error' to 'Something went wrong on our end. Please try again later.'). Implement toast notifications using Elm's Html module and CSS animations for transient errors, with auto-dismissal after a configurable timeout (e.g., 5 seconds) and manual close options.\n\nCreate error boundary components as Elm modules that wrap views (e.g., ThreadList, Conversation) to catch and display errors gracefully, preventing app crashes. For each boundary, define fallback UI elements like 'Unable to load this section. [Retry]' buttons that trigger recovery actions. Add error recovery suggestions integrated into error messages, such as 'Check your internet connection' for network errors or 'Log in again' for auth failures, with actionable buttons to initiate retries or redirects.\n\nImplement offline detection using Elm's Browser.Events to listen for navigator.onLine changes, updating the connection status indicator (e.g., a small icon in the app header showing green for online, red for offline). For offline messaging, display persistent toasts or banners with 'You're offline. Changes will sync when reconnected.' Build retry mechanisms with user control, such as exponential backoff for API calls in the REST client from Task 4, and UI buttons for manual retries (e.g., in message sending from Task 8).\n\nEnsure graceful degradation by designing views to show partial data or placeholders when features fail (e.g., display cached threads if API fetch fails). Implement error reporting with context by logging errors to a service (via ports to JavaScript for sending to an external logging API), including user ID (from Task 2), timestamp, error type, and stack traces where possible. Create a dedicated error page for fatal errors (e.g., routing to /error with a full-screen message and 'Reload App' button) using Elm's routing from Task 5.\n\nDocument error handling patterns in a README or module comments, covering how to add new error types, integrate boundaries, and test error scenarios. Integrate with existing modules: update the API client (Task 4) to emit error Msgs on failures, Phoenix adapter (Task 3) to handle socket disconnections, and auth flow (Task 2) for session errors. Ensure accessibility by adding ARIA labels to error messages and indicators.",
@@ -3064,7 +3065,7 @@
         "expansionPrompt": "Break down into subtasks for extending state for errors, implementing toast notifications and boundaries, adding offline detection and retry mechanisms, and creating error reporting with fatal pages."
       },
       {
-        "id": "14",
+        "id": 14,
         "title": "Elm Web Client: Responsive Layout & Dark Mode",
         "description": "Implement a responsive dashboard layout for the Elm web client with a left navigation for threads, main panel for messages, and collapsible right panel for bridge insights, along with dark mode support featuring a theme toggle in user settings, CSS custom properties, proper contrast ratios, and layout state persistence.",
         "details": "Begin by structuring the Elm application layout using The Elm Architecture from Task 5, defining a top-level Layout module that manages the dashboard structure with three main panels: a left sidebar for the thread list (integrating with Task 6's ThreadList view), a central main panel for message display (assuming a Conversation view from related tasks), and a right sidebar for bridge insights (leveraging Task 10's BridgeStatusPanel). Implement collapsible functionality for the side panels using Elm state, with buttons or icons to toggle visibility, and ensure the main panel adjusts dynamically (e.g., via CSS flexbox or grid). For responsiveness, create CSS media queries targeting desktop (min-width: 1200px for full three-panel layout), tablet (768px-1199px for collapsible sides or stacked), and mobile (max-width: 767px for single-panel navigation with hamburger menu, prioritizing threads and messages). The mobile variant should use a drawer or modal approach for side panels as a nice-to-have. Use Elm's Html module with CSS classes for styling, ensuring smooth transitions with CSS animations (e.g., transition: width 0.3s ease; for panel collapses). For dark mode, define a theme system using CSS custom properties (e.g., --primary-bg, --text-color) in a root CSS file, creating light and dark palettes that match the native client's parity (research native client colors if needed). Implement theme toggling via a switch in user settings (extend Task 2's auth view or create a new Settings module), storing the preference in Elm's model and persisting to localStorage for layout state (e.g., panel collapsed states and theme choice). Ensure contrast ratios meet WCAG AA standards (e.g., 4.5:1 for normal text) by using tools like contrast checkers during development. Integrate layout state persistence by encoding/decoding JSON for localStorage via Elm's ports or built-in functions, loading on app init. Consider accessibility with ARIA attributes for collapsible panels and keyboard navigation. Finally, test cross-browser compatibility, especially for CSS custom properties support.",
@@ -3135,7 +3136,7 @@
         "expansionPrompt": "Expand into subtasks for structuring the dashboard layout, implementing collapsible panels and responsiveness, adding dark mode with theme toggling, and ensuring persistence and accessibility."
       },
       {
-        "id": "15",
+        "id": 15,
         "title": "Elm Web Client: Accessibility Implementation",
         "description": "Implement comprehensive accessibility features for the Elm web client, including keyboard navigation, ARIA labels, focus management, screen reader support, and WCAG AA compliance to ensure usability for users with disabilities.",
         "details": "Begin by implementing keyboard navigation for thread switching using j/k keys or arrow keys, ensuring the thread list view from Task 6 supports focusable elements and programmatic focus changes via Elm's Html.Attributes and event handlers (e.g., onKeyDown for key detection and Browser.Dom.focus for setting focus). Add ARIA labels to all interactive controls across the application, such as buttons, links, and form inputs, using Html.Attributes.attribute \"aria-label\" or \"aria-labelledby\" to provide descriptive text for screen readers; for example, label the thread list items with thread names and statuses. Build focus management for modals and dialogs by trapping focus within them using Elm ports to JavaScript for focus trapping libraries or custom logic, ensuring initial focus on the first focusable element and restoration on close, integrating with the layout from Task 14. Implement roving tabindex for list navigation in the thread list and message composer from Task 8, setting tabindex=\"-1\" on non-active items and tabindex=\"0\" on the active one, updating dynamically on arrow key navigation. Add screen reader announcements for new messages using Elm ports to trigger live regions (e.g., aria-live=\"polite\" on a hidden div updated via ports for real-time updates from Task 3's Phoenix Channels). Create skip-to-content links at the top of the page, linking to main content areas like the thread list or message panel, styled appropriately and positioned off-screen until focused. Ensure color contrast meets WCAG AA standards by auditing CSS custom properties from Task 14's dark mode implementation, using tools like Contrast Checker to verify ratios (e.g., 4.5:1 for normal text, 3:1 for large text), and adjusting theme colors as needed. Test with VoiceOver on macOS and NVDA on Windows, verifying navigation and announcements. Add keyboard shortcuts documentation in a help modal or settings page, listing shortcuts like j/k for threads, Enter for selection, and Tab for navigation. Implement focus visible indicators using CSS :focus-visible pseudo-class to highlight focused elements with outlines or borders, ensuring they are visible in both light and dark modes. Create accessible form validation messages in the message composer and auth forms from Task 2, associating error messages with inputs via aria-describedby and ensuring they are announced on submission failures. Integrate these features into the overall Elm Architecture from Task 5, updating models and messages as needed for accessibility states (e.g., current focus index).",
@@ -3152,7 +3153,7 @@
         "updatedAt": "2025-10-21T15:06:35.720Z"
       },
       {
-        "id": "16",
+        "id": 16,
         "title": "Elm Web Client: Performance Optimization & Bundle Analysis",
         "description": "Optimize the Elm web client for production performance by implementing Elm compilation optimizations, code splitting, lazy loading, virtual scrolling, WebSocket enhancements, message batching, performance monitoring, bundle analysis, CSS optimizations, performance budgets, and Lighthouse CI integration.",
         "details": "Begin by configuring Elm compilation for production using the --optimize flag in the build process, which enables dead code elimination, function inlining, and other optimizations to reduce bundle size and improve runtime performance. Implement code splitting for large features by using Elm's lazy loading capabilities with Browser.application or custom ports to dynamically load modules like the bridge panel or advanced message views, ensuring that initial bundle size remains small and subsequent loads are efficient. Create lazy loading for the bridge panel by wrapping it in a lazy view that loads on demand when the user interacts with the bridge insights toggle, integrating with the layout state from Task 14. Build virtual scrolling for long message lists by implementing a custom Elm component that renders only visible items (e.g., using a viewport calculation with Html.lazy and subscriptions for scroll events), calculating item heights dynamically and maintaining scroll position to handle thousands of messages without performance degradation. Optimize WebSocket event handling by batching incoming channel messages in the JavaScript adapter from Task 3, using a debounced port to send batched updates to Elm, reducing frequent re-renders. Implement message batching for bulk operations by modifying the API client in Task 4 to support batch endpoints for sending multiple messages or updates in a single HTTP request, with retry logic and error handling. Add performance monitoring hooks by integrating Elm's Time.every or custom ports to track metrics like render times, WebSocket latency, and API response times, logging them via ports to a monitoring service. Build bundle size analysis tooling by adding webpack-bundle-analyzer or similar to the build pipeline, generating reports on module sizes and dependencies to identify optimization opportunities. Optimize CSS delivery by inlining critical CSS (above-the-fold styles for the dashboard layout from Task 14) using a tool like critical or manual extraction, and loading non-critical CSS asynchronously. Create performance budgets by defining thresholds in the build configuration (e.g., max bundle size 2MB, max Lighthouse scores 90+), failing builds that exceed them. Add Lighthouse CI integration by configuring GitHub Actions or similar to run Lighthouse audits on pull requests, generating reports and blocking merges on score regressions. Ensure all optimizations maintain compatibility with existing features like real-time updates from Task 6, authentication from Task 2, and responsive design from Task 14, and consider accessibility impacts to avoid regressions with Task 15.",
@@ -3170,7 +3171,7 @@
         "updatedAt": "2025-10-21T15:06:57.117Z"
       },
       {
-        "id": "17",
+        "id": 17,
         "title": "Elm Web Client: Telemetry & Analytics Integration",
         "description": "Integrate telemetry and analytics into the Elm web client to emit Phoenix telemetry events for thread subscriptions and unsubscriptions, capture key user interactions such as login success/failure and message sends, and implement a configurable analytics provider with performance metrics, error tracking, and privacy-respecting user engagement metrics.",
         "details": "Begin by defining Elm types for telemetry events, such as union types for Event (e.g., ThreadSubscribed { threadId : String }, ThreadUnsubscribed { threadId : String }, LoginSuccess { userId : String }, LoginFailure { reason : String }, MessageSent { threadId : String, messageId : String }, BridgeRetry { bridgeId : String, attempt : Int }, PageLoad { duration : Float }, FirstMessageSent { duration : Float }, ChannelConnection { duration : Float }, ErrorOccurred { context : String, error : String }, UserEngaged { action : String }). Ensure these types are privacy-respecting by excluding any personally identifiable information (PII) like email addresses or full names, using anonymized IDs instead. Integrate with the Phoenix Channels JavaScript interop from Task 3 by extending the phoenixAdapter.js to emit telemetry events via ports, for example, adding outgoing ports like `emitTelemetry : Event -> Cmd msg` and handling them in JavaScript to send events to Phoenix telemetry (e.g., using Phoenix's telemetry API or custom logging). For user interactions, hook into the authentication flow from Task 2 to emit LoginSuccess/LoginFailure events on auth state changes in the update function. For message sends, integrate with the state management from Task 5 to emit MessageSent events when messages are successfully sent via the REST API client from Task 4. For thread subscriptions/unsubscriptions, extend the thread list view from Task 6 to emit events when subscribing/unsubscribing to channels. Build a lightweight analytics adapter module in Elm, starting with a console logging implementation for development (e.g., a DevAnalytics module that logs events to console.log). Create a configurable AnalyticsProvider interface using Elm's extensible records or union types, allowing for different providers (e.g., Console, ProductionApi), with a default dev provider that logs to console and a prod provider that can be configured via environment variables to send data to an external analytics service via HTTP requests using the API client. Implement performance metrics by using Browser.Events and Time modules to track page load times (e.g., on app initialization), first message sent (timestamp from state), and channel connection times (from Task 3's reconnection logic). Add error tracking by integrating with the API client's error handling in Task 4 to emit ErrorOccurred events with context (e.g., API endpoint, error type). For user engagement metrics, track actions like thread switches or bridge panel opens by emitting UserEngaged events in relevant update functions. Ensure all tracking is opt-in or configurable, with no automatic PII collection, and document all event types, fields, and emission points in a stakeholder-facing document (e.g., a Markdown file in the repo). Consider using Elm's Task and Cmd for asynchronous telemetry emission to avoid blocking the UI.",
@@ -3188,7 +3189,7 @@
         "updatedAt": "2025-10-21T15:07:00.001Z"
       },
       {
-        "id": "18",
+        "id": 18,
         "title": "Elm Web Client: Documentation & Developer Onboarding",
         "description": "Create comprehensive documentation for the Elm web client, including setup instructions, architecture guides, integration details, troubleshooting, testing patterns, contribution guidelines, deployment procedures, and inline code comments to facilitate developer onboarding and maintainability.",
         "details": "Begin by creating a comprehensive README.md file in the project root, starting with a project overview, key features (e.g., real-time messaging, bridge integrations), and prerequisites (Elm 0.19+, Node.js, Phoenix backend). Include detailed setup instructions: clone the repository, install dependencies with `npm install` or `elm install`, configure environment variables (e.g., API_BASE_URL, PHOENIX_SOCKET_URL), and build/run commands (`elm make src/Main.elm --output=elm.js`, `npm start` for development server). Document Elm architecture patterns by explaining The Elm Architecture (Model-View-Update) with examples from the app's state management (e.g., top-level Model with sub-models for Auth, Threads, Messages), message routing, and update functions, including how isolated state modules handle specific features like authentication or thread subscriptions. Describe state flow with diagrams or code snippets showing how messages propagate through the app, such as login triggering AuthMsg updates. Write a Phoenix Channels integration guide detailing the JavaScript adapter (phoenixAdapter.js) for socket management, Elm ports for subscribe/unsubscribe/send/receive, event handling for channel messages, reconnection logic with exponential backoff, and heartbeat mechanisms. Create API contract documentation by listing REST endpoints (e.g., /api/bootstrap for initial data, /api/threads for thread lists) with request/response schemas, JSON examples, authentication headers (Bearer tokens), and error codes; include Elm decoder/encoder examples for type-safe interactions. Build a troubleshooting guide covering common issues like WebSocket connection failures (check token validity, network configs), Elm compilation errors (ensure all dependencies installed), performance bottlenecks (refer to Task 16 optimizations), and accessibility problems (keyboard navigation not working). Document testing patterns by outlining elm-test for unit tests (e.g., state transitions), fuzzers for inputs, Cypress for E2E scenarios (login to message send), and integration tests for real-time features; include examples of running tests (`elm-test`, `npx cypress run`). Create contribution guidelines specifying coding standards (Elm style guide), commit message formats, PR reviews, and branching strategy (e.g., feature branches from main). Write a deployment guide for Phoenix static integration, including building the Elm app for production (`elm make --optimize`), integrating with Phoenix assets (e.g., copying elm.js to priv/static), configuring environment variables for prod, and using tools like Lighthouse CI for performance checks. Document environment configuration with examples of .env files for dev/prod, including API URLs, feature flags, and secrets handling. Add inline code documentation using Elm's --docs flag or comments in modules, explaining complex functions, types, and ports (e.g., document the Api module's request builders). Build architecture decision records (ADRs) as Markdown files in a docs/adr/ directory, recording decisions like choosing Elm for frontend (benefits: type safety, no runtime errors), Phoenix Channels for real-time (vs alternatives like WebSockets directly), and state management structure; each ADR should include context, options considered, decision, and consequences. Ensure all documentation is version-controlled, accessible, and updated as the project evolves.",
@@ -3207,7 +3208,7 @@
         "updatedAt": "2025-10-21T15:07:11.522Z"
       },
       {
-        "id": "19",
+        "id": 19,
         "title": "Elm Web Client: E2EE Preparation & Message Rendering Abstraction",
         "description": "Prepare the Elm web client for end-to-end encryption (E2EE) by creating a message rendering abstraction to handle encrypted and decrypted payloads, designing a message format with an encrypted_content field, and building infrastructure stubs for Signal Protocol integration, key management, and client-side decryption.",
         "details": "Begin by extending the Elm message model (from Task 5's state management) to include an encryption state, such as a union type like EncryptionState (Plaintext, Encrypted { encryptedContent : String, decryptionStatus : DecryptionStatus }, Decrypting, Decrypted { decryptedContent : String }). Design the message format to support an optional encrypted_content field in JSON decoders/encoders, ensuring backward compatibility with existing plaintext messages. Create a message rendering abstraction module (e.g., MessageRenderer.elm) that takes a message and renders it based on its encryption state: for plaintext, render normally; for encrypted, show a placeholder UI like 'Encrypted message - click to decrypt' with an indicator icon (e.g., a lock icon from an icon library or SVG). Implement a decryption hook interface as an Elm port or function stub that can be called to trigger decryption, preparing for future Signal Protocol integration by defining types for keys, sessions, and protocols (e.g., KeyBundle, Session, ProtocolVersion). Build key management infrastructure stubs, such as a KeyManager module with functions for storing/retrieving keys (initially using localStorage via ports, future-proofing for secure storage), and integrate with authentication from Task 2 for user-specific keys. Add encrypted message indicator icons to the UI, ensuring they are accessible and responsive. Document E2EE architecture decisions in a dedicated section of the project docs (e.g., README or architecture.md), covering choices like Signal Protocol for E2EE, client-side decryption flow (e.g., fetch keys, decrypt on-demand), and database schema considerations (e.g., storing encrypted_content as a blob, versioning for future-proofing). Prepare the client-side decryption flow by outlining the steps in code comments: receive encrypted message, check for decryption keys, prompt user if needed, decrypt using Signal Protocol stubs, update message state, and re-render. Future-proof database schema access by ensuring API clients (from Task 4) can handle the new encrypted_content field without breaking existing endpoints, and use Phoenix Channels (from Task 3) for real-time key distribution or message updates. Consider security implications, such as avoiding logging decrypted content and implementing rate limiting for decryption attempts. Use Elm's type system to enforce encryption states and prevent accidental exposure of plaintext.",
@@ -3275,7 +3276,7 @@
         "expansionPrompt": "Divide into subtasks for extending message models for encryption, creating the rendering abstraction, building key management stubs, and preparing decryption flow with documentation."
       },
       {
-        "id": "20",
+        "id": 20,
         "title": "Elm Web Client: Deployment Pipeline & Rollout Plan",
         "description": "Establish a comprehensive deployment pipeline for the Elm web client, including production build optimization, CI/CD automation, staging environment, feature flags, health checks, rollback procedures, error monitoring, and deployment documentation to ensure reliable and gradual rollouts.",
         "details": "Begin by setting up a production build pipeline using Vite for the Elm web client, configuring Vite to handle Elm compilation with optimizations such as tree-shaking, minification, and asset bundling; integrate with Elm's --optimize flag to reduce bundle size and improve load times. Configure Phoenix backend for static file serving by updating the endpoint configuration to serve the built Elm assets from a public directory, ensuring proper caching headers and gzip compression for optimal performance. Build a CI/CD pipeline using tools like GitHub Actions or GitLab CI, automating steps for linting, testing (integrating with existing elm-test suites), building, and deploying to staging and production environments; include automated testing for Elm code, API integrations, and end-to-end tests using Cypress or similar. Set up a staging environment mirroring production, with separate database and configuration for safe testing of new features. Implement feature flags using a library like elm-feature-flags or custom ports to toggle features gradually, allowing percentage-based rollouts or user-specific enabling. Build health check endpoints in the Elm app via ports to Phoenix, exposing metrics like app load time, WebSocket connection status, and API response times. Create rollback procedures by maintaining versioned deployments, with scripts to revert to previous builds and database snapshots if needed. Integrate error monitoring with Sentry by adding the Sentry SDK via JavaScript interop, configuring it to capture Elm runtime errors, unhandled exceptions, and performance issues, with Elm ports to send custom events. Build deployment documentation including step-by-step guides for manual deployments, environment variable configurations, and troubleshooting common issues. Create a release checklist covering code reviews, testing completion, feature flag settings, and post-deployment monitoring. Add telemetry dashboards using tools like Grafana or custom Elm views integrated with Task 17's telemetry events, displaying metrics such as user engagement, error rates, and performance KPIs. Implement a blue-green deployment strategy by deploying to a secondary environment, switching traffic via load balancers or DNS, and monitoring for issues before full rollout. Document all environment configurations, including API URLs, feature flag defaults, and monitoring endpoints, ensuring consistency across dev, staging, and prod.",
@@ -3298,7 +3299,1693 @@
       "completedCount": 7,
       "tags": [
         "elm"
-      ]
+      ],
+      "created": "2025-10-22T14:36:18.231Z",
+      "description": "Tasks for elm context",
+      "updated": "2025-10-22T14:36:18.231Z"
+    }
+  },
+  "ios": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Implement NotificationConfig to read environment variable",
+        "description": "Create a NotificationConfig class that reads the IOS_NOTIFICATIONS_MODE environment variable and exposes the current notification mode (banner or system).",
+        "details": "In Swift, create a new file NotificationConfig.swift. Use ProcessInfo.processInfo.environment[\"IOS_NOTIFICATIONS_MODE\"] to read the value. Define an enum NotificationMode { case banner, system }. Provide a static property to get the current mode. Ensure it defaults appropriately and is shared with system push implementation.",
+        "testStrategy": "Unit tests to verify correct parsing of environment variables and default values.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define NotificationMode enum",
+            "description": "Create an enum called NotificationMode with cases for banner and system notification modes.",
+            "dependencies": [],
+            "details": "In the new NotificationConfig.swift file, define the enum as follows: enum NotificationMode { case banner, system }. This will represent the possible modes for notifications.",
+            "status": "done",
+            "testStrategy": "Unit tests to verify the enum cases are correctly defined.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Create NotificationConfig class structure",
+            "description": "Set up the basic structure of the NotificationConfig class in NotificationConfig.swift.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a class named NotificationConfig. It should be designed to read environment variables and provide access to the notification mode. Ensure it's a simple utility class without instance methods initially.",
+            "status": "done",
+            "testStrategy": "Unit tests to confirm the class can be instantiated and basic structure is in place.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement environment variable reading",
+            "description": "Add functionality to read the IOS_NOTIFICATIONS_MODE environment variable using ProcessInfo.",
+            "dependencies": [
+              2
+            ],
+            "details": "Inside NotificationConfig, use ProcessInfo.processInfo.environment[\"IOS_NOTIFICATIONS_MODE\"] to retrieve the string value. Handle cases where the variable might be nil or have unexpected values.",
+            "status": "done",
+            "testStrategy": "Unit tests to verify correct reading of the environment variable, including edge cases like missing or invalid values.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Add static property for current mode",
+            "description": "Implement a static property that returns the current NotificationMode based on the environment variable.",
+            "dependencies": [
+              3
+            ],
+            "details": "Add a static computed property like static var currentMode: NotificationMode { get { ... } } that parses the environment string to return .banner or .system, with appropriate defaulting (e.g., default to .system if invalid).",
+            "status": "done",
+            "testStrategy": "Unit tests to check the static property returns correct modes for different environment values and defaults.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Ensure defaulting and integration readiness",
+            "description": "Finalize the class to ensure it defaults appropriately and is ready for sharing with system push implementation.",
+            "dependencies": [
+              4
+            ],
+            "details": "Verify that the default mode is set (e.g., .system if not specified). Add any necessary comments or preparations for integration with the system push notification system. Ensure the class is thread-safe if needed.",
+            "status": "done",
+            "testStrategy": "Integration tests to confirm the config works in a simulated environment and defaults correctly.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 2,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
+      },
+      {
+        "id": 2,
+        "title": "Define BannerItem data model",
+        "description": "Create the BannerItem struct with properties for id, threadId, title, subtitle, avatarURL, count, timestamp, and actions.",
+        "details": "In Swift, define a struct BannerItem in a new file BannerItem.swift. Use UUID for id and threadId, String for title and subtitle, URL? for avatarURL, Int for count, Date for timestamp, and an array of BannerAction for actions. Ensure it conforms to Codable if needed for persistence or logging.",
+        "testStrategy": "Unit tests for struct initialization and property validation.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create BannerItem.swift file",
+            "description": "Create a new Swift file named BannerItem.swift in the appropriate directory for the data model.",
+            "dependencies": [],
+            "details": "In the Xcode project, add a new Swift file called BannerItem.swift under the Models or Data group. Ensure the file is properly integrated into the project structure.",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Define BannerItem struct with basic properties",
+            "description": "Define the BannerItem struct with properties for id, threadId, title, subtitle, avatarURL, count, and timestamp.",
+            "dependencies": [
+              1
+            ],
+            "details": "Inside BannerItem.swift, declare a struct BannerItem with let id: UUID, let threadId: UUID, let title: String, let subtitle: String, let avatarURL: URL?, let count: Int, and let timestamp: Date. Use appropriate access levels.",
+            "status": "done",
+            "testStrategy": "Unit tests for struct initialization and property validation.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Add actions property to BannerItem",
+            "description": "Add the actions property as an array of BannerAction to the BannerItem struct.",
+            "dependencies": [
+              2
+            ],
+            "details": "Assuming BannerAction is defined elsewhere, add var actions: [BannerAction] to the BannerItem struct. Ensure the array can be modified if needed for future interactions.",
+            "status": "done",
+            "testStrategy": "Unit tests to verify actions array initialization and modification.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implement Codable conformance",
+            "description": "Make BannerItem conform to the Codable protocol for persistence or logging purposes.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Add Codable conformance to the BannerItem struct by ensuring all properties are Codable-compatible. Implement custom encoding/decoding if URL or other types require it, using CodingKeys if necessary.",
+            "status": "done",
+            "testStrategy": "Unit tests for encoding and decoding BannerItem instances.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Add initializers and utility methods",
+            "description": "Provide necessary initializers and any utility methods for BannerItem.",
+            "dependencies": [
+              2,
+              3,
+              4
+            ],
+            "details": "Add a custom initializer for BannerItem with parameters for all properties. Optionally add computed properties or methods if needed for the data model, ensuring it integrates well with the rest of the app.",
+            "status": "done",
+            "testStrategy": "Unit tests for initializer functionality and any added methods.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 1,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
+      },
+      {
+        "id": 3,
+        "title": "Implement InAppBannerCenter for queue management",
+        "description": "Develop InAppBannerCenter class to manage an in-memory queue of BannerItem, handle present/dismiss lifecycle, timers, and coalescing policy.",
+        "details": "Create InAppBannerCenter.swift as a singleton or observable object. Implement a FIFO queue, coalescing logic for events within 2s from the same thread, auto-dismiss after 4-6s, and public APIs: present(from event: NotificationEvent), dismiss(id:), clear(). Use Combine or SwiftUI's ObservableObject for state management.",
+        "testStrategy": "Unit tests for queueing, coalescing, and timer logic. Integration tests with mock events.",
+        "priority": "high",
+        "dependencies": [
+          "2"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up the singleton or observable object structure and basic queue",
+            "description": "Create the InAppBannerCenter class as a singleton or observable object with a basic FIFO queue for BannerItem.",
+            "dependencies": [],
+            "details": "Implement InAppBannerCenter.swift as a singleton using a shared instance or as an ObservableObject. Initialize an in-memory queue to hold BannerItem instances in FIFO order. Ensure thread-safety if needed for basic operations.",
+            "status": "done",
+            "testStrategy": "Unit tests for singleton initialization and queue operations like enqueue and dequeue.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement coalescing logic and timers for auto-dismiss",
+            "description": "Add logic to coalesce events from the same thread within 2 seconds and implement auto-dismiss timers for 4-6 seconds.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement coalescing policy to merge or ignore duplicate events from the same thread if they occur within 2 seconds. Set up timers using Timer or Combine publishers to automatically dismiss banners after 4-6 seconds. Handle timer invalidation on manual dismiss.",
+            "status": "done",
+            "testStrategy": "Unit tests for coalescing behavior with mock events and timer accuracy.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Add public APIs and integrate with Combine/SwiftUI for state management",
+            "description": "Implement public APIs for present, dismiss, and clear, and integrate state management using Combine or SwiftUI's ObservableObject.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Add public methods: present(from event: NotificationEvent) to add to queue with coalescing, dismiss(id:) to remove specific banner, and clear() to empty the queue. Use @Published properties or Combine publishers to notify observers of queue changes for SwiftUI integration.",
+            "status": "done",
+            "testStrategy": "Integration tests with mock events to verify API behavior and state updates.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break down the implementation into subtasks: 1) Set up the singleton or observable object structure and basic queue, 2) Implement coalescing logic and timers for auto-dismiss, 3) Add public APIs and integrate with Combine/SwiftUI for state management."
+      },
+      {
+        "id": 4,
+        "title": "Create InAppBannerView for visual presentation",
+        "description": "Build InAppBannerView using SwiftUI to display the banner with avatar, title, subtitle, gestures, and animations.",
+        "details": "In InAppBannerView.swift, use SwiftUI views like ZStack, HStack, Image, Text. Implement tap, swipe up, and optional swipe down gestures. Add animations for show/dismiss. Support light/dark themes and adaptive layout. Include haptic feedback on show and tap.",
+        "testStrategy": "UI snapshot tests for different themes, dynamic type, and accessibility. Interaction tests for gestures.",
+        "priority": "medium",
+        "dependencies": [
+          "2",
+          "3"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Basic SwiftUI Layout for InAppBannerView",
+            "description": "Create the foundational SwiftUI layout in InAppBannerView.swift using ZStack, HStack, Image, and Text to display avatar, title, subtitle, and implement tap, swipe up, and optional swipe down gestures.",
+            "dependencies": [],
+            "details": "Use SwiftUI views to structure the banner: ZStack for layering, HStack for horizontal alignment of avatar and text elements. Load avatar from URL using AsyncImage or similar, display title and subtitle as Text views. Add gesture recognizers for tap (to handle actions), swipe up (to dismiss), and optional swipe down (for additional interactions). Ensure the layout is adaptive and responsive.",
+            "status": "done",
+            "testStrategy": "UI snapshot tests for layout correctness and interaction tests for gesture recognition.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Add Animations, Theming, and Haptic Feedback to InAppBannerView",
+            "description": "Enhance InAppBannerView with animations for show/dismiss transitions, support for light/dark themes, adaptive layout, and integrate haptic feedback on show and tap events.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement SwiftUI animations using withAnimation for smooth show/dismiss effects, such as fade-in/fade-out or slide transitions. Add theme support by using ColorScheme and adaptive colors for light/dark modes. Integrate haptic feedback using UINotificationFeedbackGenerator for show and tap actions. Ensure the view adapts to dynamic type and accessibility features.",
+            "status": "done",
+            "testStrategy": "UI snapshot tests for different themes and dynamic type, interaction tests for animations and haptic feedback.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Break down into subtasks: 1) Implement the basic SwiftUI layout with avatar, title, subtitle, and gestures, 2) Add animations, theming support, and haptic feedback integration."
+      },
+      {
+        "id": 5,
+        "title": "Develop InAppBannerContainer for root overlay",
+        "description": "Implement InAppBannerContainer as a ZStack overlay attached to the app’s root view to host banners.",
+        "details": "Create InAppBannerContainer.swift as a SwiftUI View that overlays on the root. Use EnvironmentObject or ObservedObject to connect to InAppBannerCenter. Position at top of screen, avoiding status/navigation bars. Handle multiple banners by showing one at a time.",
+        "testStrategy": "UI tests to verify overlay positioning and banner display in various app screens.",
+        "priority": "medium",
+        "dependencies": [
+          "3",
+          "4"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement InAppBannerContainer with overlay, connection, positioning, and multiple banner handling",
+            "description": "Create InAppBannerContainer.swift as a SwiftUI View that overlays on the root using ZStack. Connect to InAppBannerCenter via EnvironmentObject or ObservedObject. Position at top of screen, avoiding status/navigation bars. Handle multiple banners by showing one at a time.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "The view should be attached to the app’s root view as a ZStack overlay. Use safe area insets or geometry reader to position at the top while avoiding status and navigation bars. Implement logic to observe the InAppBannerCenter for the current banner to display, ensuring only one banner is shown at a time, with proper dismissal handling.",
+            "status": "done",
+            "testStrategy": "UI tests to verify overlay positioning and banner display in various app screens, including handling of multiple banners and avoidance of system bars.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Break down into subtasks: 1) Create the overlay view and connect to InAppBannerCenter, 2) Implement positioning logic to avoid bars and handle multiple banners."
+      },
+      {
+        "id": 6,
+        "title": "Integrate event mapping from Phoenix/WebSocket",
+        "description": "Map realtime messages from PhoenixChannelManager to NotificationEvent and trigger banner presentation.",
+        "details": "In PhoenixChannelManager or a new event handler, on receiving a message, create NotificationEvent.messageReceived with metadata. Filter based on current visible thread, mute/DND settings. Call InAppBannerCenter.present(event) if conditions met.",
+        "testStrategy": "Integration tests simulating WebSocket messages and asserting banner presentation or suppression.",
+        "priority": "high",
+        "dependencies": [
+          "1",
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up event mapping from WebSocket messages to NotificationEvent",
+            "description": "Create a mechanism in PhoenixChannelManager or a new event handler to listen for incoming WebSocket messages and map them to NotificationEvent.messageReceived, including relevant metadata such as thread ID and message content.",
+            "dependencies": [],
+            "details": "Implement a message handler that parses incoming Phoenix/WebSocket messages, extracts necessary metadata (e.g., threadId, sender, timestamp), and instantiates NotificationEvent.messageReceived objects accordingly. Ensure the handler is integrated into the existing PhoenixChannelManager without disrupting current functionality.",
+            "status": "done",
+            "testStrategy": "Unit tests to verify message parsing and NotificationEvent creation with mock WebSocket messages.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement filtering logic and trigger banner presentation",
+            "description": "Add logic to filter NotificationEvents based on current visible thread, mute settings, and Do Not Disturb (DND) status, then conditionally call InAppBannerCenter.present(event) to display the banner.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the event handler, check the current app state for visible thread, user mute preferences, and DND settings. If the message passes all filters (e.g., not from the visible thread, not muted, not in DND), invoke InAppBannerCenter.present(event) to trigger the in-app banner. Handle edge cases like multiple rapid messages.",
+            "status": "done",
+            "testStrategy": "Integration tests simulating various app states and settings, asserting whether banner presentation occurs or is suppressed.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Wire Phoenix message events to present banners",
+            "description": "Hook PhoenixChannelManager.onMessage(conversationId:) to InAppBannerCenter.presentMessageBanner(...) for non-active threads. Extract threadId, sender title, and message snippet. Ensure it runs only when NotificationConfig.current != .system.",
+            "details": "- In PhoenixChannelManager.onMessage(conversationId:), build a safe snippet from the message content (truncate ~120 chars, strip newlines).\n- Determine active thread via store/app state (add a lightweight isActiveThread(threadId:) accessor on Store/AppState).\n- If not active and thread is not muted/DND, call InAppBannerCenter.shared.presentMessageBanner(threadId:title:subtitle:avatarURL:).\n- Guard with NotificationConfig.current != .system to avoid duplicates with OS banners.\n- Add TODO: consider debounce/coalesce on the center side already implemented.",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 6
+          },
+          {
+            "id": 4,
+            "title": "Add suppression/mute checks and store accessor",
+            "description": "Expose isActiveThread(threadId:) in Store/AppState and check conversation mute/DND settings before presenting banners.",
+            "details": "- Store/AppState: add a read-only accessor or computed property to detect the currently visible thread.\n- Thread settings: check existing mute flags on Thread/DB. If none, add a temporary utility to query DatabaseManager for muted status.\n- In event mapping, short-circuit when active or muted/DND.\n- Unit test with mocked active thread and mute states to verify suppression.",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 6
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Break down into subtasks: 1) Set up event mapping from WebSocket messages to NotificationEvent, 2) Implement filtering logic based on settings and call InAppBannerCenter.present."
+      },
+      {
+        "id": 7,
+        "title": "Implement navigation on banner tap",
+        "description": "Handle tap gesture to navigate to the relevant thread detail view using a shared Navigator or Router.",
+        "details": "In InAppBannerView, on tap, use NotificationCenter or a routing mechanism to push the thread view with threadId. Ensure deep-link style navigation works from any screen. Mark the thread as seen.",
+        "testStrategy": "Integration tests for tap navigation, verifying correct routing and state updates.",
+        "priority": "medium",
+        "dependencies": [
+          "4",
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Handle tap gesture and implement routing to thread view with deep-link support",
+            "description": "Implement tap gesture handling in InAppBannerView to navigate to the thread detail view using a shared Navigator or Router, passing the threadId. Ensure deep-link style navigation works from any screen and update thread state by marking it as seen.",
+            "dependencies": [
+              4,
+              5
+            ],
+            "details": "In InAppBannerView, add a tap gesture recognizer or use SwiftUI's onTapGesture to trigger navigation. Use NotificationCenter or a routing mechanism (e.g., a shared Router) to push the thread view with the threadId. Implement deep-link handling to allow navigation from any screen, possibly by registering a URL scheme or using app delegate methods. After navigation, mark the thread as seen by updating the relevant data model or service. Ensure the implementation integrates with existing navigation systems and handles edge cases like invalid threadIds.",
+            "status": "done",
+            "testStrategy": "Integration tests for tap gesture triggering correct routing to thread view, verifying deep-link navigation from various screens, and confirming thread is marked as seen after navigation.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Wire banner tap to navigation/store",
+            "description": "On banner tap, navigate to the thread: compact → push via NavigationStack, split → select detail. Use Store to dispatch .threadSelected and ensure UI updates.",
+            "details": "- Implement a navigation helper that takes a UUID threadId and triggers appropriate navigation for compact/split layouts.\n- In GlobalBridgeApp, set InAppBannerCenter.shared.onTapThread to call this helper and dispatch store.send(.threadSelected(...)).\n- Clear banner after tap; mark messages as seen; optionally scroll to latest.\n- Add simple integration test hook to verify dispatch and UI path is hit.",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 7
+          },
+          {
+            "id": 3,
+            "title": "Add scroll-to-last and badge/unread sync on tap",
+            "description": "After navigating on banner tap, ensure UI scrolls to most recent message and unread/badge counts sync appropriately.",
+            "details": "- After .threadSelected, trigger a scrollTo last message (if accessible via ChatScreen state) or schedule on appear.\n- Clear delivered banner and decrement any in-app unread count for that thread; if using system badges, call NotificationManager.clearBadge() if needed.\n- Add a basic test plan note for manual verification.",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 7
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Break down into subtasks: 1) Handle tap gesture and routing to thread view, 2) Ensure deep-link navigation and state updates like marking as seen."
+      },
+      {
+        "id": 8,
+        "title": "Add analytics logging for banner events",
+        "description": "Implement telemetry for banner impression, tap, dismiss, coalesce, with properties like threadId, count, latencyMs.",
+        "details": "In InAppBannerCenter and InAppBannerView, log events using the app's analytics framework (e.g., Firebase or custom). Track dwell duration, CTR. Ensure events are sent on impression, tap, dismiss.",
+        "testStrategy": "Unit tests for event logging. Analytics dashboard verification for captured events.",
+        "priority": "low",
+        "dependencies": [
+          "3",
+          "4"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Integrate analytics framework in InAppBannerCenter",
+            "description": "Set up the analytics framework (e.g., Firebase) in the InAppBannerCenter class to enable event logging.",
+            "dependencies": [
+              3
+            ],
+            "details": "Import the analytics framework into InAppBannerCenter.swift and initialize it if necessary. Ensure the framework is accessible for logging events like impression, tap, dismiss, and coalesce.",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify framework initialization and accessibility.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement impression event logging in InAppBannerView",
+            "description": "Add logging for banner impression events in InAppBannerView, including properties like threadId, count, and latencyMs.",
+            "dependencies": [
+              1,
+              4
+            ],
+            "details": "In InAppBannerView.swift, log an impression event when the banner is displayed. Include properties such as threadId, count, latencyMs, and start tracking dwell duration. Use the analytics framework to send the event.",
+            "status": "pending",
+            "testStrategy": "Unit tests for event logging on view appearance. Verify properties are correctly set.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement tap event logging in InAppBannerView",
+            "description": "Add logging for banner tap events in InAppBannerView, including CTR calculation.",
+            "dependencies": [
+              2
+            ],
+            "details": "In InAppBannerView.swift, log a tap event when the user taps the banner. Calculate and include CTR (click-through rate) based on impressions and taps. Send the event with properties like threadId and count using the analytics framework.",
+            "status": "pending",
+            "testStrategy": "Unit tests for tap gesture triggering event logging. Verify CTR calculation.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implement dismiss event logging",
+            "description": "Add logging for banner dismiss events, either manual or auto, in InAppBannerView and InAppBannerCenter.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Log dismiss events in InAppBannerView for manual dismiss (e.g., swipe) and in InAppBannerCenter for auto-dismiss. Include dwell duration in the event properties. Ensure events are sent with threadId, count, and latencyMs.",
+            "status": "pending",
+            "testStrategy": "Unit tests for dismiss triggers (manual and auto). Integration tests to verify dwell duration tracking.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Implement coalesce event logging in InAppBannerCenter",
+            "description": "Add logging for coalesce events when banners are merged in InAppBannerCenter.",
+            "dependencies": [
+              1,
+              4
+            ],
+            "details": "In InAppBannerCenter.swift, log a coalesce event when multiple events from the same thread are coalesced within 2 seconds. Include properties like threadId, count, and latencyMs. Ensure the event is sent using the analytics framework.",
+            "status": "pending",
+            "testStrategy": "Unit tests for coalescing logic and event logging. Verify event properties.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 3,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
+      },
+      {
+        "id": 9,
+        "title": "Support theming and localization",
+        "description": "Ensure banners support light/dark modes and use localized strings.",
+        "details": "In InAppBannerView, use SwiftUI's ColorScheme and LocalizedStringKey. Add localization keys for all text. Validate RTL layout.",
+        "testStrategy": "UI snapshot tests for light/dark modes and different locales.",
+        "priority": "medium",
+        "dependencies": [
+          "4"
+        ],
+        "status": "deferred",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement theming and localization for InAppBannerView",
+            "description": "Add support for light/dark modes using SwiftUI's ColorScheme and implement localization keys for all text using LocalizedStringKey. Validate RTL layout to ensure proper display in right-to-left languages.",
+            "dependencies": [],
+            "details": "In InAppBannerView, integrate SwiftUI's ColorScheme to automatically adapt colors for light and dark modes. Replace hardcoded strings with LocalizedStringKey for title, subtitle, and any other text elements. Add localization keys to the app's Localizable.strings file. Test RTL layout by simulating right-to-left locales and ensuring text alignment, image positioning, and gesture handling work correctly. Use SwiftUI's environment to detect layout direction.",
+            "status": "pending",
+            "testStrategy": "UI snapshot tests for light/dark modes and different locales including RTL languages.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Break down into subtasks: 1) Add theming support for light/dark modes, 2) Implement localization keys and validate RTL layout.",
+        "updatedAt": "2025-10-22T14:50:22.446Z"
+      },
+      {
+        "id": 10,
+        "title": "Implement accessibility features",
+        "description": "Add VoiceOver announcements, large text support, sufficient contrast, and hit target sizes.",
+        "details": "In InAppBannerView, use AccessibilityModifier for announcements like “New message from <sender>: <snippet>. Tap to open.” Ensure dynamic type scales content. Provide adequate touch targets.",
+        "testStrategy": "Accessibility tests using XCUITest with VoiceOver enabled.",
+        "priority": "medium",
+        "dependencies": [
+          "4"
+        ],
+        "status": "deferred",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add VoiceOver announcements and dynamic type support",
+            "description": "Implement VoiceOver announcements for the InAppBannerView using AccessibilityModifier to announce new messages with sender and snippet details, and ensure dynamic type scales the content appropriately.",
+            "dependencies": [
+              4
+            ],
+            "details": "In InAppBannerView, apply AccessibilityModifier to provide announcements like “New message from <sender>: <snippet>. Tap to open.” Use SwiftUI's dynamic type modifiers to scale text sizes based on user preferences for large text support.",
+            "status": "pending",
+            "testStrategy": "Accessibility tests using XCUITest with VoiceOver enabled to verify announcements and dynamic type scaling.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Ensure sufficient contrast and hit targets",
+            "description": "Adjust the InAppBannerView to meet sufficient contrast ratios for text and backgrounds, and ensure all interactive elements have adequate hit target sizes for accessibility.",
+            "dependencies": [
+              4
+            ],
+            "details": "Review and modify color schemes in InAppBannerView to achieve WCAG-compliant contrast ratios. Increase padding or use minimum touch target sizes (at least 44x44 points) for buttons and tappable areas to support users with motor impairments.",
+            "status": "pending",
+            "testStrategy": "Accessibility tests using XCUITest to check contrast ratios and hit target sizes, including automated checks for compliance.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Break down into subtasks: 1) Add VoiceOver announcements and dynamic type support, 2) Ensure sufficient contrast and hit targets.",
+        "updatedAt": "2025-10-22T14:50:25.699Z"
+      },
+      {
+        "id": 11,
+        "title": "Handle app lifecycle and suppression",
+        "description": "Manage banner presentation based on app foreground state and suppress during full-screen activities like video calls.",
+        "details": "In InAppBannerCenter, listen to UIApplication lifecycle notifications. Suppress banners if app is not foreground or during specific activities. No replay on foregrounding.",
+        "testStrategy": "Integration tests for app state changes and banner suppression.",
+        "priority": "medium",
+        "dependencies": [
+          "3",
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement lifecycle notification listening and banner suppression logic",
+            "description": "Listen to UIApplication lifecycle notifications in InAppBannerCenter and implement logic to suppress banners when app is not in foreground or during full-screen activities like video calls. Ensure no replay on foregrounding.",
+            "dependencies": [
+              3,
+              5
+            ],
+            "details": "In InAppBannerCenter, add observers for UIApplicationDidBecomeActiveNotification, UIApplicationWillResignActiveNotification, and notifications for full-screen activities (e.g., via AVFoundation or custom notifications for video calls). Implement conditional logic to check app state and suppress banner presentation accordingly. Use a boolean flag or state enum to track whether banners should be suppressed. Integrate this with the existing banner queue to pause or skip presentations during suppressed states. Ensure the logic handles transitions smoothly without replaying missed banners on foregrounding.",
+            "status": "pending",
+            "testStrategy": "Integration tests for app state changes and banner suppression during activities like video calls, verifying that banners are suppressed in background or during full-screen modes and resume appropriately.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Break down into subtasks: 1) Listen to lifecycle notifications and implement suppression logic, 2) Test suppression during activities like video calls."
+      },
+      {
+        "id": 12,
+        "title": "Add haptic feedback",
+        "description": "Implement light impact on show and success haptic on tap, configurable and disabled for VoiceOver.",
+        "details": "In InAppBannerView, use UINotificationFeedbackGenerator or UIImpactFeedbackGenerator. Check for VoiceOver and disable if active.",
+        "testStrategy": "UI tests to verify haptics trigger correctly and respect settings.",
+        "priority": "low",
+        "dependencies": [
+          "4"
+        ],
+        "status": "deferred",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Integrate haptic feedback generators into InAppBannerView",
+            "description": "Add UINotificationFeedbackGenerator and UIImpactFeedbackGenerator instances to the InAppBannerView class for haptic feedback support.",
+            "dependencies": [],
+            "details": "In the InAppBannerView file, import UIKit and initialize private properties for UINotificationFeedbackGenerator and UIImpactFeedbackGenerator. Ensure they are lazily initialized to avoid unnecessary resource usage.",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify generators are initialized without errors.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement light impact haptic on banner show",
+            "description": "Trigger a light impact haptic feedback when the in-app banner is displayed.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the show method or equivalent lifecycle event of InAppBannerView, call the UIImpactFeedbackGenerator's impactOccurred() with light style. Ensure this is called only when the banner becomes visible.",
+            "status": "pending",
+            "testStrategy": "UI tests to simulate banner show and verify haptic feedback is triggered.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement success haptic on banner tap",
+            "description": "Trigger a success notification haptic feedback when the user taps on the in-app banner.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the tap gesture handler of InAppBannerView, call the UINotificationFeedbackGenerator's notificationOccurred() with success type. This should occur immediately upon tap detection.",
+            "status": "pending",
+            "testStrategy": "UI tests to simulate tap gestures and verify success haptic is triggered.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Add VoiceOver check and disable haptics if active",
+            "description": "Check if VoiceOver is enabled and disable haptic feedback accordingly to avoid conflicts.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Use UIAccessibility.isVoiceOverRunning to check VoiceOver status. Wrap haptic calls in conditional statements to skip if VoiceOver is active. Update the show and tap methods to include this check.",
+            "status": "pending",
+            "testStrategy": "UI tests with VoiceOver enabled to ensure no haptics are triggered.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Make haptic feedback configurable",
+            "description": "Add a configuration option to enable or disable haptic feedback based on user settings.",
+            "dependencies": [
+              4
+            ],
+            "details": "Introduce a boolean property or setting (e.g., via UserDefaults or app config) to control haptic feedback. Modify the haptic trigger methods to check this setting before executing feedback. Ensure the setting defaults to enabled.",
+            "status": "pending",
+            "testStrategy": "UI tests to verify haptics respect the configuration toggle.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 3,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-22T14:50:59.451Z"
+      },
+      {
+        "id": 13,
+        "title": "Implement error handling and performance optimizations",
+        "description": "Add error handling for failed presentations or navigation, and ensure rendering within 16ms frame budget.",
+        "details": "In InAppBannerCenter and views, log errors without crashing. Pre-measure text, limit queue to 5 items. Use SwiftUI's performance best practices.",
+        "testStrategy": "Performance tests for frame rendering. Unit tests for error scenarios.",
+        "priority": "medium",
+        "dependencies": [
+          "3",
+          "4",
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Error Logging in InAppBannerCenter and Views",
+            "description": "Add error handling mechanisms to log errors without causing application crashes in the InAppBannerCenter class and associated views. This includes catching exceptions during presentation or navigation failures and logging them appropriately using Swift's logging framework.",
+            "dependencies": [
+              3,
+              4,
+              5
+            ],
+            "details": "In the InAppBannerCenter.swift file, wrap present and dismiss operations in do-catch blocks to log errors. In view files, use try-catch for rendering or navigation logic. Ensure logs are sent to console or a logging service without interrupting the app flow. This prevents crashes from failed presentations or navigation attempts.",
+            "status": "pending",
+            "testStrategy": "Unit tests for error scenarios, including mock failures in presentation and navigation to verify logging without crashes.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement Performance Optimizations for Rendering",
+            "description": "Optimize rendering performance to ensure it stays within the 16ms frame budget by pre-measuring text and limiting the banner queue to 5 items, while applying SwiftUI best practices.",
+            "dependencies": [
+              3,
+              4,
+              5
+            ],
+            "details": "In InAppBannerCenter, modify the queue to enforce a maximum of 5 items, discarding older ones if exceeded. In views, implement text pre-measurement using GeometryReader or SwiftUI's built-in tools to calculate text sizes before rendering. Apply performance best practices such as avoiding unnecessary view updates and using @StateObject efficiently. Ensure the entire rendering pipeline fits within 16ms per frame.",
+            "status": "pending",
+            "testStrategy": "Performance tests for frame rendering, measuring render times under various loads and verifying queue limits prevent excessive items.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Break down into subtasks: 1) Add error logging without crashes in InAppBannerCenter and views, 2) Implement performance optimizations like text pre-measurement and queue limits."
+      },
+      {
+        "id": 14,
+        "title": "Add developer setting toggle",
+        "description": "Implement an optional runtime toggle in a hidden debug menu to switch notification modes.",
+        "details": "Add a debug menu view that allows changing modes at runtime, reading env on launch. Use UserDefaults for persistence if needed.",
+        "testStrategy": "UI tests for the debug menu and mode switching.",
+        "priority": "low",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create debug menu view for toggling notification modes",
+            "description": "Implement a hidden debug menu view that allows toggling between notification modes at runtime, integrating with UserDefaults for persistence and reading environment on launch.",
+            "dependencies": [],
+            "details": "Add a new view controller or SwiftUI view for the debug menu, accessible via a hidden gesture or menu. Include a toggle for notification modes. Use UserDefaults to store the selected mode and load it on app launch. Ensure the mode switch affects the runtime behavior of notifications.",
+            "status": "done",
+            "testStrategy": "UI tests for the debug menu and mode switching, verifying persistence with UserDefaults.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Break down into subtasks: 1) Create a debug menu view for toggling modes, 2) Integrate with UserDefaults and runtime switching."
+      },
+      {
+        "id": 15,
+        "title": "Conduct end-to-end testing and validation",
+        "description": "Perform comprehensive testing including unit, UI, integration, and acceptance criteria checks.",
+        "details": "Run all unit tests, UI snapshot tests, interaction tests, and integration tests. Validate against acceptance criteria: banner appearance within 300ms, navigation, respect for settings, no permission prompts.",
+        "testStrategy": "End-to-end tests simulating full user flows with mocked events and assertions on UI and analytics.",
+        "priority": "high",
+        "dependencies": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Run unit and UI tests for all components",
+            "description": "Execute all unit tests for individual components and UI snapshot tests to ensure visual consistency and interaction accuracy.",
+            "dependencies": [],
+            "details": "Run the full suite of unit tests covering logic in InAppBannerCenter, NotificationEvent, and other models. Perform UI snapshot tests for InAppBannerView across different themes, dynamic type, and accessibility settings. Include interaction tests for gestures like tap and swipe.",
+            "status": "pending",
+            "testStrategy": "Use XCTest for unit tests and SnapshotTesting for UI snapshots, asserting no regressions in component behavior and appearance.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Perform integration tests for flows",
+            "description": "Conduct integration tests to verify interactions between components, such as event mapping, banner presentation, and navigation.",
+            "dependencies": [
+              1
+            ],
+            "details": "Test the integration between PhoenixChannelManager, NotificationEvent creation, InAppBannerCenter presentation, and InAppBannerView rendering. Simulate WebSocket messages and assert correct filtering based on settings like mute/DND. Verify error handling and performance optimizations in rendering.",
+            "status": "pending",
+            "testStrategy": "Use integration test frameworks to mock WebSocket events and assert banner presentation, suppression, and state updates without full e2e setup.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Conduct end-to-end tests with mocked events",
+            "description": "Run end-to-end tests simulating full user flows with mocked events to check overall system behavior.",
+            "dependencies": [
+              2
+            ],
+            "details": "Set up e2e tests that mimic real user interactions, including receiving notifications, displaying banners, handling gestures, and navigating to threads. Use mocked WebSocket events and analytics tracking to simulate complete flows from event reception to dismissal.",
+            "status": "pending",
+            "testStrategy": "Employ tools like XCUITest or a testing framework for e2e, mocking external dependencies and asserting UI states, navigation, and event handling across the app.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Validate against acceptance criteria including performance and analytics",
+            "description": "Check all acceptance criteria such as banner appearance time, navigation accuracy, settings respect, and absence of permission prompts, plus performance metrics.",
+            "dependencies": [
+              3
+            ],
+            "details": "Measure banner appearance within 300ms, ensure navigation to correct threads, verify respect for mute/DND settings, confirm no unwanted permission prompts, and validate analytics tracking. Run performance tests to ensure rendering within 16ms frame budget and overall app stability.",
+            "status": "pending",
+            "testStrategy": "Use performance profiling tools for frame rate checks, manual or automated checks for acceptance criteria, and analytics verification through mocked events and assertions on logged data.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 8,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Break down into subtasks: 1) Run unit and UI tests for all components, 2) Perform integration tests for flows, 3) Conduct end-to-end tests with mocked events, 4) Validate against acceptance criteria including performance and analytics."
+      },
+      {
+        "id": 16,
+        "title": "iOS System Push (APNs) Integration",
+        "description": "Implement APNs-based system notifications: register and POST device tokens to backend, configure OS presentation and tap routing, define categories, validate via simulator pushes, and perform basic badge sync. Respect NotificationConfig to only prompt/register in system mode.",
+        "details": "Scope\n- Add OS-level push support gated by NotificationConfig.currentMode == .system.\n- Components: SystemPushManager (registration/presentation/routing), PushRegistrationService (token POST), NotificationRouting (maps payload → in-app navigation), AppDelegate hooks, and sample payloads for simulator testing.\n\nImplementation\n1) App startup and gating\n- On launch, if NotificationConfig.currentMode == .system: (a) set UNUserNotificationCenter.current().delegate = SystemPushManager.shared, (b) register notification categories, (c) request authorization (.alert, .badge, .sound) without prompting in banner mode, (d) call UIApplication.shared.registerForRemoteNotifications().\n- When mode changes at runtime (Task 14 already implemented): if switching to system, run the flow above; if switching away, keep registration but suppress OS presentation (willPresent returns []).\n\n2) Token handling and backend POST\n- Implement AppDelegate methods: didRegisterForRemoteNotificationsWithDeviceToken and didFailToRegisterForRemoteNotificationsWithError.\n- Convert deviceToken (Data) → lowercase hex string; persist lastSentToken + lastUserId to avoid duplicate POSTs.\n- PushRegistrationService.register(deviceToken: String, userId: String?, environment: String) using URLSession with JSON body: { deviceToken, platform: \"ios\", bundleId, appVersion, osVersion, environment: \"development\"|\"production\", mode: NotificationConfig.currentMode.rawValue, userId? }.\n- Determine environment with build flags (#if DEBUG → development else production). Retry with backoff on failures; never log the raw token.\n\n3) Notification categories\n- Define identifiers (e.g., MESSAGE, CALL). Add basic actions only for now (e.g., MARK_AS_READ, MUTE_1H). Create UNNotificationCategory sets and register at launch. Include category identifiers in server payloads to drive routing and actions.\n\n4) Foreground presentation behavior\n- Implement userNotificationCenter(_:willPresent:withCompletionHandler:). If mode == .system return [.banner, .list, .sound]; if mode == .banner return [] (so in-app banner can handle separately).\n\n5) Tap routing\n- Implement userNotificationCenter(_:didReceive:withCompletionHandler:). Parse userInfo for stable keys: { type: \"message\"|\"call\"|..., conversationId?, messageId?, callId?, screen? }.\n- Map payload to deep link (e.g., app://chat/<conversationId>) and call the app’s navigation coordinator/router on main thread. If the target is already visible, refresh/load message context.\n\n6) Badge sync (basic)\n- On receiving push with aps.badge, set UIApplication.shared.applicationIconBadgeNumber accordingly.\n- On app foreground, optionally reconcile by fetching unread count if available; otherwise clear when user views inbox. Keep logic minimal and safe.\n\n7) Error handling and privacy\n- Gracefully handle registration failures (surface non-fatal logs, schedule retry). Never crash on malformed payloads; fall back to opening inbox/home.\n- Do not store or log device tokens in plain text; redact in logs.\n\n8) Simulator push validation\n- Provide sample .apns JSON files (message.apns, call.apns) and document: xcrun simctl push <device_udid_or_booted> <bundle_id> ./message.apns.\n- Ensure payloads include aps.alert, aps.sound, aps.badge (for badge test), and category identifiers matching those registered.\n\nFiles to add\n- iOS/SystemPush/SystemPushManager.swift: delegate, category setup, willPresent/didReceive, badge handling.\n- iOS/SystemPush/PushRegistrationService.swift: POST token logic with retry and deduping.\n- iOS/AppDelegate+Push.swift (or App/AppDelegate.swift updates): hooks for token success/failure and startup gating.\n- iOS/SystemPush/NotificationRouting.swift: payload → deep link mapping and handoff to existing router.\n\nAnalytics/observability (optional)\n- Emit events: push_permission_requested/granted/denied, token_post_succeeded/failed, notification_received_foreground/background, notification_opened, route_applied/fallback.\n\nSecurity/compliance\n- Respect user opt-in/opt-out; do not send token to backend until permission is granted.\n- Token and payloads treated as sensitive; avoid PII in logs.",
+        "testStrategy": "Unit tests\n- DeviceToken conversion: Data → hex string correctness (leading zeros preserved).\n- PushRegistrationService: builds correct URLRequest (method, headers, JSON body fields), deduping (no POST if unchanged), environment flag based on build config, retries on transient errors.\n- SystemPushManager.willPresent: returns [.banner, .list, .sound] when mode == .system, and [] for .banner mode.\n- Category registration: registered identifiers match expected set (MESSAGE, CALL), actions attached.\n\nIntegration tests (simulator)\n- Use xcrun simctl push with sample message.apns and call.apns payloads:\n  - In foreground with mode == .system → OS banner displays (assert via willPresent path) and sound invoked.\n  - In background → tapping notification triggers didReceive and routes to correct screen.\n  - Payload with aps.badge updates UIApplication.shared.applicationIconBadgeNumber.\n- Toggle to banner mode and verify foreground pushes do not show OS banner (willPresent returns []).\n\nUI tests\n- Launch app, inject a mock notification response for type: message, conversationId: X; assert navigation lands on chat screen X.\n- From notification center (backgrounded app), tap a simulated notification and verify the same routing occurs.\n\nNegative/edge cases\n- Permission denied: no token POST occurs; app does not crash; user can enable later and token POST happens on next launch.\n- Token POST failure: retries with backoff; no duplicate POSTs after success.\n- Malformed payload: app opens safely to inbox/home with no crash.\n\nManual QA checklist\n- First launch in system mode: prompt shown once; accepting leads to token POST (verify via backend logs/dev proxy).\n- Foreground push shows OS banner; background tap opens target; badge increments from aps.badge.\n- Switch to banner mode: foreground system banners suppressed; switch back: banners resume.",
+        "status": "pending",
+        "dependencies": [
+          1
+        ],
+        "priority": "medium",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2025-10-22T14:50:59.452Z",
+      "taskCount": 15,
+      "completedCount": 0,
+      "tags": [
+        "ios"
+      ],
+      "created": "2025-10-22T14:52:13.704Z",
+      "description": "Tasks for ios context",
+      "updated": "2025-10-22T16:28:29.349Z"
+    }
+  },
+  "push": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Configure Environment Variable for Notification Mode",
+        "description": "Implement parsing of the IOS_NOTIFICATIONS_MODE environment variable to determine whether to use SYSTEM, BANNER, or AUTO mode for notifications.",
+        "details": "In the app's configuration code, access ProcessInfo.processInfo.environment[\"IOS_NOTIFICATIONS_MODE\"] and parse it into an enum with cases .system, .banner, .auto. Handle default behavior: prefer SYSTEM in release, BANNER in debug. Use this to gate features like authorization requests. Ensure the configuration is accessible via a shared NotificationConfig struct.",
+        "testStrategy": "Unit tests to verify parsing of different env var values and default fallbacks. Integration tests to check mode selection in different build environments.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Update NotificationConfig for Mode Handling",
+        "description": "Extend the existing NotificationConfig to include mode parsing and provide a shared instance for notification mode.",
+        "details": "Modify NotificationConfig to include a property for the notification mode (enum: system, banner, auto). Implement logic to parse the env var and set the mode. Ensure compatibility with the banner PRD. Use Swift's enum with associated values if needed for auto fallback.",
+        "testStrategy": "Unit tests for NotificationConfig initialization with various env var inputs. Verify mode is correctly set and accessible.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Implement Device Token Registration in NotificationManager",
+        "description": "Update NotificationManager to request authorization and register for remote notifications when mode is system.",
+        "details": "In NotificationManager, conditionally call UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) only if mode is .system. Then call UIApplication.shared.registerForRemoteNotifications(). Capture the device token in didRegisterForRemoteNotificationsWithDeviceToken and store it securely in Keychain. Handle failures in didFailToRegisterForRemoteNotificationsWithError with logging and optional fallback to banner if auto mode.",
+        "testStrategy": "Unit tests for authorization request logic based on mode. Mock registration success/failure and verify token storage. Simulator tests for registration flow.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Implement UNUserNotificationCenterDelegate for Foreground and Tap Handling",
+        "description": "Implement the delegate methods to handle notification presentation in foreground and user tap actions.",
+        "details": "Set NotificationManager as the UNUserNotificationCenterDelegate. In willPresent(notification:), return [.banner, .sound, .badge] if mode is system and app is foreground, optionally suppressing in-app banners. In didReceive(response:), parse userInfo for conversation_id and message_id, then navigate to the relevant thread using the app's navigation logic. Handle quick actions for category MESSAGE_CATEGORY.",
+        "testStrategy": "Unit tests for parsing userInfo and triggering navigation. Integration tests with mock notifications to verify presentation and tap routing.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Integrate AppDelegate Hooks for Token Handling",
+        "description": "Add AppDelegate methods to forward device token events to NotificationManager.",
+        "details": "In AppDelegate, implement didRegisterForRemoteNotificationsWithDeviceToken to call NotificationManager.setDeviceToken(_:). Implement didFailToRegisterForRemoteNotificationsWithError to handle failures, logging errors and triggering fallback if auto mode. Ensure these hooks are called only when mode is system.",
+        "testStrategy": "Unit tests for AppDelegate forwarding. Integration tests simulating token registration and failure scenarios.",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Implement Badge Count Management",
+        "description": "Handle badge increment, clearing, and synchronization with unread message state.",
+        "details": "In NotificationManager or a dedicated badge manager, use UIApplication.shared.applicationIconBadgeNumber to set badges based on payload.badge. On app open, sync with local DB unread counts. Clear badges when viewing messages or threads. Ensure thread-safety for badge updates.",
+        "testStrategy": "Unit tests for badge setting and clearing logic. Integration tests to verify badge sync with app state changes.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Define and Implement Payload Parsing",
+        "description": "Create a struct or model to parse the APNs payload and extract required fields for navigation and actions.",
+        "details": "Define a NotificationPayload struct with properties for aps.alert.title, body, badge, sound, category, and custom fields like type, conversation_id, message_id, sender_id, sent_at. Implement parsing from [AnyHashable: Any] userInfo. Validate required fields like conversation_id and message_id. Handle payload size implicitly by backend enforcement.",
+        "testStrategy": "Unit tests for payload parsing with valid and invalid JSON. Verify extraction of all fields and error handling for missing required fields.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Integrate Backend Device Token Registration",
+        "description": "Implement API call to register the device token with the backend push service.",
+        "details": "In NotificationManager, after obtaining device token, make a POST request to /api/push/devices with body { platform: \"ios\", device_token: hexString, app_version: Bundle.main.infoDictionary?[\"CFBundleShortVersionString\"] as? String, user_id: currentUserId }. Use Bearer token auth. Handle idempotent updates and retries on failure.",
+        "testStrategy": "Unit tests with mocked network responses. Integration tests for successful registration and error handling.",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Add Analytics and Telemetry Logging",
+        "description": "Implement logging for notification events to track registration, presentation, and taps.",
+        "details": "In NotificationManager and delegate methods, log events like push_token_registered, push_will_present, push_tap, push_registration_failed with properties { error, mode }. Use a telemetry service (e.g., Firebase Analytics or custom). Ensure no full token logging in production.",
+        "testStrategy": "Unit tests to verify logging calls. Integration tests to check telemetry data collection in test environments.",
+        "priority": "low",
+        "dependencies": [
+          4,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Implement Testing and Validation for Notification Flow",
+        "description": "Set up unit and integration tests for the entire notification system, including simulator push testing.",
+        "details": "Write unit tests for mode parsing, payload handling, and delegate logic. Create integration tests for full flow: registration, push receipt, presentation, tap navigation. Use xcrun simctl push for simulator testing with payload.apns files. Validate fallback behaviors and badge management.",
+        "testStrategy": "Run unit tests for individual components. Execute integration tests on simulator and device. Monitor for crashes or failures in CI.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-10-22T14:52:44.973Z",
+      "updated": "2025-10-22T14:52:44.973Z",
+      "description": "Tasks for push context"
+    }
+  },
+  "contact": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Create Database Migration for Contacts Table",
+        "description": "Implement the database migration to create the contacts table with necessary fields and indexes.",
+        "details": "Create a new migration file in `globalbridge_backend/priv/repo/migrations/[timestamp]_create_contacts_table.exs` with the provided Elixir code. This includes defining the table schema with id (binary_id), user_id, contact_user_id, display_name_override, is_favorite, notes, and timestamps. Add unique index on [user_id, contact_user_id] and other indexes for performance. Run the migration to apply changes to the database.",
+        "testStrategy": "Run the migration in a test environment and verify the table is created with correct columns and indexes using database inspection tools.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Generate migration file",
+            "description": "Create the migration file using mix ecto.gen.migration create_contacts_table",
+            "dependencies": [],
+            "details": "Run `cd globalbridge_backend && mix ecto.gen.migration create_contacts_table` to generate a timestamped migration file in priv/repo/migrations/. This creates the boilerplate migration module structure.",
+            "status": "pending",
+            "testStrategy": "Verify migration file is created with correct timestamp and module name."
+          },
+          {
+            "id": 2,
+            "title": "Define contacts table schema",
+            "description": "Implement the change/0 function to create the contacts table with all required fields",
+            "dependencies": [
+              1
+            ],
+            "details": "In the migration file, add create table(:contacts, primary_key: false) with fields: id (binary_id, primary key), user_id (references users), contact_user_id (references users), display_name_override (string), is_favorite (boolean, default false), notes (text), and timestamps. Include null: false constraints on user_id and contact_user_id. Use on_delete: :delete_all for foreign key cascades.",
+            "status": "pending",
+            "testStrategy": "Review migration code for correct field types and constraints."
+          },
+          {
+            "id": 3,
+            "title": "Add database indexes",
+            "description": "Create indexes for performance on user_id, contact_user_id, and updated_at",
+            "dependencies": [
+              2
+            ],
+            "details": "Add unique_index(:contacts, [:user_id, :contact_user_id]) to prevent duplicate contacts. Add index(:contacts, [:user_id]) for user lookups, index(:contacts, [:contact_user_id]) for reverse lookups, and index(:contacts, [:updated_at]) for sync queries. All indexes improve query performance.",
+            "status": "pending",
+            "testStrategy": "Verify indexes are created by inspecting database schema after migration."
+          },
+          {
+            "id": 4,
+            "title": "Run and verify migration",
+            "description": "Execute the migration and confirm table creation in database",
+            "dependencies": [
+              3
+            ],
+            "details": "Run `mix ecto.migrate` in the globalbridge_backend directory. Check the migration completes without errors. Use database inspection tools (e.g., `mix ecto.dump` or SQLite browser) to verify the contacts table exists with all columns and indexes.",
+            "status": "pending",
+            "testStrategy": "Query the database schema to confirm contacts table structure matches migration definition."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Define Contact Schema",
+        "description": "Create the Ecto schema for the Contact model with validations and associations.",
+        "details": "Implement the Contact schema in `globalbridge_backend/lib/globalbridge_backend/schemas/contact.ex` using the provided Elixir code. Include fields, changeset with validations (required fields, unique constraint, foreign keys, and custom validation to prevent self-contact). Ensure associations to User schema.",
+        "testStrategy": "Create unit tests for the changeset function, verifying valid and invalid inputs, including self-contact prevention.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Contact schema file",
+            "description": "Create the contact.ex file in the schemas directory",
+            "dependencies": [],
+            "details": "Create `globalbridge_backend/lib/globalbridge_backend/schemas/contact.ex` with the module definition and Ecto.Schema import. Set @primary_key {:id, :binary_id, autogenerate: true} and @foreign_key_type :binary_id.",
+            "status": "pending",
+            "testStrategy": "Verify file compiles without errors."
+          },
+          {
+            "id": 2,
+            "title": "Define schema fields and associations",
+            "description": "Add all schema fields and belongs_to associations for user and contact_user",
+            "dependencies": [
+              1
+            ],
+            "details": "Define schema \"contacts\" block with belongs_to :user and :contact_user (both GlobalbridgeBackend.Schemas.User), fields for display_name_override (string), is_favorite (boolean, default false), notes (string), and timestamps(type: :utc_datetime).",
+            "status": "pending",
+            "testStrategy": "Verify schema definition compiles and associations are properly defined."
+          },
+          {
+            "id": 3,
+            "title": "Implement changeset with basic validations",
+            "description": "Create changeset/2 function with cast and validate_required",
+            "dependencies": [
+              2
+            ],
+            "details": "Implement changeset(contact, attrs) that casts [:user_id, :contact_user_id, :display_name_override, :is_favorite, :notes] and validates required fields [:user_id, :contact_user_id]. Add unique_constraint([:user_id, :contact_user_id]) and foreign_key_constraint for both user associations.",
+            "status": "pending",
+            "testStrategy": "Unit test changeset with valid and invalid data."
+          },
+          {
+            "id": 4,
+            "title": "Add custom self-contact validation",
+            "description": "Implement validate_not_self_contact/1 private function",
+            "dependencies": [
+              3
+            ],
+            "details": "Create defp validate_not_self_contact(changeset) that uses get_field to check if user_id equals contact_user_id. If equal, add_error(changeset, :contact_user_id, \"cannot add yourself as a contact\"). Otherwise return unchanged changeset. Call this in the changeset pipeline.",
+            "status": "pending",
+            "testStrategy": "Unit test that attempting to add self as contact produces validation error."
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Implement Contacts Context",
+        "description": "Build the Contacts context module with functions for CRUD operations and searches.",
+        "details": "Create `globalbridge_backend/lib/globalbridge_backend/contexts/contacts.ex` with the provided Elixir code. Implement functions like find_user_by_email, search_users_by_email, search_contacts, list_contacts, list_contacts_since, add_contact, remove_contact, and update_contact. Use Ecto queries for efficient data retrieval.",
+        "testStrategy": "Write integration tests for each function, mocking the Repo to verify correct queries and data handling.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Contacts context module structure",
+            "description": "Create the contacts.ex file with module definition and imports",
+            "dependencies": [],
+            "details": "Create `globalbridge_backend/lib/globalbridge_backend/contexts/contacts.ex`. Add imports for Ecto.Query and aliases for Repo, Contact, and User schemas. Set up basic module structure.",
+            "status": "pending",
+            "testStrategy": "Verify module compiles and imports are correct."
+          },
+          {
+            "id": 2,
+            "title": "Implement user lookup functions",
+            "description": "Add find_user_by_email and search_users_by_email functions",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement find_user_by_email(email) using Repo.get_by(User, email: String.downcase(email)). Implement search_users_by_email(email) with Ecto query using ilike on email field, selecting id, email, username, display_name, avatar_url, limited to 20 results.",
+            "status": "pending",
+            "testStrategy": "Unit test both functions with various email formats and verify case-insensitive matching."
+          },
+          {
+            "id": 3,
+            "title": "Implement contact search and list functions",
+            "description": "Add search_contacts, list_contacts, and list_contacts_since functions",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement search_contacts(user_id, query) with join on User, filtering by user_id and ilike on email/username/display_name, preloading contact_user, ordered by is_favorite desc, updated_at desc. Add list_contacts(user_id) for all contacts. Add list_contacts_since(user_id, since_timestamp) for incremental sync queries.",
+            "status": "pending",
+            "testStrategy": "Test search with various queries, verify ordering by favorites, test timestamp-based sync queries."
+          },
+          {
+            "id": 4,
+            "title": "Implement contact mutation functions",
+            "description": "Add add_contact, remove_contact, and update_contact functions",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement add_contact(user_id, contact_user_id, attrs) that merges attrs with IDs and calls Contact.changeset |> Repo.insert(). Add remove_contact(user_id, contact_user_id) using Repo.delete_all with where clauses. Add update_contact(contact_id, attrs) with Repo.get, changeset, and Repo.update().",
+            "status": "pending",
+            "testStrategy": "Test add with valid/invalid data including duplicate prevention. Test remove and update operations."
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Update User Channel for Contact Operations",
+        "description": "Add handlers in the User Channel for contact-related WebSocket messages.",
+        "details": "Modify `globalbridge_backend/lib/globalbridge_backend_web/channels/user_channel.ex` to include handlers for 'search_users', 'search_contacts', 'get_contacts', 'sync_contacts', 'add_contact', and 'remove_contact'. Include helper functions for formatting contacts. Ensure proper error handling and replies.",
+        "testStrategy": "Use Phoenix Channel tests to simulate messages and verify correct responses, including error cases.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add Contacts alias to user_channel.ex",
+            "description": "Import the Contacts context module",
+            "dependencies": [],
+            "details": "At the top of user_channel.ex, add `alias GlobalbridgeBackend.Contexts.Contacts` to make contact functions accessible.",
+            "status": "pending",
+            "testStrategy": "Verify file compiles with new alias."
+          },
+          {
+            "id": 2,
+            "title": "Implement search_users handler",
+            "description": "Add handle_in for search_users to find non-contact users by email",
+            "dependencies": [
+              1
+            ],
+            "details": "Add handle_in(\"search_users\", %{\"query\" => query}, socket). Get user_id from socket.assigns. Call Contacts.search_users_by_email(query). Filter out current user and existing contacts using Contacts.list_contacts and MapSet. Reply with {:ok, %{users: filtered_results}}.",
+            "status": "pending",
+            "testStrategy": "Channel test simulating search with query, verify filtering works correctly."
+          },
+          {
+            "id": 3,
+            "title": "Implement search_contacts and get_contacts handlers",
+            "description": "Add handlers for searching and listing user's contacts",
+            "dependencies": [
+              1
+            ],
+            "details": "Add handle_in(\"search_contacts\", %{\"query\" => query}, socket) calling Contacts.search_contacts with format_contacts helper. Add handle_in(\"get_contacts\", _payload, socket) calling Contacts.list_contacts with format_contacts helper.",
+            "status": "pending",
+            "testStrategy": "Test both handlers with various queries and verify formatted responses."
+          },
+          {
+            "id": 4,
+            "title": "Implement sync_contacts handler",
+            "description": "Add handler for incremental contact sync",
+            "dependencies": [
+              1
+            ],
+            "details": "Add handle_in(\"sync_contacts\", %{\"since\" => since_timestamp}, socket). Parse ISO8601 timestamp with DateTime.from_iso8601. Call Contacts.list_contacts_since. Reply with contacts and synced_at timestamp.",
+            "status": "pending",
+            "testStrategy": "Test sync with various timestamps, verify only newer contacts returned."
+          },
+          {
+            "id": 5,
+            "title": "Implement add_contact and remove_contact handlers",
+            "description": "Add mutation handlers for adding and removing contacts",
+            "dependencies": [
+              1
+            ],
+            "details": "Add handle_in(\"add_contact\", %{\"contact_user_id\" => contact_user_id}, socket) calling Contacts.add_contact, preloading contact_user, and formatting response. Add handle_in(\"remove_contact\", ...) calling Contacts.remove_contact, checking deletion count.",
+            "status": "pending",
+            "testStrategy": "Test add with valid/invalid contact_user_id. Test remove for existing and non-existing contacts."
+          },
+          {
+            "id": 6,
+            "title": "Add contact formatting helper functions",
+            "description": "Implement format_contact and format_contacts private functions",
+            "dependencies": [
+              1
+            ],
+            "details": "Add defp format_contact(contact) that creates map with id, contact_user_id, display_name_override, is_favorite, notes, user map (with id, email, username, display_name, avatar_url from contact.contact_user), created_at, updated_at. Add defp format_contacts wrapping Enum.map.",
+            "status": "pending",
+            "testStrategy": "Test formatting with sample contact data, verify JSON structure matches expected schema."
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Update Thread Creation to Resolve Emails",
+        "description": "Modify the thread creation handler to accept and resolve participant emails to user IDs.",
+        "details": "Update the 'create_thread' handler in `globalbridge_backend/lib/globalbridge_backend_web/channels/user_channel.ex` to process 'participant_emails', resolve them using find_user_by_email, combine with participant_ids, and proceed with thread creation. Ensure uniqueness of participants.",
+        "testStrategy": "Test the handler with various combinations of participant_ids and emails, verifying resolution and thread creation success.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Update create_thread pattern match",
+            "description": "Modify handle_in pattern to accept participant_emails parameter",
+            "dependencies": [],
+            "details": "Update the create_thread handler's pattern match from %{\"thread_type\" => type, \"participant_ids\" => participants} to include \"participant_emails\" => emails in the payload. Make emails optional by using emails || [] in the logic.",
+            "status": "pending",
+            "testStrategy": "Verify pattern matching works with and without participant_emails in payload."
+          },
+          {
+            "id": 2,
+            "title": "Implement email resolution logic",
+            "description": "Add logic to resolve participant_emails to user IDs using Contacts.find_user_by_email",
+            "dependencies": [
+              1
+            ],
+            "details": "Use Enum.flat_map(emails || [], fn email -> case Contacts.find_user_by_email(email) do nil -> []; user -> [user.id] end end) to convert emails to user IDs, silently skipping non-existent users. Store result in email_user_ids variable.",
+            "status": "pending",
+            "testStrategy": "Test with valid emails, invalid emails, and empty list. Verify only existing users are resolved."
+          },
+          {
+            "id": 3,
+            "title": "Combine and deduplicate participants",
+            "description": "Merge participant_ids and resolved email IDs with current user",
+            "dependencies": [
+              2
+            ],
+            "details": "Update all_participants line to: ([user_id | participants] ++ email_user_ids) |> Enum.uniq() to combine all participant sources and remove duplicates. This ensures the creator is always included and no user appears twice.",
+            "status": "pending",
+            "testStrategy": "Test with overlapping IDs and emails to verify deduplication works."
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Create Contact Model in iOS",
+        "description": "Define the Contact struct and related types in Swift.",
+        "details": "Implement `Contact.swift` in `clients/ios/GlobalBridge/Core/Models/` with the provided Swift code. Include the Contact struct with CodingKeys, ContactUser nested struct, and computed displayName property. Ensure Codable compliance for JSON serialization.",
+        "testStrategy": "Write unit tests for encoding/decoding Contact instances and verify displayName computation.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Contact.swift file and basic struct",
+            "description": "Create the Contact model file with basic struct definition",
+            "dependencies": [],
+            "details": "Create `clients/ios/GlobalBridge/Core/Models/Contact.swift`. Define struct Contact with Identifiable, Codable, Equatable conformance. Add core fields: id (UUID), contactUserId (String), displayNameOverride (String?), isFavorite (Bool), notes (String?), createdAt (Date), updatedAt (Date).",
+            "status": "pending",
+            "testStrategy": "Verify file compiles and struct conforms to protocols."
+          },
+          {
+            "id": 2,
+            "title": "Add ContactUser nested struct",
+            "description": "Define the nested ContactUser struct for contact user data",
+            "dependencies": [
+              1
+            ],
+            "details": "Add nested struct ContactUser: Codable, Equatable with fields: id (String), email (String), username (String?), displayName (String?), avatarUrl (String?). Place inside Contact struct definition.",
+            "status": "pending",
+            "testStrategy": "Verify ContactUser compiles and can be encoded/decoded."
+          },
+          {
+            "id": 3,
+            "title": "Add sync-related fields",
+            "description": "Add fields for local sync state tracking",
+            "dependencies": [
+              1
+            ],
+            "details": "Add to Contact struct: user (ContactUser), lastSyncedAt (Date?), needsSync (Bool = false), isDeleted (Bool = false). These track local state and sync status for offline-first architecture.",
+            "status": "pending",
+            "testStrategy": "Verify fields compile and have correct default values."
+          },
+          {
+            "id": 4,
+            "title": "Implement CodingKeys enum",
+            "description": "Add CodingKeys for snake_case to camelCase mapping",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Define enum CodingKeys: String, CodingKey with cases mapping Swift property names to JSON keys: contactUserId = \"contact_user_id\", displayNameOverride = \"display_name_override\", isFavorite = \"is_favorite\", createdAt = \"created_at\", updatedAt = \"updated_at\", lastSyncedAt = \"last_synced_at\", needsSync = \"needs_sync\", isDeleted = \"is_deleted\".",
+            "status": "pending",
+            "testStrategy": "Test JSON encoding/decoding with backend response format."
+          },
+          {
+            "id": 5,
+            "title": "Add displayName computed property",
+            "description": "Implement computed property for display name with fallback logic",
+            "dependencies": [
+              2
+            ],
+            "details": "Add var displayName: String { displayNameOverride ?? user.displayName ?? user.username ?? user.email }. This provides cascading fallback for contact display names, prioritizing custom override.",
+            "status": "pending",
+            "testStrategy": "Unit test with various combinations of nil values to verify fallback chain works correctly."
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Update Local Database Schema for Contacts",
+        "description": "Add contacts table to the iOS SQLite database.",
+        "details": "Modify `DatabaseManager.swift` in `clients/ios/GlobalBridge/Core/Storage/` to include SQL statements for creating the contacts table and indexes as provided. Execute these in the setupMainDatabase function.",
+        "testStrategy": "Run the app in a test environment, inspect the SQLite database to confirm table creation and indexes.",
+        "priority": "high",
+        "dependencies": [
+          6
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define SQLite contacts table schema",
+            "description": "Add CREATE TABLE statement for contacts in setupMainDatabase",
+            "dependencies": [],
+            "details": "In DatabaseManager.swift's setupMainDatabase function, add SQL string for CREATE TABLE IF NOT EXISTS contacts with columns: id (TEXT PRIMARY KEY), contact_user_id (TEXT NOT NULL), display_name_override (TEXT), is_favorite (INTEGER DEFAULT 0), notes (TEXT), user_email (TEXT NOT NULL), user_username (TEXT), user_display_name (TEXT), user_avatar_url (TEXT), created_at (TEXT NOT NULL), updated_at (TEXT NOT NULL), last_synced_at (TEXT), needs_sync (INTEGER DEFAULT 0), is_deleted (INTEGER DEFAULT 0).",
+            "status": "pending",
+            "testStrategy": "Verify SQL syntax is valid for SQLite."
+          },
+          {
+            "id": 2,
+            "title": "Add contacts table indexes",
+            "description": "Create indexes for performance on contact queries",
+            "dependencies": [
+              1
+            ],
+            "details": "Add SQL statements for CREATE INDEX IF NOT EXISTS on: contacts_contact_user_id_index (contact_user_id), contacts_needs_sync_index (needs_sync), contacts_is_deleted_index (is_deleted), contacts_updated_at_index (updated_at). These improve query performance for lookups and sync operations.",
+            "status": "pending",
+            "testStrategy": "Verify indexes are created after running setupMainDatabase."
+          },
+          {
+            "id": 3,
+            "title": "Execute table creation in database initialization",
+            "description": "Add execute statements for contacts table and indexes",
+            "dependencies": [
+              2
+            ],
+            "details": "In setupMainDatabase, after defining the SQL strings, add try db.execute(createContactsTable) and try db.execute(createContactsIndexes) to execute the SQL statements during database initialization.",
+            "status": "pending",
+            "testStrategy": "Run app and inspect SQLite database file to confirm table and indexes exist."
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Implement Contact Manager in iOS",
+        "description": "Build the ContactManager actor for handling local and sync operations.",
+        "details": "Create `ContactManager.swift` in `clients/ios/GlobalBridge/Core/Storage/` with the provided Swift code. Implement optimistic local operations (add, remove), search functions, and sync logic including pulling from server and pushing local changes. Use async/await for concurrency.",
+        "testStrategy": "Unit tests for each method, mocking database and network calls to verify optimistic updates and sync behavior.",
+        "priority": "high",
+        "dependencies": [
+          7
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create ContactManager actor structure",
+            "description": "Create the ContactManager.swift file with actor definition and dependencies",
+            "dependencies": [],
+            "details": "Create `clients/ios/GlobalBridge/Core/Storage/ContactManager.swift`. Define actor ContactManager with private properties for databaseManager (DatabaseManager) and phoenixManager (PhoenixChannelManager). Add init(databaseManager:phoenixManager:).",
+            "status": "pending",
+            "testStrategy": "Verify actor compiles and initializes correctly."
+          },
+          {
+            "id": 2,
+            "title": "Implement optimistic add/remove operations",
+            "description": "Add addContact and removeContact methods with optimistic updates",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement addContact(_ contactUserId, email) that creates Contact locally with needsSync=true, calls saveContactLocally, then syncs to backend in Task. Implement removeContact(_ contactId) that marks as deleted locally, then syncs deletion in Task. Both return immediately for optimistic UX.",
+            "status": "pending",
+            "testStrategy": "Test that operations complete locally before backend sync. Mock network delays to verify optimistic behavior."
+          },
+          {
+            "id": 3,
+            "title": "Implement search functions",
+            "description": "Add searchContacts and searchUsersByEmail methods",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement searchContacts(query:) that calls fetchContactsLocally with search query filtering on local SQLite. Implement searchUsersByEmail(query:) that calls phoenixManager.searchUsers for backend user lookup. Both return async results.",
+            "status": "pending",
+            "testStrategy": "Test both search methods with various queries, verify local vs backend search behavior."
+          },
+          {
+            "id": 4,
+            "title": "Implement bidirectional sync logic",
+            "description": "Add syncContacts method with pull/merge/push operations",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement syncContacts() that: 1) Gets lastSyncTime, 2) Pulls server contacts via phoenixManager.syncContacts(since:), 3) Merges each using mergeContactFromServer (server wins on conflicts), 4) Pushes unsynced local contacts via syncContactToBackend, 5) Updates lastSyncTime. This ensures eventual consistency.",
+            "status": "pending",
+            "testStrategy": "Test sync with offline changes, conflicts, and verify server state wins."
+          },
+          {
+            "id": 5,
+            "title": "Implement private helper methods",
+            "description": "Add saveContactLocally, markContactAsDeleted, syncContactToBackend, mergeContactFromServer helpers",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement all private helper methods for database operations: saveContactLocally (INSERT), markContactAsDeleted (UPDATE is_deleted=1, needs_sync=1), fetchContactLocally (SELECT by id), updateContactLocally (UPDATE), updateContactSyncStatus, fetchUnsyncedContacts, getLastSyncTime, updateLastSyncTime. Use SQLite.swift for all database operations.",
+            "status": "pending",
+            "testStrategy": "Unit test each helper method independently with mocked database."
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Add Phoenix Contact Methods",
+        "description": "Extend PhoenixChannelManager with contact-related channel operations.",
+        "details": "Update `PhoenixChannelManager.swift` in `clients/ios/GlobalBridge/Core/Networking/Phoenix/` to add methods like searchUsers, addContact, and syncContacts. Use Phoenix channel pushes and continuations for async handling.",
+        "testStrategy": "Integration tests simulating channel interactions, verifying message sends and response parsing.",
+        "priority": "high",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement searchUsers method",
+            "description": "Add method to search for non-contact users via Phoenix channel",
+            "dependencies": [],
+            "details": "Add public func searchUsers(query: String) async throws -> [Contact.ContactUser]. Get user channel with channel(for: \"user:\\(currentUserId)\"). Push \"search_users\" with payload [\"query\": query]. Use withCheckedThrowingContinuation to handle response, parsing users array from response.payload[\"users\"].",
+            "status": "pending",
+            "testStrategy": "Test with various queries, verify Contact.ContactUser array is parsed correctly."
+          },
+          {
+            "id": 2,
+            "title": "Implement addContact method",
+            "description": "Add method to add contact via Phoenix channel",
+            "dependencies": [],
+            "details": "Add public func addContact(contactUserId: String) async throws -> Contact. Push \"add_contact\" with payload [\"contact_user_id\": contactUserId] to user channel. Parse response into Contact struct using JSON decoder.",
+            "status": "pending",
+            "testStrategy": "Test adding valid and invalid contact IDs, verify error handling."
+          },
+          {
+            "id": 3,
+            "title": "Implement syncContacts method",
+            "description": "Add method for incremental contact sync from server",
+            "dependencies": [],
+            "details": "Add public func syncContacts(since: Date) async throws -> [Contact]. Convert Date to ISO8601 string. Push \"sync_contacts\" with payload [\"since\": timestamp] to user channel. Parse response contacts array and synced_at timestamp.",
+            "status": "pending",
+            "testStrategy": "Test sync with various timestamps, verify incremental sync returns only new/updated contacts."
+          },
+          {
+            "id": 4,
+            "title": "Implement removeContact method",
+            "description": "Add method to remove contact via Phoenix channel",
+            "dependencies": [],
+            "details": "Add public func removeContact(contactUserId: String) async throws. Push \"remove_contact\" with payload [\"contact_user_id\": contactUserId] to user channel. Handle success/error responses.",
+            "status": "pending",
+            "testStrategy": "Test removing existing and non-existing contacts, verify proper error handling."
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Update Thread Creation UI",
+        "description": "Modify CreateThreadView to include contact search and selection.",
+        "details": "Implement updates in `CreateThreadView.swift` for searching contacts and emails, displaying results, and selecting participants. Integrate with ContactManager for searches and handle UI state changes.",
+        "testStrategy": "UI tests using SwiftUI testing framework to verify search functionality, selection toggling, and thread creation button enablement.",
+        "priority": "medium",
+        "dependencies": [
+          9
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add search and state properties",
+            "description": "Add @State properties for search query, contacts, search results, and selected participants",
+            "dependencies": [],
+            "details": "In CreateThreadView, add @State private var searchQuery = \"\", @State private var contacts: [Contact] = [], @State private var searchResults: [Contact.ContactUser] = [], @State private var selectedParticipants: Set<String> = []. These track search state and selections.",
+            "status": "pending",
+            "testStrategy": "Verify properties are declared and initialized correctly."
+          },
+          {
+            "id": 2,
+            "title": "Implement search UI components",
+            "description": "Add TextField for search with onChange handler",
+            "dependencies": [
+              1
+            ],
+            "details": "Add TextField(\"Search contacts or enter email\", text: $searchQuery).onChange(of: searchQuery) { _, newValue in searchContactsOrEmail(newValue) }. This triggers search as user types.",
+            "status": "pending",
+            "testStrategy": "Test that typing in field triggers search function."
+          },
+          {
+            "id": 3,
+            "title": "Implement contact search logic",
+            "description": "Add searchContactsOrEmail function to query contacts and users",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement searchContactsOrEmail(_ query: String) in Task that calls contactManager.searchContacts(query:) to update contacts array. If query.contains(\"@\"), also call contactManager.searchUsersByEmail(query:) to update searchResults array. Use try await for async operations.",
+            "status": "pending",
+            "testStrategy": "Test search with contact names and email addresses, verify both result arrays update."
+          },
+          {
+            "id": 4,
+            "title": "Add contact and user result lists",
+            "description": "Display contacts and search results with selection",
+            "dependencies": [
+              2
+            ],
+            "details": "Add List(contacts) { contact in ContactRow(contact: contact) { toggleSelection(contact.contactUserId) } }. Add Section(\"Search Results\") with ForEach(searchResults, id: \\.id) { user in UserRow(user: user) { toggleSelection(user.id) } }. Show search results only if !searchResults.isEmpty.",
+            "status": "pending",
+            "testStrategy": "Verify lists display and selection toggles work."
+          },
+          {
+            "id": 5,
+            "title": "Implement selection and create logic",
+            "description": "Add toggleSelection and createThread functions",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement toggleSelection(_ userId: String) that inserts/removes from selectedParticipants Set. Implement createThread() that calls environment.database.createThread with title and selectedParticipants array. Update Create button with .disabled(selectedParticipants.isEmpty).",
+            "status": "pending",
+            "testStrategy": "Test selection toggling and thread creation with selected participants."
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Implement Sync Logic for Contacts",
+        "description": "Ensure bidirectional sync between local and server for contacts.",
+        "details": "Refine the syncContacts method in ContactManager to handle pulling server changes, merging (server wins), pushing local changes, and updating sync timestamps. Handle conflicts by prioritizing server state.",
+        "testStrategy": "End-to-end tests simulating offline/online scenarios, verifying data consistency across devices.",
+        "priority": "medium",
+        "dependencies": [
+          8
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement pull from server logic",
+            "description": "Add logic to fetch contacts modified since last sync",
+            "dependencies": [],
+            "details": "In syncContacts(), get lastSyncTime from local storage. Call phoenixManager.syncContacts(since: lastSyncTime) to fetch server-side changes. Store results in serverContacts array for processing.",
+            "status": "pending",
+            "testStrategy": "Test with various last sync timestamps, verify only newer contacts are fetched."
+          },
+          {
+            "id": 2,
+            "title": "Implement server wins merge logic",
+            "description": "Add mergeContactFromServer with timestamp-based conflict resolution",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement mergeContactFromServer(_ serverContact: Contact) that fetches local contact by ID. If exists locally, compare updatedAt timestamps: if serverContact.updatedAt > localContact.updatedAt, call updateContactLocally. If doesn't exist locally, call saveContactLocally. This ensures server state always wins conflicts.",
+            "status": "pending",
+            "testStrategy": "Test merge with various scenarios: new contacts, updated contacts, and conflicts. Verify server always wins."
+          },
+          {
+            "id": 3,
+            "title": "Implement push unsynced changes",
+            "description": "Add logic to push local changes that haven't synced to server",
+            "dependencies": [
+              1
+            ],
+            "details": "After merging server changes, call fetchUnsyncedContacts() to get contacts where needsSync=1. For each unsynced contact, call syncContactToBackend(contact) which pushes to Phoenix and updates local sync status on success.",
+            "status": "pending",
+            "testStrategy": "Test with offline-created contacts, verify they sync to server when online."
+          },
+          {
+            "id": 4,
+            "title": "Update sync timestamp tracking",
+            "description": "Implement lastSyncTime persistence in local storage",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Implement getLastSyncTime() that reads from UserDefaults or SQLite metadata table. Implement updateLastSyncTime(Date()) that stores timestamp after successful sync. Call updateLastSyncTime at end of syncContacts() to track last successful sync.",
+            "status": "pending",
+            "testStrategy": "Test that sync timestamp updates after successful sync and persists across app restarts."
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Conduct Comprehensive Testing",
+        "description": "Execute the testing plan for contact management and thread invitations.",
+        "details": "Perform tests for contact addition, sync, deletion, thread creation with contacts/emails, and sync conflicts as outlined in the PRD. Use a combination of unit, integration, and manual tests to validate functionality.",
+        "testStrategy": "Follow the testing plan: automate where possible, manually test cross-device sync and conflict resolution.",
+        "priority": "low",
+        "dependencies": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Test contact addition flow",
+            "description": "Verify end-to-end contact addition with optimistic updates and backend sync",
+            "dependencies": [],
+            "details": "Test scenario: Add contact by email, verify it appears in contacts list immediately (optimistic), wait for backend sync, verify sync success. Check local database has needsSync=0 after sync. Test with invalid emails to verify error handling.",
+            "status": "pending",
+            "testStrategy": "Automated integration test plus manual verification in running app."
+          },
+          {
+            "id": 2,
+            "title": "Test cross-device contact sync",
+            "description": "Verify contacts sync across multiple devices/sessions",
+            "dependencies": [],
+            "details": "Test scenario: Add contact on Device A (or test user 1), log in as same user on Device B (or test user 2 using same account), trigger contact sync, verify contact appears on Device B. Test that sync_contacts handler returns correct data based on lastSyncTime.",
+            "status": "pending",
+            "testStrategy": "Manual test with multiple iOS simulators or test users, verify data consistency."
+          },
+          {
+            "id": 3,
+            "title": "Test contact deletion and sync",
+            "description": "Verify contact deletion propagates to backend and other devices",
+            "dependencies": [],
+            "details": "Test scenario: Delete contact locally, verify removed from list immediately, verify deletion syncs to backend, verify deletion appears on other devices after sync. Check that isDeleted=1 in local database before sync completes.",
+            "status": "pending",
+            "testStrategy": "Test deletion flow with network monitoring to verify backend API call."
+          },
+          {
+            "id": 4,
+            "title": "Test thread creation with contacts",
+            "description": "Verify creating threads with contact selection and email lookup",
+            "dependencies": [],
+            "details": "Test scenario: Create thread selecting contacts from list, verify all participants receive thread. Create thread using email lookup for non-contacts, verify email resolution works and thread created. Verify all participants see messages correctly.",
+            "status": "pending",
+            "testStrategy": "Create threads with various participant combinations, verify all participants can send/receive messages."
+          },
+          {
+            "id": 5,
+            "title": "Test sync conflict resolution",
+            "description": "Verify server wins on conflicts during sync",
+            "dependencies": [],
+            "details": "Test scenario: Add contact offline on Device A, delete same contact on server (or Device B), bring Device A online, trigger sync, verify server state wins (contact is deleted on Device A). Test various conflict scenarios to ensure server state always prevails.",
+            "status": "pending",
+            "testStrategy": "Simulate offline changes and server-side modifications, verify conflict resolution favors server."
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-10-22T15:27:40.435Z",
+      "updated": "2025-10-22T15:35:00.000Z",
+      "description": "Tasks for contact context"
     }
   }
 }

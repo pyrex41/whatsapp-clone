@@ -74,11 +74,20 @@ struct ChatScreen: View {
                 .onAppear {
                     print("⌨️ [COMPOSER] ChatScreen appeared, setting focus to true")
                     composerFocused = true
+                    // Notify banner center of active thread for suppression
+                    InAppBannerCenter.shared.setActiveThread(thread.id)
                     // Try again after a delay to ensure view hierarchy is ready
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         print("⌨️ [COMPOSER] Delayed focus attempt")
                         composerFocused = true
                     }
+                }
+                .onChange(of: chatState.currentThread?.id) { _, newId in
+                    InAppBannerCenter.shared.setActiveThread(newId)
+                }
+                .onDisappear {
+                    // Clear active thread when leaving chat
+                    InAppBannerCenter.shared.setActiveThread(nil)
                 }
                 .toolbar {
                     ToolbarItem(placement: .principal) {

@@ -406,6 +406,41 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         }
         return .none
 
+    case let .markMessageRead(threadID, messageID):
+        return .fireAndForget {
+            await environment.realtime.sendReadReceipt(threadID, messageID)
+        }
+
+    case let .sendQuickReply(threadID, text):
+        let currentUser = state.user
+        return .run(priority: nil) { send in
+            do {
+                // Optimistic local insert similar to sendMessage
+                let now = Date()
+                let localMessage = Message(
+                    threadId: threadID,
+                    senderId: currentUser.id,
+                    content: text,
+                    messageType: .text,
+                    status: .pending,
+                    createdAt: now,
+                    updatedAt: now
+                )
+                try await environment.database.storeMessage(localMessage)
+                send(.messageSent(.success(localMessage)))
+
+                let serverMessage = try await environment.realtime.sendMessage(threadID, text, currentUser, localMessage.id)
+                var updated = localMessage
+                updated.status = .sent
+                try await environment.database.storeMessage(updated)
+                send(.messageStatusUpdated(localMessage.id, .sent))
+                // Also deliver the server message shape to maintain consistency
+                send(.receiveRealtimeMessage(serverMessage))
+            } catch {
+                send(.messageSent(.failure(error)))
+            }
+        }
+
     case let .handleOrphanedThread(threadID):
         print("🗑️ [ORPHAN] Handling orphaned thread: \(threadID)")
 

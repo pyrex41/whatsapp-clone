@@ -7,6 +7,9 @@ import SwiftUI
 
 struct ThreadsListScreen: View {
     @ObservedObject var store: Store<AppState, AppAction>
+    #if DEBUG
+    @State private var showDebugMenu = false
+    #endif
 
     private var threadsState: ThreadsState { store.state.threads }
 
@@ -66,10 +69,25 @@ struct ThreadsListScreen: View {
                 }
                 .accessibilityLabel("New thread")
             }
+            #if DEBUG
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    showDebugMenu = true
+                } label: {
+                    Image(systemName: "wrench.and.screwdriver")
+                }
+                .accessibilityLabel("Debug Menu")
+            }
+            #endif
         }
         .sheet(isPresented: creationSheetBinding) {
             ThreadCreationSheet(store: store)
         }
+        #if DEBUG
+        .sheet(isPresented: $showDebugMenu) {
+            DebugMenuView()
+        }
+        #endif
     }
 
     private var creationSheetBinding: Binding<Bool> {
@@ -143,6 +161,9 @@ struct ThreadRow: View {
 
 struct ThreadsListCompactView: View {
     @ObservedObject var store: Store<AppState, AppAction>
+    #if DEBUG
+    @State private var showDebugMenu = false
+    #endif
 
     private var threadsState: ThreadsState { store.state.threads }
 
@@ -195,10 +216,25 @@ struct ThreadsListCompactView: View {
                 }
                 .accessibilityLabel("New thread")
             }
+            #if DEBUG
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    showDebugMenu = true
+                } label: {
+                    Image(systemName: "wrench.and.screwdriver")
+                }
+                .accessibilityLabel("Debug Menu")
+            }
+            #endif
         }
         .sheet(isPresented: creationSheetBinding) {
             ThreadCreationSheet(store: store)
         }
+        #if DEBUG
+        .sheet(isPresented: $showDebugMenu) {
+            DebugMenuView()
+        }
+        #endif
     }
 
     private var creationSheetBinding: Binding<Bool> {

@@ -509,17 +509,6 @@ final class DatabaseManager {
         }
     }
 
-    /// Fetch user data from backend without syncing threads
-    func fetchUserFromBackend(phoenixManager: PhoenixChannelManager) async throws -> User {
-        print("👤 [USER_SYNC] Fetching user from backend...")
-        
-        let bootstrap = try await phoenixManager.fetchBootstrap()
-        let user = User.from(bootstrap.user)
-        
-        print("✅ [USER_SYNC] Received user: \(user.id) - \(user.displayName)")
-        return user
-    }
-
     /// Sync threads from backend via Phoenix channel
     func syncThreadsFromBackend(phoenixManager: PhoenixChannelManager) async throws -> ([Thread], User) {
         print("📥 Syncing threads and user from backend...")

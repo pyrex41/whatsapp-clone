@@ -20,6 +20,7 @@ struct RealtimeClient {
     var disconnect: @Sendable (_ threadID: UUID) async -> Void
     var sendTyping: @Sendable (_ threadID: UUID, _ userID: String, _ isTyping: Bool) async -> Void  // Changed userID from UUID to String
     var sendMessage: @Sendable (_ threadID: UUID, _ content: String, _ author: User, _ clientMessageId: UUID?) async throws -> Message
+    var sendReadReceipt: @Sendable (_ threadID: UUID, _ messageId: String) async -> Void
 }
 
 struct SyncClient {
@@ -71,7 +72,8 @@ extension AppEnvironment {
             sendTyping: { _, _, _ in },
             sendMessage: { threadID, content, author, _ in
                 await store.createMessage(threadID: threadID, content: content, author: author)
-            }
+            },
+            sendReadReceipt: { _, _ in }
         )
 
         let sync = SyncClient(
@@ -278,6 +280,26 @@ extension AppEnvironment {
                     Task { @MainActor in
                         handler(message)
                     }
+                    // In-app banner presentation (banner mode only)
+                    Task {
+                        guard NotificationConfig.current != .system else { return }
+                        // Skip banners for self-sent messages
+                        let currentUserId = await AuthManager.shared.getUserId()
+                        if let currentUserId, currentUserId == message.senderId { return }
+                        // Respect muted threads if available
+                        let thread = try? await databaseManager.fetchThread(id: threadID)
+                        if thread?.isMuted == true { return }
+                        // Build event model
+                        let raw = message.content.replacingOccurrences(of: "\n", with: " ")
+                        let snippet = String(raw.prefix(120))
+                        let title = thread?.title ?? "New message"
+                        let event = NotificationEvent.messageReceived(
+                            .init(threadId: threadID, title: title, snippet: snippet, avatarURL: nil)
+                        )
+                        await MainActor.run {
+                            InAppBannerCenter.shared.present(event: event)
+                        }
+                    }
                 }
                 print("✅ [CONNECT] Message handler registered for thread: \(threadID)")
             },
@@ -314,6 +336,9 @@ extension AppEnvironment {
                 print("✅ [ENV] Message converted successfully: id=\(message.id.uuidString)")
 
                 return message
+            },
+            sendReadReceipt: { threadID, messageId in
+                await phoenixManager.sendReadReceipt(conversationId: threadID.uuidString, messageId: messageId)
             }
         )
 
