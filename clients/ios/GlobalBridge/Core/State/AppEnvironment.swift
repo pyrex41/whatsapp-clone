@@ -91,7 +91,7 @@ extension AppEnvironment {
             try await databaseManager.seedSampleDataIfNeeded()
         }
 
-        let phoenixConfig = PhoenixConfig.development
+        let phoenixConfig = PhoenixConfig.current  // Auto-selects dev/prod based on build config
         let phoenixManager = PhoenixChannelManager(config: phoenixConfig)
 
         let threadService = ThreadService()
