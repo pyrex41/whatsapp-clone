@@ -281,7 +281,7 @@ extension AppEnvironment {
                         handler(message)
                     }
                     // In-app banner presentation (banner mode only)
-                    Task {
+                    Task { @Sendable in
                         guard NotificationConfig.current != .system else { return }
                         // Skip banners for self-sent messages
                         let currentUserId = await AuthManager.shared.getUserId()

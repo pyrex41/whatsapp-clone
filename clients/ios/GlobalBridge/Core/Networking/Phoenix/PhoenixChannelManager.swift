@@ -377,22 +377,24 @@ public actor PhoenixChannelManager {
         return try await withCheckedThrowingContinuation { continuation in
             channel.push("add_contact", payload: ["contact_user_id": contactUserId])
                 .receive("ok") { response in
-                    do {
-                        let data = try JSONSerialization.data(withJSONObject: response.payload)
-                        let decoder = JSONDecoder()
-                        decoder.keyDecodingStrategy = .convertFromSnakeCase
-                        decoder.dateDecodingStrategy = .custom { decoder in
-                            let container = try decoder.singleValueContainer()
-                            let dateString = try container.decode(String.self)
-                            return ISO8601DateFormatter().date(from: dateString) ?? Date()
+                    Task { @Sendable in
+                        do {
+                            let data = try JSONSerialization.data(withJSONObject: response.payload)
+                            let decoder = JSONDecoder()
+                            decoder.keyDecodingStrategy = .convertFromSnakeCase
+                            decoder.dateDecodingStrategy = .custom { decoder in
+                                let container = try decoder.singleValueContainer()
+                                let dateString = try container.decode(String.self)
+                                return ISO8601DateFormatter().date(from: dateString) ?? Date()
+                            }
+                            let contact = try decoder.decode(Contact.self, from: data)
+                            
+                            print("✅ [CONTACTS] Contact added: \(contact.id)")
+                            continuation.resume(returning: contact)
+                        } catch {
+                            print("❌ [CONTACTS] Failed to parse contact: \(error)")
+                            continuation.resume(throwing: PhoenixError.decodingFailed(error))
                         }
-                        let contact = try decoder.decode(Contact.self, from: data)
-                        
-                        print("✅ [CONTACTS] Contact added: \(contact.id)")
-                        continuation.resume(returning: contact)
-                    } catch {
-                        print("❌ [CONTACTS] Failed to parse contact: \(error)")
-                        continuation.resume(throwing: PhoenixError.decodingFailed(error))
                     }
                 }
                 .receive("error") { message in
@@ -417,27 +419,29 @@ public actor PhoenixChannelManager {
         return try await withCheckedThrowingContinuation { continuation in
             channel.push("sync_contacts", payload: ["since": timestamp])
                 .receive("ok") { response in
-                    do {
-                        guard let contacts = response.payload["contacts"] as? [[String: Any]] else {
-                            continuation.resume(returning: [])
-                            return
+                    Task { @Sendable in
+                        do {
+                            guard let contacts = response.payload["contacts"] as? [[String: Any]] else {
+                                continuation.resume(returning: [])
+                                return
+                            }
+                            
+                            let data = try JSONSerialization.data(withJSONObject: contacts)
+                            let decoder = JSONDecoder()
+                            decoder.keyDecodingStrategy = .convertFromSnakeCase
+                            decoder.dateDecodingStrategy = .custom { decoder in
+                                let container = try decoder.singleValueContainer()
+                                let dateString = try container.decode(String.self)
+                                return ISO8601DateFormatter().date(from: dateString) ?? Date()
+                            }
+                            let contactsList = try decoder.decode([Contact].self, from: data)
+                            
+                            print("✅ [CONTACTS] Synced \(contactsList.count) contacts")
+                            continuation.resume(returning: contactsList)
+                        } catch {
+                            print("❌ [CONTACTS] Failed to parse contacts: \(error)")
+                            continuation.resume(throwing: PhoenixError.decodingFailed(error))
                         }
-                        
-                        let data = try JSONSerialization.data(withJSONObject: contacts)
-                        let decoder = JSONDecoder()
-                        decoder.keyDecodingStrategy = .convertFromSnakeCase
-                        decoder.dateDecodingStrategy = .custom { decoder in
-                            let container = try decoder.singleValueContainer()
-                            let dateString = try container.decode(String.self)
-                            return ISO8601DateFormatter().date(from: dateString) ?? Date()
-                        }
-                        let contactsList = try decoder.decode([Contact].self, from: data)
-                        
-                        print("✅ [CONTACTS] Synced \(contactsList.count) contacts")
-                        continuation.resume(returning: contactsList)
-                    } catch {
-                        print("❌ [CONTACTS] Failed to parse contacts: \(error)")
-                        continuation.resume(throwing: PhoenixError.decodingFailed(error))
                     }
                 }
                 .receive("error") { message in
