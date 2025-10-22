@@ -12,26 +12,24 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         state.threads.isLoading = true
         state.threads.errorMessage = nil
 
-        let ensureRealtime = Command<AppAction>.run(priority: nil) { _ in
+        // Connect to Phoenix FIRST, then load threads
+        return Command<AppAction>.run(priority: nil) { send in
             do {
+                // Step 1: Ensure Phoenix connection
+                print("🔌 [STARTUP] Ensuring Phoenix connection...")
                 try await environment.realtime.ensureConnection()
-            } catch {
-                print("⚠️ Realtime connection failed: \(error)")
-            }
-        }
-
-        let loadThreads = Command<AppAction>.run(priority: nil) { send in
-            do {
+                print("✅ [STARTUP] Phoenix connected, proceeding to load threads")
+                
+                // Step 2: Load threads (which uses Phoenix for bootstrap if needed)
                 await environment.sync.initialSync()
                 await environment.sync.startMonitoring()
                 let threads = try await environment.database.loadThreads()
                 send(.threadsLoaded(.success(threads)))
             } catch {
+                print("❌ [STARTUP] Failed: \(error.localizedDescription)")
                 send(.threadsLoaded(.failure(error)))
             }
         }
-
-        return .merge(ensureRealtime, loadThreads)
 
     case let .threadsLoaded(result):
         state.threads.isLoading = false
@@ -303,10 +301,10 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 // 2. Show in UI immediately (optimistic update)
                 send(.messageSent(.success(localMessage)))
                 
-                // 3. Send to backend via Phoenix
-                print("📤 [SEND] Calling Phoenix.sendMessage...")
-                let phoenixMessage = try await environment.realtime.sendMessage(threadID, text, currentUser, nil)
-                print("✅ [SEND] Phoenix confirmed: \(phoenixMessage.id.uuidString)")
+                // 3. Send to backend via Phoenix (include client message ID for deduplication)
+                print("📤 [SEND] Calling Phoenix.sendMessage with client ID: \(localMessage.id.uuidString)...")
+                let phoenixMessage = try await environment.realtime.sendMessage(threadID, text, currentUser, localMessage.id)
+                print("✅ [SEND] Phoenix confirmed - server ID: \(phoenixMessage.id.uuidString), client ID: \(localMessage.id.uuidString)")
                 
                 // 4. Update status to "sent" in local DB
                 var updatedMessage = localMessage
@@ -349,12 +347,6 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         return .none
 
     case let .receiveRealtimeMessage(message):
-        // Skip messages from ourselves - we already added them locally when sending
-        if message.senderId == state.user.id {
-            print("⏭️ [RECEIVE] Skipping own message from broadcast: \(message.id)")
-            return .none
-        }
-        
         guard state.chat.currentThread?.id == message.threadId else {
             if let index = state.threads.items.firstIndex(where: { $0.id == message.threadId }) {
                 state.threads.items[index].lastMessageAt = message.createdAt
@@ -366,8 +358,35 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 try? await environment.database.storeMessage(message)
             }
         }
-        if !state.chat.messages.contains(where: { $0.id == message.id }) {
-            state.chat.messages.append(message)
+        
+        // Check for existing message by client ID (for deduplication)
+        if let clientMsgId = message.clientMessageId,
+           let clientUUID = UUID(uuidString: clientMsgId),
+           let existingIndex = state.chat.messages.firstIndex(where: { $0.id == clientUUID }) {
+            // This is our own message coming back from server - update with server ID
+            print("🔄 [RECEIVE] Updating local message \(clientMsgId) with server ID: \(message.id)")
+            
+            // Convert Phoenix message and update in place
+            if let updatedMessage = Message.fromPhoenix(message) {
+                state.chat.messages[existingIndex] = updatedMessage
+                
+                // Update in database
+                return .fireAndForget {
+                    try? await environment.database.storeMessage(updatedMessage)
+                }
+            }
+            return .none
+        }
+        
+        // Check if server ID already exists (shouldn't happen but safety check)
+        if state.chat.messages.contains(where: { $0.id.uuidString.lowercased() == message.id.lowercased() }) {
+            print("⏭️ [RECEIVE] Skipping duplicate message by server ID: \(message.id)")
+            return .none
+        }
+        
+        // Add the message since it's not a duplicate
+        if let newMessage = Message.fromPhoenix(message) {
+            state.chat.messages.append(newMessage)
             if let index = state.threads.items.firstIndex(where: { $0.id == message.threadId }) {
                 state.threads.items[index].lastMessageAt = message.createdAt
                 state.threads.items[index].updatedAt = message.updatedAt
@@ -375,10 +394,13 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 state.threads.items.insert(updatedThread, at: 0)
                 state.chat.currentThread = updatedThread
             }
+            
+            return .fireAndForget {
+                try? await environment.database.storeMessage(newMessage)
+            }
         }
-        return .fireAndForget {
-            try? await environment.database.storeMessage(message)
-        }
+        
+        return .none
 
     case let .typingIndicator(threadID, userID, isTyping):
         guard state.chat.currentThread?.id == threadID,

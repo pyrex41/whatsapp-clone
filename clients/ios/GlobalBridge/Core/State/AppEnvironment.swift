@@ -19,7 +19,7 @@ struct RealtimeClient {
     var connect: @Sendable (_ threadID: UUID, _ handler: @Sendable @escaping (Message) -> Void) async throws -> Void
     var disconnect: @Sendable (_ threadID: UUID) async -> Void
     var sendTyping: @Sendable (_ threadID: UUID, _ userID: String, _ isTyping: Bool) async -> Void  // Changed userID from UUID to String
-    var sendMessage: @Sendable (_ threadID: UUID, _ content: String, _ author: User, _ replyTo: UUID?) async throws -> Message
+    var sendMessage: @Sendable (_ threadID: UUID, _ content: String, _ author: User, _ clientMessageId: UUID?) async throws -> Message
 }
 
 struct SyncClient {
@@ -35,6 +35,7 @@ struct AppEnvironment {
     var sync: SyncClient
     var uuid: @Sendable () -> UUID = { UUID() }
     var now: @Sendable () -> Date = { Date() }
+    var deviceId: UUID = UUID() // Unique device identifier for deduplication
 }
 
 extension AppEnvironment {
@@ -123,16 +124,22 @@ extension AppEnvironment {
                 if localThreads.isEmpty {
                     print("📥 [LOAD_THREADS] No local threads, syncing from backend...")
                     
-                    // Sync from backend via Phoenix bootstrap
-                    let (syncedThreads, user) = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
-                    
-                    print("✅ [LOAD_THREADS] Synced \(syncedThreads.count) threads from backend")
-                    print("👤 [LOAD_THREADS] Setting user: \(user.id)")
-                    
-                    // Store the bootstrapped user so it's available to the app
-                    await AuthManager.shared.setBootstrappedUser(user)
-                    
-                    return syncedThreads
+                    do {
+                        // Sync from backend via Phoenix bootstrap
+                        let (syncedThreads, user) = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
+                        
+                        print("✅ [LOAD_THREADS] Synced \(syncedThreads.count) threads from backend")
+                        print("👤 [LOAD_THREADS] Setting user: \(user.id)")
+                        
+                        // Store the bootstrapped user so it's available to the app
+                        await AuthManager.shared.setBootstrappedUser(user)
+                        
+                        return syncedThreads
+                    } catch {
+                        print("❌ [LOAD_THREADS] Bootstrap sync failed: \(error)")
+                        print("❌ [LOAD_THREADS] Error details: \(error.localizedDescription)")
+                        throw error
+                    }
                 } else {
                     print("✅ [LOAD_THREADS] Loaded \(localThreads.count) threads from local DB")
                     return localThreads
@@ -216,7 +223,33 @@ extension AppEnvironment {
                 
                 let authToken = await AuthManager.shared.getAccessToken()
                 print("🔌 [REALTIME] Connecting with Auth0 token...")
-                try await phoenixManager.connect(authToken: authToken)
+                
+                // Retry connection up to 3 times with delay
+                var lastError: Error?
+                for attempt in 1...3 {
+                    do {
+                        try await phoenixManager.connect(authToken: authToken)
+                        print("✅ [REALTIME] Phoenix connected on attempt \(attempt)")
+                        break
+                    } catch {
+                        lastError = error
+                        if attempt < 3 {
+                            print("⚠️ [REALTIME] Connection attempt \(attempt) failed, retrying in 1s...")
+                            try? await Task.sleep(nanoseconds: 1_000_000_000)
+                        }
+                    }
+                }
+                
+                // If all retries failed, throw the last error
+                if let error = lastError {
+                    let state = await phoenixManager.getConnectionState()
+                    if case .connected = state {
+                        print("✅ [REALTIME] Connected despite error")
+                    } else {
+                        print("❌ [REALTIME] All connection attempts failed")
+                        throw error
+                    }
+                }
                 
                 // Join user channel for bootstrap
                 if let userId = await AuthManager.shared.getUserId() {
@@ -254,8 +287,8 @@ extension AppEnvironment {
             sendTyping: { threadID, _, isTyping in
                 await phoenixManager.sendTypingIndicator(conversationId: threadID.uuidString, isTyping: isTyping)
             },
-            sendMessage: { threadID, content, _, replyTo in
-                print("📤 [ENV] sendMessage called - thread: \(threadID.uuidString), content: \"\(content)\", replyTo: \(replyTo?.uuidString ?? "nil")")
+            sendMessage: { threadID, content, _, clientMessageId in
+                print("📤 [ENV] sendMessage called - thread: \(threadID.uuidString), content: \"\(content)\", clientMessageId: \(clientMessageId?.uuidString ?? "nil")")
 
                 // Get Auth0 token
                 let token = await AuthManager.shared.getAccessToken()
@@ -268,7 +301,8 @@ extension AppEnvironment {
                 let phoenixMessage = try await phoenixManager.sendMessage(
                     conversationId: threadID.uuidString,
                     content: content,
-                    replyToId: replyTo?.uuidString
+                    clientMessageId: clientMessageId?.uuidString,
+                    replyToId: nil
                 )
                 print("✅ [ENV] Phoenix response: id=\(phoenixMessage.id), conversationId=\(phoenixMessage.conversationId), senderId=\(phoenixMessage.senderId), content=\"\(phoenixMessage.content)\", status=\(phoenixMessage.status.rawValue)")
 

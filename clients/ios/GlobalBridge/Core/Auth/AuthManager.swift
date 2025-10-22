@@ -56,8 +56,9 @@ final class AuthManager: ObservableObject {
     // MARK: - Auth Bypass for Testing
     // Set this to true to bypass Auth0 and use test credentials
     private let authBypassEnabled = true
-    private let testUserId = "test-user-123"
-    private let testAccessToken = "test-token-for-backend-integration"
+    private var testUserId: String?
+    private var testAccessToken: String?
+    private var testUserDisplayName: String?
     
     // Auth0 Configuration from Auth0Config
     private var auth0Domain: String {
@@ -73,11 +74,10 @@ final class AuthManager: ObservableObject {
     }
 
     private init() {
-        // Check if auth bypass is enabled
+        // Auth bypass is enabled but user selection happens later
         if authBypassEnabled {
             print("⚠️ [AUTH BYPASS] Authentication bypass is ENABLED")
-            print("⚠️ [AUTH BYPASS] Using test credentials for backend integration testing")
-            setupBypassAuth()
+            print("⚠️ [AUTH BYPASS] Waiting for test user selection...")
         } else {
             // Check if we have stored credentials
             Task {
@@ -86,17 +86,26 @@ final class AuthManager: ObservableObject {
         }
     }
     
-    /// Setup bypass authentication for testing
-    private func setupBypassAuth() {
+    /// Select a test user for bypass authentication
+    func selectTestUser(userId: String, token: String, displayName: String) {
+        guard authBypassEnabled else { return }
+        
+        self.testUserId = userId
+        self.testAccessToken = token
+        self.testUserDisplayName = displayName
         self.isAuthenticated = true
-        self.userId = testUserId
-        self.accessToken = testAccessToken
+        self.userId = userId
+        self.accessToken = token
         self.tokenExpiresAt = Date().addingTimeInterval(86400) // 24 hours from now
         
-        print("✅ [AUTH BYPASS] Bypass authentication configured")
-        print("   User ID: \(testUserId)")
-        print("   Token: \(testAccessToken)")
-        print("   Expires: \(tokenExpiresAt?.description ?? "unknown")")
+        print("✅ [AUTH BYPASS] Test user selected: \(displayName)")
+        print("   User ID: \(userId)")
+        print("   Token: \(token)")
+    }
+    
+    /// Check if a test user has been selected
+    var hasSelectedTestUser: Bool {
+        authBypassEnabled && testUserId != nil && testAccessToken != nil
     }
     
     /// Restore session from stored credentials
@@ -131,9 +140,9 @@ final class AuthManager: ObservableObject {
     /// Login with Auth0
     func login() async throws -> String {
         // If bypass is enabled, return immediately
-        if authBypassEnabled {
+        if authBypassEnabled, let token = testAccessToken {
             print("⚠️ [AUTH BYPASS] Login bypassed, returning test token")
-            return testAccessToken
+            return token
         }
         
         print("🔐 [AUTH] Starting Auth0 login...")

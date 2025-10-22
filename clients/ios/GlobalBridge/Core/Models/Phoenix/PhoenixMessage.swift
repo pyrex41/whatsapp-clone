@@ -16,6 +16,7 @@ public struct PhoenixMessage: Codable, Sendable, Identifiable {
     public let timestamp: Date
     public let status: MessageStatus
     public let metadata: MessageMetadata?
+    public let clientMessageId: String? // For deduplication
 
     public enum MessageStatus: String, Codable, Sendable {
         case sending
@@ -48,6 +49,7 @@ public struct PhoenixMessage: Codable, Sendable, Identifiable {
         case timestamp
         case status
         case metadata
+        case clientMessageId = "client_message_id"
     }
 }
 

@@ -121,6 +121,13 @@ private struct MessageRow: View {
             if isOwnMessage { Spacer() }
 
             VStack(alignment: isOwnMessage ? .trailing : .leading, spacing: 6) {
+                // Show sender name for messages from others
+                if !isOwnMessage {
+                    Text(senderDisplayName)
+                        .font(.caption.bold())
+                        .foregroundColor(.secondary)
+                }
+                
                 Text(message.content)
                     .padding(12)
                     .background(isOwnMessage ? Color.blue : Color(.systemGray5))
@@ -136,5 +143,11 @@ private struct MessageRow: View {
             if !isOwnMessage { Spacer() }
         }
         .padding(.horizontal, 8)
+    }
+    
+    private var senderDisplayName: String {
+        // TODO: Fetch from user lookup - for now show sender ID prefix
+        let prefix = message.senderId.prefix(8)
+        return "User \(prefix)"
     }
 }

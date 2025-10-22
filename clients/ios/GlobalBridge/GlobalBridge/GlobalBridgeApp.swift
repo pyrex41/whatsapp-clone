@@ -13,6 +13,7 @@ import Auth0
 struct GlobalBridgeApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var notificationManager = NotificationManager.shared
+    @StateObject private var authManager = AuthManager.shared
     @StateObject private var store = Store(
         initialState: AppState(),
         reducer: appReducer,
@@ -21,13 +22,23 @@ struct GlobalBridgeApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppRootView(store: store)
-                .onAppear {
-                    setupNotifications()
+            if authManager.hasSelectedTestUser {
+                AppRootView(store: store)
+                    .onAppear {
+                        setupNotifications()
+                    }
+                    .onOpenURL { url in
+                        handleDeepLink(url)
+                    }
+            } else {
+                UserSelectionView { testUser in
+                    authManager.selectTestUser(
+                        userId: testUser.id,
+                        token: testUser.token,
+                        displayName: testUser.displayName
+                    )
                 }
-                .onOpenURL { url in
-                    handleDeepLink(url)
-                }
+            }
         }
     }
 

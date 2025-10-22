@@ -522,6 +522,7 @@ public actor PhoenixChannelManager {
     public func sendMessage(
         conversationId: String,
         content: String,
+        clientMessageId: String? = nil,
         replyToId: String? = nil
     ) async throws -> PhoenixMessage {
         let topic = topic(for: conversationId)
@@ -550,6 +551,10 @@ public actor PhoenixChannelManager {
             "content": content,
             "timestamp": ISO8601DateFormatter().string(from: Date())
         ]
+
+        if let clientMessageId = clientMessageId {
+            payload["client_message_id"] = clientMessageId
+        }
 
         if let replyToId = replyToId {
             payload["reply_to_id"] = replyToId
@@ -775,6 +780,8 @@ public actor PhoenixChannelManager {
             )
         }
 
+        let clientMessageId = payload["client_message_id"] as? String
+
         return PhoenixMessage(
             id: id,
             conversationId: threadId,
@@ -782,7 +789,8 @@ public actor PhoenixChannelManager {
             content: content,
             timestamp: timestamp,
             status: status,
-            metadata: metadata
+            metadata: metadata,
+            clientMessageId: clientMessageId
         )
     }
 
