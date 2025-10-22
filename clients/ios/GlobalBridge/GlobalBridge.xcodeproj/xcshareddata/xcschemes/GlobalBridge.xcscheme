@@ -50,6 +50,23 @@
             ReferencedContainer = "container:GlobalBridge.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "AUTH0_AUDIENCE"
+            value = "https://api.globalbridge.dev/"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "AUTH0_CLIENT_ID"
+            value = "id5kQQRxJtDhIQ10C9r6TGKmnu0FwIcj"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "AUTH0_DOMAIN"
+            value = "dev-1672riu03fjuf7so.us.auth0.com"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

@@ -11,41 +11,41 @@ import Foundation
 enum Auth0Config {
     /// Auth0 Domain (e.g., "dev-abc123.us.auth0.com")
     static var domain: String {
-        if let domain = ProcessInfo.processInfo.environment["AUTH0_DOMAIN"], !domain.isEmpty {
-            return domain
-        }
-        // Fallback to plist
-        if let domain = bundle.object(forInfoDictionaryKey: "Auth0Domain") as? String {
-            return domain
-        }
-        // Development default
-        return "dev-1672riu03fjuf7so.us.auth0.com"
+        // TEMPORARY: Force correct domain (stripping https:// if present)
+        let correctDomain = "dev-1672riu03fjuf7so.us.auth0.com"
+        
+        let envDomain = ProcessInfo.processInfo.environment["AUTH0_DOMAIN"] ?? "not set"
+        print("⚠️ [Auth0Config] FORCING correct domain: \(correctDomain)")
+        print("   Environment value: \(envDomain)")
+        print("   Plist value: \(bundle.object(forInfoDictionaryKey: "Auth0Domain") as? String ?? "not set")")
+        
+        return correctDomain
     }
     
     /// Auth0 Client ID
     static var clientId: String {
-        if let clientId = ProcessInfo.processInfo.environment["AUTH0_CLIENT_ID"], !clientId.isEmpty {
-            return clientId
-        }
-        // Fallback to plist
-        if let clientId = bundle.object(forInfoDictionaryKey: "Auth0ClientId") as? String {
-            return clientId
-        }
-        // Development default
-        return "id5kQQRxJtDhIQ10C9r6TGKmnu0FwIcj"
+        // TEMPORARY: Force correct client ID
+        let correctClientId = "id5kQQRxJtDhIQ10C9r6TGKmnu0FwIcj"
+        
+        let envClientId = ProcessInfo.processInfo.environment["AUTH0_CLIENT_ID"] ?? "not set"
+        print("⚠️ [Auth0Config] FORCING correct clientId: \(correctClientId)")
+        print("   Environment value: \(envClientId)")
+        print("   Plist value: \(bundle.object(forInfoDictionaryKey: "Auth0ClientId") as? String ?? "not set")")
+        
+        return correctClientId
     }
     
     /// Auth0 Audience
     static var audience: String {
-        if let audience = ProcessInfo.processInfo.environment["AUTH0_AUDIENCE"], !audience.isEmpty {
-            return audience
-        }
-        // Fallback to plist
-        if let audience = bundle.object(forInfoDictionaryKey: "Auth0Audience") as? String {
-            return audience
-        }
-        // Default audience
-        return "globalbridge-api"
+        // TEMPORARY: Force correct audience
+        let correctAudience = "https://api.globalbridge.dev"
+        
+        let envAudience = ProcessInfo.processInfo.environment["AUTH0_AUDIENCE"] ?? "not set"
+        print("⚠️ [Auth0Config] FORCING correct audience: \(correctAudience)")
+        print("   Environment value: \(envAudience)")
+        print("   Plist value: \(bundle.object(forInfoDictionaryKey: "Auth0Audience") as? String ?? "not set")")
+        
+        return correctAudience
     }
     
     private static var bundle: Bundle {

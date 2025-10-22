@@ -7,6 +7,7 @@ defmodule GlobalbridgeBackendWeb.UserSocket do
   require Logger
 
   alias GlobalbridgeBackend.Auth.Guardian
+  alias GlobalbridgeBackend.Auth.Auth0Verifier
   alias GlobalbridgeBackend.Repo
   alias GlobalbridgeBackend.Schemas.User
 
@@ -35,7 +36,7 @@ defmodule GlobalbridgeBackendWeb.UserSocket do
   def connect(%{"token" => token}, socket, _connect_info) do
     Logger.info("🔐 [AUTH] Token-based connection attempt")
 
-    # Try JWT token first, then fallback to simple format for backward compatibility
+    # Try Auth0 token first, then Guardian, then fallback to simple format
     case verify_token(token) do
       {:ok, user} ->
         Logger.info(
@@ -125,11 +126,16 @@ defmodule GlobalbridgeBackendWeb.UserSocket do
 
   defp verify_token(token) do
     # Try Auth0 JWT first, then Guardian, then fallback to simple format
-    case verify_auth0_token(token) do
+    case Auth0Verifier.verify_and_get_user(token) do
       {:ok, user} ->
         {:ok, user}
 
-      {:error, :not_auth0} ->
+      {:error, :token_expired} ->
+        Logger.warning("⏰ [AUTH] Auth0 token has expired")
+        {:error, :token_expired}
+
+      {:error, :invalid_claims} ->
+        Logger.debug("ℹ️ [AUTH] Not an Auth0 token, trying Guardian...")
         # Try Guardian JWT
         case Guardian.decode_and_verify(token) do
           {:ok, claims} ->
@@ -140,54 +146,38 @@ defmodule GlobalbridgeBackendWeb.UserSocket do
             verify_simple_token(token)
         end
 
-      error ->
-        error
+      {:error, other_reason} ->
+        Logger.debug(
+          "ℹ️ [AUTH] Auth0 verification failed (#{inspect(other_reason)}), trying Guardian..."
+        )
+
+        # Try Guardian JWT
+        case Guardian.decode_and_verify(token) do
+          {:ok, claims} ->
+            Guardian.resource_from_claims(claims)
+
+          {:error, _jwt_error} ->
+            # Fallback to simple token format for backward compatibility
+            verify_simple_token(token)
+        end
     end
   end
 
-  defp verify_auth0_token(token) do
-    # For now, if token contains '@' it's likely an Auth0 token
-    # A proper implementation would verify the JWT signature against Auth0's public keys
-    # For development, we'll accept the token and extract claims
+  defp handle_auth0_claims(claims) do
+    auth0_user_id = claims["sub"]
+    email = claims["email"]
+    name = claims["name"] || claims["nickname"] || claims["preferred_username"]
 
-    case decode_jwt(token) do
-      {:ok, claims} when is_map(claims) ->
-        # Check if this looks like an Auth0 token
-        if Map.has_key?(claims, "sub") and
-             (Map.has_key?(claims, "iss") or Map.has_key?(claims, "aud")) do
-          auth0_user_id = claims["sub"]
-          email = claims["email"]
-          name = claims["name"] || claims["nickname"] || claims["preferred_username"]
+    Logger.info("🔐 [AUTH0] Processing token claims: sub=#{auth0_user_id}, email=#{email}")
 
-          Logger.info("🔐 [AUTH0] Token claims: sub=#{auth0_user_id}, email=#{email}")
+    # Find or create user
+    case ensure_user_exists(auth0_user_id, email, name) do
+      {:ok, user} ->
+        user
 
-          # Find or create user
-          ensure_user_exists(auth0_user_id, email, name)
-        else
-          {:error, :not_auth0}
-        end
-
-      _ ->
-        {:error, :not_auth0}
-    end
-  rescue
-    _ -> {:error, :not_auth0}
-  end
-
-  defp decode_jwt(token) do
-    # Simple JWT decoding without verification (for development)
-    # In production, use proper JWT library with signature verification
-    case String.split(token, ".") do
-      [_header, payload, _signature] ->
-        with {:ok, decoded} <- Base.url_decode64(payload, padding: false),
-             {:ok, json} <- Jason.decode(decoded) do
-          {:ok, json}
-        else
-          _ -> {:error, :invalid_jwt}
-        end
-
-      _ ->
-        {:error, :invalid_jwt}
+      {:error, reason} ->
+        Logger.error("❌ [AUTH0] Failed to ensure user exists: #{inspect(reason)}")
+        raise "User creation failed"
     end
   end
 

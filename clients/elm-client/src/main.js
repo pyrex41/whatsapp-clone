@@ -108,7 +108,21 @@ async function restoreSession() {
 }
 
 // Restore session on startup
-restoreSession()
+restoreSession().then(async () => {
+  // If no session was restored and auto-login is enabled, trigger Auth0 login
+  const autoLogin = (import.meta.env.VITE_AUTH0_AUTO_LOGIN || 'false').toLowerCase() === 'true'
+  const session = window.Globalbridge?.debug?.getSession?.()
+  let hadOauthError = false
+  try { hadOauthError = !!sessionStorage.getItem('auth0_last_error') } catch { hadOauthError = false }
+  if (autoLogin && !session && !hadOauthError) {
+    try {
+      console.log('[Auth0] Auto-login enabled, redirecting to Auth0')
+      await Auth0Client.login()
+    } catch (e) {
+      console.error('[Auth0] Auto-login failed:', e)
+    }
+  }
+})
 
 // Phoenix Channels Integration
 
@@ -214,6 +228,8 @@ async function checkAuth0Redirect() {
       if (app.ports && app.ports.onAuth0LoginError) {
         app.ports.onAuth0LoginError.send(message || 'Authentication failed')
       }
+      // Mark that an OAuth error occurred to avoid auto-login loops
+      try { sessionStorage.setItem('auth0_last_error', message || oauthError) } catch {}
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname)
       return

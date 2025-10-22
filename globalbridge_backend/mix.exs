@@ -54,6 +54,7 @@ defmodule GlobalbridgeBackend.MixProject do
       {:bandit, "~> 1.5"},
       {:bcrypt_elixir, "~> 3.0"},
       {:guardian, "~> 2.3"},
+      {:joken, "~> 2.6"},
       {:cors_plug, "~> 3.0"}
     ]
   end

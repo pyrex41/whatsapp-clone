@@ -16,9 +16,22 @@
 		1B81327B2EA70FB200583728 /* GlobalBridge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GlobalBridge.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1B40AF902EA846F10090F1F8 /* Exceptions for "GlobalBridge" folder in "GlobalBridge" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1B81327A2EA70FB200583728 /* GlobalBridge */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1B81327D2EA70FB200583728 /* GlobalBridge */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1B40AF902EA846F10090F1F8 /* Exceptions for "GlobalBridge" folder in "GlobalBridge" target */,
+			);
 			path = GlobalBridge;
 			sourceTree = "<group>";
 		};
@@ -285,6 +298,7 @@
 				DEVELOPMENT_TEAM = VW8QBW8A49;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GlobalBridge/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -318,6 +332,7 @@
 				DEVELOPMENT_TEAM = VW8QBW8A49;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GlobalBridge/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
