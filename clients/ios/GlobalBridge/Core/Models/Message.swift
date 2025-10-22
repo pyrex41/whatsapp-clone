@@ -24,6 +24,7 @@ struct Message: Identifiable, Codable, Equatable {
     var ciphertext: Data?
     let createdAt: Date
     let updatedAt: Date
+    var clientMessageId: String?  // For deduplication - tracks original client UUID
 
     enum MessageType: String, Codable {
         case text = "text"
@@ -61,7 +62,8 @@ struct Message: Identifiable, Codable, Equatable {
         encryptionKeyId: String? = nil,
         ciphertext: Data? = nil,
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
+        clientMessageId: String? = nil
     ) {
         self.id = id
         self.threadId = threadId
@@ -78,6 +80,7 @@ struct Message: Identifiable, Codable, Equatable {
         self.ciphertext = ciphertext
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.clientMessageId = clientMessageId
     }
 }
 
@@ -124,7 +127,8 @@ extension Message {
             encryptionKeyId: nil,
             ciphertext: nil,
             createdAt: phoenixMessage.timestamp,
-            updatedAt: phoenixMessage.timestamp
+            updatedAt: phoenixMessage.timestamp,
+            clientMessageId: phoenixMessage.clientMessageId
         )
     }
 }

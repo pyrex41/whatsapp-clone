@@ -32,6 +32,10 @@ if config_env() == :prod do
   config :globalbridge_backend, GlobalbridgeBackend.Repo,
     database: database_path,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
+
+  # Configure dev_mode for bypassing authentication (use carefully in production!)
+  dev_mode = System.get_env("DEV_MODE") == "true"
+  config :globalbridge_backend, dev_mode: dev_mode
 end
 
 if config_env() == :prod do

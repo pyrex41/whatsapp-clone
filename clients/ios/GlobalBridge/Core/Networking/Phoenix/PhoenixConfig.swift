@@ -43,7 +43,7 @@ public struct PhoenixConfig: Sendable {
 
     /// Default configuration for production (Fly.io deployment)
     public static let production = PhoenixConfig(
-        socketURL: URL(string: "wss://globalbridge.fly.dev/socket")!,  // UPDATE THIS after deploying
+        socketURL: URL(string: "wss://globalbridge-backend.fly.dev/socket")!,
         authToken: nil,
         connectionTimeout: 10,
         heartbeatInterval: 30,
@@ -54,11 +54,11 @@ public struct PhoenixConfig: Sendable {
     
     /// Current active configuration (change this to switch environments)
     public static var current: PhoenixConfig {
-        return .production   // Production (wss://your-app.fly.dev)
+        return .production   // Production (wss://globalbridge-backend.fly.dev)
         #if DEBUG
         return .development  // Local development (ws://localhost:4000)
         #else
-        return .production  // Production (wss://globalbridge.fly.dev)
+        return .production  // Production (wss://globalbridge-backend.fly.dev)
         #endif
     }
 

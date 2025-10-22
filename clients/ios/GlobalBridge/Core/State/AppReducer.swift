@@ -366,41 +366,34 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             // This is our own message coming back from server - update with server ID
             print("🔄 [RECEIVE] Updating local message \(clientMsgId) with server ID: \(message.id)")
             
-            // Convert Phoenix message and update in place
-            if let updatedMessage = Message.fromPhoenix(message) {
-                state.chat.messages[existingIndex] = updatedMessage
-                
-                // Update in database
-                return .fireAndForget {
-                    try? await environment.database.storeMessage(updatedMessage)
-                }
+            // Update the existing message with the server's ID and data
+            state.chat.messages[existingIndex] = message
+            
+            // Update in database
+            return .fireAndForget {
+                try? await environment.database.storeMessage(message)
             }
-            return .none
         }
         
         // Check if server ID already exists (shouldn't happen but safety check)
-        if state.chat.messages.contains(where: { $0.id.uuidString.lowercased() == message.id.lowercased() }) {
+        if state.chat.messages.contains(where: { $0.id.uuidString.lowercased() == message.id.uuidString.lowercased() }) {
             print("⏭️ [RECEIVE] Skipping duplicate message by server ID: \(message.id)")
             return .none
         }
         
         // Add the message since it's not a duplicate
-        if let newMessage = Message.fromPhoenix(message) {
-            state.chat.messages.append(newMessage)
-            if let index = state.threads.items.firstIndex(where: { $0.id == message.threadId }) {
-                state.threads.items[index].lastMessageAt = message.createdAt
-                state.threads.items[index].updatedAt = message.updatedAt
-                let updatedThread = state.threads.items.remove(at: index)
-                state.threads.items.insert(updatedThread, at: 0)
-                state.chat.currentThread = updatedThread
-            }
-            
-            return .fireAndForget {
-                try? await environment.database.storeMessage(newMessage)
-            }
+        state.chat.messages.append(message)
+        if let index = state.threads.items.firstIndex(where: { $0.id == message.threadId }) {
+            state.threads.items[index].lastMessageAt = message.createdAt
+            state.threads.items[index].updatedAt = message.updatedAt
+            let updatedThread = state.threads.items.remove(at: index)
+            state.threads.items.insert(updatedThread, at: 0)
+            state.chat.currentThread = updatedThread
         }
         
-        return .none
+        return .fireAndForget {
+            try? await environment.database.storeMessage(message)
+        }
 
     case let .typingIndicator(threadID, userID, isTyping):
         guard state.chat.currentThread?.id == threadID,

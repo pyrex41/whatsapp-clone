@@ -1,0 +1,25 @@
+#!/bin/sh
+# Startup script for production - runs migrations and seeds, then starts server
+set -eu
+
+echo "🚀 Starting GlobalBridge Backend..."
+echo "================================================"
+
+cd -P -- "$(dirname -- "$0")"
+
+# Run migrations
+echo "📦 Running database migrations..."
+./globalbridge_backend eval "GlobalbridgeBackend.Release.migrate()"
+
+# Run production seeds (idempotent - safe to run multiple times)
+echo "🌱 Running production seeds..."
+./globalbridge_backend eval 'Code.eval_file("priv/repo/seeds_prod.exs")'
+
+echo "✅ Setup complete!"
+echo "================================================"
+echo ""
+
+# Start the server
+echo "🌐 Starting Phoenix server..."
+PHX_SERVER=true exec ./globalbridge_backend start
+

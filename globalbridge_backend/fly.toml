@@ -17,6 +17,7 @@ kill_signal = 'SIGTERM'
   THREAD_DATABASE_DIR = '/mnt/data/threads'
   PHX_HOST = 'globalbridge-backend.fly.dev'
   PORT = '8080'
+  DEV_MODE = 'true'
 
 [[mounts]]
   source = 'data'
@@ -26,9 +27,9 @@ kill_signal = 'SIGTERM'
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = 'stop'
+  auto_stop_machines = 'suspend'
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
   processes = ['app']
 
   [http_service.concurrency]

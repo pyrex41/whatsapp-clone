@@ -91,4 +91,5 @@ USER nobody
 # above and adding an entrypoint. See https://github.com/krallin/tini for details
 # ENTRYPOINT ["/tini", "--"]
 
-CMD ["/app/bin/server"]
+# Use custom startup script that runs migrations, seeds, then starts server
+CMD ["/app/bin/migrate_and_seed"]
