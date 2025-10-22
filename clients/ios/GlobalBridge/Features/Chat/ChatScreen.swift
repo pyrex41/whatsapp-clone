@@ -22,7 +22,7 @@ struct ChatScreen: View {
                             LazyVStack(spacing: 12) {
                                 ForEach(chatState.messages, id: \.id) { message in
                                     let isOwn = message.senderId == store.state.user.id
-                                    let _ = print("💬 [MESSAGE] id=\(message.id), content=\"\(message.content)\", senderId=\(message.senderId), currentUserId=\(store.state.user.id), isOwn=\(isOwn)")
+                                    let _ = print("🔍 [OWNERSHIP] Message \(message.id) | senderId=\(message.senderId) | currentUserId=\(store.state.user.id) | isOwn=\(isOwn)")
                                     MessageRow(
                                         message: message,
                                         isOwnMessage: isOwn

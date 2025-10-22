@@ -118,22 +118,22 @@ extension AppEnvironment {
                 
                 print("📥 [LOAD_THREADS] Starting thread load...")
                 
-                // Check if we should sync from backend
+                // ALWAYS fetch user identity from backend
+                print("👤 [LOAD_THREADS] Fetching current user identity...")
+                let user = try await databaseManager.fetchUserFromBackend(phoenixManager: phoenixManager)
+                print("✅ [LOAD_THREADS] User identity confirmed: \(user.id)")
+                await AuthManager.shared.setBootstrappedUser(user)
+                
+                // Check if we should sync threads from backend
                 let localThreads = try await databaseManager.fetchThreads()
                 
                 if localThreads.isEmpty {
                     print("📥 [LOAD_THREADS] No local threads, syncing from backend...")
                     
                     do {
-                        // Sync from backend via Phoenix bootstrap
-                        let (syncedThreads, user) = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
-                        
+                        // Sync threads from backend via Phoenix bootstrap
+                        let (syncedThreads, _) = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
                         print("✅ [LOAD_THREADS] Synced \(syncedThreads.count) threads from backend")
-                        print("👤 [LOAD_THREADS] Setting user: \(user.id)")
-                        
-                        // Store the bootstrapped user so it's available to the app
-                        await AuthManager.shared.setBootstrappedUser(user)
-                        
                         return syncedThreads
                     } catch {
                         print("❌ [LOAD_THREADS] Bootstrap sync failed: \(error)")

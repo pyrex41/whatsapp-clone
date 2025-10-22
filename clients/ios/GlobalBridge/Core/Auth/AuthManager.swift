@@ -226,6 +226,7 @@ final class AuthManager: ObservableObject {
             tokenExpiresAt = nil
             isAuthenticated = false
             authError = nil
+            bootstrappedUser = nil
             
             print("✅ [AUTH] Logout complete")
         } catch {
