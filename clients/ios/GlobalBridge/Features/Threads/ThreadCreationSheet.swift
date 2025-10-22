@@ -171,11 +171,9 @@ private struct ContactSelectionRow: View {
                 VStack(alignment: .leading) {
                     Text(contact.displayName)
                         .font(.body)
-                    if let email = contact.user.email {
-                        Text(email)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+                    Text(contact.user.email)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
                 
                 Spacer()

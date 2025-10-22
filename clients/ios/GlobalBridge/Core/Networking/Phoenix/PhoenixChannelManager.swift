@@ -35,6 +35,7 @@ public actor PhoenixChannelManager {
     private var reconnectAttempts = 0
     private var eventHandlers: [String: [MessageHandler]] = [:]
     private var presenceHandlers: [PresenceHandler] = []
+    private var globalMessageHandlers: [MessageHandler] = []
     private var typingHandlers: [String: [TypingHandler]] = [:]
     private var readReceiptHandlers: [String: [ReadReceiptHandler]] = [:]
     private var typingTimers: [String: Task<Void, Never>] = [:]
@@ -187,6 +188,9 @@ public actor PhoenixChannelManager {
         // Store user channel
         setChannel(channel, for: "user:\(userId)")
         channelJoinStates[topic] = true
+
+        // Set up user-wide handlers (e.g., new_message events for any conversation)
+        setupUserChannelHandlers(channel)
     }
     
     /// Fetch bootstrap data via user channel
@@ -574,6 +578,9 @@ public actor PhoenixChannelManager {
         eventHandlers[conversationId]?.forEach { handler in
             handler(message)
         }
+        globalMessageHandlers.forEach { handler in
+            handler(message)
+        }
     }
 
     private func deliverMessageUpdate(_ message: PhoenixMessage, conversationId: String) async {
@@ -777,6 +784,11 @@ public actor PhoenixChannelManager {
             eventHandlers[conversationId] = []
         }
         eventHandlers[conversationId]?.append(handler)
+    }
+
+    /// Register handler for all incoming messages
+    public func onAnyMessage(_ handler: @escaping MessageHandler) {
+        globalMessageHandlers.append(handler)
     }
 
     /// Register handler for presence updates
@@ -1076,6 +1088,18 @@ public actor PhoenixChannelManager {
                     joinedUserIds: joins,
                     leftUserIds: leaves
                 )
+            }
+        }
+    }
+
+    private func setupUserChannelHandlers(_ channel: Channel) {
+        channel.on("new_message") { [weak self] socketMessage in
+            guard let self else { return }
+            do {
+                let message = try self.parsePhoenixMessage(from: socketMessage.payload)
+                Task { await self.deliverNewMessage(message, conversationId: message.conversationId) }
+            } catch {
+                print("[Phoenix] Failed to decode user-channel message: \(error)")
             }
         }
     }

@@ -8,7 +8,7 @@
 import Foundation
 
 extension Notification.Name {
-    static let notificationModeChanged = Notification.Name("notificationModeChanged")
+    nonisolated(unsafe) static let notificationModeChanged = Notification.Name("notificationModeChanged")
 }
 
 enum NotificationMode: String {
@@ -18,10 +18,10 @@ enum NotificationMode: String {
 }
 
 struct NotificationConfig {
-    private static let overrideKey = "ios_notifications_mode_override"
+    private nonisolated(unsafe) static let overrideKey = "ios_notifications_mode_override"
 
     /// Optional runtime override stored in UserDefaults
-    static var runtimeOverride: NotificationMode? {
+    nonisolated static var runtimeOverride: NotificationMode? {
         get {
             if let raw = UserDefaults.standard.string(forKey: overrideKey),
                let mode = NotificationMode(rawValue: raw) {

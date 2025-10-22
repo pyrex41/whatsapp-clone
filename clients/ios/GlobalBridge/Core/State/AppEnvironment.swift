@@ -88,6 +88,7 @@ extension AppEnvironment {
 
     static let live: AppEnvironment = {
         let databaseManager = DatabaseManager.shared
+        var globalMessageHandlerRegistered = false
         let initializationTask = Task { @MainActor in
             try await databaseManager.initialize()
             try await databaseManager.seedSampleDataIfNeeded()
@@ -258,6 +259,34 @@ extension AppEnvironment {
                     print("👤 [REALTIME] Joining user channel for: \(userId)")
                     try await phoenixManager.joinUserChannel(userId: userId)
                     print("✅ [REALTIME] User channel joined")
+
+                    // Register global new_message handler once (user-wide feed)
+                    if !globalMessageHandlerRegistered {
+                        globalMessageHandlerRegistered = true
+                        await phoenixManager.onAnyMessage { phoenixMessage in
+                            guard let message = Message.fromPhoenix(phoenixMessage) else { return }
+                            // Present banner in banner mode only
+                            Task { @Sendable in
+                                guard NotificationConfig.current != .system else { return }
+                                // Skip self messages
+                                let currentUserId = await AuthManager.shared.getUserId()
+                                if let currentUserId, currentUserId == message.senderId { return }
+                                // Respect mute
+                                let thread = try? await databaseManager.fetchThread(id: message.threadId)
+                                if thread?.isMuted == true { return }
+                                // Build event
+                                let raw = message.content.replacingOccurrences(of: "\n", with: " ")
+                                let snippet = String(raw.prefix(120))
+                                let title = thread?.title ?? "New message"
+                                let event = NotificationEvent.messageReceived(
+                                    .init(threadId: message.threadId, title: title, snippet: snippet, avatarURL: nil)
+                                )
+                                await MainActor.run {
+                                    InAppBannerCenter.shared.present(event: event)
+                                }
+                            }
+                        }
+                    }
                 }
             },
             connect: { threadID, handler in
@@ -279,26 +308,6 @@ extension AppEnvironment {
                     guard let message = Message.fromPhoenix(phoenixMessage) else { return }
                     Task { @MainActor in
                         handler(message)
-                    }
-                    // In-app banner presentation (banner mode only)
-                    Task { @Sendable in
-                        guard NotificationConfig.current != .system else { return }
-                        // Skip banners for self-sent messages
-                        let currentUserId = await AuthManager.shared.getUserId()
-                        if let currentUserId, currentUserId == message.senderId { return }
-                        // Respect muted threads if available
-                        let thread = try? await databaseManager.fetchThread(id: threadID)
-                        if thread?.isMuted == true { return }
-                        // Build event model
-                        let raw = message.content.replacingOccurrences(of: "\n", with: " ")
-                        let snippet = String(raw.prefix(120))
-                        let title = thread?.title ?? "New message"
-                        let event = NotificationEvent.messageReceived(
-                            .init(threadId: threadID, title: title, snippet: snippet, avatarURL: nil)
-                        )
-                        await MainActor.run {
-                            InAppBannerCenter.shared.present(event: event)
-                        }
                     }
                 }
                 print("✅ [CONNECT] Message handler registered for thread: \(threadID)")
