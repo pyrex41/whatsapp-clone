@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Cross-target to support solution-wide iOS builds in Rider/VS -->
+    <TargetFrameworks>net9.0;net9.0-ios18.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Nullable>enable</Nullable>
+    <WarningsAsErrors>FS3391</WarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Auth.fs" />
+    <Compile Include="Domain.fs" />
+    <Compile Include="FeatureFlags.fs" />
+    <Compile Include="AppState.fs" />
+  </ItemGroup>
+</Project>

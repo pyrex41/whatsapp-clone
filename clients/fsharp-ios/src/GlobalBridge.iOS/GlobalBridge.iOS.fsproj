@@ -1,0 +1,63 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0-ios18.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <SupportedOSPlatformVersion>16.0</SupportedOSPlatformVersion>
+    <RuntimeIdentifiers>ios-arm64;iossimulator-arm64</RuntimeIdentifiers>
+    <!-- Default to simulator to avoid provisioning needs in IDEs -->
+    <RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
+    <Nullable>enable</Nullable>
+    <GenerateRuntimeConfigFile>false</GenerateRuntimeConfigFile>
+    <ApplicationTitle>GlobalBridge F#</ApplicationTitle>
+    <IosBundleIdentifier>com.globalbridge.mobile.fs</IosBundleIdentifier>
+    <CodesignKey>-</CodesignKey>
+    <CodesignProvision></CodesignProvision>
+    <IosAppDevelopmentTeam />
+  </PropertyGroup>
+
+  <!-- Disable code signing for simulator builds -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <!-- Ensure Debug builds default to Simulator platform -->
+    <Platform>iPhoneSimulator</Platform>
+    <MtouchArch>ARM64</MtouchArch>
+    <MtouchLink>None</MtouchLink>
+    <!-- Force simulator RID for Debug so IDEs build for Simulator by default -->
+    <RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
+    <CodesignKey>-</CodesignKey>
+    <CodesignProvision></CodesignProvision>
+    <CodesignEntitlements></CodesignEntitlements>
+    <EnableCodeSigning>false</EnableCodeSigning>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(RuntimeIdentifier.Contains('simulator'))">
+    <EnableCodeSigning>false</EnableCodeSigning>
+    <CodesignKey></CodesignKey>
+    <CodesignProvision></CodesignProvision>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GlobalBridge.Core\GlobalBridge.Core.fsproj" />
+    <ProjectReference Include="..\GlobalBridge.Networking\GlobalBridge.Networking.fsproj" />
+    <ProjectReference Include="..\GlobalBridge.UI\GlobalBridge.UI.fsproj" />
+    <ProjectReference Include="..\GlobalBridge.Notifications\GlobalBridge.Notifications.fsproj" />
+    <ProjectReference Include="..\GlobalBridge.BridgeFlows\GlobalBridge.BridgeFlows.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Storage/TokenStore.fs" />
+    <Compile Include="AppDelegate.fs" />
+    <Compile Include="Auth/AuthCoordinator.fs" />
+    <Compile Include="SceneDelegate.fs" />
+    <Compile Include="Main.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Entitlements.plist" />
+    <BundleResource Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
+    <BundleResource Include="LaunchScreen.storyboard" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.7" />
+  </ItemGroup>
+</Project>

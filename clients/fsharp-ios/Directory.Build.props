@@ -1,0 +1,15 @@
+<Project>
+  <!-- Default Debug builds for GlobalBridge.iOS to the Simulator with signing off -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)'=='GlobalBridge.iOS' and '$(Configuration)'=='Debug'">
+    <Platform Condition="'$(Platform)'==''">iPhoneSimulator</Platform>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)'==''">iossimulator-arm64</RuntimeIdentifier>
+    <EnableCodeSigning>false</EnableCodeSigning>
+    <CodesignKey>-</CodesignKey>
+    <CodesignProvision></CodesignProvision>
+  </PropertyGroup>
+
+  <!-- Ensure the simulator RID is set when building net9.0-ios18.0 without explicit -r -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)'=='GlobalBridge.iOS' and '$(TargetFramework)'=='net9.0-ios18.0' and '$(RuntimeIdentifier)'==''">
+    <RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
+  </PropertyGroup>
+</Project>
