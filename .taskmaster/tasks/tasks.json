@@ -2116,7 +2116,7 @@
   "elm": {
     "tasks": [
       {
-        "id": "1",
+        "id": 1,
         "title": "Elm Web Client: Project Scaffolding & Build Setup",
         "description": "Set up the foundational structure and build configuration for an Elm 0.19 Single Page Application integrated with Vite and Phoenix backend, including project directories, Elm package configuration, and development server with hot reload.",
         "details": "Begin by initializing the Elm project structure. Create the following directories at the root level: `src/` for Elm source files, `tests/` for test files, and `public/` for static assets. Initialize an Elm project using `elm init`, which will generate `elm.json`. Update `elm.json` to include required packages: add `elm/browser` for browser interactions, `elm/http` for HTTP requests, and `elm/json` for JSON handling. Ensure Elm version is set to 0.19.\n\nNext, integrate Vite for build tooling. Install Vite and esbuild as dependencies (e.g., via npm or yarn). Configure Vite in `vite.config.js` to handle Elm compilation: use the `vite-plugin-elm` plugin to compile Elm files, and set up bundling to include `phoenix.js` for Phoenix integration. Configure the output to serve static files from the `public/` directory.\n\nFor Phoenix integration, ensure the Phoenix application is set up to serve static files from the build output directory (typically `dist/` or similar). Update Phoenix's `endpoint.ex` to serve static files from the Elm build directory, and configure routes to handle SPA routing (e.g., fallback to `index.html` for client-side routing).\n\nSet up the development server with hot reload: Configure Vite's dev server to proxy API requests to the Phoenix backend (running on a different port, e.g., 4000). Enable hot module replacement for Elm files using the plugin. Add scripts in `package.json` for development (e.g., `vite dev`) and build (e.g., `vite build`).\n\nConsiderations: Ensure compatibility between Elm 0.19 and Vite/esbuild. Handle CORS if the dev server proxies to Phoenix. For production, ensure the build process minifies and optimizes the bundle. If using a monorepo, ensure paths are correctly configured.",
@@ -2166,7 +2166,7 @@
         "updatedAt": "2025-10-21T15:24:17.804Z"
       },
       {
-        "id": "2",
+        "id": 2,
         "title": "Elm Web Client: Authentication Flow Implementation",
         "description": "Implement Guardian token-based authentication for the Elm web client, including a login view with email/password form, HTTP client for authentication endpoints, session persistence, and comprehensive auth state management.",
         "details": "Begin by defining the authentication model in Elm, including types for AuthState (Authenticated, Anonymous, Loading, Error) and related data structures for user info, tokens, and CSRF tokens. Create a login view component using Elm's Html module, featuring an email/password form with validation (e.g., email format checks and password length requirements). Implement form submission handling to prevent default behavior and trigger authentication requests.\n\nDevelop an Elm HTTP client module for interacting with the backend. Use Elm's Http module to create functions for POST requests to /api/auth/login (sending email and password as JSON) and /api/auth/refresh (using the refresh token). Handle responses by decoding JSON payloads into Elm types, including success (with access/refresh tokens) and error cases (e.g., invalid credentials). Integrate CSRF token handling by extracting the token from the boot payload (assumed to be available via a port or initial model) and including it in request headers.\n\nImplement session persistence using httpOnly cookies by sending tokens to the backend for storage on successful login, ensuring the Elm app doesn't handle sensitive tokens directly. Add logic for automatic token refresh: check token expiry (e.g., via a timer or on API calls) and call the refresh endpoint, updating the auth state accordingly. Handle refresh failures by transitioning to Anonymous state and prompting re-login.\n\nFor developer mode, add preset credentials (e.g., via environment variables or a debug flag) that auto-populate the login form for QA purposes. Ensure this is only active in development builds. Manage auth state centrally using Elm's update pattern, with messages for login attempts, successes, failures, refreshes, and logouts. Consider integrating with Elm's Browser module for navigation guards (e.g., redirecting unauthenticated users to login).\n\nConsiderations: Ensure all HTTP requests include proper error handling and loading states to provide user feedback. Use Elm's Task module for asynchronous operations if needed. Test for edge cases like network failures, expired tokens, and CSRF mismatches. Maintain security by not logging sensitive data and ensuring tokens are not stored in local storage.",
@@ -2232,7 +2232,7 @@
         "updatedAt": "2025-10-21T15:31:50.899Z"
       },
       {
-        "id": "3",
+        "id": 3,
         "title": "Elm Web Client: Phoenix Channels JavaScript Interop",
         "description": "Create a JavaScript adapter module for phoenix.js socket client to enable Elm integration with Phoenix Channels, implementing Elm ports for bidirectional communication including subscribe, unsubscribe, send, and receive operations, along with port handlers for channel events, per-thread subscription management, automatic reconnection with exponential backoff on token refresh, and a heartbeat/keepalive mechanism.",
         "details": "Begin by creating a JavaScript adapter module (e.g., `phoenixAdapter.js`) that wraps the phoenix.js library for socket and channel management. Initialize a Phoenix Socket instance with configuration for the backend endpoint, including authentication tokens retrieved from Elm via ports. Implement Elm ports for bidirectional communication: outgoing ports for commands like `subscribeToChannel`, `unsubscribeFromChannel`, `sendMessage`, and incoming ports for events like `channelMessageReceived`, `channelJoined`, `channelLeft`, `channelError`. Ensure ports are typed comprehensively using Elm's port types, e.g., `port subscribeToChannel : { topic : String, params : Value } -> Cmd msg` and `port channelMessageReceived : (String, Value) -> Sub msg`. Build port handlers in JavaScript to manage Phoenix Channel events, translating them into Elm subscriptions. Implement per-thread channel subscription management by maintaining a map of channel instances keyed by topic or thread ID, allowing multiple concurrent subscriptions without conflicts. For automatic reconnection, integrate exponential backoff logic (e.g., starting at 1 second, doubling up to a max of 30 seconds) triggered on disconnection, and refresh authentication tokens via Elm ports before reconnecting. Add a heartbeat/keepalive mechanism by sending periodic ping messages (e.g., every 30 seconds) and monitoring for pong responses to detect stale connections. Include comprehensive error handling for connection failures, invalid messages, and authentication issues, logging errors and sending them back to Elm via ports. Ensure the adapter is modular and testable, with functions for socket creation, channel joining/leaving, and message sending. Consider security by validating all incoming data and avoiding direct exposure of sensitive tokens in logs. Finally, integrate this into the Elm app by importing the JavaScript module in the Elm index.html or via Vite bundling, and wire up the ports in the main Elm module.",
@@ -2307,7 +2307,7 @@
         "updatedAt": "2025-10-21T15:35:29.367Z"
       },
       {
-        "id": "4",
+        "id": 4,
         "title": "Elm Web Client: REST API Client & Bootstrap Endpoint",
         "description": "Build a comprehensive Elm HTTP client for interacting with REST endpoints, including integration with the /api/bootstrap endpoint to fetch threads, user profile, and bridge summary data. Implement JSON decoders, encoders, error handling, retry logic, configuration, logging, cancellation, versioning, and a type-safe API contract layer.",
         "details": "Start by creating an Elm module for the REST API client, such as `Api.elm`, to centralize HTTP interactions. Define a configuration record for the API client, including base URL (e.g., configurable for development/production), timeout settings (e.g., 10 seconds), default headers (e.g., Content-Type: application/json), and API version prefix (/api/v1/). Implement a type-safe API contract layer using Elm's type system, defining union types for endpoints (e.g., Bootstrap, Threads, UserProfile) and request/response types (e.g., BootstrapRequest with fields for user ID, and BootstrapResponse with decoders for threads list, user profile object, and bridge summary).\n\nDevelop JSON decoders using Elm's Json.Decode module for all API responses, ensuring they handle nested structures and optional fields gracefully (e.g., decode threads as a list of records with id, title, and participants). Create encoders for request payloads using Json.Encode, such as for bootstrap requests that might include query parameters or body data. Implement error handling by defining custom error types (e.g., NetworkError, DecodeError, ServerError) and mapping HTTP errors to user-friendly messages (e.g., 'Unable to connect to server' for network issues).\n\nAdd request retry logic with exponential backoff: for retryable errors (e.g., 5xx status codes), implement a function that retries up to a configurable limit (e.g., 3 times) with increasing delays (e.g., 1s, 2s, 4s). Include request/response logging for debugging, using Elm's Debug.log or integrating with a logging port to output details like request URL, method, status code, and response body in development mode. Implement request cancellation using Elm's Task module, allowing ongoing requests to be aborted (e.g., via a cancel token or subscription management).\n\nFor the /api/bootstrap endpoint specifically, create a dedicated function that sends a GET request (or POST if needed), applies authentication headers (e.g., Bearer token from auth state), and decodes the response into the defined types. Ensure the client supports API versioning by prefixing endpoints with /api/v1/. Consider integrating with the authentication state from Task 2 to automatically include auth tokens in requests. Handle edge cases like rate limiting by respecting Retry-After headers in retry logic. Use Elm's Http module for all requests, leveraging its built-in support for JSON and error handling.",
@@ -2372,7 +2372,7 @@
         "updatedAt": "2025-10-21T16:17:55.919Z"
       },
       {
-        "id": "5",
+        "id": 5,
         "title": "Elm Web Client: State Management & Elm Architecture",
         "description": "Design and implement comprehensive application state management for the Elm web client following The Elm Architecture, including page state union types, message routing, update functions, subscriptions, isolated state modules, persistence, debugging utilities, and validation.",
         "details": "Begin by structuring the Elm application around The Elm Architecture (Model-View-Update). Define a top-level Model as a record containing sub-models for Auth, Threads, Messages, Bridges, and UI, each with their own union types for states like Loading, Ready, Error, and NotAuthorized. For example, create Auth.Model with variants such as Authenticated { user : User, token : String }, Anonymous, Loading, and Error String. Implement corresponding Msg types for each module, such as AuthMsg, ThreadsMsg, etc., and a top-level Msg union type to route messages. Build update functions for each module, handling state transitions (e.g., from Loading to Ready upon successful API response), and a main update function that delegates to sub-updates. Integrate subscriptions for real-time updates from Phoenix Channels, such as subscribing to thread messages or bridge events, using Elm's Sub type. Create isolated modules (e.g., Auth.elm, Threads.elm) with their own init, update, and view functions for modularity. Implement state persistence using Elm's ports to localStorage for critical data like auth tokens and user preferences, with serialization/deserialization via JSON. Add debugging utilities, including time-travel debugging by enabling elm-debugger in the main function (e.g., main = Browser.element { init = init, update = update, subscriptions = subscriptions, view = view } |> Debug.toTimeTravel). Document state transition flows in comments or a separate markdown file, detailing how messages trigger updates across modules. Build state validation and invariant checks, such as ensuring authenticated state has a valid token, using custom types or functions that raise errors in development. Consider performance by avoiding unnecessary re-renders and using lazy views where applicable. Ensure integration with existing API client (Task 4) for fetching initial data and with auth (Task 2) for state initialization.",
@@ -2441,7 +2441,7 @@
         "updatedAt": "2025-10-21T16:23:14.469Z"
       },
       {
-        "id": "6",
+        "id": 6,
         "title": "Elm Web Client: Thread List View with Real-time Updates",
         "description": "Build a thread list view in the Elm web client that displays personal and bridged threads with Slack/Telegram badges, unread indicators, bridge status, and sync health. Integrate REST endpoint for initial data, Phoenix Channel subscriptions for real-time updates, filtering/search, thread creation UI, and responsive layout with keyboard navigation.",
         "details": "Begin by defining Elm types for Thread, including fields like id, name, isBridged, bridgeType (Slack/Telegram), unreadCount, bridgeStatus (Connected, Syncing, Error), and syncHealth. Create a ThreadList module within the Elm architecture, integrating with the overall app state from Task 5. Implement the view using Elm's Html module, rendering a list of threads with badges for bridged threads (e.g., icons or text labels), unread message counters (e.g., red badges), and status indicators (e.g., colored dots or text). Add filtering and search functionality using an input field that filters threads by name or bridge type, updating the list reactively. Include a thread creation UI, such as a button that opens a modal or form for entering thread name and selecting bridge options, with form validation. For responsive layout, use CSS classes or Elm's styling to ensure the list adapts to different screen sizes, with keyboard navigation (e.g., arrow keys to select threads, Enter to open). Integrate with Task 4's REST API client to fetch initial thread data from /api/threads on page load or refresh, handling JSON decoding for threads. Subscribe to Phoenix Channels via Task 3's JavaScript interop for real-time updates, using ports to listen for thread changes (e.g., new threads, updates to unread counts or status), and update the Elm model accordingly. Ensure the view is part of the main app routing and state, requiring authentication from Task 2. Handle edge cases like empty thread lists, loading states, and error handling for failed API calls or channel disconnections. Consider performance by implementing virtual scrolling for large thread lists if needed. Update the main Elm application to include this view in the page union type and routing logic.",
@@ -2510,7 +2510,7 @@
         "updatedAt": "2025-10-21T16:33:20.374Z"
       },
       {
-        "id": "7",
+        "id": 7,
         "title": "Elm Web Client: Conversation View with Real-time Messaging",
         "description": "Create a conversation view in the Elm web client that displays a real-time message stream using Phoenix Channels, including a message composer with optimistic send logic, delivery receipts, read status, typing indicators, message metadata, attachment handling, virtualization, auto-scroll, formatting, and error handling with retry.",
         "details": "Begin by defining Elm types for Message, including fields like id, content, timestamp, sender (with user info), bridgeOrigin, encryptionStatus, deliveryStatus (Sent, Delivered, Read), and attachments (as stubs with type, size, and URL). Integrate with the overall app state from Task 5, adding a Conversation module with sub-models for messages, composer state, and UI flags (e.g., autoScrollEnabled, typingUsers).\n\nImplement the conversation view using Elm's Html module, rendering a message list with virtualization (e.g., using a library like elm-virtual-dom or custom scrolling logic to render only visible messages for performance). Display message metadata such as timestamp (formatted as relative time, e.g., '2 minutes ago'), sender name/avatar, bridge origin badge (Slack/Telegram), and encryption status icon. Handle attachments as stubs, showing placeholders with download links or previews.\n\nBuild the message composer with a text input field, supporting optimistic send logic: immediately add the message to the local state and UI, then send via Phoenix Channel (using Task 3's interop), updating status on confirmation or handling failures with retry (e.g., exponential backoff). Implement delivery receipts and read status by subscribing to channel events for message acknowledgments and read markers, updating the message list in real-time.\n\nAdd typing indicators by listening to channel events for 'typing' broadcasts, displaying a list of currently typing users (e.g., 'Alice is typing...'). Enable auto-scroll to the bottom on new messages, with a flag to disable if the user has scrolled up manually.\n\nIncorporate message formatting using Elm's string manipulation or a library like elm-markdown for links (auto-linking URLs) and mentions (highlighting @usernames). Implement error handling for failed sends: display error messages in the composer, allow manual retry, and log errors for debugging.\n\nEnsure responsive design with keyboard navigation (e.g., Enter to send, Escape to cancel). Integrate with Task 4's API client for fetching historical messages on thread load. Consider accessibility features like ARIA labels for screen readers. Handle edge cases such as message edits/deletions via real-time updates and offline scenarios by queuing sends.",
@@ -2595,7 +2595,7 @@
         "updatedAt": "2025-10-21T16:52:09.413Z"
       },
       {
-        "id": "8",
+        "id": 8,
         "title": "Elm Web Client: Message Composer with Optimistic UI",
         "description": "Develop a comprehensive message input component for the Elm web client featuring multi-line text support, optimistic UI updates for message sending, failure handling with rollback and error messages, typing indicator emission, attachment upload UI stubs, @ mentions autocomplete, keyboard shortcuts, character count indicator, paste event handling for text and images, and message editing capabilities.",
         "details": "Begin by extending the existing Conversation module from Task 7 to include a detailed MessageComposer sub-module. Define Elm types for the composer state, including fields like inputText (String), attachments (List AttachmentStub), isEditing (Maybe MessageId), characterCount (Int), and flags for optimistic sending (e.g., pendingMessages : List OptimisticMessage). Implement the message input component using Elm's Html module with a textarea for multi-line support, ensuring it auto-resizes based on content height (using CSS or Elm's style attributes). For optimistic UI, upon sending a message, immediately add it to the conversation view's message list with a 'sending' status, and use Phoenix Channels (via Task 3) to emit the actual send; on failure, rollback by removing the optimistic message and display an error message (e.g., via a toast notification or inline alert). Integrate typing indicator emission by sending 'typing' events through Phoenix Channels when the user starts typing (debounced to avoid spam). Create attachment upload UI as stubs for MVP, including a file input button that accepts images/files, displaying placeholders or previews without full upload logic yet. Implement @ mentions autocomplete by parsing the input text for '@' triggers, querying a user list (fetched via REST API from Task 4), and showing a dropdown with matching users; on selection, insert the mention into the textarea. Add keyboard shortcuts: Ctrl+Enter (or Cmd+Enter on Mac) to send the message, and perhaps Shift+Enter for new lines. Build a character count indicator that updates in real-time, warning or limiting at a max length (e.g., 2000 characters). Handle paste events using Elm's on 'paste' event, checking for text or images; for images, treat as attachments. For message editing, allow selecting a sent message to edit by toggling the composer into edit mode, pre-filling the textarea, and on save, update via API and reflect in UI. Ensure all features integrate with the overall app state from Task 5, using appropriate Msg types and update functions. Consider accessibility, such as ARIA labels for inputs and keyboard navigation for autocomplete. Use Elm's Cmd for side effects like API calls and channel emissions.",
@@ -2661,7 +2661,7 @@
         "expansionPrompt": "Split into subtasks for extending the composer state and UI, implementing optimistic sending and failure handling, adding typing indicators and @mentions, and supporting attachments and editing."
       },
       {
-        "id": "9",
+        "id": 9,
         "title": "Elm Web Client: Security Hardening & Session Management",
         "description": "Implement comprehensive security measures for the Elm web client, including secure session handling with Guardian tokens, CSRF protection, XSS prevention, CSP headers, rate limiting, secure WebSocket validation, token refresh, session timeout, encrypted local storage, audit logging, clickjacking protection, and documentation of best practices.",
         "details": "Begin by enhancing the authentication module from Task 2 to handle secure session management: store Guardian tokens in httpOnly cookies via JavaScript interop (using ports to communicate with a small JS helper for cookie setting, as Elm cannot directly access cookies). Implement CSRF token validation by fetching and including CSRF tokens in all mutation requests through the API client in Task 4, validating them on the server side (ensure the API client module includes CSRF token handling in request headers). For XSS prevention, sanitize message content during rendering in the conversation view from Task 7 using Elm's Html module with careful escaping and avoiding raw HTML injection; consider integrating a library like elm-community/html-extra for safe rendering. Add Content Security Policy (CSP) headers by configuring the Vite build in Task 1 to include CSP meta tags or headers in the HTML template, restricting script sources to self and trusted domains. Implement client-side rate limiting using Elm's Time module to throttle API requests (e.g., limit mutations to 10 per minute) and display user feedback on limits. For secure WebSocket connections, extend the Phoenix Channels interop in Task 3 to validate connections with token-based authentication and implement reconnection with token refresh on failure. Build a token refresh mechanism in the auth state from Task 5, automatically retrying failed requests with refreshed tokens via subscriptions and update functions. Handle session timeout by monitoring token expiry in the state management module, triggering logout and redirect on timeout. Add secure local storage encryption for sensitive data (e.g., user preferences) using Elm's ports to interface with JavaScript's localStorage with encryption (e.g., using crypto-js via JS interop). Implement security audit logging by extending the API client to log security events (e.g., failed logins, token refreshes) to a backend endpoint. Prevent clickjacking by adding X-Frame-Options headers in the Vite config and using Elm's Html to include frame-busting scripts if necessary. Finally, document security best practices in a README or dedicated doc, covering topics like input validation, secure coding in Elm, and integration with Phoenix backend security.",
@@ -2739,7 +2739,7 @@
         "expansionPrompt": "Break down into subtasks for enhancing auth with secure tokens, implementing CSRF and XSS prevention, adding CSP and rate limiting, and integrating audit logging with session management."
       },
       {
-        "id": "10",
+        "id": 10,
         "title": "Elm Web Client: Bridge Status Panel & Management",
         "description": "Develop a comprehensive bridge status panel for the Elm web client, displaying per-thread bridge statuses with visual indicators, sync timestamps, reconnect actions, re-auth flows, configuration details, activation wizard, activity feed, and removal confirmation.",
         "details": "Begin by extending the Elm application state from Task 5 to include a Bridges module with types for Bridge (id, threadId, status: Connected | Syncing | Paused | Error, lastSyncTimestamp, config: {slackChannel, telegramChat}, activityFeed: List ActivityItem where ActivityItem is {type: SyncedMessage | Error, timestamp, details}). Integrate with the REST API client from Task 4 to fetch bridge data via /api/bridges/:id/actions for actions like reconnect, activate, remove, and handle re-auth triggers for expired OAuth by redirecting to auth flow from Task 2. Implement the per-thread bridge status pane as a collapsible panel in the thread view (building on Task 6), using Elm's Html module for visual indicators (e.g., colored icons for status: green for Connected, yellow for Syncing, red for Error). Add action buttons for reconnect (sends API request and updates state optimistically), and for re-auth, trigger the auth flow. Display configuration details in a modal or expandable section. Create a bridge activation wizard as a step-by-step modal with forms for selecting platform (Slack/Telegram), entering credentials, and validating connection. Show the activity feed as a scrollable list with timestamps and error details. Implement the removal confirmation flow with a dialog prompting for confirmation, then API call to delete and update state. Ensure all UI components are responsive and integrate with the overall app routing and state management. Handle errors gracefully, displaying user-friendly messages and retry options. Consider accessibility with ARIA labels for indicators and keyboard navigation for actions.",
@@ -2807,7 +2807,7 @@
         "expansionPrompt": "Expand into subtasks for extending state for bridges, building the status panel UI, integrating API for actions like reconnect, and adding the activation wizard with removal confirmation."
       },
       {
-        "id": "11",
+        "id": 11,
         "title": "Elm Web Client: Developer Debug Panel & QA Utilities",
         "description": "Build a comprehensive developer utilities panel for the Elm web client that includes toggles for visibility, displays raw Phoenix Channel payloads, CDC log entries with filtering, a WebSocket event inspector with JSON formatting, sandbox controls for seeding demo threads, message timeline replay functionality, performance metrics display, a window.Globalbridge.debug API for QA automation, a console logging adapter with log level controls, and test data generation utilities.",
         "details": "Implement the developer debug panel as a new Elm module (e.g., `DebugPanel.elm`) integrated into the main application state from Task 5, using a toggleable overlay or sidebar view that can be activated via a keyboard shortcut (e.g., Ctrl+Shift+D) or a hidden menu item. For displaying raw Phoenix Channel payloads, subscribe to incoming ports from the Phoenix adapter in Task 3 and render them in a scrollable log area with timestamps and JSON formatting using Elm's `Json.Encode` for pretty-printing. Integrate CDC log entries by extending the REST API client in Task 4 to fetch logs from a new endpoint (e.g., `/api/debug/cdc-logs`), implement filtering controls (e.g., by thread ID, timestamp range, or log level) using Elm's Html input elements, and display results in a table or list view. Create a WebSocket event inspector by capturing and displaying all WebSocket messages (incoming/outgoing) from Task 3's adapter, with a JSON formatter that collapses/expands objects and highlights syntax errors. Add sandbox controls to seed demo threads by calling API endpoints via Task 4 to generate test data (e.g., `/api/debug/seed-threads`), including UI buttons or forms to specify parameters like thread count or types. Implement message timeline replay by leveraging the conversation view from Task 7, adding controls to pause/resume and scrub through historical messages fetched via API, with playback indicators. Build a performance metrics display showing latency (e.g., round-trip times for API calls), message throughput (e.g., messages per second from Channels), and memory usage, polled periodically and visualized with simple charts using Elm's Html. Expose a `window.Globalbridge.debug` API via JavaScript interop (ports) for QA automation, allowing external scripts to trigger actions like seeding data or toggling the panel. Create a console logging adapter that intercepts Elm's Debug.log calls and routes them to a configurable console output with log level filters (e.g., Debug, Info, Warn, Error), controllable via the panel. Develop test data generation utilities as Elm functions that produce mock threads, messages, and bridges for development, accessible via the panel's UI. Ensure the panel is conditionally rendered only in development mode (e.g., via an Elm flag or environment check) to avoid exposing it in production. Handle performance by virtualizing long lists (e.g., logs) and using Elm's lazy rendering. Consider accessibility with keyboard navigation and ARIA labels for all interactive elements.",
@@ -2886,7 +2886,7 @@
         "expansionPrompt": "Divide into subtasks for creating the debug panel module, displaying channel payloads and logs, implementing sandbox controls and timeline replay, and adding performance metrics with the debug API."
       },
       {
-        "id": "12",
+        "id": 12,
         "title": "Elm Web Client: Comprehensive Test Suite Implementation",
         "description": "Develop a robust test suite for the Elm web client encompassing Elm unit tests for core state transitions, fuzzer tests for critical flows, Cypress end-to-end tests for user scenarios, integration tests for real-time features, accessibility helpers, mock data generators, CI integration, and documentation.",
         "details": "Begin by setting up elm-test for unit testing, focusing on core state transitions in the application state management from Task 5, such as verifying Msg handling in update functions for auth states (e.g., login success/failure), thread updates, and message sending. Implement fuzzer tests using elm-test's fuzzing capabilities to generate random inputs for message handling (e.g., fuzzing Message types with varying content lengths and attachments), auth flows (e.g., fuzzing email/password combinations and token validations), and channel subscriptions (e.g., fuzzing subscription/unsubscription sequences with random thread IDs). For the Cypress smoke suite, create end-to-end tests for critical user flows: login (navigating to login page, entering credentials, verifying redirect on success), sending a message (selecting a thread, typing in composer, submitting, and checking optimistic UI updates), and viewing threads (loading thread list, filtering/searching, and verifying real-time updates). Include tests for Phoenix Channel reconnection scenarios by simulating network disconnections in Cypress (e.g., using cy.intercept to mock WebSocket failures and verify automatic reconnection with exponential backoff from Task 3). Develop integration tests for auth token refresh by mocking expired tokens in the API client from Task 4 and confirming seamless refresh without user interruption. Test bridge status updates and reconnection by integrating with the bridge panel from Task 10, simulating status changes via mocked API responses and verifying UI indicators update correctly. Add accessibility testing helpers as Elm modules or Cypress plugins, such as functions to check ARIA labels, keyboard navigation, and screen reader compatibility for components like the thread list and message composer. Build mock data generators using Elm's Random module or external libraries for creating realistic test data (e.g., generators for User, Thread, Message, and Bridge types with varying edge cases like empty lists or error states). Integrate the test suite into a CI pipeline by configuring scripts in package.json or CI config files (e.g., GitHub Actions) to run elm-test for unit/fuzzer tests and Cypress for E2E tests on pull requests and merges, including coverage reporting with tools like elm-coverage. Document testing patterns and examples in a dedicated README or wiki, covering how to write new elm-test cases (e.g., using Test.describe and Test.fuzz), Cypress test structures (e.g., page object models for login and thread views), and best practices for mocking Phoenix Channels and API responses. Ensure all tests are runnable in development environments and handle asynchronous operations properly, such as waiting for Channel events in Cypress using cy.wait or custom commands.",
@@ -2983,7 +2983,7 @@
         "expansionPrompt": "Split into subtasks for setting up elm-test for unit/fuzzer tests, creating Cypress E2E tests, adding integration tests for real-time features, building mock generators, and integrating CI with documentation."
       },
       {
-        "id": "13",
+        "id": 13,
         "title": "Elm Web Client: Error Handling & User Feedback",
         "description": "Implement a comprehensive error handling system for the Elm web client, including user-friendly error messages, toast notifications, error boundaries, recovery suggestions, offline detection, retry mechanisms, connection indicators, graceful degradation, error reporting, and fatal error pages.",
         "details": "Begin by extending the Elm application state from Task 5 to include error-related types and states, such as a global ErrorState record with fields for current errors (List Error), connection status (Online | Offline), and retry queues. Define Elm types for Error, including variants like HttpError (with status code and message), ChannelError (for Phoenix socket issues), AuthError, and FatalError, each with user-friendly message mappings (e.g., avoid technical jargon by translating '500 Internal Server Error' to 'Something went wrong on our end. Please try again later.'). Implement toast notifications using Elm's Html module and CSS animations for transient errors, with auto-dismissal after a configurable timeout (e.g., 5 seconds) and manual close options.\n\nCreate error boundary components as Elm modules that wrap views (e.g., ThreadList, Conversation) to catch and display errors gracefully, preventing app crashes. For each boundary, define fallback UI elements like 'Unable to load this section. [Retry]' buttons that trigger recovery actions. Add error recovery suggestions integrated into error messages, such as 'Check your internet connection' for network errors or 'Log in again' for auth failures, with actionable buttons to initiate retries or redirects.\n\nImplement offline detection using Elm's Browser.Events to listen for navigator.onLine changes, updating the connection status indicator (e.g., a small icon in the app header showing green for online, red for offline). For offline messaging, display persistent toasts or banners with 'You're offline. Changes will sync when reconnected.' Build retry mechanisms with user control, such as exponential backoff for API calls in the REST client from Task 4, and UI buttons for manual retries (e.g., in message sending from Task 8).\n\nEnsure graceful degradation by designing views to show partial data or placeholders when features fail (e.g., display cached threads if API fetch fails). Implement error reporting with context by logging errors to a service (via ports to JavaScript for sending to an external logging API), including user ID (from Task 2), timestamp, error type, and stack traces where possible. Create a dedicated error page for fatal errors (e.g., routing to /error with a full-screen message and 'Reload App' button) using Elm's routing from Task 5.\n\nDocument error handling patterns in a README or module comments, covering how to add new error types, integrate boundaries, and test error scenarios. Integrate with existing modules: update the API client (Task 4) to emit error Msgs on failures, Phoenix adapter (Task 3) to handle socket disconnections, and auth flow (Task 2) for session errors. Ensure accessibility by adding ARIA labels to error messages and indicators.",
@@ -3064,7 +3064,7 @@
         "expansionPrompt": "Break down into subtasks for extending state for errors, implementing toast notifications and boundaries, adding offline detection and retry mechanisms, and creating error reporting with fatal pages."
       },
       {
-        "id": "14",
+        "id": 14,
         "title": "Elm Web Client: Responsive Layout & Dark Mode",
         "description": "Implement a responsive dashboard layout for the Elm web client with a left navigation for threads, main panel for messages, and collapsible right panel for bridge insights, along with dark mode support featuring a theme toggle in user settings, CSS custom properties, proper contrast ratios, and layout state persistence.",
         "details": "Begin by structuring the Elm application layout using The Elm Architecture from Task 5, defining a top-level Layout module that manages the dashboard structure with three main panels: a left sidebar for the thread list (integrating with Task 6's ThreadList view), a central main panel for message display (assuming a Conversation view from related tasks), and a right sidebar for bridge insights (leveraging Task 10's BridgeStatusPanel). Implement collapsible functionality for the side panels using Elm state, with buttons or icons to toggle visibility, and ensure the main panel adjusts dynamically (e.g., via CSS flexbox or grid). For responsiveness, create CSS media queries targeting desktop (min-width: 1200px for full three-panel layout), tablet (768px-1199px for collapsible sides or stacked), and mobile (max-width: 767px for single-panel navigation with hamburger menu, prioritizing threads and messages). The mobile variant should use a drawer or modal approach for side panels as a nice-to-have. Use Elm's Html module with CSS classes for styling, ensuring smooth transitions with CSS animations (e.g., transition: width 0.3s ease; for panel collapses). For dark mode, define a theme system using CSS custom properties (e.g., --primary-bg, --text-color) in a root CSS file, creating light and dark palettes that match the native client's parity (research native client colors if needed). Implement theme toggling via a switch in user settings (extend Task 2's auth view or create a new Settings module), storing the preference in Elm's model and persisting to localStorage for layout state (e.g., panel collapsed states and theme choice). Ensure contrast ratios meet WCAG AA standards (e.g., 4.5:1 for normal text) by using tools like contrast checkers during development. Integrate layout state persistence by encoding/decoding JSON for localStorage via Elm's ports or built-in functions, loading on app init. Consider accessibility with ARIA attributes for collapsible panels and keyboard navigation. Finally, test cross-browser compatibility, especially for CSS custom properties support.",
@@ -3135,7 +3135,7 @@
         "expansionPrompt": "Expand into subtasks for structuring the dashboard layout, implementing collapsible panels and responsiveness, adding dark mode with theme toggling, and ensuring persistence and accessibility."
       },
       {
-        "id": "15",
+        "id": 15,
         "title": "Elm Web Client: Accessibility Implementation",
         "description": "Implement comprehensive accessibility features for the Elm web client, including keyboard navigation, ARIA labels, focus management, screen reader support, and WCAG AA compliance to ensure usability for users with disabilities.",
         "details": "Begin by implementing keyboard navigation for thread switching using j/k keys or arrow keys, ensuring the thread list view from Task 6 supports focusable elements and programmatic focus changes via Elm's Html.Attributes and event handlers (e.g., onKeyDown for key detection and Browser.Dom.focus for setting focus). Add ARIA labels to all interactive controls across the application, such as buttons, links, and form inputs, using Html.Attributes.attribute \"aria-label\" or \"aria-labelledby\" to provide descriptive text for screen readers; for example, label the thread list items with thread names and statuses. Build focus management for modals and dialogs by trapping focus within them using Elm ports to JavaScript for focus trapping libraries or custom logic, ensuring initial focus on the first focusable element and restoration on close, integrating with the layout from Task 14. Implement roving tabindex for list navigation in the thread list and message composer from Task 8, setting tabindex=\"-1\" on non-active items and tabindex=\"0\" on the active one, updating dynamically on arrow key navigation. Add screen reader announcements for new messages using Elm ports to trigger live regions (e.g., aria-live=\"polite\" on a hidden div updated via ports for real-time updates from Task 3's Phoenix Channels). Create skip-to-content links at the top of the page, linking to main content areas like the thread list or message panel, styled appropriately and positioned off-screen until focused. Ensure color contrast meets WCAG AA standards by auditing CSS custom properties from Task 14's dark mode implementation, using tools like Contrast Checker to verify ratios (e.g., 4.5:1 for normal text, 3:1 for large text), and adjusting theme colors as needed. Test with VoiceOver on macOS and NVDA on Windows, verifying navigation and announcements. Add keyboard shortcuts documentation in a help modal or settings page, listing shortcuts like j/k for threads, Enter for selection, and Tab for navigation. Implement focus visible indicators using CSS :focus-visible pseudo-class to highlight focused elements with outlines or borders, ensuring they are visible in both light and dark modes. Create accessible form validation messages in the message composer and auth forms from Task 2, associating error messages with inputs via aria-describedby and ensuring they are announced on submission failures. Integrate these features into the overall Elm Architecture from Task 5, updating models and messages as needed for accessibility states (e.g., current focus index).",
@@ -3152,7 +3152,7 @@
         "updatedAt": "2025-10-21T15:06:35.720Z"
       },
       {
-        "id": "16",
+        "id": 16,
         "title": "Elm Web Client: Performance Optimization & Bundle Analysis",
         "description": "Optimize the Elm web client for production performance by implementing Elm compilation optimizations, code splitting, lazy loading, virtual scrolling, WebSocket enhancements, message batching, performance monitoring, bundle analysis, CSS optimizations, performance budgets, and Lighthouse CI integration.",
         "details": "Begin by configuring Elm compilation for production using the --optimize flag in the build process, which enables dead code elimination, function inlining, and other optimizations to reduce bundle size and improve runtime performance. Implement code splitting for large features by using Elm's lazy loading capabilities with Browser.application or custom ports to dynamically load modules like the bridge panel or advanced message views, ensuring that initial bundle size remains small and subsequent loads are efficient. Create lazy loading for the bridge panel by wrapping it in a lazy view that loads on demand when the user interacts with the bridge insights toggle, integrating with the layout state from Task 14. Build virtual scrolling for long message lists by implementing a custom Elm component that renders only visible items (e.g., using a viewport calculation with Html.lazy and subscriptions for scroll events), calculating item heights dynamically and maintaining scroll position to handle thousands of messages without performance degradation. Optimize WebSocket event handling by batching incoming channel messages in the JavaScript adapter from Task 3, using a debounced port to send batched updates to Elm, reducing frequent re-renders. Implement message batching for bulk operations by modifying the API client in Task 4 to support batch endpoints for sending multiple messages or updates in a single HTTP request, with retry logic and error handling. Add performance monitoring hooks by integrating Elm's Time.every or custom ports to track metrics like render times, WebSocket latency, and API response times, logging them via ports to a monitoring service. Build bundle size analysis tooling by adding webpack-bundle-analyzer or similar to the build pipeline, generating reports on module sizes and dependencies to identify optimization opportunities. Optimize CSS delivery by inlining critical CSS (above-the-fold styles for the dashboard layout from Task 14) using a tool like critical or manual extraction, and loading non-critical CSS asynchronously. Create performance budgets by defining thresholds in the build configuration (e.g., max bundle size 2MB, max Lighthouse scores 90+), failing builds that exceed them. Add Lighthouse CI integration by configuring GitHub Actions or similar to run Lighthouse audits on pull requests, generating reports and blocking merges on score regressions. Ensure all optimizations maintain compatibility with existing features like real-time updates from Task 6, authentication from Task 2, and responsive design from Task 14, and consider accessibility impacts to avoid regressions with Task 15.",
@@ -3170,7 +3170,7 @@
         "updatedAt": "2025-10-21T15:06:57.117Z"
       },
       {
-        "id": "17",
+        "id": 17,
         "title": "Elm Web Client: Telemetry & Analytics Integration",
         "description": "Integrate telemetry and analytics into the Elm web client to emit Phoenix telemetry events for thread subscriptions and unsubscriptions, capture key user interactions such as login success/failure and message sends, and implement a configurable analytics provider with performance metrics, error tracking, and privacy-respecting user engagement metrics.",
         "details": "Begin by defining Elm types for telemetry events, such as union types for Event (e.g., ThreadSubscribed { threadId : String }, ThreadUnsubscribed { threadId : String }, LoginSuccess { userId : String }, LoginFailure { reason : String }, MessageSent { threadId : String, messageId : String }, BridgeRetry { bridgeId : String, attempt : Int }, PageLoad { duration : Float }, FirstMessageSent { duration : Float }, ChannelConnection { duration : Float }, ErrorOccurred { context : String, error : String }, UserEngaged { action : String }). Ensure these types are privacy-respecting by excluding any personally identifiable information (PII) like email addresses or full names, using anonymized IDs instead. Integrate with the Phoenix Channels JavaScript interop from Task 3 by extending the phoenixAdapter.js to emit telemetry events via ports, for example, adding outgoing ports like `emitTelemetry : Event -> Cmd msg` and handling them in JavaScript to send events to Phoenix telemetry (e.g., using Phoenix's telemetry API or custom logging). For user interactions, hook into the authentication flow from Task 2 to emit LoginSuccess/LoginFailure events on auth state changes in the update function. For message sends, integrate with the state management from Task 5 to emit MessageSent events when messages are successfully sent via the REST API client from Task 4. For thread subscriptions/unsubscriptions, extend the thread list view from Task 6 to emit events when subscribing/unsubscribing to channels. Build a lightweight analytics adapter module in Elm, starting with a console logging implementation for development (e.g., a DevAnalytics module that logs events to console.log). Create a configurable AnalyticsProvider interface using Elm's extensible records or union types, allowing for different providers (e.g., Console, ProductionApi), with a default dev provider that logs to console and a prod provider that can be configured via environment variables to send data to an external analytics service via HTTP requests using the API client. Implement performance metrics by using Browser.Events and Time modules to track page load times (e.g., on app initialization), first message sent (timestamp from state), and channel connection times (from Task 3's reconnection logic). Add error tracking by integrating with the API client's error handling in Task 4 to emit ErrorOccurred events with context (e.g., API endpoint, error type). For user engagement metrics, track actions like thread switches or bridge panel opens by emitting UserEngaged events in relevant update functions. Ensure all tracking is opt-in or configurable, with no automatic PII collection, and document all event types, fields, and emission points in a stakeholder-facing document (e.g., a Markdown file in the repo). Consider using Elm's Task and Cmd for asynchronous telemetry emission to avoid blocking the UI.",
@@ -3188,7 +3188,7 @@
         "updatedAt": "2025-10-21T15:07:00.001Z"
       },
       {
-        "id": "18",
+        "id": 18,
         "title": "Elm Web Client: Documentation & Developer Onboarding",
         "description": "Create comprehensive documentation for the Elm web client, including setup instructions, architecture guides, integration details, troubleshooting, testing patterns, contribution guidelines, deployment procedures, and inline code comments to facilitate developer onboarding and maintainability.",
         "details": "Begin by creating a comprehensive README.md file in the project root, starting with a project overview, key features (e.g., real-time messaging, bridge integrations), and prerequisites (Elm 0.19+, Node.js, Phoenix backend). Include detailed setup instructions: clone the repository, install dependencies with `npm install` or `elm install`, configure environment variables (e.g., API_BASE_URL, PHOENIX_SOCKET_URL), and build/run commands (`elm make src/Main.elm --output=elm.js`, `npm start` for development server). Document Elm architecture patterns by explaining The Elm Architecture (Model-View-Update) with examples from the app's state management (e.g., top-level Model with sub-models for Auth, Threads, Messages), message routing, and update functions, including how isolated state modules handle specific features like authentication or thread subscriptions. Describe state flow with diagrams or code snippets showing how messages propagate through the app, such as login triggering AuthMsg updates. Write a Phoenix Channels integration guide detailing the JavaScript adapter (phoenixAdapter.js) for socket management, Elm ports for subscribe/unsubscribe/send/receive, event handling for channel messages, reconnection logic with exponential backoff, and heartbeat mechanisms. Create API contract documentation by listing REST endpoints (e.g., /api/bootstrap for initial data, /api/threads for thread lists) with request/response schemas, JSON examples, authentication headers (Bearer tokens), and error codes; include Elm decoder/encoder examples for type-safe interactions. Build a troubleshooting guide covering common issues like WebSocket connection failures (check token validity, network configs), Elm compilation errors (ensure all dependencies installed), performance bottlenecks (refer to Task 16 optimizations), and accessibility problems (keyboard navigation not working). Document testing patterns by outlining elm-test for unit tests (e.g., state transitions), fuzzers for inputs, Cypress for E2E scenarios (login to message send), and integration tests for real-time features; include examples of running tests (`elm-test`, `npx cypress run`). Create contribution guidelines specifying coding standards (Elm style guide), commit message formats, PR reviews, and branching strategy (e.g., feature branches from main). Write a deployment guide for Phoenix static integration, including building the Elm app for production (`elm make --optimize`), integrating with Phoenix assets (e.g., copying elm.js to priv/static), configuring environment variables for prod, and using tools like Lighthouse CI for performance checks. Document environment configuration with examples of .env files for dev/prod, including API URLs, feature flags, and secrets handling. Add inline code documentation using Elm's --docs flag or comments in modules, explaining complex functions, types, and ports (e.g., document the Api module's request builders). Build architecture decision records (ADRs) as Markdown files in a docs/adr/ directory, recording decisions like choosing Elm for frontend (benefits: type safety, no runtime errors), Phoenix Channels for real-time (vs alternatives like WebSockets directly), and state management structure; each ADR should include context, options considered, decision, and consequences. Ensure all documentation is version-controlled, accessible, and updated as the project evolves.",
@@ -3207,7 +3207,7 @@
         "updatedAt": "2025-10-21T15:07:11.522Z"
       },
       {
-        "id": "19",
+        "id": 19,
         "title": "Elm Web Client: E2EE Preparation & Message Rendering Abstraction",
         "description": "Prepare the Elm web client for end-to-end encryption (E2EE) by creating a message rendering abstraction to handle encrypted and decrypted payloads, designing a message format with an encrypted_content field, and building infrastructure stubs for Signal Protocol integration, key management, and client-side decryption.",
         "details": "Begin by extending the Elm message model (from Task 5's state management) to include an encryption state, such as a union type like EncryptionState (Plaintext, Encrypted { encryptedContent : String, decryptionStatus : DecryptionStatus }, Decrypting, Decrypted { decryptedContent : String }). Design the message format to support an optional encrypted_content field in JSON decoders/encoders, ensuring backward compatibility with existing plaintext messages. Create a message rendering abstraction module (e.g., MessageRenderer.elm) that takes a message and renders it based on its encryption state: for plaintext, render normally; for encrypted, show a placeholder UI like 'Encrypted message - click to decrypt' with an indicator icon (e.g., a lock icon from an icon library or SVG). Implement a decryption hook interface as an Elm port or function stub that can be called to trigger decryption, preparing for future Signal Protocol integration by defining types for keys, sessions, and protocols (e.g., KeyBundle, Session, ProtocolVersion). Build key management infrastructure stubs, such as a KeyManager module with functions for storing/retrieving keys (initially using localStorage via ports, future-proofing for secure storage), and integrate with authentication from Task 2 for user-specific keys. Add encrypted message indicator icons to the UI, ensuring they are accessible and responsive. Document E2EE architecture decisions in a dedicated section of the project docs (e.g., README or architecture.md), covering choices like Signal Protocol for E2EE, client-side decryption flow (e.g., fetch keys, decrypt on-demand), and database schema considerations (e.g., storing encrypted_content as a blob, versioning for future-proofing). Prepare the client-side decryption flow by outlining the steps in code comments: receive encrypted message, check for decryption keys, prompt user if needed, decrypt using Signal Protocol stubs, update message state, and re-render. Future-proof database schema access by ensuring API clients (from Task 4) can handle the new encrypted_content field without breaking existing endpoints, and use Phoenix Channels (from Task 3) for real-time key distribution or message updates. Consider security implications, such as avoiding logging decrypted content and implementing rate limiting for decryption attempts. Use Elm's type system to enforce encryption states and prevent accidental exposure of plaintext.",
@@ -3275,7 +3275,7 @@
         "expansionPrompt": "Divide into subtasks for extending message models for encryption, creating the rendering abstraction, building key management stubs, and preparing decryption flow with documentation."
       },
       {
-        "id": "20",
+        "id": 20,
         "title": "Elm Web Client: Deployment Pipeline & Rollout Plan",
         "description": "Establish a comprehensive deployment pipeline for the Elm web client, including production build optimization, CI/CD automation, staging environment, feature flags, health checks, rollback procedures, error monitoring, and deployment documentation to ensure reliable and gradual rollouts.",
         "details": "Begin by setting up a production build pipeline using Vite for the Elm web client, configuring Vite to handle Elm compilation with optimizations such as tree-shaking, minification, and asset bundling; integrate with Elm's --optimize flag to reduce bundle size and improve load times. Configure Phoenix backend for static file serving by updating the endpoint configuration to serve the built Elm assets from a public directory, ensuring proper caching headers and gzip compression for optimal performance. Build a CI/CD pipeline using tools like GitHub Actions or GitLab CI, automating steps for linting, testing (integrating with existing elm-test suites), building, and deploying to staging and production environments; include automated testing for Elm code, API integrations, and end-to-end tests using Cypress or similar. Set up a staging environment mirroring production, with separate database and configuration for safe testing of new features. Implement feature flags using a library like elm-feature-flags or custom ports to toggle features gradually, allowing percentage-based rollouts or user-specific enabling. Build health check endpoints in the Elm app via ports to Phoenix, exposing metrics like app load time, WebSocket connection status, and API response times. Create rollback procedures by maintaining versioned deployments, with scripts to revert to previous builds and database snapshots if needed. Integrate error monitoring with Sentry by adding the Sentry SDK via JavaScript interop, configuring it to capture Elm runtime errors, unhandled exceptions, and performance issues, with Elm ports to send custom events. Build deployment documentation including step-by-step guides for manual deployments, environment variable configurations, and troubleshooting common issues. Create a release checklist covering code reviews, testing completion, feature flag settings, and post-deployment monitoring. Add telemetry dashboards using tools like Grafana or custom Elm views integrated with Task 17's telemetry events, displaying metrics such as user engagement, error rates, and performance KPIs. Implement a blue-green deployment strategy by deploying to a secondary environment, switching traffic via load balancers or DNS, and monitoring for issues before full rollout. Document all environment configurations, including API URLs, feature flag defaults, and monitoring endpoints, ensuring consistency across dev, staging, and prod.",
@@ -3298,7 +3298,798 @@
       "completedCount": 7,
       "tags": [
         "elm"
-      ]
+      ],
+      "created": "2025-10-22T01:13:37.323Z",
+      "description": "Tasks for elm context"
+    }
+  },
+  "uber": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Configure Ueberauth and Auth0 in Phoenix Backend",
+        "description": "Set up Ueberauth with ueberauth_auth0 strategy and configure environment variables for Auth0 domain, client ID, secret, audience, and callback URL.",
+        "details": "Add dependencies :ueberauth and :ueberauth_auth0 to mix.exs. In runtime.exs or config.exs, configure Ueberauth providers with Auth0 strategy using System.get_env for AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET, and AUTH0_AUDIENCE. Set up the OAuth config for domain, client_id, and client_secret. Ensure HTTPS is enforced in production. Pseudo-code: config :ueberauth, Ueberauth, providers: [auth0: {Ueberauth.Strategy.Auth0, [default_audience: System.get_env(\"AUTH0_AUDIENCE\")]}]; config :ueberauth, Ueberauth.Strategy.Auth0.OAuth, domain: ..., client_id: ..., client_secret: ....",
+        "testStrategy": "Verify configuration by running the Phoenix server and checking that Ueberauth routes are accessible without errors. Use curl to test /auth/auth0 route and ensure it redirects to Auth0.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add Ueberauth and Auth0 dependencies to mix.exs",
+            "description": "Update the mix.exs file to include the necessary dependencies for Ueberauth and the Auth0 strategy.",
+            "dependencies": [],
+            "details": "Locate the mix.exs file in the Phoenix project root. In the deps function, add {:ueberauth, \"~> 0.10\"}, and {:ueberauth_auth0, \"~> 0.9\"} to the list of dependencies. Ensure the versions are compatible with the current Phoenix version. Run mix deps.get to fetch the new dependencies.",
+            "status": "pending",
+            "testStrategy": "Run mix compile to verify that the dependencies are correctly added and compile without errors."
+          },
+          {
+            "id": 2,
+            "title": "Configure environment variables for Auth0 in config files",
+            "description": "Set up the configuration for Auth0 environment variables in the Phoenix config files.",
+            "dependencies": [
+              1
+            ],
+            "details": "In config/runtime.exs (or config.exs if runtime config is not used), use System.get_env to retrieve AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET, and AUTH0_AUDIENCE. Ensure these are set as environment variables in the deployment environment. Add placeholders or defaults if needed for development.",
+            "status": "pending",
+            "testStrategy": "Start the Phoenix server and check the application logs or use IEx to verify that the environment variables are being read correctly without errors."
+          },
+          {
+            "id": 3,
+            "title": "Configure Ueberauth providers with Auth0 strategy",
+            "description": "Set up the Ueberauth configuration to use the Auth0 strategy with the retrieved environment variables.",
+            "dependencies": [
+              2
+            ],
+            "details": "In the config file (runtime.exs or config.exs), add the Ueberauth configuration: config :ueberauth, Ueberauth, providers: [auth0: {Ueberauth.Strategy.Auth0, [default_audience: System.get_env(\"AUTH0_AUDIENCE\")]}]. This configures Ueberauth to use the Auth0 provider with the default audience from the environment variable.",
+            "status": "pending",
+            "testStrategy": "Run the Phoenix server and attempt to access the /auth/auth0 route using curl or a browser to ensure it does not throw configuration errors and redirects appropriately."
+          },
+          {
+            "id": 4,
+            "title": "Set up OAuth configuration for Auth0",
+            "description": "Configure the OAuth settings for the Auth0 strategy including domain, client ID, and client secret.",
+            "dependencies": [
+              3
+            ],
+            "details": "In the config file, add the OAuth configuration: config :ueberauth, Ueberauth.Strategy.Auth0.OAuth, domain: System.get_env(\"AUTH0_DOMAIN\"), client_id: System.get_env(\"AUTH0_CLIENT_ID\"), client_secret: System.get_env(\"AUTH0_CLIENT_SECRET\"). This sets up the OAuth parameters needed for the Auth0 integration.",
+            "status": "pending",
+            "testStrategy": "Test the OAuth flow by initiating authentication and checking that the request is sent to the correct Auth0 domain with the provided client ID."
+          },
+          {
+            "id": 5,
+            "title": "Enforce HTTPS in production for Auth0 callbacks",
+            "description": "Ensure that HTTPS is enforced for Auth0 callback URLs in production environments.",
+            "dependencies": [
+              4
+            ],
+            "details": "In the production configuration, add settings to enforce HTTPS, such as using Plug.SSL or configuring the endpoint to force SSL. Set the callback URL in Auth0 to use HTTPS. Update the config to include force_ssl: [rewrite_on: [:x_forwarded_proto]] in the endpoint configuration if behind a load balancer.",
+            "status": "pending",
+            "testStrategy": "Deploy to a production-like environment and test the callback URL to ensure it enforces HTTPS and handles redirects securely without errors."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Implement JWT Verification with JWKS Caching",
+        "description": "Implement RS256 JWT verification using Auth0 JWKS, including caching with TTL and validation of iss, aud, exp, nbf claims.",
+        "details": "Use :jose library for JWT verification. Fetch JWKS from https://<domain>/.well-known/jwks.json and cache for 10-15 minutes using a library like Cachex or built-in ETS. Validate signature with kid, and claims: iss == https://<domain>/, aud contains API audience, exp/nbf valid. Pseudo-code: def verify_token(token) do JWKS = fetch_and_cache_jwks(); JOSE.JWT.verify_strict(JWKS, [\"RS256\"], token); validate_claims(jwt.claims); end. Add httpoison or req for fetching.",
+        "testStrategy": "Unit tests with valid/invalid tokens; mock JWKS endpoint to test caching and claim validation. Ensure 401 on invalid tokens.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement JWKS Fetching and Caching Mechanism with TTL",
+            "description": "Develop a mechanism to fetch JWKS from the Auth0 endpoint and cache it with a TTL of 10-15 minutes using a library like Cachex or ETS.",
+            "dependencies": [],
+            "details": "Use httpoison or req library to fetch JWKS from https://<domain>/.well-known/jwks.json. Implement caching logic to store the JWKS for 10-15 minutes to avoid repeated fetches. Handle cache expiration and refresh automatically. Ensure error handling for network failures.",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify JWKS fetching, caching duration, and cache invalidation. Mock the endpoint to test success and failure scenarios."
+          },
+          {
+            "id": 2,
+            "title": "Set Up JWT Signature Verification Using JOSE Library",
+            "description": "Configure JWT signature verification using the :jose library with RS256 algorithm and the cached JWKS.",
+            "dependencies": [
+              1
+            ],
+            "details": "Integrate the :jose library to perform strict JWT verification. Use the fetched and cached JWKS to verify the signature based on the kid (key ID). Ensure the verification process handles RS256 specifically and integrates with the caching mechanism from subtask 1.",
+            "status": "pending",
+            "testStrategy": "Unit tests with valid and invalid JWT tokens to check signature verification. Mock JWKS to ensure proper use of cached keys and error handling for invalid signatures."
+          },
+          {
+            "id": 3,
+            "title": "Add Claim Validation for iss, aud, exp, nbf",
+            "description": "Implement validation for JWT claims including issuer (iss), audience (aud), expiration (exp), and not-before (nbf).",
+            "dependencies": [
+              2
+            ],
+            "details": "After signature verification, validate the claims: iss must equal https://<domain>/, aud must contain the API audience, exp must be in the future, nbf must be in the past or current. Raise appropriate errors for invalid claims. Integrate this into the overall verify_token function.",
+            "status": "pending",
+            "testStrategy": "Unit tests with various claim combinations (valid/invalid iss, aud, exp, nbf). Mock JWTs to test claim validation logic and ensure 401 responses for invalid claims."
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Create Auth Plug for API Authentication",
+        "description": "Develop a Phoenix plug that extracts Bearer token from Authorization header, verifies JWT, and assigns current_user or returns 401.",
+        "details": "Create GlobalbridgeBackendWeb.Plugs.Auth plug. Extract token from header, call JWT verification function, lookup user by auth0_id from sub claim, assign to conn.assigns[:current_user]. On failure, halt with 401. Pseudo-code: def call(conn, _opts) do case get_token(conn) do nil -> unauthorized(conn); token -> case verify_token(token) do {:ok, claims} -> assign_user(conn, claims[\"sub\"]); _ -> unauthorized(conn); end; end; end.",
+        "testStrategy": "Integration tests on protected routes: send requests with valid/invalid tokens, assert 200/401 responses and user assignment.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Auth Plug Module Structure",
+            "description": "Set up the basic Phoenix plug module GlobalbridgeBackendWeb.Plugs.Auth with the necessary imports and initial call function structure.",
+            "dependencies": [],
+            "details": "Create a new file in lib/globalbridge_backend_web/plugs/auth.ex. Import Plug.Conn and alias necessary modules like GlobalbridgeBackend.Accounts for user lookup. Define the plug as a module with an init/1 function returning options, and start the call/2 function with the pseudo-code structure provided.",
+            "status": "pending",
+            "testStrategy": "Unit test to ensure the module compiles and the plug can be initialized without errors."
+          },
+          {
+            "id": 2,
+            "title": "Implement Token Extraction from Authorization Header",
+            "description": "Add functionality to extract the Bearer token from the Authorization header in the conn.",
+            "dependencies": [
+              1
+            ],
+            "details": "Within the call/2 function, implement a helper function get_token/1 that checks for the 'authorization' header, verifies it starts with 'Bearer ', and extracts the token string. If no header or invalid format, return nil. This builds on the module structure from subtask 1.",
+            "status": "pending",
+            "testStrategy": "Unit tests for get_token/1 with various header scenarios: valid Bearer, missing header, invalid format, etc."
+          },
+          {
+            "id": 3,
+            "title": "Integrate JWT Verification",
+            "description": "Call the JWT verification function to validate the extracted token and retrieve claims.",
+            "dependencies": [
+              2
+            ],
+            "details": "After extracting the token, implement the verification step using an existing JWT verification function (assuming it's available from dependencies). On success, get the claims; on failure, handle accordingly. This depends on token extraction being complete.",
+            "status": "pending",
+            "testStrategy": "Unit tests mocking the JWT verification to return valid claims or errors, ensuring the plug proceeds correctly."
+          },
+          {
+            "id": 4,
+            "title": "Implement User Lookup and Assignment",
+            "description": "Lookup the user by auth0_id from the JWT sub claim and assign to conn.assigns[:current_user].",
+            "dependencies": [
+              3
+            ],
+            "details": "Upon successful JWT verification, extract the 'sub' claim, use it to query the user from the database (e.g., via Accounts.get_user_by_auth0_id/1), and assign the user to conn.assigns[:current_user]. If user not found, treat as failure. This follows JWT verification.",
+            "status": "pending",
+            "testStrategy": "Integration tests with a test database: verify user assignment when valid token and user exists, and failure when user is missing."
+          },
+          {
+            "id": 5,
+            "title": "Add Error Handling and 401 Response",
+            "description": "Implement unauthorized response for all failure cases, halting the connection with 401 status.",
+            "dependencies": [
+              4
+            ],
+            "details": "Define an unauthorized/1 helper function that sets the response status to 401, sends a JSON error message, and halts the connection. Call this in all error paths: no token, invalid token, verification failure, or user not found. Ensure the plug halts properly in these cases.",
+            "status": "pending",
+            "testStrategy": "Integration tests on protected routes: send requests without token, with invalid token, etc., and assert 401 responses with correct JSON body."
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Implement Auth0Controller for Ueberauth Callback and Token Login",
+        "description": "Build a dedicated Auth0Controller with a callback action for Ueberauth success/failure and a login action for direct token verification. Use this separate controller name to avoid conflict with the existing Guardian-based AuthController, and mount all routes under /auth/auth0/*. Ensure all references use Auth0Controller (not AuthController) and routes are namespaced to avoid collisions.",
+        "status": "pending",
+        "dependencies": [
+          2,
+          3
+        ],
+        "priority": "high",
+        "details": "For callback: handle Ueberauth.Auth struct, mapping auth.uid/email to user lookup/creation, then return a minimal success page or JSON. For login: accept POST to /auth/auth0/login with access_token (Auth0 JWT), verify the JWT, find/create user, and return {user, token} JSON. Pseudo-code: def login(conn, %{\"access_token\" => token}) do case verify_token(token) do {:ok, claims} -> user = find_or_create_user(claims); render(conn, \"login.json\", user: user, token: token); _ -> render_error(conn, 401); end; end. All controller references must use Auth0Controller and all routes must live under /auth/auth0/* (e.g., GET/POST /auth/auth0/callback, POST /auth/auth0/login) to avoid any conflict with the existing Guardian-based AuthController. Ensure router scopes reflect this namespace and no routes are mounted directly under /auth/* that would collide with Guardian.",
+        "testStrategy": "- Ueberauth callback: integration tests with mock success/failure using auth.uid/email mapping; verify user creation/lookup and response payload. - Token login: API tests for POST /auth/auth0/login with valid/invalid Auth0 JWTs; verify JSON response shape {user, token} on success and 401 on failure. - Routing/scope: tests to ensure /auth/auth0/* routes dispatch to Auth0Controller and do not conflict with the existing Guardian-based AuthController (e.g., /auth/auth0/login works, while non-namespaced paths do not hit this controller).",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up Auth0Controller module and basic structure",
+            "description": "Create the Auth0Controller module in the Phoenix application with necessary imports and basic setup for handling authentication actions.",
+            "dependencies": [],
+            "details": "In the Phoenix app, create a new controller file at lib/my_app_web/controllers/auth0_controller.ex. Import necessary modules like Phoenix.Controller, Plug.Conn, and any custom modules for user handling. Define the controller with use MyAppWeb, :controller. Ensure it follows Phoenix controller conventions for rendering JSON and HTML responses and that routes are namespaced under /auth/auth0/*.",
+            "status": "pending",
+            "testStrategy": "Unit test to verify the module compiles and can be instantiated without errors."
+          },
+          {
+            "id": 2,
+            "title": "Implement Ueberauth callback action for success and failure",
+            "description": "Add the callback action in Auth0Controller to handle Ueberauth.Auth struct on successful or failed OAuth authentication, finding or creating users based on uid/email.",
+            "dependencies": [
+              1
+            ],
+            "details": "In Auth0Controller, define a callback/2 function that accepts conn and params. On success, pattern match on the Ueberauth.Auth struct, extracting uid and email to find or create a user via a user context module. On failure, handle error cases appropriately. Render a minimal success page or JSON response with user data. Ensure the Ueberauth plug handles the callback route under /auth/auth0/callback.",
+            "status": "pending",
+            "testStrategy": "Integration test with mock Ueberauth responses: simulate successful callback to verify user creation/lookup and response; test failure case for error handling."
+          },
+          {
+            "id": 3,
+            "title": "Implement login action for direct token verification",
+            "description": "Add the login action in Auth0Controller to accept POST requests with access_token, verify the Auth0 JWT, and find or create the user, returning JSON with token and user data.",
+            "dependencies": [
+              1
+            ],
+            "details": "In Auth0Controller, define a login/2 function that accepts conn and %{\"access_token\" => token}. Call a verify_token function to validate the Auth0 JWT using JWKS. On success, extract claims to find or create user. Render \"login.json\" with user and token. On failure, render 401 error. Ensure the action is routed as POST /auth/auth0/login.",
+            "status": "pending",
+            "testStrategy": "API test: send POST requests to /auth/auth0/login with valid and invalid tokens, verify JSON response with user data and token on success, 401 on failure; mock token verification."
+          },
+          {
+            "id": 4,
+            "title": "Implement user finding and creation logic",
+            "description": "Develop helper functions or integrate with user context to find existing users by uid/email or create new ones from OAuth claims or JWT claims.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create or extend a user context module (e.g., MyApp.Accounts) with functions like find_or_create_user_by_uid_email/2 and find_or_create_user_by_claims/1. For OAuth (Ueberauth), use uid and email from Ueberauth.Auth. For Auth0 JWT, use sub or email from claims. Handle database operations with Ecto, ensuring uniqueness constraints. Return user struct on success.",
+            "status": "pending",
+            "testStrategy": "Unit tests for user context functions: test finding existing user, creating new user, and handling duplicates; use test database to verify persistence."
+          },
+          {
+            "id": 5,
+            "title": "Add error handling and response rendering",
+            "description": "Implement consistent error responses for authentication failures and ensure proper JSON/HTML rendering for all actions.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "In Auth0Controller, add private functions for rendering errors, such as render_error/2 for 401 unauthorized. For the Ueberauth callback, render a simple HTML page on success or JSON. For login under /auth/auth0/login, ensure JSON responses. Use Phoenix's render/3 for templates like login.json. Handle edge cases like invalid tokens or missing users, logging errors appropriately.",
+            "status": "pending",
+            "testStrategy": "Integration tests: verify error responses for invalid inputs in callback and login actions; check response formats (JSON/HTML) and status codes."
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Update User Model and Database Schema for Auth0 Mapping",
+        "description": "Ensure users table and User schema support Auth0 mapping (auth0_id/email + unique indexes). If already present, no further changes.",
+        "status": "pending",
+        "dependencies": [
+          4
+        ],
+        "priority": "medium",
+        "details": "Shift this task to verification-first. Confirm the database and schema already support Auth0 mapping and only add/adjust where missing. Database: users table should have columns auth0_id (string) and email (string), each with a unique index (at minimum: unique on email; prefer unique on auth0_id). Use idempotent migrations (add_if_not_exists, unique_index with if_not_exists: true) so that re-running is a no-op if already present. Schema: User should include :auth0_id and :email fields with corresponding validations and unique constraints in the changeset. Logic: ensure a find_or_create_user (or equivalent) takes Auth0 claims (sub/email) and creates or updates a user accordingly without duplications. Example (simplified): def find_or_create_user(claims) do sub = claims[\"sub\"]; case Repo.get_by(User, auth0_id: sub) do nil -> %User{} |> User.registration_changeset(%{auth0_id: sub, email: claims[\"email\"], display_name: claims[\"name\"]}) |> Repo.insert(); user -> user |> User.update_changeset(%{email: claims[\"email\"], display_name: claims[\"name\"]}) |> Repo.update(); end; end. Prefer unique_index(:users, [:email], if_not_exists: true) and unique_index(:users, [:auth0_id], if_not_exists: true); add_if_not_exists :auth0_id, :string in an alter table block if the column is missing. Treat existing correct schema as a no-op.",
+        "testStrategy": "- Schema verification: query information_schema or pg_catalog to confirm presence of users.email and users.auth0_id and existence of unique indexes on both; ensure any migration uses add_if_not_exists/create unique_index with if_not_exists: true so it can run twice without error. - DB constraints: attempt inserting duplicate emails and duplicate auth0_id values and assert unique violations (or Ecto changeset errors) occur. - Model/schema: unit tests for User.changeset/registration_changeset enforcing required fields and unique_constraint on :email and :auth0_id. - find_or_create_user: unit/integration tests to verify creation on first call (with sub/email) and idempotent update on subsequent calls (email/display_name updated, no duplicate users).",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Verify auth0_id and email columns exist (migration only if missing)",
+            "description": "Check the users table for :auth0_id and :email columns; create a migration only if either column is missing.",
+            "dependencies": [],
+            "details": "Introspect the DB (information_schema.columns) to verify users.email and users.auth0_id exist. If :auth0_id is missing, create an idempotent migration: alter table(:users) do add_if_not_exists :auth0_id, :string end. Do not modify existing columns if already correct. Keep migration reversible.",
+            "status": "pending",
+            "testStrategy": "Run migration in a fresh test DB where :auth0_id is absent and verify the column is added; re-run migration to confirm it is a no-op. In an environment where both columns already exist, confirm no changes are applied."
+          },
+          {
+            "id": 2,
+            "title": "Verify unique constraint on email (create only if missing)",
+            "description": "Ensure users.email is uniquely constrained; add a unique index only if absent.",
+            "dependencies": [
+              1
+            ],
+            "details": "Check for an existing unique index on users.email (via pg_indexes or information_schema). If missing, create unique_index(:users, [:email], if_not_exists: true). Do not alter if an equivalent unique index already exists, even if named differently.",
+            "status": "pending",
+            "testStrategy": "Attempt to insert two users with the same email and assert a unique constraint violation (DB error or Ecto changeset error). Re-run the migration to confirm idempotence."
+          },
+          {
+            "id": 3,
+            "title": "Verify index on auth0_id (create only if missing)",
+            "description": "Ensure lookups by Auth0 ID are efficient and uniquely constrained; create a unique index on auth0_id only if missing.",
+            "dependencies": [
+              1
+            ],
+            "details": "Prefer a unique index on users.auth0_id to prevent duplicates and speed lookups: create unique_index(:users, [:auth0_id], if_not_exists: true). If a non-unique index exists but a unique constraint is desired, document the follow-up; otherwise, leave as-is if a unique index already exists (name may vary).",
+            "status": "pending",
+            "testStrategy": "Insert two records with the same auth0_id and assert a unique violation occurs when a unique index is present. Confirm that the index exists and the migration is safe to run multiple times."
+          },
+          {
+            "id": 4,
+            "title": "Verify User schema includes :auth0_id and :email with unique constraints",
+            "description": "Confirm User schema has fields :auth0_id and :email and that changesets enforce unique constraints.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the User schema, ensure fields :auth0_id and :email are present and cast in changeset/registration_changeset. Add validate_required for both and unique_constraint(:email) and unique_constraint(:auth0_id) matching DB indexes. No changes if already present.",
+            "status": "pending",
+            "testStrategy": "Model tests creating Users with duplicate emails/auth0_id should surface unique_constraint errors in changesets. Verify required field validations are enforced."
+          },
+          {
+            "id": 5,
+            "title": "Ensure find_or_create_user (or equivalent) maps Auth0 sub/email to local user",
+            "description": "Verify there is a function that uses Auth0 claims (sub/email) to find or create a user and updates email/display_name on subsequent logins; implement minimal version only if missing.",
+            "dependencies": [
+              1,
+              4
+            ],
+            "details": "Locate a context or auth module with user mapping logic. The function should: (1) look up by auth0_id (claims[\"sub\"]); (2) insert if not found with auth0_id/email/display_name; (3) update email/display_name on subsequent calls; (4) return {:ok, user} or user as appropriate. If already present and correct, no changes.",
+            "status": "pending",
+            "testStrategy": "Unit tests with mock claims to verify: new user is created on first call; subsequent call updates fields without creating duplicates; lookups are by auth0_id, not email."
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Update UserSocket for Auth0 Token Verification",
+        "description": "Modify UserSocket to accept token param, verify Auth0 JWT using centralized Auth0Verifier.verify/1 (JWKS-backed), and assign current_user for Channels.",
+        "status": "pending",
+        "dependencies": [
+          2,
+          5
+        ],
+        "priority": "medium",
+        "details": "In UserSocket.connect/3, extract params[\"token\"], call centralized Auth0Verifier.verify/1 (JWKS-backed) to verify the JWT, then assign socket.assigns[:current_user]. Reuse user lookup via find_user(claims[\"sub\"]). Pseudo-code: def connect(%{\"token\" => token}, socket, _connect_info) do case Auth0Verifier.verify(token) do {:ok, claims} -> user = find_user(claims[\"sub\"]); {:ok, assign(socket, :current_user, user)}; _ -> :error; end; end.",
+        "testStrategy": "Channel tests: attempt connections with valid/invalid tokens, stubbing Auth0Verifier.verify/1 to simulate {:ok, claims} and error cases; assert connection success/failure and that assigns[:current_user] is set correctly on success.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Modify UserSocket.connect/2 to extract token parameter",
+            "description": "Update the UserSocket.connect/2 function to pattern match and extract the 'token' from the params map.",
+            "dependencies": [],
+            "details": "In the UserSocket module, modify the connect/2 function to accept params containing a 'token' key. This involves changing the function head to def connect(%{\"token\" => token}, socket, _connect_info) do to handle the token extraction.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 2,
+            "title": "Integrate JWT verification logic into UserSocket",
+            "description": "Call centralized Auth0Verifier.verify/1 (JWKS-backed) from connect/3; do not re-implement verification in the socket.",
+            "dependencies": [
+              1
+            ],
+            "details": "Use the centralized Auth0Verifier.verify/1 module (JWKS-backed) rather than any inline or plug-specific verification. From the connect/3 function, call Auth0Verifier.verify(token) and handle the result with a case statement as per the pseudo-code.",
+            "status": "pending",
+            "testStrategy": "Unit test the verification call by stubbing Auth0Verifier.verify/1 with mock tokens to ensure it integrates correctly without full socket setup."
+          },
+          {
+            "id": 3,
+            "title": "Implement user lookup based on verified JWT claims",
+            "description": "On successful token verification, extract the user ID from claims and find the corresponding user in the database.",
+            "dependencies": [
+              2
+            ],
+            "details": "After verifying the token and obtaining claims, use claims[\"sub\"] to find the user via a find_user function that queries the User model by auth0_id (updated in Task 5). Ensure the function handles cases where the user might not exist, though Task 5 ensures creation.",
+            "status": "pending",
+            "testStrategy": "Integration test with a test database to verify user lookup using mock claims."
+          },
+          {
+            "id": 4,
+            "title": "Assign current_user to socket assigns",
+            "description": "Assign the found user to the socket's assigns under the key :current_user for use in Channels.",
+            "dependencies": [
+              3
+            ],
+            "details": "In the success branch of the case statement, use Phoenix.Socket.assign/3 to assign the user to socket.assigns[:current_user]. This makes the user available in subsequent channel operations.",
+            "status": "pending",
+            "testStrategy": "Socket test to assert that assigns[:current_user] is set correctly after connection."
+          },
+          {
+            "id": 5,
+            "title": "Handle connection errors and return appropriate responses",
+            "description": "Implement error handling for invalid tokens or verification failures, returning :error from connect/2.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "In the error branch of the case statement (when verify_token fails), simply return :error. Ensure no user is assigned and the connection is rejected. This completes the logic as per the pseudo-code provided.",
+            "status": "pending",
+            "testStrategy": "Channel integration tests: attempt connections with valid and invalid tokens, asserting success/failure and correct socket state."
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Integrate Auth0 PKCE in iOS App",
+        "description": "Implement Auth0 iOS SDK with PKCE for login, obtain access_token and refresh_token, store securely in Keychain.",
+        "details": "Use Auth0 iOS SDK (latest version ~2.x). Configure with domain, client_id, scopes: openid profile email offline_access. On login success, store tokens in Keychain. Pseudo-code: let credentials = try await auth0.webAuth().start(); keychain.set(credentials.accessToken, forKey: \"accessToken\"); keychain.set(credentials.refreshToken, forKey: \"refreshToken\").",
+        "testStrategy": "Unit tests for login flow; manual QA: login/logout, verify tokens stored and retrievable from Keychain.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Install Auth0 iOS SDK",
+            "description": "Add the latest Auth0 iOS SDK (~2.x) to the iOS project using CocoaPods or Swift Package Manager.",
+            "dependencies": [],
+            "details": "Update the project's dependency manager to include Auth0 iOS SDK. Ensure compatibility with the iOS version and other dependencies. Run pod install or resolve packages to integrate the SDK into the project.",
+            "status": "pending",
+            "testStrategy": "Verify SDK installation by checking if Auth0 classes are importable in a test file."
+          },
+          {
+            "id": 2,
+            "title": "Configure Auth0 Client",
+            "description": "Set up the Auth0 client with domain, client_id, and required scopes for PKCE flow.",
+            "dependencies": [
+              1
+            ],
+            "details": "Initialize the Auth0 client in the app delegate or a dedicated auth manager class. Configure with the Auth0 domain, client ID, and scopes: openid, profile, email, offline_access. Ensure the configuration is secure and not hardcoded in production.",
+            "status": "pending",
+            "testStrategy": "Unit test to assert that the Auth0 client is properly initialized with correct parameters."
+          },
+          {
+            "id": 3,
+            "title": "Implement PKCE Login Flow",
+            "description": "Implement the login functionality using Auth0's webAuth with PKCE to initiate the OAuth flow.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create a login method that calls auth0.webAuth().start() asynchronously. Handle the response to obtain credentials on success. Implement error handling for login failures. This sets up the PKCE flow as per Auth0 documentation.",
+            "status": "pending",
+            "testStrategy": "Manual QA: Attempt login and verify that the Auth0 login page opens and redirects back on success."
+          },
+          {
+            "id": 4,
+            "title": "Obtain and Handle Tokens",
+            "description": "Extract access_token and refresh_token from login credentials upon successful authentication.",
+            "dependencies": [
+              3
+            ],
+            "details": "In the login success callback, access credentials.accessToken and credentials.refreshToken. Prepare them for storage. Ensure tokens are handled securely without logging or exposing them in code. This step focuses on token extraction before storage.",
+            "status": "pending",
+            "testStrategy": "Unit test to mock login response and assert that tokens are correctly extracted from credentials object."
+          },
+          {
+            "id": 5,
+            "title": "Store Tokens Securely in Keychain",
+            "description": "Store the obtained access_token and refresh_token in the iOS Keychain for secure persistence.",
+            "dependencies": [
+              4
+            ],
+            "details": "Use Keychain services to store the accessToken under key 'accessToken' and refreshToken under 'refreshToken'. Implement secure storage with appropriate access controls. Ensure storage happens immediately after token extraction. Handle any Keychain errors gracefully.",
+            "status": "pending",
+            "testStrategy": "Manual QA: After login, check Keychain access via device tools or code to verify tokens are stored and retrievable."
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Implement Bearer Token Usage and Refresh in iOS",
+        "description": "Send Bearer token with API requests, handle 401 by refreshing token and retrying; connect Channels with token.",
+        "details": "For API: add Authorization header to requests. On 401, use refresh_token to get new access_token, retry. For Channels: pass token in socket params. Pseudo-code: func makeRequest(url: URL) { var req = URLRequest(url: url); req.setValue(\"Bearer \\(accessToken)\", forHTTPHeaderField: \"Authorization\"); // on 401: refresh and retry. } For socket: PhoenixSocket.connect(params: [\"token\": accessToken]).",
+        "testStrategy": "E2E tests: simulate API calls and 401 responses, verify refresh and retry; test Channel connection with token.",
+        "priority": "medium",
+        "dependencies": [
+          7
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up token storage and retrieval in iOS app",
+            "description": "Implement secure storage for access_token and refresh_token using Keychain, and provide methods to retrieve and update tokens.",
+            "dependencies": [],
+            "details": "Use iOS Keychain to store access_token and refresh_token securely. Create a TokenManager class with methods like getAccessToken(), getRefreshToken(), and updateTokens(access: String, refresh: String). Ensure thread-safety for async operations.",
+            "status": "pending",
+            "testStrategy": "Unit tests for TokenManager: verify storage, retrieval, and updates; mock Keychain to test security."
+          },
+          {
+            "id": 2,
+            "title": "Modify API client to include Bearer token in requests",
+            "description": "Update the API client to automatically add Authorization header with Bearer token to all outgoing requests.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the API client class, modify the request preparation method to retrieve the access_token from TokenManager and set req.setValue(\"Bearer \\(accessToken)\", forHTTPHeaderField: \"Authorization\"). Ensure this applies to all API calls.",
+            "status": "pending",
+            "testStrategy": "Integration tests: mock API calls and verify Authorization header is present with correct token."
+          },
+          {
+            "id": 3,
+            "title": "Implement token refresh logic",
+            "description": "Create a method to refresh the access_token using the refresh_token by calling the auth endpoint.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add a refreshToken() method in TokenManager that makes a POST request to the refresh endpoint with refresh_token, parses the response for new access_token and refresh_token, and updates storage. Handle network errors and invalid refresh tokens.",
+            "status": "pending",
+            "testStrategy": "Unit tests with mocked network responses: test successful refresh, failure cases, and token updates."
+          },
+          {
+            "id": 4,
+            "title": "Handle 401 errors by refreshing token and retrying requests",
+            "description": "Intercept 401 responses in API client, trigger token refresh, and retry the original request with new token.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "In the API client's response handler, check for 401 status. If detected, call refreshToken(), then retry the original request with the new access_token. Implement a retry limit to avoid infinite loops. Use async/await or completion handlers for sequencing.",
+            "status": "pending",
+            "testStrategy": "E2E tests: simulate 401 responses, verify refresh call, token update, and successful retry of the request."
+          },
+          {
+            "id": 5,
+            "title": "Integrate token into Channels socket connection",
+            "description": "Modify the Phoenix socket connection to include the access_token in connection parameters.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the socket initialization, retrieve access_token from TokenManager and pass it in PhoenixSocket.connect(params: [\"token\": accessToken]). Ensure the socket reconnects with updated token if refreshed during session.",
+            "status": "pending",
+            "testStrategy": "Integration tests: verify socket connects successfully with token in params; test reconnection after token refresh."
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Implement Auth0 Integration in Elm Web Client",
+        "description": "Choose Option A: Use Auth0 SPA SDK via JS bridge and Elm ports for login/logout/refresh, store token in sessionStorage.",
+        "details": "Create JS module wrapping Auth0 SPA SDK (latest ~2.x). Expose login, logout, getToken via ports. Elm stores token in sessionStorage, sends Bearer header. Pseudo-code (JS): auth0.loginWithRedirect(); ports.login.subscribe(() => auth0.loginWithRedirect()); Elm: port login : () -> Cmd msg; store token in model.",
+        "testStrategy": "Manual testing: login/logout flow, verify token storage and API calls with Bearer header; check Channels connection.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create JavaScript Module Wrapping Auth0 SPA SDK",
+            "description": "Develop a JavaScript module that initializes and wraps the Auth0 SPA SDK (version ~2.x) to handle authentication operations.",
+            "dependencies": [],
+            "details": "Initialize Auth0 client with domain, client ID, and audience. Create functions for loginWithRedirect, logout, and getTokenSilently. Ensure proper error handling and configuration for redirect URIs.",
+            "status": "pending",
+            "testStrategy": "Manual testing: verify SDK initialization and basic function calls in browser console."
+          },
+          {
+            "id": 2,
+            "title": "Define Elm Ports for Auth0 Communication",
+            "description": "Set up Elm ports to communicate between Elm and JavaScript for login, logout, and token retrieval.",
+            "dependencies": [
+              1
+            ],
+            "details": "In Elm, define outgoing ports for login and logout commands, and incoming ports for receiving tokens or errors. In JavaScript, subscribe to outgoing ports and send responses back via incoming ports.",
+            "status": "pending",
+            "testStrategy": "Unit tests: check port subscriptions and message passing between Elm and JS."
+          },
+          {
+            "id": 3,
+            "title": "Implement Login Functionality in Elm",
+            "description": "Add login logic in Elm to trigger the Auth0 login flow via ports and handle the response.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create a login command that sends a message through the port. Update the Elm model to store the received token in sessionStorage upon successful authentication. Handle login errors gracefully.",
+            "status": "pending",
+            "testStrategy": "Manual testing: simulate login flow, verify token storage in sessionStorage."
+          },
+          {
+            "id": 4,
+            "title": "Implement Logout Functionality in Elm",
+            "description": "Add logout logic in Elm to clear the session and trigger Auth0 logout via ports.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Create a logout command that sends a message through the port to perform Auth0 logout. Clear the token from sessionStorage and reset the Elm model state. Ensure proper redirect after logout.",
+            "status": "pending",
+            "testStrategy": "Manual testing: perform logout, verify token removal from sessionStorage and redirect."
+          },
+          {
+            "id": 5,
+            "title": "Implement Token Refresh and API Integration",
+            "description": "Handle token refresh in Elm and integrate token usage for API calls with Bearer header.",
+            "dependencies": [
+              3
+            ],
+            "details": "Implement logic to check token expiration and refresh it silently via ports. Modify HTTP requests in Elm to include the Bearer token from sessionStorage. Ensure token is sent with API calls to the backend.",
+            "status": "pending",
+            "testStrategy": "Manual testing: verify token refresh on expiration and successful API calls with Bearer header."
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Apply Bearer Token to Elm API and Channels",
+        "description": "Use stored access_token for API Bearer auth and Channels connection in Elm.",
+        "status": "pending",
+        "dependencies": [
+          9
+        ],
+        "priority": "medium",
+        "details": "In Elm HTTP requests, add Authorization header. For Channels, connect with params: {token: accessToken}. Pseudo-code: request = Http.request { url = apiUrl, headers = [Http.header \"Authorization\" \"Bearer \" ++ token], ... }; socket = Socket.connect \"/socket\" {params: {token: token}}.",
+        "testStrategy": "Integration tests: Elm app makes authenticated API calls and connects to Channels, verify 200 responses and socket auth.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Update Elm Model to Store Access Token",
+            "description": "Modify the Elm application model to include a field for storing the access token retrieved from storage.",
+            "dependencies": [],
+            "details": "Add an accessToken field of type Maybe String to the main Model type. Ensure the token is loaded during application initialization from local storage or passed via flags. This allows the token to be accessible throughout the app for API and Channels usage.",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify the model updates correctly when token is set or cleared."
+          },
+          {
+            "id": 2,
+            "title": "Implement Token Retrieval from Storage",
+            "description": "Implement Token Retrieval from sessionStorage or in-memory storage (prefer sessionStorage over localStorage)",
+            "dependencies": [
+              1
+            ],
+            "details": "Use Elm's Browser.LocalStorage or a port to fetch the stored access_token. Handle cases where the token is missing or expired. Integrate this into the app's init or update functions to populate the model.",
+            "status": "pending",
+            "testStrategy": "Integration tests to check token retrieval on app start and error handling for missing tokens."
+          },
+          {
+            "id": 3,
+            "title": "Add Bearer Authorization Header to HTTP Requests",
+            "description": "Update all Elm HTTP request functions to include the Authorization header with the Bearer token.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Modify the Http.request configurations to append Http.header \"Authorization\" (\"Bearer \" ++ token) to the headers list. Ensure this is applied consistently across all API calls in the application. Handle cases where token is absent by either skipping auth or showing an error.",
+            "status": "pending",
+            "testStrategy": "Unit tests for request builders to verify headers are added; integration tests for actual API calls with mocked responses."
+          },
+          {
+            "id": 4,
+            "title": "Integrate Token into Channels Socket Connection",
+            "description": "Update the Channels socket connection in Elm to pass the access token as a parameter.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "In the Socket.connect call, include params: {token: accessToken} as specified. Ensure the socket is initialized with the token from the model. Handle connection failures due to invalid tokens by attempting reconnection or notifying the user.",
+            "status": "pending",
+            "testStrategy": "Integration tests to verify socket connection succeeds with valid token and fails gracefully with invalid token."
+          },
+          {
+            "id": 5,
+            "title": "Handle Authentication Errors and Token Refresh",
+            "description": "Implement error handling for 401 responses in API calls and socket disconnections, with logic to refresh or re-authenticate.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Add error decoders for HTTP responses to detect 401 status. For Channels, listen for disconnection events. On auth failure, trigger a re-authentication flow, possibly by redirecting to login or refreshing the token via a port to external logic. Update the model accordingly.",
+            "status": "pending",
+            "testStrategy": "E2E tests simulating 401 errors and verifying app behavior, such as re-auth prompts or token refresh."
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Add Security Measures: Rate Limiting, CORS, and Logging",
+        "description": "Implement rate limiting on auth endpoints, review/update CORS origins for iOS/Elm, and redact token logging.",
+        "status": "pending",
+        "dependencies": [
+          1,
+          3
+        ],
+        "priority": "medium",
+        "details": "Use PlugAttack for rate limiting on /auth/auth0/login. CORS is already integrated via CORSPlug—review and update allowed origins to cover Elm web client and any iOS usage; focus on configuration only (no new dependency). Verify CORSPlug placement in Phoenix pipelines that serve /auth and /api, and ensure preflight (OPTIONS) requests are handled. In logs, redact tokens to prefixes and capture sub/jti from JWT payloads. Pseudo-code: plug PlugAttack when action: :throttle, method: :post, path: \"/auth/auth0/login\"; configure CORSPlug origins in config/runtime for Elm and iOS contexts.",
+        "testStrategy": "Load tests: simulate high request rates and verify throttling; CORS tests: verify allowed/disallowed origins and successful preflight (OPTIONS) for /auth and /api; logging audits: ensure tokens are redacted and sub/jti present.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add PlugAttack Dependency for Rate Limiting",
+            "description": "Add the PlugAttack library to the Phoenix project's dependencies in mix.exs to enable rate limiting functionality.",
+            "dependencies": [],
+            "details": "Update the mix.exs file to include {:plug_attack, \"~> 0.4\"} in the deps list. Run mix deps.get to fetch the dependency. This sets up the foundation for implementing rate limiting on auth endpoints.",
+            "status": "pending",
+            "testStrategy": "Verify the dependency is installed by checking mix deps and ensuring no compilation errors."
+          },
+          {
+            "id": 2,
+            "title": "Configure PlugAttack for Auth Endpoint Throttling",
+            "description": "Configure PlugAttack to throttle POST requests to /auth/auth0/login with a specified rate limit.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the router.ex file, add the PlugAttack plug with configuration for action: :throttle, method: :post, and path: \"/auth/auth0/login\". Define the throttling rules, such as allowing a certain number of requests per minute. Ensure the plug is placed appropriately in the pipeline before the auth routes.",
+            "status": "pending",
+            "testStrategy": "Use load testing tools like Apache Bench or Siege to simulate multiple POST requests to the endpoint and verify that requests are throttled after exceeding the limit."
+          },
+          {
+            "id": 3,
+            "title": "Review/update CORSPlug allowed origins for Elm/iOS (no new dependency)",
+            "description": "Review existing CORSPlug configuration and update allowed origins for Elm web and iOS clients; no new dependency should be added.",
+            "dependencies": [],
+            "details": "Do not modify mix.exs. In config.exs or runtime.exs, review the existing CORSPlug configuration and update the allowed origins to include the Elm web client domains (dev and prod) and any applicable iOS webview/custom-scheme contexts as required. Adjust allowed methods/headers (e.g., Authorization, Content-Type) and credentials settings as needed. Prefer environment-based configuration (e.g., ALLOWED_ORIGINS) to separate dev/prod.",
+            "status": "pending",
+            "testStrategy": "From allowed origins, verify successful CORS responses including Access-Control-Allow-Origin and required headers. From disallowed origins, confirm the request is blocked. Validate that preflight requests receive correct headers."
+          },
+          {
+            "id": 4,
+            "title": "Verify CORSPlug placement/pipeline and test preflight for /auth and /api",
+            "description": "Ensure CORSPlug is correctly placed in the Phoenix router pipelines and that preflight (OPTIONS) requests succeed for /auth and /api endpoints.",
+            "dependencies": [
+              3
+            ],
+            "details": "In router.ex, verify CORSPlug runs early in the relevant pipelines (e.g., :api, any auth pipeline) so it applies to /auth and /api routes. Confirm that preflight (OPTIONS) requests are handled and not blocked by other plugs. If necessary, ensure OPTIONS requests route through the pipeline where CORSPlug is active.",
+            "status": "pending",
+            "testStrategy": "Perform integration tests sending cross-origin requests and explicit preflight (OPTIONS) requests to /auth/* and /api/*; confirm correct CORS headers for allowed origins and rejections for disallowed ones."
+          },
+          {
+            "id": 5,
+            "title": "Implement Token Redaction in Logging",
+            "description": "Modify the logging configuration to redact sensitive tokens, showing only prefixes, and log relevant claims like sub and jti.",
+            "dependencies": [],
+            "details": "Update the logger configuration in config.exs to use a custom formatter or plug that redacts tokens in logs. For example, replace full tokens with prefixes (e.g., \"Bearer eyJ...\" becomes \"Bearer eyJ***\"). Ensure logs capture sub and jti from JWT payloads. Implement this in a custom plug or logger backend to scrub logs before output.",
+            "status": "pending",
+            "testStrategy": "Audit logs after making authenticated requests; verify that full tokens are not logged, only redacted versions, and that sub/jti are present. Use log parsing tools to check for sensitive data leakage."
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Perform End-to-End Testing and Migration Validation",
+        "description": "Conduct QA for iOS and Elm flows, including 401 refresh, Channel auth, and backfill existing users.",
+        "details": "E2E tests: iOS login -> API -> Channels; Elm login -> API -> Channels; test token refresh on 401. Backfill users: script to set auth0_id for existing emails. Pseudo-code: Repo.update_all(from u in User, set: [auth0_id: get_auth0_sub(u.email)]). Validate migration by running legacy vs new auth side-by-side.",
+        "testStrategy": "Automated E2E tests using tools like Appium for iOS and Cypress for Elm; manual QA for full flows; verify user backfill and no data loss.",
+        "priority": "low",
+        "dependencies": [
+          5,
+          6,
+          8,
+          10,
+          11
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up E2E test suite for iOS login and API/Channels flow",
+            "description": "Establish an end-to-end testing framework specifically for the iOS application, covering the login process, API interactions, and Channels authentication, including token refresh on 401 errors.",
+            "dependencies": [
+              8
+            ],
+            "details": "Utilize tools like Appium to automate the iOS flow: start with login, proceed to API calls, and connect to Channels. Ensure the test handles token refresh by simulating 401 responses and verifying retry with new tokens. Integrate with existing CI/CD pipelines for automated runs.",
+            "status": "pending",
+            "testStrategy": "Automated E2E tests using Appium for iOS, simulating user login, API requests, and Channel connections, with assertions for successful flows and token refresh handling."
+          },
+          {
+            "id": 2,
+            "title": "Configure E2E tests for Elm client",
+            "description": "Set up end-to-end testing for the Elm application, focusing on login, API calls, and Channels integration, with emphasis on Bearer token usage and 401 refresh mechanisms.",
+            "dependencies": [
+              10
+            ],
+            "details": "Employ Cypress or similar tools to test the Elm client: automate login to API, perform authenticated requests, and establish Channels connections. Include scenarios for token expiration and refresh to ensure seamless user experience.",
+            "status": "pending",
+            "testStrategy": "Automated E2E tests using Cypress for Elm, verifying login flows, API authentication, Channels connectivity, and automatic token refresh on 401 errors."
+          },
+          {
+            "id": 3,
+            "title": "Implement user backfill script and validation",
+            "description": "Develop and execute a script to backfill existing users with Auth0 IDs based on their email addresses, and validate the migration to ensure no data loss or inconsistencies.",
+            "dependencies": [
+              1
+            ],
+            "details": "Write a script using Elixir Repo.update_all to set auth0_id for users by fetching from Auth0 sub claims via email. Pseudo-code: Repo.update_all(from u in User, set: [auth0_id: get_auth0_sub(u.email)]). Run validation checks to compare legacy and new auth data side-by-side, ensuring all users are migrated correctly.",
+            "status": "pending",
+            "testStrategy": "Unit tests for the script to verify auth0_id assignment; integration tests to run legacy vs new auth in parallel and assert no data discrepancies or user access issues."
+          },
+          {
+            "id": 4,
+            "title": "Conduct manual QA and side-by-side migration testing",
+            "description": "Perform comprehensive manual quality assurance on both iOS and Elm flows, including full end-to-end scenarios, and validate the migration by comparing legacy and new authentication systems in parallel.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Manually test complete user journeys: iOS and Elm login to API to Channels, with 401 refresh. Execute side-by-side testing of legacy auth versus new Auth0-based auth to confirm identical behavior, data integrity, and no regressions. Document any issues found during QA.",
+            "status": "pending",
+            "testStrategy": "Manual QA sessions: test full flows on iOS and Elm, simulate 401 scenarios, and compare legacy/new auth outputs; use checklists to verify migration success and user backfill accuracy."
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-10-22T01:11:18.485Z",
+      "updated": "2025-10-22T01:11:18.485Z",
+      "description": "Tasks for uber context"
     }
   }
 }

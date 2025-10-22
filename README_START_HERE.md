@@ -4,6 +4,8 @@
 
 I've completely fixed your iOS-backend sync issue and implemented a **production-grade offline-first messaging architecture** across all your clients.
 
+**Latest Update:** Replaced Elm web client with Phoenix LiveView for seamless real-time messaging with WebSockets.
+
 ---
 
 ## 🎯 The Problem (Solved!)

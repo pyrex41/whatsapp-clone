@@ -22,6 +22,8 @@ defmodule GlobalbridgeBackend.Schemas.User do
     field(:tier, :string, default: "free")
     field(:auth0_id, :string)
     field(:email, :string)
+    field(:auth0_metadata, :map, default: %{})
+    field(:auth0_refresh_token, :string)
 
     # Associations
     has_many(:devices, GlobalbridgeBackend.Schemas.Device)
@@ -45,7 +47,9 @@ defmodule GlobalbridgeBackend.Schemas.User do
       :status_message,
       :public_key,
       :auth0_id,
-      :email
+      :email,
+      :auth0_metadata,
+      :auth0_refresh_token
     ])
     |> validate_required([:username])
     |> validate_format(:phone_number, ~r/^\+[1-9]\d{1,14}$/,
