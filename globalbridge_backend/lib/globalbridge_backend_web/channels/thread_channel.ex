@@ -45,15 +45,24 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
         {:ok, %{thread_id: thread_id, joined_at: DateTime.utc_now()}, socket}
 
       {:error, :not_participant} ->
-        Logger.warning("❌ Channel join denied (not participant): thread=#{thread_id}, user=#{user_id}")
+        Logger.warning(
+          "❌ Channel join denied (not participant): thread=#{thread_id}, user=#{user_id}"
+        )
+
         {:error, %{reason: "Not authorized to join this thread"}}
 
       {:error, :thread_not_found} ->
-        Logger.warning("❌ Channel join denied (thread not found): thread=#{thread_id}, user=#{user_id}")
+        Logger.warning(
+          "❌ Channel join denied (thread not found): thread=#{thread_id}, user=#{user_id}"
+        )
+
         {:error, %{reason: "Thread not found"}}
 
       {:error, reason} ->
-        Logger.error("❌ Channel join failed: thread=#{thread_id}, user=#{user_id}, reason=#{inspect(reason)}")
+        Logger.error(
+          "❌ Channel join failed: thread=#{thread_id}, user=#{user_id}, reason=#{inspect(reason)}"
+        )
+
         {:error, %{reason: "Unable to join thread"}}
     end
   end
@@ -109,14 +118,19 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     # Truncate content for logging if it's too long
     truncated_content = truncate_message(content, 50)
 
-    Logger.info("📥 [MSG] Received message from user #{user_id} in thread #{thread_id}: \"#{truncated_content}\"")
+    Logger.info(
+      "📥 [MSG] Received message from user #{user_id} in thread #{thread_id}: \"#{truncated_content}\""
+    )
+
     Logger.debug("📦 [MSG] Full payload: #{inspect(payload)}")
 
     # Generate message ID immediately for client feedback
     message_id = Ecto.UUID.generate()
     client_timestamp = System.system_time(:millisecond)
 
-    Logger.debug("🆔 [MSG] Generated message_id: #{message_id}, client_timestamp: #{client_timestamp}")
+    Logger.debug(
+      "🆔 [MSG] Generated message_id: #{message_id}, client_timestamp: #{client_timestamp}"
+    )
 
     # Build message struct
     message_attrs = %{
@@ -168,7 +182,10 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
           :ok
 
         {:error, changeset} ->
-          Logger.error("❌ [MSG] Failed to persist message #{message_id}: #{inspect(changeset.errors)}")
+          Logger.error(
+            "❌ [MSG] Failed to persist message #{message_id}: #{inspect(changeset.errors)}"
+          )
+
           # Optionally broadcast error to sender only
           push(socket, "message_error", %{
             temp_id: message_id,
@@ -416,8 +433,12 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     payload
     |> Map.get("since")
     |> case do
-      nil -> nil
-      "" -> nil
+      nil ->
+        nil
+
+      "" ->
+        nil
+
       value when is_binary(value) ->
         case DateTime.from_iso8601(value) do
           {:ok, datetime, _} -> datetime

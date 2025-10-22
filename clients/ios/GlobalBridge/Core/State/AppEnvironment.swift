@@ -294,8 +294,11 @@ extension AppEnvironment {
                 } catch {
                     print("⚠️ Failed to fetch remote threads: \\(error.localizedDescription)")
                 }
-                let actor = await syncActorTask.value
-                await actor.syncAllThreads()
+                // Note: syncAllThreads() is NOT called here because thread channels aren't joined yet
+                // Sync will be triggered automatically when:
+                // 1. User taps on a thread → channel joins → sync happens
+                // 2. Connectivity monitoring detects connection → syncs all threads
+                print("✅ Initial sync preparation complete (channels will sync when joined)")
             },
             startMonitoring: {
                 let actor = await syncActorTask.value

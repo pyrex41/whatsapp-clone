@@ -72,6 +72,11 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                                 }
                             }
                             print("✅ [LOADED] realtime.connect completed for first thread: \(threadID)")
+                            
+                            // Now that channel is joined, trigger sync for this thread
+                            print("🔄 [LOADED] Triggering sync for first thread after successful channel join")
+                            await environment.sync.syncThread(threadID)
+                            print("✅ [LOADED] Initial sync complete for first thread")
                         } catch {
                             print("❌ [LOADED] realtime.connect failed for first thread: \(threadID): \(error.localizedDescription)")
                             if error.localizedDescription.contains("Thread not found") {
@@ -112,6 +117,10 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                         }
                     }
                     print("✅ [ACTION] Re-connection confirmed for thread: \(threadID)")
+                    
+                    // Sync after channel is confirmed joined
+                    print("🔄 [ACTION] Syncing thread after re-connection")
+                    await environment.sync.syncThread(threadID)
                 } catch {
                     print("❌ [ACTION] Re-connection failed for thread: \(threadID): \(error.localizedDescription)")
                     if error.localizedDescription.contains("Thread not found") {
@@ -157,6 +166,11 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                         }
                     }
                     print("✅ [ACTION] realtime.connect completed for thread: \(threadID)")
+                    
+                    // Sync after channel is successfully joined
+                    print("🔄 [ACTION] Syncing thread after successful channel join")
+                    await environment.sync.syncThread(threadID)
+                    print("✅ [ACTION] Sync complete for thread: \(threadID)")
                 } catch {
                     print("❌ [ACTION] realtime.connect failed for thread: \(threadID): \(error.localizedDescription)")
                     // Handle specific error case where thread doesn't exist on backend
