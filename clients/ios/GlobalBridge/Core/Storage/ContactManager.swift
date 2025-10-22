@@ -12,7 +12,7 @@ actor ContactManager {
     private let databaseManager: DatabaseManager
     private let phoenixManager: PhoenixChannelManager
 
-    nonisolated init(databaseManager: DatabaseManager, phoenixManager: PhoenixChannelManager) {
+    init(databaseManager: DatabaseManager, phoenixManager: PhoenixChannelManager) {
         self.databaseManager = databaseManager
         self.phoenixManager = phoenixManager
     }

@@ -35,7 +35,7 @@ public struct Contact: Identifiable, Codable, Equatable, Sendable {
             case avatarUrl = "avatar_url"
         }
         
-        public init(id: String, email: String, username: String? = nil, displayName: String? = nil, avatarUrl: String? = nil) {
+        public nonisolated init(id: String, email: String, username: String? = nil, displayName: String? = nil, avatarUrl: String? = nil) {
             self.id = id
             self.email = email
             self.username = username
