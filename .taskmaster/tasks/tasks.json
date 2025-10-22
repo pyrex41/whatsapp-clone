@@ -3308,7 +3308,7 @@
   "ios": {
     "tasks": [
       {
-        "id": 1,
+        "id": "1",
         "title": "Implement NotificationConfig to read environment variable",
         "description": "Create a NotificationConfig class that reads the IOS_NOTIFICATIONS_MODE environment variable and exposes the current notification mode (banner or system).",
         "details": "In Swift, create a new file NotificationConfig.swift. Use ProcessInfo.processInfo.environment[\"IOS_NOTIFICATIONS_MODE\"] to read the value. Define an enum NotificationMode { case banner, system }. Provide a static property to get the current mode. Ensure it defaults appropriately and is shared with system push implementation.",
@@ -3381,7 +3381,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": 2,
+        "id": "2",
         "title": "Define BannerItem data model",
         "description": "Create the BannerItem struct with properties for id, threadId, title, subtitle, avatarURL, count, timestamp, and actions.",
         "details": "In Swift, define a struct BannerItem in a new file BannerItem.swift. Use UUID for id and threadId, String for title and subtitle, URL? for avatarURL, Int for count, Date for timestamp, and an array of BannerAction for actions. Ensure it conforms to Codable if needed for persistence or logging.",
@@ -3457,7 +3457,7 @@
         "expansionPrompt": ""
       },
       {
-        "id": 3,
+        "id": "3",
         "title": "Implement InAppBannerCenter for queue management",
         "description": "Develop InAppBannerCenter class to manage an in-memory queue of BannerItem, handle present/dismiss lifecycle, timers, and coalescing policy.",
         "details": "Create InAppBannerCenter.swift as a singleton or observable object. Implement a FIFO queue, coalescing logic for events within 2s from the same thread, auto-dismiss after 4-6s, and public APIs: present(from event: NotificationEvent), dismiss(id:), clear(). Use Combine or SwiftUI's ObservableObject for state management.",
@@ -3509,7 +3509,7 @@
         "expansionPrompt": "Break down the implementation into subtasks: 1) Set up the singleton or observable object structure and basic queue, 2) Implement coalescing logic and timers for auto-dismiss, 3) Add public APIs and integrate with Combine/SwiftUI for state management."
       },
       {
-        "id": 4,
+        "id": "4",
         "title": "Create InAppBannerView for visual presentation",
         "description": "Build InAppBannerView using SwiftUI to display the banner with avatar, title, subtitle, gestures, and animations.",
         "details": "In InAppBannerView.swift, use SwiftUI views like ZStack, HStack, Image, Text. Implement tap, swipe up, and optional swipe down gestures. Add animations for show/dismiss. Support light/dark themes and adaptive layout. Include haptic feedback on show and tap.",
@@ -3549,7 +3549,7 @@
         "expansionPrompt": "Break down into subtasks: 1) Implement the basic SwiftUI layout with avatar, title, subtitle, and gestures, 2) Add animations, theming support, and haptic feedback integration."
       },
       {
-        "id": 5,
+        "id": "5",
         "title": "Develop InAppBannerContainer for root overlay",
         "description": "Implement InAppBannerContainer as a ZStack overlay attached to the app’s root view to host banners.",
         "details": "Create InAppBannerContainer.swift as a SwiftUI View that overlays on the root. Use EnvironmentObject or ObservedObject to connect to InAppBannerCenter. Position at top of screen, avoiding status/navigation bars. Handle multiple banners by showing one at a time.",
@@ -3580,7 +3580,7 @@
         "expansionPrompt": "Break down into subtasks: 1) Create the overlay view and connect to InAppBannerCenter, 2) Implement positioning logic to avoid bars and handle multiple banners."
       },
       {
-        "id": 6,
+        "id": "6",
         "title": "Integrate event mapping from Phoenix/WebSocket",
         "description": "Map realtime messages from PhoenixChannelManager to NotificationEvent and trigger banner presentation.",
         "details": "In PhoenixChannelManager or a new event handler, on receiving a message, create NotificationEvent.messageReceived with metadata. Filter based on current visible thread, mute/DND settings. Call InAppBannerCenter.present(event) if conditions met.",
@@ -3590,7 +3590,7 @@
           "1",
           "3"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -3621,7 +3621,8 @@
             "details": "- In PhoenixChannelManager.onMessage(conversationId:), build a safe snippet from the message content (truncate ~120 chars, strip newlines).\n- Determine active thread via store/app state (add a lightweight isActiveThread(threadId:) accessor on Store/AppState).\n- If not active and thread is not muted/DND, call InAppBannerCenter.shared.presentMessageBanner(threadId:title:subtitle:avatarURL:).\n- Guard with NotificationConfig.current != .system to avoid duplicates with OS banners.\n- Add TODO: consider debounce/coalesce on the center side already implemented.",
             "status": "done",
             "dependencies": [],
-            "parentTaskId": 6
+            "parentTaskId": 6,
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -3630,15 +3631,17 @@
             "details": "- Store/AppState: add a read-only accessor or computed property to detect the currently visible thread.\n- Thread settings: check existing mute flags on Thread/DB. If none, add a temporary utility to query DatabaseManager for muted status.\n- In event mapping, short-circuit when active or muted/DND.\n- Unit test with mocked active thread and mute states to verify suppression.",
             "status": "done",
             "dependencies": [],
-            "parentTaskId": 6
+            "parentTaskId": 6,
+            "parentId": "undefined"
           }
         ],
         "complexity": 6,
         "recommendedSubtasks": 2,
-        "expansionPrompt": "Break down into subtasks: 1) Set up event mapping from WebSocket messages to NotificationEvent, 2) Implement filtering logic based on settings and call InAppBannerCenter.present."
+        "expansionPrompt": "Break down into subtasks: 1) Set up event mapping from WebSocket messages to NotificationEvent, 2) Implement filtering logic based on settings and call InAppBannerCenter.present.",
+        "updatedAt": "2025-10-22T21:54:00.969Z"
       },
       {
-        "id": 7,
+        "id": "7",
         "title": "Implement navigation on banner tap",
         "description": "Handle tap gesture to navigate to the relevant thread detail view using a shared Navigator or Router.",
         "details": "In InAppBannerView, on tap, use NotificationCenter or a routing mechanism to push the thread view with threadId. Ensure deep-link style navigation works from any screen. Mark the thread as seen.",
@@ -3648,7 +3651,7 @@
           "4",
           "5"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -3670,7 +3673,8 @@
             "details": "- Implement a navigation helper that takes a UUID threadId and triggers appropriate navigation for compact/split layouts.\n- In GlobalBridgeApp, set InAppBannerCenter.shared.onTapThread to call this helper and dispatch store.send(.threadSelected(...)).\n- Clear banner after tap; mark messages as seen; optionally scroll to latest.\n- Add simple integration test hook to verify dispatch and UI path is hit.",
             "status": "done",
             "dependencies": [],
-            "parentTaskId": 7
+            "parentTaskId": 7,
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -3679,15 +3683,17 @@
             "details": "- After .threadSelected, trigger a scrollTo last message (if accessible via ChatScreen state) or schedule on appear.\n- Clear delivered banner and decrement any in-app unread count for that thread; if using system badges, call NotificationManager.clearBadge() if needed.\n- Add a basic test plan note for manual verification.",
             "status": "done",
             "dependencies": [],
-            "parentTaskId": 7
+            "parentTaskId": 7,
+            "parentId": "undefined"
           }
         ],
         "complexity": 5,
         "recommendedSubtasks": 1,
-        "expansionPrompt": "Break down into subtasks: 1) Handle tap gesture and routing to thread view, 2) Ensure deep-link navigation and state updates like marking as seen."
+        "expansionPrompt": "Break down into subtasks: 1) Handle tap gesture and routing to thread view, 2) Ensure deep-link navigation and state updates like marking as seen.",
+        "updatedAt": "2025-10-22T21:54:02.211Z"
       },
       {
-        "id": 8,
+        "id": "8",
         "title": "Add analytics logging for banner events",
         "description": "Implement telemetry for banner impression, tap, dismiss, coalesce, with properties like threadId, count, latencyMs.",
         "details": "In InAppBannerCenter and InAppBannerView, log events using the app's analytics framework (e.g., Firebase or custom). Track dwell duration, CTR. Ensure events are sent on impression, tap, dismiss.",
@@ -3697,7 +3703,7 @@
           "3",
           "4"
         ],
-        "status": "pending",
+        "status": "deferred",
         "subtasks": [
           {
             "id": 1,
@@ -3765,10 +3771,11 @@
         ],
         "complexity": 3,
         "recommendedSubtasks": 0,
-        "expansionPrompt": ""
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-22T21:54:03.495Z"
       },
       {
-        "id": 9,
+        "id": "9",
         "title": "Support theming and localization",
         "description": "Ensure banners support light/dark modes and use localized strings.",
         "details": "In InAppBannerView, use SwiftUI's ColorScheme and LocalizedStringKey. Add localization keys for all text. Validate RTL layout.",
@@ -3796,7 +3803,7 @@
         "updatedAt": "2025-10-22T14:50:22.446Z"
       },
       {
-        "id": 10,
+        "id": "10",
         "title": "Implement accessibility features",
         "description": "Add VoiceOver announcements, large text support, sufficient contrast, and hit target sizes.",
         "details": "In InAppBannerView, use AccessibilityModifier for announcements like “New message from <sender>: <snippet>. Tap to open.” Ensure dynamic type scales content. Provide adequate touch targets.",
@@ -3838,7 +3845,7 @@
         "updatedAt": "2025-10-22T14:50:25.699Z"
       },
       {
-        "id": 11,
+        "id": "11",
         "title": "Handle app lifecycle and suppression",
         "description": "Manage banner presentation based on app foreground state and suppress during full-screen activities like video calls.",
         "details": "In InAppBannerCenter, listen to UIApplication lifecycle notifications. Suppress banners if app is not foreground or during specific activities. No replay on foregrounding.",
@@ -3848,7 +3855,7 @@
           "3",
           "5"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -3866,10 +3873,11 @@
         ],
         "complexity": 5,
         "recommendedSubtasks": 1,
-        "expansionPrompt": "Break down into subtasks: 1) Listen to lifecycle notifications and implement suppression logic, 2) Test suppression during activities like video calls."
+        "expansionPrompt": "Break down into subtasks: 1) Listen to lifecycle notifications and implement suppression logic, 2) Test suppression during activities like video calls.",
+        "updatedAt": "2025-10-22T21:54:04.752Z"
       },
       {
-        "id": 12,
+        "id": "12",
         "title": "Add haptic feedback",
         "description": "Implement light impact on show and success haptic on tap, configurable and disabled for VoiceOver.",
         "details": "In InAppBannerView, use UINotificationFeedbackGenerator or UIImpactFeedbackGenerator. Check for VoiceOver and disable if active.",
@@ -3946,7 +3954,7 @@
         "updatedAt": "2025-10-22T14:50:59.451Z"
       },
       {
-        "id": 13,
+        "id": "13",
         "title": "Implement error handling and performance optimizations",
         "description": "Add error handling for failed presentations or navigation, and ensure rendering within 16ms frame budget.",
         "details": "In InAppBannerCenter and views, log errors without crashing. Pre-measure text, limit queue to 5 items. Use SwiftUI's performance best practices.",
@@ -3957,7 +3965,7 @@
           "4",
           "5"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -3990,10 +3998,11 @@
         ],
         "complexity": 6,
         "recommendedSubtasks": 2,
-        "expansionPrompt": "Break down into subtasks: 1) Add error logging without crashes in InAppBannerCenter and views, 2) Implement performance optimizations like text pre-measurement and queue limits."
+        "expansionPrompt": "Break down into subtasks: 1) Add error logging without crashes in InAppBannerCenter and views, 2) Implement performance optimizations like text pre-measurement and queue limits.",
+        "updatedAt": "2025-10-22T21:54:06.041Z"
       },
       {
-        "id": 14,
+        "id": "14",
         "title": "Add developer setting toggle",
         "description": "Implement an optional runtime toggle in a hidden debug menu to switch notification modes.",
         "details": "Add a debug menu view that allows changing modes at runtime, reading env on launch. Use UserDefaults for persistence if needed.",
@@ -4020,7 +4029,7 @@
         "expansionPrompt": "Break down into subtasks: 1) Create a debug menu view for toggling modes, 2) Integrate with UserDefaults and runtime switching."
       },
       {
-        "id": 15,
+        "id": "15",
         "title": "Conduct end-to-end testing and validation",
         "description": "Perform comprehensive testing including unit, UI, integration, and acceptance criteria checks.",
         "details": "Run all unit tests, UI snapshot tests, interaction tests, and integration tests. Validate against acceptance criteria: banner appearance within 300ms, navigation, respect for settings, no permission prompts.",
@@ -4096,14 +4105,14 @@
         "expansionPrompt": "Break down into subtasks: 1) Run unit and UI tests for all components, 2) Perform integration tests for flows, 3) Conduct end-to-end tests with mocked events, 4) Validate against acceptance criteria including performance and analytics."
       },
       {
-        "id": 16,
+        "id": "16",
         "title": "iOS System Push (APNs) Integration",
         "description": "Implement APNs-based system notifications: register and POST device tokens to backend, configure OS presentation and tap routing, define categories, validate via simulator pushes, and perform basic badge sync. Respect NotificationConfig to only prompt/register in system mode.",
         "details": "Scope\n- Add OS-level push support gated by NotificationConfig.currentMode == .system.\n- Components: SystemPushManager (registration/presentation/routing), PushRegistrationService (token POST), NotificationRouting (maps payload → in-app navigation), AppDelegate hooks, and sample payloads for simulator testing.\n\nImplementation\n1) App startup and gating\n- On launch, if NotificationConfig.currentMode == .system: (a) set UNUserNotificationCenter.current().delegate = SystemPushManager.shared, (b) register notification categories, (c) request authorization (.alert, .badge, .sound) without prompting in banner mode, (d) call UIApplication.shared.registerForRemoteNotifications().\n- When mode changes at runtime (Task 14 already implemented): if switching to system, run the flow above; if switching away, keep registration but suppress OS presentation (willPresent returns []).\n\n2) Token handling and backend POST\n- Implement AppDelegate methods: didRegisterForRemoteNotificationsWithDeviceToken and didFailToRegisterForRemoteNotificationsWithError.\n- Convert deviceToken (Data) → lowercase hex string; persist lastSentToken + lastUserId to avoid duplicate POSTs.\n- PushRegistrationService.register(deviceToken: String, userId: String?, environment: String) using URLSession with JSON body: { deviceToken, platform: \"ios\", bundleId, appVersion, osVersion, environment: \"development\"|\"production\", mode: NotificationConfig.currentMode.rawValue, userId? }.\n- Determine environment with build flags (#if DEBUG → development else production). Retry with backoff on failures; never log the raw token.\n\n3) Notification categories\n- Define identifiers (e.g., MESSAGE, CALL). Add basic actions only for now (e.g., MARK_AS_READ, MUTE_1H). Create UNNotificationCategory sets and register at launch. Include category identifiers in server payloads to drive routing and actions.\n\n4) Foreground presentation behavior\n- Implement userNotificationCenter(_:willPresent:withCompletionHandler:). If mode == .system return [.banner, .list, .sound]; if mode == .banner return [] (so in-app banner can handle separately).\n\n5) Tap routing\n- Implement userNotificationCenter(_:didReceive:withCompletionHandler:). Parse userInfo for stable keys: { type: \"message\"|\"call\"|..., conversationId?, messageId?, callId?, screen? }.\n- Map payload to deep link (e.g., app://chat/<conversationId>) and call the app’s navigation coordinator/router on main thread. If the target is already visible, refresh/load message context.\n\n6) Badge sync (basic)\n- On receiving push with aps.badge, set UIApplication.shared.applicationIconBadgeNumber accordingly.\n- On app foreground, optionally reconcile by fetching unread count if available; otherwise clear when user views inbox. Keep logic minimal and safe.\n\n7) Error handling and privacy\n- Gracefully handle registration failures (surface non-fatal logs, schedule retry). Never crash on malformed payloads; fall back to opening inbox/home.\n- Do not store or log device tokens in plain text; redact in logs.\n\n8) Simulator push validation\n- Provide sample .apns JSON files (message.apns, call.apns) and document: xcrun simctl push <device_udid_or_booted> <bundle_id> ./message.apns.\n- Ensure payloads include aps.alert, aps.sound, aps.badge (for badge test), and category identifiers matching those registered.\n\nFiles to add\n- iOS/SystemPush/SystemPushManager.swift: delegate, category setup, willPresent/didReceive, badge handling.\n- iOS/SystemPush/PushRegistrationService.swift: POST token logic with retry and deduping.\n- iOS/AppDelegate+Push.swift (or App/AppDelegate.swift updates): hooks for token success/failure and startup gating.\n- iOS/SystemPush/NotificationRouting.swift: payload → deep link mapping and handoff to existing router.\n\nAnalytics/observability (optional)\n- Emit events: push_permission_requested/granted/denied, token_post_succeeded/failed, notification_received_foreground/background, notification_opened, route_applied/fallback.\n\nSecurity/compliance\n- Respect user opt-in/opt-out; do not send token to backend until permission is granted.\n- Token and payloads treated as sensitive; avoid PII in logs.",
         "testStrategy": "Unit tests\n- DeviceToken conversion: Data → hex string correctness (leading zeros preserved).\n- PushRegistrationService: builds correct URLRequest (method, headers, JSON body fields), deduping (no POST if unchanged), environment flag based on build config, retries on transient errors.\n- SystemPushManager.willPresent: returns [.banner, .list, .sound] when mode == .system, and [] for .banner mode.\n- Category registration: registered identifiers match expected set (MESSAGE, CALL), actions attached.\n\nIntegration tests (simulator)\n- Use xcrun simctl push with sample message.apns and call.apns payloads:\n  - In foreground with mode == .system → OS banner displays (assert via willPresent path) and sound invoked.\n  - In background → tapping notification triggers didReceive and routes to correct screen.\n  - Payload with aps.badge updates UIApplication.shared.applicationIconBadgeNumber.\n- Toggle to banner mode and verify foreground pushes do not show OS banner (willPresent returns []).\n\nUI tests\n- Launch app, inject a mock notification response for type: message, conversationId: X; assert navigation lands on chat screen X.\n- From notification center (backgrounded app), tap a simulated notification and verify the same routing occurs.\n\nNegative/edge cases\n- Permission denied: no token POST occurs; app does not crash; user can enable later and token POST happens on next launch.\n- Token POST failure: retries with backoff; no duplicate POSTs after success.\n- Malformed payload: app opens safely to inbox/home with no crash.\n\nManual QA checklist\n- First launch in system mode: prompt shown once; accepting leads to token POST (verify via backend logs/dev proxy).\n- Foreground push shows OS banner; background tap opens target; badge increments from aps.badge.\n- Switch to banner mode: foreground system banners suppressed; switch back: banners resume.",
         "status": "pending",
         "dependencies": [
-          1
+          "1"
         ],
         "priority": "medium",
         "subtasks": []
@@ -4111,15 +4120,12 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-10-22T14:50:59.452Z",
-      "taskCount": 15,
-      "completedCount": 0,
+      "lastModified": "2025-10-22T21:54:06.043Z",
+      "taskCount": 16,
+      "completedCount": 10,
       "tags": [
         "ios"
-      ],
-      "created": "2025-10-22T14:52:13.704Z",
-      "description": "Tasks for ios context",
-      "updated": "2025-10-22T16:28:29.349Z"
+      ]
     }
   },
   "push": {
