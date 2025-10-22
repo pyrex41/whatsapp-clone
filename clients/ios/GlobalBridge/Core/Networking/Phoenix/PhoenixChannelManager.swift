@@ -858,7 +858,8 @@ public actor PhoenixChannelManager {
 
     private func setupChannelHandlers(_ channel: Channel, conversationId: String) {
         // Handle new messages
-        channel.on("new_message") { [self] socketMessage in
+        channel.on("new_message") { [weak self] socketMessage in
+            guard let self else { return }
             do {
                 let message = try self.parsePhoenixMessage(from: socketMessage.payload)
                 Task { await self.deliverNewMessage(message, conversationId: conversationId) }
@@ -868,7 +869,8 @@ public actor PhoenixChannelManager {
         }
 
         // Handle message updates
-        channel.on("message_updated") { [self] socketMessage in
+        channel.on("message_updated") { [weak self] socketMessage in
+            guard let self else { return }
             do {
                 let message = try self.parsePhoenixMessage(from: socketMessage.payload)
                 Task { await self.deliverMessageUpdate(message, conversationId: conversationId) }
@@ -878,7 +880,8 @@ public actor PhoenixChannelManager {
         }
 
         // Handle typing indicators
-        channel.on("user_typing") { [self] socketMessage in
+        channel.on("user_typing") { [weak self] socketMessage in
+            guard let self else { return }
             do {
                 let indicator = try self.parseTypingIndicator(from: socketMessage.payload)
                 Task { await self.deliverTypingIndicator(indicator, conversationId: conversationId) }
@@ -888,7 +891,8 @@ public actor PhoenixChannelManager {
         }
 
         // Handle read receipts
-        channel.on("read_receipt") { [self] socketMessage in
+        channel.on("read_receipt") { [weak self] socketMessage in
+            guard let self else { return }
             do {
                 let receipt = try self.parseReadReceipt(from: socketMessage.payload)
                 Task { await self.deliverReadReceipt(receipt, conversationId: conversationId) }
@@ -898,7 +902,8 @@ public actor PhoenixChannelManager {
         }
 
         // Handle presence
-        channel.on("presence_diff") { [self] socketMessage in
+        channel.on("presence_diff") { [weak self] socketMessage in
+            guard let self else { return }
             let payload = socketMessage.payload
             let joins = (payload["joins"] as? [String: Any])?.keys.map { String($0) } ?? []
             let leaves = (payload["leaves"] as? [String: Any])?.keys.map { String($0) } ?? []

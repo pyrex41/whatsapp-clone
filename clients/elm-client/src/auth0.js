@@ -9,6 +9,15 @@ import { createAuth0Client } from '@auth0/auth0-spa-js'
 let auth0Client = null
 let isInitialized = false
 
+// Authentication Bypass Configuration
+// Set to true to bypass Auth0 and use test credentials for backend integration testing
+const authBypassEnabled = true
+
+// Test credentials matching iOS and backend
+const TEST_USER_ID = "test-user-123"
+const TEST_ACCESS_TOKEN = "test-token-for-backend-integration"
+const TEST_USERNAME = "Test User"
+
 // Auth0 Configuration
 // Note: SPA apps MUST NOT include client secrets. Use only public values here.
 const AUTH0_DOMAIN = import.meta.env.VITE_AUTH0_DOMAIN || 'dev-1672riu03fjuf7so.us.auth0.com'
@@ -65,10 +74,16 @@ export async function initAuth0() {
  * Login with Auth0 (redirects to Auth0 login page)
  */
 export async function login() {
+  // In bypass mode, immediately return test session data
+  if (authBypassEnabled) {
+    console.log('✅ [AUTH BYPASS] Bypass login - returning test session data')
+    return await getSessionData()
+  }
+
   try {
     const client = await initAuth0()
     console.log('[Auth0] Starting login flow...')
-    
+
     await client.loginWithRedirect({
       authorizationParams: {
         ...AUTH0_CONFIG.authorizationParams
@@ -103,6 +118,13 @@ export async function logout() {
  * Check if user is authenticated
  */
 export async function isAuthenticated() {
+  // Check bypass mode first
+  if (authBypassEnabled) {
+    console.log('⚠️ [AUTH BYPASS] Authentication bypass is ENABLED')
+    console.log('⚠️ [AUTH BYPASS] Using test credentials for backend integration testing')
+    return true
+  }
+
   try {
     const client = await initAuth0()
     const authenticated = await client.isAuthenticated()
@@ -118,14 +140,20 @@ export async function isAuthenticated() {
  * Get current access token
  */
 export async function getAccessToken() {
+  // Return test token in bypass mode
+  if (authBypassEnabled) {
+    console.log('✅ [AUTH BYPASS] Returning test access token')
+    return TEST_ACCESS_TOKEN
+  }
+
   try {
     const client = await initAuth0()
-    
+
     if (!await client.isAuthenticated()) {
       console.log('[Auth0] Not authenticated, no token available')
       return null
     }
-    
+
     const token = await client.getTokenSilently()
     console.log('[Auth0] Got access token')
     return token
@@ -139,13 +167,24 @@ export async function getAccessToken() {
  * Get current user information
  */
 export async function getUser() {
+  // Return test user in bypass mode
+  if (authBypassEnabled) {
+    console.log('✅ [AUTH BYPASS] Returning test user data')
+    return {
+      sub: TEST_USER_ID,
+      name: TEST_USERNAME,
+      nickname: TEST_USERNAME,
+      email: 'test@example.com'
+    }
+  }
+
   try {
     const client = await initAuth0()
-    
+
     if (!await client.isAuthenticated()) {
       return null
     }
-    
+
     const user = await client.getUser()
     console.log('[Auth0] Got user:', user)
     return user
@@ -159,22 +198,36 @@ export async function getUser() {
  * Get session data for Elm
  */
 export async function getSessionData() {
+  // Return test session data in bypass mode
+  if (authBypassEnabled) {
+    console.log('✅ [AUTH BYPASS] Bypass authentication configured')
+    console.log('   User ID:', TEST_USER_ID)
+    console.log('   Token:', TEST_ACCESS_TOKEN)
+    return {
+      accessToken: TEST_ACCESS_TOKEN,
+      refreshToken: '',
+      userId: TEST_USER_ID,
+      username: TEST_USERNAME,
+      email: 'test@example.com'
+    }
+  }
+
   try {
     const authenticated = await isAuthenticated()
-    
+
     if (!authenticated) {
       return null
     }
-    
+
     const [token, user] = await Promise.all([
       getAccessToken(),
       getUser()
     ])
-    
+
     if (!token || !user) {
       return null
     }
-    
+
     return {
       accessToken: token,
       refreshToken: '', // Auth0 handles refresh automatically

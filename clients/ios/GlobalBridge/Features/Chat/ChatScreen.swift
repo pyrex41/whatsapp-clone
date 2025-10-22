@@ -12,8 +12,10 @@ struct ChatScreen: View {
     private var chatState: ChatState { store.state.chat }
 
     var body: some View {
+        let _ = print("🎨 [CHAT_VIEW] Rendering ChatScreen - currentThread: \(chatState.currentThread?.id.uuidString ?? "nil"), messages count: \(chatState.messages.count)")
         Group {
             if let thread = chatState.currentThread {
+                let _ = print("✅ [CHAT_VIEW] Showing chat for thread: \(thread.id) - \(thread.title ?? "Untitled")")
                 VStack(spacing: 0) {
                     ScrollViewReader { proxy in
                         ScrollView {
@@ -55,6 +57,7 @@ struct ChatScreen: View {
                         ),
                         isSending: chatState.composer.isSending,
                         onSend: {
+                            print("📤 [COMPOSER] Send button tapped")
                             store.send(.sendMessage)
                             composerFocused = true
                         },
@@ -62,9 +65,18 @@ struct ChatScreen: View {
                     )
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
+                    .onChange(of: composerFocused) { old, new in
+                        print("⌨️ [COMPOSER] Focus changed: \(old) -> \(new)")
+                    }
                 }
                 .onAppear {
+                    print("⌨️ [COMPOSER] ChatScreen appeared, setting focus to true")
                     composerFocused = true
+                    // Try again after a delay to ensure view hierarchy is ready
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        print("⌨️ [COMPOSER] Delayed focus attempt")
+                        composerFocused = true
+                    }
                 }
                 .toolbar {
                     ToolbarItem(placement: .principal) {
@@ -85,6 +97,7 @@ struct ChatScreen: View {
                     }
                 }
             } else {
+                let _ = print("⚠️ [CHAT_VIEW] No thread selected - showing placeholder")
                 ContentUnavailableView(
                     "Select a thread",
                     systemImage: "bubble.left",

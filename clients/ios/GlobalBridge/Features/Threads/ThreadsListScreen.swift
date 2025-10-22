@@ -25,10 +25,13 @@ struct ThreadsListScreen: View {
                         .contentShape(Rectangle())
                         .onTapGesture {
                             print("👆 [UI] Thread tapped: \(thread.id) - \(thread.title ?? "Untitled")")
+                            print("👆 [UI] Currently selected: \(threadsState.selectedThreadID?.uuidString ?? "none")")
+                            print("👆 [UI] Is same thread: \(thread.id == threadsState.selectedThreadID)")
                             print("👆 [UI] Sending .threadSelected action...")
                             store.send(.threadSelected(thread.id))
                             print("👆 [UI] .threadSelected action sent")
                         }
+                        .animation(.easeInOut(duration: 0.15), value: thread.id == threadsState.selectedThreadID)
                     }
                 }
             }
@@ -157,6 +160,7 @@ struct ThreadsListCompactView: View {
                                 isSelected: thread.id == threadsState.selectedThreadID
                             )
                         }
+                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     }
                 }
             }

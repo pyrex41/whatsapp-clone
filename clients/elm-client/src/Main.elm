@@ -76,6 +76,13 @@ init flags =
 
         loginModel =
             Login.init apiConfig flags.csrfToken devMode
+
+        -- Log bypass mode detection
+        _ =
+            if devMode then
+                Debug.log "[ELM] Development mode detected" devMode
+            else
+                devMode
     in
     ( { flags = flags
       , apiConfig = apiConfig
@@ -181,6 +188,16 @@ update msg model =
         SessionRestored (Just sessionData) ->
             -- Session restored from storage
             let
+                -- Detect bypass mode by checking for test token
+                isBypassMode =
+                    sessionData.accessToken == "test-token-for-backend-integration"
+
+                _ =
+                    if isBypassMode then
+                        Debug.log "✅ [ELM AUTH BYPASS] Session restored with test credentials" sessionData.username
+                    else
+                        Debug.log "[ELM] Session restored for user" sessionData.username
+
                 user =
                     { id = sessionData.userId
                     , username = sessionData.username
@@ -219,6 +236,16 @@ update msg model =
         Auth0LoginComplete sessionData ->
             -- Auth0 login successful
             let
+                -- Detect bypass mode by checking for test token
+                isBypassMode =
+                    sessionData.accessToken == "test-token-for-backend-integration"
+
+                _ =
+                    if isBypassMode then
+                        Debug.log "✅ [ELM AUTH BYPASS] Auth0 login complete with test credentials" sessionData.username
+                    else
+                        Debug.log "[ELM] Auth0 login complete for user" sessionData.username
+
                 user =
                     { id = sessionData.userId
                     , username = sessionData.username

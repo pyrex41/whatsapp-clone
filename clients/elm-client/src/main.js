@@ -77,24 +77,50 @@ if (app.ports && app.ports.clearSession) {
 }
 
 /**
- * Restore session on app startup (Auth0-based)
+ * Restore session on app startup (Auth0-based or bypass mode)
  */
 async function restoreSession() {
   try {
-    // Initialize Auth0 and check if authenticated
+    // Check if bypass mode is enabled (imported from auth0.js)
+    const authBypassEnabled = true // Match the flag in auth0.js
+
+    if (authBypassEnabled) {
+      console.log('⚠️ [AUTH BYPASS] Authentication bypass is ENABLED')
+      console.log('⚠️ [AUTH BYPASS] Using test credentials for backend integration testing')
+
+      // Return test session data immediately
+      const testSessionData = {
+        accessToken: "test-token-for-backend-integration",
+        refreshToken: "",
+        userId: "test-user-123",
+        username: "Test User",
+        email: "test@example.com"
+      }
+
+      console.log('✅ [AUTH BYPASS] Bypass authentication configured')
+      console.log('   User ID: test-user-123')
+      console.log('   Token: test-token-for-backend-integration')
+
+      if (app.ports && app.ports.onSessionRestored) {
+        app.ports.onSessionRestored.send(testSessionData)
+      }
+      return
+    }
+
+    // Normal Auth0 flow
     await Auth0Client.initAuth0()
-    
+
     const sessionData = await Auth0Client.getSessionData()
-    
+
     if (sessionData) {
       console.log('[Session] Restored Auth0 session for user:', sessionData.username)
-      
+
       if (app.ports && app.ports.onSessionRestored) {
         app.ports.onSessionRestored.send(sessionData)
       }
     } else {
       console.log('[Session] No Auth0 session found')
-      
+
       if (app.ports && app.ports.onSessionRestored) {
         app.ports.onSessionRestored.send(null)
       }
@@ -187,6 +213,25 @@ if (app.ports && app.ports.sendChannelMessage) {
 if (app.ports && app.ports.auth0Login) {
   app.ports.auth0Login.subscribe(async () => {
     try {
+      // Check if bypass mode is enabled
+      const authBypassEnabled = true // Match the flag in auth0.js
+
+      if (authBypassEnabled) {
+        console.log('✅ [AUTH BYPASS] Login requested by Elm - using bypass mode')
+        const testSessionData = {
+          accessToken: "test-token-for-backend-integration",
+          refreshToken: "",
+          userId: "test-user-123",
+          username: "Test User",
+          email: "test@example.com"
+        }
+
+        if (app.ports && app.ports.onAuth0LoginComplete) {
+          app.ports.onAuth0LoginComplete.send(testSessionData)
+        }
+        return
+      }
+
       console.log('[Auth0] Login requested by Elm')
       await Auth0Client.login()
       // After login, Auth0 will redirect back to the app
@@ -218,6 +263,27 @@ if (app.ports && app.ports.auth0Logout) {
 // Check for Auth0 login redirect on startup
 async function checkAuth0Redirect() {
   try {
+    // Check if bypass mode is enabled
+    const authBypassEnabled = true // Match the flag in auth0.js
+
+    if (authBypassEnabled) {
+      // In bypass mode, immediately trigger login complete with test data
+      const testSessionData = {
+        accessToken: "test-token-for-backend-integration",
+        refreshToken: "",
+        userId: "test-user-123",
+        username: "Test User",
+        email: "test@example.com"
+      }
+
+      if (app.ports && app.ports.onAuth0LoginComplete) {
+        console.log('✅ [AUTH BYPASS] Login complete, sending test session to Elm')
+        app.ports.onAuth0LoginComplete.send(testSessionData)
+      }
+      return
+    }
+
+    // Normal Auth0 flow
     // If Auth0 returned an error in the query string, surface it and clean the URL
     const params = new URLSearchParams(window.location.search)
     const oauthError = params.get('error')
@@ -236,11 +302,11 @@ async function checkAuth0Redirect() {
     }
 
     await Auth0Client.initAuth0()
-    
+
     // If we just completed Auth0 login, get session data
     if (await Auth0Client.isAuthenticated()) {
       const sessionData = await Auth0Client.getSessionData()
-      
+
       if (sessionData && app.ports && app.ports.onAuth0LoginComplete) {
         console.log('[Auth0] Login complete, sending session to Elm')
         app.ports.onAuth0LoginComplete.send(sessionData)
