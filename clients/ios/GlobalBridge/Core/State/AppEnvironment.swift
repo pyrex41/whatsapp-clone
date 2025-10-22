@@ -6,6 +6,17 @@
 import Foundation
 import SwiftUI
 
+// Actor to safely guard one-time registration for global message handler
+actor GlobalBannerHandlerRegistry {
+    static let shared = GlobalBannerHandlerRegistry()
+    private var registered = false
+    func markIfNeeded() -> Bool {
+        if registered { return false }
+        registered = true
+        return true
+    }
+}
+
 struct DatabaseClient {
     var loadThreads: @Sendable () async throws -> [Thread]
     var createThread: @Sendable (_ title: String, _ creator: User) async throws -> Thread
@@ -88,7 +99,6 @@ extension AppEnvironment {
 
     static let live: AppEnvironment = {
         let databaseManager = DatabaseManager.shared
-        var globalMessageHandlerRegistered = false
         let initializationTask = Task { @MainActor in
             try await databaseManager.initialize()
             try await databaseManager.seedSampleDataIfNeeded()
@@ -261,8 +271,7 @@ extension AppEnvironment {
                     print("✅ [REALTIME] User channel joined")
 
                     // Register global new_message handler once (user-wide feed)
-                    if !globalMessageHandlerRegistered {
-                        globalMessageHandlerRegistered = true
+                    if await GlobalBannerHandlerRegistry.shared.markIfNeeded() {
                         await phoenixManager.onAnyMessage { phoenixMessage in
                             guard let message = Message.fromPhoenix(phoenixMessage) else { return }
                             // Present banner in banner mode only
