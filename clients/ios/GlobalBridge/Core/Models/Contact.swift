@@ -42,6 +42,25 @@ public struct Contact: Identifiable, Codable, Equatable, Sendable {
             self.displayName = displayName
             self.avatarUrl = avatarUrl
         }
+        
+        // Explicit nonisolated Codable implementation for Swift 6 concurrency
+        public nonisolated init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.id = try container.decode(String.self, forKey: .id)
+            self.email = try container.decode(String.self, forKey: .email)
+            self.username = try container.decodeIfPresent(String.self, forKey: .username)
+            self.displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+            self.avatarUrl = try container.decodeIfPresent(String.self, forKey: .avatarUrl)
+        }
+        
+        public nonisolated func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(id, forKey: .id)
+            try container.encode(email, forKey: .email)
+            try container.encodeIfPresent(username, forKey: .username)
+            try container.encodeIfPresent(displayName, forKey: .displayName)
+            try container.encodeIfPresent(avatarUrl, forKey: .avatarUrl)
+        }
     }
 
     public enum CodingKeys: String, CodingKey {
@@ -86,6 +105,37 @@ public struct Contact: Identifiable, Codable, Equatable, Sendable {
         self.lastSyncedAt = lastSyncedAt
         self.needsSync = needsSync
         self.isDeleted = isDeleted
+    }
+    
+    // Explicit nonisolated Codable implementation for Swift 6 concurrency
+    public nonisolated init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(UUID.self, forKey: .id)
+        self.contactUserId = try container.decode(String.self, forKey: .contactUserId)
+        self.displayNameOverride = try container.decodeIfPresent(String.self, forKey: .displayNameOverride)
+        self.isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+        self.notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        self.user = try container.decode(ContactUser.self, forKey: .user)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        self.lastSyncedAt = try container.decodeIfPresent(Date.self, forKey: .lastSyncedAt)
+        self.needsSync = try container.decodeIfPresent(Bool.self, forKey: .needsSync) ?? false
+        self.isDeleted = try container.decodeIfPresent(Bool.self, forKey: .isDeleted) ?? false
+    }
+    
+    public nonisolated func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(contactUserId, forKey: .contactUserId)
+        try container.encodeIfPresent(displayNameOverride, forKey: .displayNameOverride)
+        try container.encode(isFavorite, forKey: .isFavorite)
+        try container.encodeIfPresent(notes, forKey: .notes)
+        try container.encode(user, forKey: .user)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(lastSyncedAt, forKey: .lastSyncedAt)
+        try container.encode(needsSync, forKey: .needsSync)
+        try container.encode(isDeleted, forKey: .isDeleted)
     }
 }
 

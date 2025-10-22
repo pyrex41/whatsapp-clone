@@ -377,7 +377,7 @@ public actor PhoenixChannelManager {
         return try await withCheckedThrowingContinuation { continuation in
             channel.push("add_contact", payload: ["contact_user_id": contactUserId])
                 .receive("ok") { response in
-                    Task { @Sendable in
+                    Task.detached {
                         do {
                             let data = try JSONSerialization.data(withJSONObject: response.payload)
                             let decoder = JSONDecoder()
@@ -419,7 +419,7 @@ public actor PhoenixChannelManager {
         return try await withCheckedThrowingContinuation { continuation in
             channel.push("sync_contacts", payload: ["since": timestamp])
                 .receive("ok") { response in
-                    Task { @Sendable in
+                    Task.detached {
                         do {
                             guard let contacts = response.payload["contacts"] as? [[String: Any]] else {
                                 continuation.resume(returning: [])
