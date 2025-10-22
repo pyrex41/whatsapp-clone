@@ -89,7 +89,9 @@ defmodule GlobalbridgeBackend.Contexts.Contacts do
   @doc "Update contact"
   def update_contact(contact_id, attrs) do
     case Repo.get(Contact, contact_id) do
-      nil -> {:error, :not_found}
+      nil ->
+        {:error, :not_found}
+
       contact ->
         contact
         |> Contact.changeset(attrs)
@@ -97,4 +99,3 @@ defmodule GlobalbridgeBackend.Contexts.Contacts do
     end
   end
 end
-

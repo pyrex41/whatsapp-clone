@@ -193,8 +193,7 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
     {:ok, since_dt, _} = DateTime.from_iso8601(since_timestamp)
     contacts = Contacts.list_contacts_since(user_id, since_dt)
 
-    {:reply, {:ok, %{contacts: format_contacts(contacts), synced_at: DateTime.utc_now()}},
-     socket}
+    {:reply, {:ok, %{contacts: format_contacts(contacts), synced_at: DateTime.utc_now()}}, socket}
   end
 
   @doc "Add contact"

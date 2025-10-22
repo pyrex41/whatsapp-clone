@@ -6,11 +6,11 @@ defmodule GlobalbridgeBackend.Schemas.Contact do
   @foreign_key_type :binary_id
 
   schema "contacts" do
-    belongs_to :user, GlobalbridgeBackend.Schemas.User
-    belongs_to :contact_user, GlobalbridgeBackend.Schemas.User
-    field :display_name_override, :string
-    field :is_favorite, :boolean, default: false
-    field :notes, :string
+    belongs_to(:user, GlobalbridgeBackend.Schemas.User)
+    belongs_to(:contact_user, GlobalbridgeBackend.Schemas.User)
+    field(:display_name_override, :string)
+    field(:is_favorite, :boolean, default: false)
+    field(:notes, :string)
 
     timestamps(type: :utc_datetime)
   end
@@ -36,4 +36,3 @@ defmodule GlobalbridgeBackend.Schemas.Contact do
     end
   end
 end
-
