@@ -6,14 +6,30 @@ echo "🚀 Starting GlobalBridge Backend..."
 echo "================================================"
 
 cd -P -- "$(dirname -- "$0")"
+cd ..  # Now we're in /app
 
 # Run migrations
 echo "📦 Running database migrations..."
-./globalbridge_backend eval "GlobalbridgeBackend.Release.migrate()"
+./bin/globalbridge_backend eval "GlobalbridgeBackend.Release.migrate()"
 
-# Run production seeds (idempotent - safe to run multiple times)
-echo "🌱 Running production seeds..."
-./globalbridge_backend eval 'Code.eval_file("priv/repo/seeds_prod.exs")'
+# Run production seeds only if not already done (check for marker file)
+SEED_MARKER="/mnt/data/.seeds_completed"
+if [ ! -f "$SEED_MARKER" ]; then
+  echo "🌱 Running production seeds (first time setup)..."
+  ./bin/globalbridge_backend eval '
+    # Ensure the application is started
+    Application.ensure_all_started(:globalbridge_backend)
+    
+    # Evaluate the seed file (using absolute path)
+    Code.eval_file("/app/priv/repo/seeds_prod.exs")
+    
+    # Create marker file to indicate seeds have been run
+    File.write!("/mnt/data/.seeds_completed", "#{DateTime.utc_now()}")
+  '
+  echo "✅ Seeds completed successfully!"
+else
+  echo "⏭️  Seeds already completed (marker file exists), skipping..."
+fi
 
 echo "✅ Setup complete!"
 echo "================================================"
@@ -21,5 +37,5 @@ echo ""
 
 # Start the server
 echo "🌐 Starting Phoenix server..."
-PHX_SERVER=true exec ./globalbridge_backend start
+PHX_SERVER=true exec ./bin/globalbridge_backend start
 
