@@ -1,0 +1,42 @@
+# fly.toml app configuration file generated for globalbridge-backend on 2025-10-21T21:39:21-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'globalbridge-backend'
+primary_region = 'ord'
+kill_signal = 'SIGTERM'
+
+[build]
+
+[env]
+  DATABASE_DIR = '/mnt/data'
+  DATABASE_PATH = '/mnt/data/users.db'
+  BRIDGE_DATABASE_PATH = '/mnt/data/bridges.db'
+  SYNC_STATE_DATABASE_PATH = '/mnt/data/sync_state.db'
+  THREAD_DATABASE_DIR = '/mnt/data/threads'
+  PHX_HOST = 'globalbridge-backend.fly.dev'
+  PORT = '8080'
+
+[[mounts]]
+  source = 'data'
+  destination = '/mnt/data'
+  initial_size = '1GB'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+  [http_service.concurrency]
+    type = 'connections'
+    hard_limit = 1000
+    soft_limit = 1000
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

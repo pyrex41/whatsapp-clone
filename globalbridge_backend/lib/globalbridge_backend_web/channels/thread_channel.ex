@@ -132,6 +132,9 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
       "🆔 [MSG] Generated message_id: #{message_id}, client_timestamp: #{client_timestamp}"
     )
 
+    # Extract client_message_id for deduplication
+    client_message_id = payload["client_message_id"]
+
     # Build message struct
     message_attrs = %{
       id: message_id,
@@ -157,7 +160,8 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
       media_url: message_attrs.media_url,
       reply_to_id: message_attrs.reply_to_id,
       created_at: DateTime.utc_now(),
-      client_timestamp: client_timestamp
+      client_timestamp: client_timestamp,
+      client_message_id: client_message_id
     }
 
     Logger.info("📡 [MSG] Broadcasting message #{message_id} to thread:#{thread_id}")

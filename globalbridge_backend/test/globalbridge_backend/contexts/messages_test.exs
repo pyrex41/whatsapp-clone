@@ -10,10 +10,11 @@ defmodule GlobalbridgeBackend.Contexts.MessagesTest do
     user2 = insert(:user)
 
     # Create a test thread
-    {:ok, thread} = Threads.create_thread(%{
-      thread_type: "direct",
-      participant_ids: [user1.id, user2.id]
-    })
+    {:ok, thread} =
+      Threads.create_thread(%{
+        thread_type: "direct",
+        participant_ids: [user1.id, user2.id]
+      })
 
     %{
       user1: user1,
@@ -52,11 +53,12 @@ defmodule GlobalbridgeBackend.Contexts.MessagesTest do
     end
 
     test "creates reply message", %{thread: thread, user1: user1, user2: user2} do
-      {:ok, original_message} = Messages.create_message(thread.id, %{
-        sender_id: user1.id,
-        content_type: "text",
-        content: "Original message"
-      })
+      {:ok, original_message} =
+        Messages.create_message(thread.id, %{
+          sender_id: user1.id,
+          content_type: "text",
+          content: "Original message"
+        })
 
       reply_attrs = %{
         sender_id: user2.id,

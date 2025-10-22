@@ -8,9 +8,14 @@ defmodule GlobalbridgeBackend.Auth.Auth0Verifier do
   alias GlobalbridgeBackend.Schemas.User
   require Logger
 
-  # Auth bypass for testing - matches iOS test token
-  @test_token "test-token-for-backend-integration"
-  @test_user_id "test-user-123"
+  # Auth bypass for testing - maps test tokens to usernames
+  @test_tokens %{
+    "test-token-alice" => "alice",
+    "test-token-bob" => "bob",
+    "test-token-testuser" => "testuser",
+    # Legacy support
+    "test-token-for-backend-integration" => "test_user"
+  }
 
   @doc """
   Verify an Auth0 JWT token and return the associated user.
@@ -19,21 +24,25 @@ defmodule GlobalbridgeBackend.Auth.Auth0Verifier do
   """
   def verify_and_get_user(token) do
     # Check for test token bypass
-    if token == @test_token do
-      Logger.warning("⚠️ [AUTH BYPASS] Test token detected - returning test user")
-      get_or_create_test_user()
-    else
-      Logger.info("🔐 [AUTH0] Attempting to verify token: #{String.slice(token, 0, 20)}...")
+    case Map.get(@test_tokens, token) do
+      nil ->
+        # Not a test token, proceed with normal verification
+        Logger.info("🔐 [AUTH0] Attempting to verify token: #{String.slice(token, 0, 20)}...")
 
-      with {:ok, claims} <- decode_jwt(token),
-           :ok <- verify_auth0_token(claims),
-           {:ok, user} <- ensure_user_exists(claims) do
-        {:ok, user}
-      else
-        {:error, reason} ->
-          Logger.error("❌ [AUTH0] Token verification failed: #{inspect(reason)}")
-          {:error, reason}
-      end
+        with {:ok, claims} <- decode_jwt(token),
+             :ok <- verify_auth0_token(claims),
+             {:ok, user} <- ensure_user_exists(claims) do
+          {:ok, user}
+        else
+          {:error, reason} ->
+            Logger.error("❌ [AUTH0] Token verification failed: #{inspect(reason)}")
+            {:error, reason}
+        end
+
+      username ->
+        # Test token found
+        Logger.warning("⚠️ [AUTH BYPASS] Test token detected for user: #{username}")
+        get_test_user_by_username(username)
     end
   end
 
@@ -135,38 +144,15 @@ defmodule GlobalbridgeBackend.Auth.Auth0Verifier do
     "#{base}_#{:os.system_time(:millisecond)}"
   end
 
-  # Get or create the test user for auth bypass testing.
-  defp get_or_create_test_user do
-    # Try to find existing test user by auth0_id
-    case Repo.get_by(User, auth0_id: @test_user_id) do
+  # Get test user by username for auth bypass testing
+  defp get_test_user_by_username(username) do
+    case Repo.get_by(User, username: username) do
       nil ->
-        # Create test user
-        Logger.info("👤 [AUTH BYPASS] Creating test user: #{@test_user_id}")
-
-        attrs = %{
-          auth0_id: @test_user_id,
-          email: "test@example.com",
-          username: "test_user",
-          display_name: "Test User",
-          phone_number: "+10000000000",
-          password_hash: "test_bypass"
-        }
-
-        case User.create_changeset(%User{}, attrs) |> Repo.insert() do
-          {:ok, user} ->
-            Logger.info("✅ [AUTH BYPASS] Test user created: id=#{user.id}")
-            {:ok, user}
-
-          {:error, changeset} ->
-            Logger.error(
-              "❌ [AUTH BYPASS] Test user creation failed: #{inspect(changeset.errors)}"
-            )
-
-            {:error, :user_creation_failed}
-        end
+        Logger.error("❌ [AUTH BYPASS] Test user not found: #{username}")
+        {:error, :user_not_found}
 
       user ->
-        Logger.info("✅ [AUTH BYPASS] Test user found: id=#{user.id}")
+        Logger.info("✅ [AUTH BYPASS] Test user found: id=#{user.id}, username=#{user.username}")
         {:ok, user}
     end
   end

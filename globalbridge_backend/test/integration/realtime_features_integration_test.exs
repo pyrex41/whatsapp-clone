@@ -17,15 +17,16 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
 
   setup do
     # Create a realistic multi-user scenario
-    users = Enum.map(1..4, fn i ->
-      Repo.insert!(%User{
-        id: Ecto.UUID.generate(),
-        username: "user#{i}",
-        email: "user#{i}@test.com",
-        phone: "+123456789#{i}",
-        is_online: false
-      })
-    end)
+    users =
+      Enum.map(1..4, fn i ->
+        Repo.insert!(%User{
+          id: Ecto.UUID.generate(),
+          username: "user#{i}",
+          email: "user#{i}@test.com",
+          phone: "+123456789#{i}",
+          is_online: false
+        })
+      end)
 
     [user1, user2, user3, user4] = users
 
@@ -40,11 +41,12 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
     end
 
     # Create group thread
-    thread = Repo.insert!(%Thread{
-      id: Ecto.UUID.generate(),
-      thread_type: "group",
-      database_shard_id: "test_shard_1"
-    })
+    thread =
+      Repo.insert!(%Thread{
+        id: Ecto.UUID.generate(),
+        thread_type: "group",
+        database_shard_id: "test_shard_1"
+      })
 
     # Add all users as participants
     for user <- users do
@@ -58,12 +60,13 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
   end
 
   describe "complete messaging flow with all real-time features" do
-    test "user sends message with typing indicator, receives read receipts, and triggers notifications", %{
-      thread: thread,
-      user1: user1,
-      user2: user2,
-      user3: user3
-    } do
+    test "user sends message with typing indicator, receives read receipts, and triggers notifications",
+         %{
+           thread: thread,
+           user1: user1,
+           user2: user2,
+           user3: user3
+         } do
       # User1 connects (online)
       {:ok, socket1} = connect(UserSocket, %{"token" => "user:#{user1.id}"})
       {:ok, _, socket1} = subscribe_and_join(socket1, "thread:#{thread.id}", %{})
@@ -238,22 +241,23 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
       start_time = System.monotonic_time(:millisecond)
 
       # Rapid message exchange
-      message_ids = Enum.map(1..10, fn i ->
-        # Alternate between users
-        socket = if rem(i, 2) == 0, do: socket1, else: socket2
+      message_ids =
+        Enum.map(1..10, fn i ->
+          # Alternate between users
+          socket = if rem(i, 2) == 0, do: socket1, else: socket2
 
-        # Typing indicator
-        push(socket, "typing", %{"is_typing" => true})
+          # Typing indicator
+          push(socket, "typing", %{"is_typing" => true})
 
-        # Send message
-        ref = push(socket, "new_message", %{"content" => "Message #{i}"})
-        assert_reply ref, :ok, %{id: message_id}, 100
+          # Send message
+          ref = push(socket, "new_message", %{"content" => "Message #{i}"})
+          assert_reply ref, :ok, %{id: message_id}, 100
 
-        # Stop typing
-        push(socket, "typing", %{"is_typing" => false})
+          # Stop typing
+          push(socket, "typing", %{"is_typing" => false})
 
-        message_id
-      end)
+          message_id
+        end)
 
       # Mark all as read
       Enum.each(message_ids, fn message_id ->
@@ -395,11 +399,12 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
       Repo.update!(User.changeset(user2, %{is_online: false}))
 
       # User1 sends 3 messages
-      message_ids = Enum.map(1..3, fn i ->
-        ref = push(socket1, "new_message", %{"content" => "Message #{i}"})
-        assert_reply ref, :ok, %{id: message_id}
-        message_id
-      end)
+      message_ids =
+        Enum.map(1..3, fn i ->
+          ref = push(socket1, "new_message", %{"content" => "Message #{i}"})
+          assert_reply ref, :ok, %{id: message_id}
+          message_id
+        end)
 
       :timer.sleep(300)
 

@@ -12,10 +12,11 @@ defmodule GlobalbridgeBackendWeb.ThreadControllerTest do
         "display_name" => "Thread User"
       })
 
-    {:ok, _thread} = Threads.create_thread(%{
-      thread_type: "direct",
-      participant_ids: [user.id]
-    })
+    {:ok, _thread} =
+      Threads.create_thread(%{
+        thread_type: "direct",
+        participant_ids: [user.id]
+      })
 
     authed_conn = put_req_header(conn, "authorization", "Bearer #{tokens.access_token}")
 

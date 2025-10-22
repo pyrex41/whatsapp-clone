@@ -62,7 +62,12 @@ defmodule GlobalbridgeBackendWeb.ThreadChannelTest do
         table_name: "messages",
         record_id: record_id,
         operation: "INSERT",
-        new_data: %{"id" => record_id, "thread_id" => thread.id, "inserted_at" => DateTime.to_iso8601(now), "updated_at" => DateTime.to_iso8601(now)},
+        new_data: %{
+          "id" => record_id,
+          "thread_id" => thread.id,
+          "inserted_at" => DateTime.to_iso8601(now),
+          "updated_at" => DateTime.to_iso8601(now)
+        },
         timestamp: now
       })
       |> Repo.insert!()

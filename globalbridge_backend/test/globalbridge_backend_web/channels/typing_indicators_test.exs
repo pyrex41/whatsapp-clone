@@ -17,33 +17,37 @@ defmodule GlobalbridgeBackendWeb.TypingIndicatorsTest do
 
   setup do
     # Create test users
-    user1 = Repo.insert!(%User{
-      id: Ecto.UUID.generate(),
-      username: "user1",
-      email: "user1@test.com",
-      phone: "+1234567890"
-    })
+    user1 =
+      Repo.insert!(%User{
+        id: Ecto.UUID.generate(),
+        username: "user1",
+        email: "user1@test.com",
+        phone: "+1234567890"
+      })
 
-    user2 = Repo.insert!(%User{
-      id: Ecto.UUID.generate(),
-      username: "user2",
-      email: "user2@test.com",
-      phone: "+1234567891"
-    })
+    user2 =
+      Repo.insert!(%User{
+        id: Ecto.UUID.generate(),
+        username: "user2",
+        email: "user2@test.com",
+        phone: "+1234567891"
+      })
 
-    user3 = Repo.insert!(%User{
-      id: Ecto.UUID.generate(),
-      username: "user3",
-      email: "user3@test.com",
-      phone: "+1234567892"
-    })
+    user3 =
+      Repo.insert!(%User{
+        id: Ecto.UUID.generate(),
+        username: "user3",
+        email: "user3@test.com",
+        phone: "+1234567892"
+      })
 
     # Create test thread
-    thread = Repo.insert!(%Thread{
-      id: Ecto.UUID.generate(),
-      thread_type: "direct",
-      database_shard_id: "test_shard_1"
-    })
+    thread =
+      Repo.insert!(%Thread{
+        id: Ecto.UUID.generate(),
+        thread_type: "direct",
+        database_shard_id: "test_shard_1"
+      })
 
     # Add participants
     Repo.insert!(%ThreadParticipant{thread_id: thread.id, user_id: user1.id})
@@ -259,19 +263,21 @@ defmodule GlobalbridgeBackendWeb.TypingIndicatorsTest do
 
     test "typing events only sent to thread participants", %{thread: thread, user1: user1} do
       # Create non-participant
-      other_user = Repo.insert!(%User{
-        id: Ecto.UUID.generate(),
-        username: "other",
-        email: "other@test.com",
-        phone: "+1999999999"
-      })
+      other_user =
+        Repo.insert!(%User{
+          id: Ecto.UUID.generate(),
+          username: "other",
+          email: "other@test.com",
+          phone: "+1999999999"
+        })
 
       # Create another thread for other user
-      other_thread = Repo.insert!(%Thread{
-        id: Ecto.UUID.generate(),
-        thread_type: "direct",
-        database_shard_id: "test_shard_2"
-      })
+      other_thread =
+        Repo.insert!(%Thread{
+          id: Ecto.UUID.generate(),
+          thread_type: "direct",
+          database_shard_id: "test_shard_2"
+        })
 
       Repo.insert!(%ThreadParticipant{thread_id: other_thread.id, user_id: other_user.id})
 

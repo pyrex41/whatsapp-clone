@@ -10,7 +10,8 @@ defmodule GlobalbridgeBackend.Application do
     children = [
       GlobalbridgeBackend.Repo,
       GlobalbridgeBackendWeb.Telemetry,
-      {DNSCluster, query: Application.get_env(:globalbridge_backend, :dns_cluster_query) || :ignore},
+      {DNSCluster,
+       query: Application.get_env(:globalbridge_backend, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: GlobalbridgeBackend.PubSub},
       # Phoenix Presence for online/offline tracking
       GlobalbridgeBackendWeb.Presence,

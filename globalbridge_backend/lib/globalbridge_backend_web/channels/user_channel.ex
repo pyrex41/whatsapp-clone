@@ -13,23 +13,33 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
   intercept(["thread_created"])
 
   @impl true
-  def join("user:" <> user_id, _payload, socket) do
+  def join("user:" <> identifier, _payload, socket) do
     # Verify user owns this channel
-    # For test user, check both UUID and auth0_id to support bypass mode
+    # Support both UUID and username for test mode
     socket_user_id = socket.assigns.user_id
     socket_user = socket.assigns[:user]
     socket_auth0_id = if socket_user, do: socket_user.auth0_id, else: nil
+    socket_username = if socket_user, do: socket_user.username, else: nil
 
     authorized? =
-      socket_user_id == user_id or
-        socket_auth0_id == user_id
+      socket_user_id == identifier or
+        socket_auth0_id == identifier or
+        socket_username == identifier
 
     if authorized? do
-      Logger.info("✅ [USER_CHANNEL] User #{user_id} joined their channel")
+      Logger.info(
+        "✅ [USER_CHANNEL] User #{identifier} joined their channel (matched: #{cond do
+          socket_user_id == identifier -> "ID"
+          socket_auth0_id == identifier -> "Auth0"
+          socket_username == identifier -> "username"
+          true -> "unknown"
+        end})"
+      )
+
       {:ok, %{joined_at: DateTime.utc_now()}, socket}
     else
       Logger.warning(
-        "❌ [USER_CHANNEL] Unauthorized join attempt: socket_user=#{socket_user_id}, socket_auth0_id=#{socket_auth0_id}, channel_user=#{user_id}"
+        "❌ [USER_CHANNEL] Unauthorized join attempt: socket_user=#{socket_user_id}, socket_auth0_id=#{socket_auth0_id}, socket_username=#{socket_username}, channel_identifier=#{identifier}"
       )
 
       {:error, %{reason: "Unauthorized"}}

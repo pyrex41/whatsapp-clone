@@ -10,9 +10,9 @@ defmodule GlobalbridgeBackend.Schemas.ReadReceipt do
   @foreign_key_type :binary_id
 
   schema "read_receipts" do
-    field :message_id, :binary_id
-    field :user_id, :binary_id
-    field :read_at, :utc_datetime
+    field(:message_id, :binary_id)
+    field(:user_id, :binary_id)
+    field(:read_at, :utc_datetime)
 
     timestamps(type: :utc_datetime)
   end
