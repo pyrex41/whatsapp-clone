@@ -23,6 +23,8 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
   """
   @impl true
   def join("thread:" <> thread_id, _payload, socket) do
+    # Normalize thread_id to lowercase for case-insensitive UUID lookup
+    thread_id = String.downcase(thread_id)
     user_id = socket.assigns.user_id
 
     Logger.info("🔌 Channel join attempt: thread=#{thread_id}, user=#{user_id}")
