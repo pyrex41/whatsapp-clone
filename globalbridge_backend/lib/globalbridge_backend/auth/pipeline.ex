@@ -19,15 +19,31 @@ defmodule GlobalbridgeBackend.Auth.Pipeline do
   If successful, assigns the user to Guardian's resource.
   """
   def verify_auth0_token(conn, _opts) do
-    with ["Bearer " <> token] <- Plug.Conn.get_req_header(conn, "authorization"),
-         {:ok, user} <- GlobalbridgeBackend.Auth.Auth0Verifier.verify_and_get_user(token) do
-      # Put the user in Guardian's expected location
-      conn
-      |> Guardian.Plug.put_current_resource(user)
-      |> Plug.Conn.assign(:current_user, user)
-    else
-      _ ->
-        # No Auth0 token or verification failed, continue to Guardian verification
+    require Logger
+
+    case Plug.Conn.get_req_header(conn, "authorization") do
+      ["Bearer " <> token] ->
+        Logger.info("🔍 [AUTH] Found Bearer token in request")
+
+        case GlobalbridgeBackend.Auth.Auth0Verifier.verify_and_get_user(token) do
+          {:ok, user} ->
+            Logger.info("✅ [AUTH] Auth0 token verified for user: #{user.id}")
+            # Put the user in Guardian's expected location
+            conn
+            |> Guardian.Plug.put_current_resource(user)
+            |> Plug.Conn.assign(:current_user, user)
+
+          {:error, reason} ->
+            Logger.warning("⚠️ [AUTH] Auth0 verification failed: #{inspect(reason)}")
+            conn
+        end
+
+      [] ->
+        Logger.debug("📭 [AUTH] No Authorization header found")
+        conn
+
+      other ->
+        Logger.warning("⚠️ [AUTH] Unexpected Authorization header format: #{inspect(other)}")
         conn
     end
   end

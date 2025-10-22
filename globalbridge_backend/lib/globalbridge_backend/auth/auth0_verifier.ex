@@ -13,12 +13,16 @@ defmodule GlobalbridgeBackend.Auth.Auth0Verifier do
   Creates a new user if one doesn't exist.
   """
   def verify_and_get_user(token) do
+    Logger.info("🔐 [AUTH0] Attempting to verify token: #{String.slice(token, 0, 20)}...")
+
     with {:ok, claims} <- decode_jwt(token),
          :ok <- verify_auth0_token(claims),
          {:ok, user} <- ensure_user_exists(claims) do
       {:ok, user}
     else
-      {:error, reason} -> {:error, reason}
+      {:error, reason} ->
+        Logger.error("❌ [AUTH0] Token verification failed: #{inspect(reason)}")
+        {:error, reason}
     end
   end
 

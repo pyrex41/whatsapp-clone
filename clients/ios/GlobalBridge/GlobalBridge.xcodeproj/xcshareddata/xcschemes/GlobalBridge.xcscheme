@@ -53,7 +53,7 @@
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "AUTH0_AUDIENCE"
-            value = "https://api.globalbridge.dev/"
+            value = "https://globalbridge-api/"
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable

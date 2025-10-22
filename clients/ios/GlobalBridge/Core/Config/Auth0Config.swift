@@ -38,7 +38,7 @@ enum Auth0Config {
     /// Auth0 Audience
     static var audience: String {
         // TEMPORARY: Force correct audience
-        let correctAudience = "https://api.globalbridge.dev"
+        let correctAudience = "https://globalbridge-api"
         
         let envAudience = ProcessInfo.processInfo.environment["AUTH0_AUDIENCE"] ?? "not set"
         print("⚠️ [Auth0Config] FORCING correct audience: \(correctAudience)")

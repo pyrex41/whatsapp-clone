@@ -88,9 +88,7 @@ final class AuthManager: ObservableObject {
         refreshToken = credentials.refreshToken
         
         // Extract expiration time
-        if let expiresIn = credentials.expiresIn {
-            tokenExpiresAt = Date().addingTimeInterval(expiresIn)
-        }
+        tokenExpiresAt = credentials.expiresIn
         
         // Extract user ID from ID token claims
         userId = extractUserIdFromToken(credentials.idToken)
@@ -114,10 +112,10 @@ final class AuthManager: ObservableObject {
         print("🔗 [AUTH] Expected callback: \(Bundle.main.bundleIdentifier ?? "unknown")://\(auth0Domain)/ios/\(Bundle.main.bundleIdentifier ?? "unknown")/callback")
         
         do {
+            // Note: Removed audience parameter to simplify authentication
             let credentials = try await Auth0
                 .webAuth(clientId: auth0ClientId, domain: auth0Domain)
                 .scope("openid profile email offline_access")
-                .audience(auth0Audience)
                 .start()
             
             // Store credentials securely
@@ -132,10 +130,9 @@ final class AuthManager: ObservableObject {
             refreshToken = credentials.refreshToken
             
             // Store expiration time
-            if let expiresIn = credentials.expiresIn {
-                tokenExpiresAt = Date().addingTimeInterval(expiresIn)
-                print("⏰ [AUTH] Token expires in \(Int(expiresIn)) seconds")
-            }
+            tokenExpiresAt = credentials.expiresIn
+            let secondsUntilExpiry = credentials.expiresIn.timeIntervalSinceNow
+            print("⏰ [AUTH] Token expires in \(Int(secondsUntilExpiry)) seconds")
             
             // Extract user ID from ID token
             userId = extractUserIdFromToken(credentials.idToken)
@@ -234,10 +231,9 @@ final class AuthManager: ObservableObject {
             self.accessToken = credentials.accessToken
             self.refreshToken = credentials.refreshToken
             
-            if let expiresIn = credentials.expiresIn {
-                tokenExpiresAt = Date().addingTimeInterval(expiresIn)
-                print("✅ [AUTH] Token refreshed. New expiration in \(Int(expiresIn)) seconds")
-            }
+            tokenExpiresAt = credentials.expiresIn
+            let secondsUntilExpiry = credentials.expiresIn.timeIntervalSinceNow
+            print("✅ [AUTH] Token refreshed. New expiration in \(Int(secondsUntilExpiry)) seconds")
             
             authError = nil
             
