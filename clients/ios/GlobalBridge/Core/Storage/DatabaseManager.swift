@@ -64,6 +64,23 @@ final class DatabaseManager {
     private let participantCreatedAt = Expression<Date>("created_at")
     private let participantUpdatedAt = Expression<Date>("updated_at")
 
+    // Contacts table
+    private let contactsTable = Table("contacts")
+    private let contactId = Expression<String>("id")
+    private let contactUserId = Expression<String>("contact_user_id")
+    private let contactDisplayNameOverride = Expression<String?>("display_name_override")
+    private let contactIsFavorite = Expression<Bool>("is_favorite")
+    private let contactNotes = Expression<String?>("notes")
+    private let contactUserEmail = Expression<String>("user_email")
+    private let contactUserUsername = Expression<String?>("user_username")
+    private let contactUserDisplayName = Expression<String?>("user_display_name")
+    private let contactUserAvatarUrl = Expression<String?>("user_avatar_url")
+    private let contactCreatedAt = Expression<Date>("created_at")
+    private let contactUpdatedAt = Expression<Date>("updated_at")
+    private let contactLastSyncedAt = Expression<Date?>("last_synced_at")
+    private let contactNeedsSync = Expression<Bool>("needs_sync")
+    private let contactIsDeleted = Expression<Bool>("is_deleted")
+
     // MARK: - Per-Thread Table Definitions
 
     // Messages table (per-thread shard)
@@ -194,6 +211,30 @@ final class DatabaseManager {
         try db.run(participantsTable.createIndex(participantThreadId, participantUserId, unique: true, ifNotExists: true))
         try db.run(participantsTable.createIndex(participantUserId, ifNotExists: true))
         try db.run(participantsTable.createIndex(participantIsActive, ifNotExists: true))
+
+        // Create contacts table
+        try db.run(contactsTable.create(ifNotExists: true) { t in
+            t.column(contactId, primaryKey: true)
+            t.column(contactUserId)
+            t.column(contactDisplayNameOverride)
+            t.column(contactIsFavorite, defaultValue: false)
+            t.column(contactNotes)
+            t.column(contactUserEmail)
+            t.column(contactUserUsername)
+            t.column(contactUserDisplayName)
+            t.column(contactUserAvatarUrl)
+            t.column(contactCreatedAt, defaultValue: Date())
+            t.column(contactUpdatedAt, defaultValue: Date())
+            t.column(contactLastSyncedAt)
+            t.column(contactNeedsSync, defaultValue: false)
+            t.column(contactIsDeleted, defaultValue: false)
+        })
+
+        // Create indexes for contacts
+        try db.run(contactsTable.createIndex(contactUserId, ifNotExists: true))
+        try db.run(contactsTable.createIndex(contactNeedsSync, ifNotExists: true))
+        try db.run(contactsTable.createIndex(contactIsDeleted, ifNotExists: true))
+        try db.run(contactsTable.createIndex(contactUpdatedAt, ifNotExists: true))
 
         print("✅ Main tables created successfully")
     }

@@ -320,6 +320,156 @@ public actor PhoenixChannelManager {
                 }
         }
     }
+    
+    // MARK: - Contact Operations
+    
+    /// Search for users by email (non-contacts)
+    public func searchUsers(query: String) async throws -> [Contact.ContactUser] {
+        guard let userId = currentUserId else {
+            throw PhoenixError.notConnected
+        }
+        
+        guard let channel = channel(for: "user:\(userId)") else {
+            throw PhoenixError.channelNotJoined
+        }
+        
+        print("🔍 [CONTACTS] Searching users: \(query)")
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            channel.push("search_users", payload: ["query": query])
+                .receive("ok") { response in
+                    do {
+                        guard let users = response.payload["users"] as? [[String: Any]] else {
+                            continuation.resume(returning: [])
+                            return
+                        }
+                        
+                        let data = try JSONSerialization.data(withJSONObject: users)
+                        let decoder = JSONDecoder()
+                        decoder.keyDecodingStrategy = .convertFromSnakeCase
+                        let contactUsers = try decoder.decode([Contact.ContactUser].self, from: data)
+                        
+                        print("✅ [CONTACTS] Found \(contactUsers.count) users")
+                        continuation.resume(returning: contactUsers)
+                    } catch {
+                        print("❌ [CONTACTS] Failed to parse users: \(error)")
+                        continuation.resume(throwing: PhoenixError.decodingFailed(error))
+                    }
+                }
+                .receive("error") { message in
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
+                }
+        }
+    }
+    
+    /// Add a contact
+    public func addContact(contactUserId: String) async throws -> Contact {
+        guard let userId = currentUserId else {
+            throw PhoenixError.notConnected
+        }
+        
+        guard let channel = channel(for: "user:\(userId)") else {
+            throw PhoenixError.channelNotJoined
+        }
+        
+        print("➕ [CONTACTS] Adding contact: \(contactUserId)")
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            channel.push("add_contact", payload: ["contact_user_id": contactUserId])
+                .receive("ok") { response in
+                    do {
+                        let data = try JSONSerialization.data(withJSONObject: response.payload)
+                        let decoder = JSONDecoder()
+                        decoder.keyDecodingStrategy = .convertFromSnakeCase
+                        decoder.dateDecodingStrategy = .custom { decoder in
+                            let container = try decoder.singleValueContainer()
+                            let dateString = try container.decode(String.self)
+                            return ISO8601DateFormatter().date(from: dateString) ?? Date()
+                        }
+                        let contact = try decoder.decode(Contact.self, from: data)
+                        
+                        print("✅ [CONTACTS] Contact added: \(contact.id)")
+                        continuation.resume(returning: contact)
+                    } catch {
+                        print("❌ [CONTACTS] Failed to parse contact: \(error)")
+                        continuation.resume(throwing: PhoenixError.decodingFailed(error))
+                    }
+                }
+                .receive("error") { message in
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
+                }
+        }
+    }
+    
+    /// Sync contacts since a timestamp
+    public func syncContacts(since: Date) async throws -> [Contact] {
+        guard let userId = currentUserId else {
+            throw PhoenixError.notConnected
+        }
+        
+        guard let channel = channel(for: "user:\(userId)") else {
+            throw PhoenixError.channelNotJoined
+        }
+        
+        let timestamp = ISO8601DateFormatter().string(from: since)
+        print("🔄 [CONTACTS] Syncing contacts since: \(timestamp)")
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            channel.push("sync_contacts", payload: ["since": timestamp])
+                .receive("ok") { response in
+                    do {
+                        guard let contacts = response.payload["contacts"] as? [[String: Any]] else {
+                            continuation.resume(returning: [])
+                            return
+                        }
+                        
+                        let data = try JSONSerialization.data(withJSONObject: contacts)
+                        let decoder = JSONDecoder()
+                        decoder.keyDecodingStrategy = .convertFromSnakeCase
+                        decoder.dateDecodingStrategy = .custom { decoder in
+                            let container = try decoder.singleValueContainer()
+                            let dateString = try container.decode(String.self)
+                            return ISO8601DateFormatter().date(from: dateString) ?? Date()
+                        }
+                        let contactsList = try decoder.decode([Contact].self, from: data)
+                        
+                        print("✅ [CONTACTS] Synced \(contactsList.count) contacts")
+                        continuation.resume(returning: contactsList)
+                    } catch {
+                        print("❌ [CONTACTS] Failed to parse contacts: \(error)")
+                        continuation.resume(throwing: PhoenixError.decodingFailed(error))
+                    }
+                }
+                .receive("error") { message in
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
+                }
+        }
+    }
+    
+    /// Remove a contact
+    public func removeContact(contactUserId: String) async throws {
+        guard let userId = currentUserId else {
+            throw PhoenixError.notConnected
+        }
+        
+        guard let channel = channel(for: "user:\(userId)") else {
+            throw PhoenixError.channelNotJoined
+        }
+        
+        print("➖ [CONTACTS] Removing contact: \(contactUserId)")
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            channel.push("remove_contact", payload: ["contact_user_id": contactUserId])
+                .receive("ok") { _ in
+                    print("✅ [CONTACTS] Contact removed")
+                    continuation.resume()
+                }
+                .receive("error") { message in
+                    print("❌ [CONTACTS] Remove failed: \(message.payload)")
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
+                }
+        }
+    }
 
     // MARK: - Channel Management
 

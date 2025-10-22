@@ -6,7 +6,7 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
   use GlobalbridgeBackendWeb, :channel
   require Logger
 
-  alias GlobalbridgeBackend.Contexts.Threads
+  alias GlobalbridgeBackend.Contexts.{Threads, Contacts}
   alias GlobalbridgeBackend.Repo
 
   # Intercept outgoing broadcasts
@@ -83,8 +83,17 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
       "🆕 [USER_CHANNEL] Create thread request: type=#{type}, creator=#{user_id}, participants=#{inspect(participants)}"
     )
 
-    # Create thread with current user + participants
-    all_participants = [user_id | participants] |> Enum.uniq()
+    # Resolve emails to user IDs
+    email_user_ids =
+      Enum.flat_map(payload["participant_emails"] || [], fn email ->
+        case Contacts.find_user_by_email(email) do
+          nil -> []
+          user -> [user.id]
+        end
+      end)
+
+    # Create thread with current user + participants + resolved emails
+    all_participants = ([user_id | participants] ++ email_user_ids) |> Enum.uniq()
 
     attrs = %{
       thread_type: type,
@@ -129,6 +138,100 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
     {:noreply, socket}
   end
 
+  # Contact management handlers
+
+  @doc "Search for users by email to add as contact"
+  @impl true
+  def handle_in("search_users", %{"query" => query}, socket) do
+    user_id = socket.assigns.user_id
+    Logger.debug("🔍 [USER_CHANNEL] Search users: query=#{query}, user=#{user_id}")
+
+    results = Contacts.search_users_by_email(query)
+
+    # Filter out current user and existing contacts
+    contact_ids =
+      Contacts.list_contacts(user_id)
+      |> Enum.map(& &1.contact_user_id)
+      |> MapSet.new()
+
+    filtered_results =
+      Enum.reject(results, fn user ->
+        user.id == user_id or MapSet.member?(contact_ids, user.id)
+      end)
+
+    {:reply, {:ok, %{users: filtered_results}}, socket}
+  end
+
+  @doc "Search existing contacts"
+  @impl true
+  def handle_in("search_contacts", %{"query" => query}, socket) do
+    user_id = socket.assigns.user_id
+    Logger.debug("🔍 [USER_CHANNEL] Search contacts: query=#{query}, user=#{user_id}")
+
+    contacts = Contacts.search_contacts(user_id, query)
+
+    {:reply, {:ok, %{contacts: format_contacts(contacts)}}, socket}
+  end
+
+  @doc "Get all contacts"
+  @impl true
+  def handle_in("get_contacts", _payload, socket) do
+    user_id = socket.assigns.user_id
+    Logger.debug("📋 [USER_CHANNEL] Get all contacts for user: #{user_id}")
+
+    contacts = Contacts.list_contacts(user_id)
+
+    {:reply, {:ok, %{contacts: format_contacts(contacts)}}, socket}
+  end
+
+  @doc "Sync contacts (get changes since timestamp)"
+  @impl true
+  def handle_in("sync_contacts", %{"since" => since_timestamp}, socket) do
+    user_id = socket.assigns.user_id
+    Logger.debug("🔄 [USER_CHANNEL] Sync contacts since: #{since_timestamp}, user=#{user_id}")
+
+    {:ok, since_dt, _} = DateTime.from_iso8601(since_timestamp)
+    contacts = Contacts.list_contacts_since(user_id, since_dt)
+
+    {:reply, {:ok, %{contacts: format_contacts(contacts), synced_at: DateTime.utc_now()}},
+     socket}
+  end
+
+  @doc "Add contact"
+  @impl true
+  def handle_in("add_contact", %{"contact_user_id" => contact_user_id} = payload, socket) do
+    user_id = socket.assigns.user_id
+    Logger.info("➕ [USER_CHANNEL] Add contact: user=#{user_id}, contact=#{contact_user_id}")
+
+    case Contacts.add_contact(user_id, contact_user_id, payload) do
+      {:ok, contact} ->
+        contact = Repo.preload(contact, [:contact_user])
+        Logger.info("✅ [USER_CHANNEL] Contact added: #{contact.id}")
+        {:reply, {:ok, format_contact(contact)}, socket}
+
+      {:error, changeset} ->
+        Logger.error("❌ [USER_CHANNEL] Add contact failed: #{inspect(changeset.errors)}")
+        {:reply, {:error, %{errors: format_errors(changeset)}}, socket}
+    end
+  end
+
+  @doc "Remove contact"
+  @impl true
+  def handle_in("remove_contact", %{"contact_user_id" => contact_user_id}, socket) do
+    user_id = socket.assigns.user_id
+    Logger.info("➖ [USER_CHANNEL] Remove contact: user=#{user_id}, contact=#{contact_user_id}")
+
+    case Contacts.remove_contact(user_id, contact_user_id) do
+      {1, _} ->
+        Logger.info("✅ [USER_CHANNEL] Contact removed")
+        {:reply, {:ok, %{removed: true}}, socket}
+
+      _ ->
+        Logger.warning("⚠️  [USER_CHANNEL] Contact not found for removal")
+        {:reply, {:error, %{reason: "Contact not found"}}, socket}
+    end
+  end
+
   # Private helper functions
 
   defp format_thread(thread) do
@@ -165,5 +268,28 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
         String.replace(acc, "%{#{key}}", to_string(value))
       end)
     end)
+  end
+
+  defp format_contact(contact) do
+    %{
+      id: contact.id,
+      contact_user_id: contact.contact_user_id,
+      display_name_override: contact.display_name_override,
+      is_favorite: contact.is_favorite,
+      notes: contact.notes,
+      user: %{
+        id: contact.contact_user.id,
+        email: contact.contact_user.email,
+        username: contact.contact_user.username,
+        display_name: contact.contact_user.display_name,
+        avatar_url: contact.contact_user.avatar_url
+      },
+      created_at: contact.inserted_at,
+      updated_at: contact.updated_at
+    }
+  end
+
+  defp format_contacts(contacts) do
+    Enum.map(contacts, &format_contact/1)
   end
 end
