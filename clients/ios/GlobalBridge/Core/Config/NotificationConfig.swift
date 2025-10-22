@@ -38,7 +38,7 @@ struct NotificationConfig {
             NotificationCenter.default.post(name: .notificationModeChanged, object: nil)
         }
     }
-    static var current: NotificationMode {
+    nonisolated static var current: NotificationMode {
         // 1) Runtime override takes precedence
         if let override = runtimeOverride { return override }
 

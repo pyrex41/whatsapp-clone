@@ -7,36 +7,44 @@
 
 import Foundation
 
-struct Contact: Identifiable, Codable, Equatable {
-    let id: UUID
-    let contactUserId: String  // UUID of the contact user
-    var displayNameOverride: String?
-    var isFavorite: Bool
-    var notes: String?
-    let user: ContactUser
-    let createdAt: Date
-    var updatedAt: Date
-    var lastSyncedAt: Date?
-    var needsSync: Bool = false
-    var isDeleted: Bool = false
+public struct Contact: Identifiable, Codable, Equatable, Sendable {
+    public let id: UUID
+    public let contactUserId: String  // UUID of the contact user
+    public var displayNameOverride: String?
+    public var isFavorite: Bool
+    public var notes: String?
+    public let user: ContactUser
+    public let createdAt: Date
+    public var updatedAt: Date
+    public var lastSyncedAt: Date?
+    public var needsSync: Bool = false
+    public var isDeleted: Bool = false
 
-    struct ContactUser: Codable, Equatable {
-        let id: String
-        let email: String
-        let username: String?
-        let displayName: String?
-        let avatarUrl: String?
+    public struct ContactUser: Codable, Equatable, Sendable {
+        public let id: String
+        public let email: String
+        public let username: String?
+        public let displayName: String?
+        public let avatarUrl: String?
         
-        enum CodingKeys: String, CodingKey {
+        public enum CodingKeys: String, CodingKey {
             case id
             case email
             case username
             case displayName = "display_name"
             case avatarUrl = "avatar_url"
         }
+        
+        public init(id: String, email: String, username: String? = nil, displayName: String? = nil, avatarUrl: String? = nil) {
+            self.id = id
+            self.email = email
+            self.username = username
+            self.displayName = displayName
+            self.avatarUrl = avatarUrl
+        }
     }
 
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case id
         case contactUserId = "contact_user_id"
         case displayNameOverride = "display_name_override"
@@ -50,11 +58,11 @@ struct Contact: Identifiable, Codable, Equatable {
         case isDeleted = "is_deleted"
     }
 
-    var displayName: String {
+    public var displayName: String {
         displayNameOverride ?? user.displayName ?? user.username ?? user.email
     }
     
-    nonisolated init(
+    public nonisolated init(
         id: UUID = UUID(),
         contactUserId: String,
         displayNameOverride: String? = nil,
