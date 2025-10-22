@@ -17,7 +17,7 @@ extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
     ///   - since: Optional timestamp to fetch changes since
     /// - Returns: Array of CDC logs from server
     func pullCDCLogs(threadId: String, since: Date?) async throws -> [CDCLog] {
-        guard let channel = channel(for: threadId) else {
+        guard let channel = await channel(for: threadId) else {
             throw PhoenixError.channelNotJoined
         }
 
@@ -28,7 +28,11 @@ extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
 
         return try await withCheckedThrowingContinuation { continuation in
             channel.push("cdc:pull", payload: payload)
-                .receive("ok") { response in
+                .receive("ok") { [weak self] response in
+                    guard let self else {
+                        continuation.resume(throwing: PhoenixError.notConnected)
+                        return
+                    }
                     do {
                         // Parse CDC logs from response
                         guard let logsData = response.payload["logs"] as? [[String: Any]] else {
@@ -59,7 +63,7 @@ extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
     ///   - logs: CDC logs to push
     ///   - threadId: Thread ID these logs belong to
     func pushCDCLogs(_ logs: [CDCLog], threadId: String) async throws {
-        guard let channel = channel(for: threadId) else {
+        guard let channel = await channel(for: threadId) else {
             throw PhoenixError.channelNotJoined
         }
 
@@ -112,7 +116,7 @@ extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
     /// Check if network is available
     /// - Returns: True if connected, false otherwise
     func isNetworkAvailable() async -> Bool {
-        switch getConnectionState() {
+        switch await getConnectionState() {
         case .connected:
             return true
         default:
@@ -123,7 +127,7 @@ extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
     // MARK: - Private Helpers
 
     /// Parse a CDC log from dictionary
-    private func parseCDCLog(from dict: [String: Any]) throws -> CDCLog {
+    nonisolated private func parseCDCLog(from dict: [String: Any]) throws -> CDCLog {
         guard let idStr = dict["id"] as? String,
               let id = UUID(uuidString: idStr),
               let tableName = dict["table_name"] as? String,

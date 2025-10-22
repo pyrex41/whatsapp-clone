@@ -659,7 +659,7 @@ public actor PhoenixChannelManager {
             return
         }
 
-        let payload: [String: Any] = ["typing": isTyping]
+        let payload: [String: Any] = ["is_typing": isTyping]
 
         channel.push("typing", payload: payload)
             .receive("ok") { _ in

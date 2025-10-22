@@ -349,6 +349,12 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         return .none
 
     case let .receiveRealtimeMessage(message):
+        // Skip messages from ourselves - we already added them locally when sending
+        if message.senderId == state.user.id {
+            print("⏭️ [RECEIVE] Skipping own message from broadcast: \(message.id)")
+            return .none
+        }
+        
         guard state.chat.currentThread?.id == message.threadId else {
             if let index = state.threads.items.firstIndex(where: { $0.id == message.threadId }) {
                 state.threads.items[index].lastMessageAt = message.createdAt

@@ -21,9 +21,11 @@ struct ChatScreen: View {
                         ScrollView {
                             LazyVStack(spacing: 12) {
                                 ForEach(chatState.messages, id: \.id) { message in
+                                    let isOwn = message.senderId == store.state.user.id
+                                    let _ = print("💬 [MESSAGE] id=\(message.id), content=\"\(message.content)\", senderId=\(message.senderId), currentUserId=\(store.state.user.id), isOwn=\(isOwn)")
                                     MessageRow(
                                         message: message,
-                                        isOwnMessage: message.senderId == store.state.user.id
+                                        isOwnMessage: isOwn
                                     )
                                     .id(message.id)
                                 }
@@ -121,7 +123,7 @@ private struct MessageRow: View {
             VStack(alignment: isOwnMessage ? .trailing : .leading, spacing: 6) {
                 Text(message.content)
                     .padding(12)
-                    .background(isOwnMessage ? Color.accentColor : Color(.secondarySystemBackground))
+                    .background(isOwnMessage ? Color.blue : Color(.systemGray5))
                     .foregroundColor(isOwnMessage ? .white : .primary)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 

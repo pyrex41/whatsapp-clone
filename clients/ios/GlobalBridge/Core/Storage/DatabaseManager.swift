@@ -846,11 +846,19 @@ final class DatabaseManager {
                     changedFields = try? JSONDecoder().decode([String].self, from: data)
                 }
 
+                // Safely parse UUIDs
+                guard let logId = UUID(uuidString: row[cdcId]),
+                      let recordId = UUID(uuidString: row[cdcRecordId]),
+                      let operation = CDCLog.CDCOperation(rawValue: row[cdcOperation]) else {
+                    print("⚠️ [CDC] Skipping invalid CDC log: id=\(row[cdcId]), recordId=\(row[cdcRecordId]), operation=\(row[cdcOperation])")
+                    continue
+                }
+
                 let log = CDCLog(
-                    id: UUID(uuidString: row[cdcId])!,
+                    id: logId,
                     tableName: row[cdcTableName],
-                    recordId: UUID(uuidString: row[cdcRecordId])!,
-                    operation: CDCLog.CDCOperation(rawValue: row[cdcOperation])!,
+                    recordId: recordId,
+                    operation: operation,
                     oldData: oldData,
                     newData: newData,
                     changedFields: changedFields,
