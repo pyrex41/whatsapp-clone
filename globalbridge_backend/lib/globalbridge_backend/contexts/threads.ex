@@ -354,6 +354,36 @@ defmodule GlobalbridgeBackend.Contexts.Threads do
   end
 
   @doc """
+  Find existing direct message thread between two users.
+  Returns nil if no DM exists.
+  """
+  def find_direct_message(user_id_1, user_id_2) do
+    # Find threads where both users are participants
+    user_1_threads =
+      from(t in Thread,
+        join: tp in ThreadParticipant,
+        on: tp.thread_id == t.id,
+        where: tp.user_id == ^user_id_1,
+        where: t.thread_type == "direct",
+        select: t.id
+      )
+      |> Repo.all()
+      |> MapSet.new()
+
+    # Find the intersection - threads where user_2 is also a participant
+    from(t in Thread,
+      join: tp in ThreadParticipant,
+      on: tp.thread_id == t.id,
+      where: tp.user_id == ^user_id_2,
+      where: t.thread_type == "direct",
+      where: t.id in ^MapSet.to_list(user_1_threads),
+      limit: 1,
+      preload: :thread_participants
+    )
+    |> Repo.one()
+  end
+
+  @doc """
   Searches threads by title.
 
   ## Examples

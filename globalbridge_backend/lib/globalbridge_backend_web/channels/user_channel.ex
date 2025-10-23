@@ -127,6 +127,55 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
     end
   end
 
+  @doc """
+  Create or get existing direct message thread with another user.
+  """
+  @impl true
+  def handle_in("create_dm", %{"user_id" => other_user_id}, socket) do
+    user_id = socket.assigns.user_id
+    Logger.info("💬 [USER_CHANNEL] Create DM request: user=#{user_id}, other_user=#{other_user_id}")
+
+    # Check if DM already exists between these two users
+    existing_dm = Threads.find_direct_message(user_id, other_user_id)
+
+    case existing_dm do
+      nil ->
+        # Create new DM thread
+        attrs = %{
+          thread_type: "direct",
+          participant_ids: [user_id, other_user_id]
+        }
+
+        case Threads.create_thread(attrs) do
+          {:ok, thread} ->
+            Logger.info("✅ [USER_CHANNEL] New DM created: #{thread.id}")
+
+            # Broadcast to both participants
+            formatted_thread = format_thread(thread)
+
+            Enum.each([user_id, other_user_id], fn participant_id ->
+              GlobalbridgeBackendWeb.Endpoint.broadcast(
+                "user:#{participant_id}",
+                "thread_created",
+                formatted_thread
+              )
+            end)
+
+            {:reply, {:ok, formatted_thread}, socket}
+
+          {:error, changeset} ->
+            errors = format_errors(changeset)
+            Logger.error("❌ [USER_CHANNEL] DM creation failed: #{inspect(errors)}")
+            {:reply, {:error, %{errors: errors}}, socket}
+        end
+
+      thread ->
+        # Return existing DM
+        Logger.info("✅ [USER_CHANNEL] Existing DM found: #{thread.id}")
+        {:reply, {:ok, format_thread(thread)}, socket}
+    end
+  end
+
   # Handle incoming thread_created broadcasts
   @impl true
   def handle_out("thread_created", payload, socket) do
