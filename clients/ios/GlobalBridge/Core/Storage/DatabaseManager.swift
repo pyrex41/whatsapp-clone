@@ -748,7 +748,9 @@ final class DatabaseManager {
             let metadataJson = message.metadata.flatMap { try? JSONEncoder().encode($0) }
                 .flatMap { String(data: $0, encoding: .utf8) }
 
-            let insert = messagesTable.insert(
+            // Use INSERT OR REPLACE to handle both creation and updates
+            let upsert = messagesTable.insert(
+                or: .replace,  // UPSERT: update if exists, insert if not
                 messageId <- message.id.uuidString,
                 messageThreadId <- message.threadId.uuidString,
                 messageSenderId <- message.senderId,  // Now a String, not UUID
@@ -764,7 +766,7 @@ final class DatabaseManager {
                 messageUpdatedAt <- message.updatedAt
             )
 
-            try db.run(insert)
+            try db.run(upsert)
 
             // Update thread's last_message_at
             try await updateThreadLastMessage(threadId: message.threadId, timestamp: message.createdAt)
