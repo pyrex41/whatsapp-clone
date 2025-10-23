@@ -75,6 +75,11 @@
             value = "dev-1672riu03fjuf7so.us.auth0.com"
             isEnabled = "YES">
          </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "BACKEND_ENV"
+            value = "local"
+            isEnabled = "YES">
+         </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction

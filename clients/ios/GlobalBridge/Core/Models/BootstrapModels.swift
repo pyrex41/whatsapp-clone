@@ -67,6 +67,38 @@ nonisolated public struct ThreadData: Codable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
+    
+    // Custom decoder to handle SQLite's integer boolean values (0/1)
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(String.self, forKey: .id)
+        threadType = try container.decode(String.self, forKey: .threadType)
+        title = try container.decodeIfPresent(String.self, forKey: .title)
+        databaseShardId = try container.decode(String.self, forKey: .databaseShardId)
+        lastMessageAt = try container.decodeIfPresent(Date.self, forKey: .lastMessageAt)
+        participantIds = try container.decode([String].self, forKey: .participantIds)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        // Handle both Bool and Int for isArchived (SQLite sends 0/1)
+        if let boolValue = try? container.decode(Bool.self, forKey: .isArchived) {
+            isArchived = boolValue
+        } else if let intValue = try? container.decode(Int.self, forKey: .isArchived) {
+            isArchived = intValue != 0
+        } else {
+            isArchived = false
+        }
+        
+        // Handle both Bool and Int for isMuted (SQLite sends 0/1)
+        if let boolValue = try? container.decode(Bool.self, forKey: .isMuted) {
+            isMuted = boolValue
+        } else if let intValue = try? container.decode(Int.self, forKey: .isMuted) {
+            isMuted = intValue != 0
+        } else {
+            isMuted = false
+        }
+    }
 }
 
 /// User data from backend

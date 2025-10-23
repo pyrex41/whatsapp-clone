@@ -133,7 +133,10 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
   @impl true
   def handle_in("create_dm", %{"user_id" => other_user_id}, socket) do
     user_id = socket.assigns.user_id
-    Logger.info("💬 [USER_CHANNEL] Create DM request: user=#{user_id}, other_user=#{other_user_id}")
+
+    Logger.info(
+      "💬 [USER_CHANNEL] Create DM request: user=#{user_id}, other_user=#{other_user_id}"
+    )
 
     # Check if DM already exists between these two users
     existing_dm = Threads.find_direct_message(user_id, other_user_id)

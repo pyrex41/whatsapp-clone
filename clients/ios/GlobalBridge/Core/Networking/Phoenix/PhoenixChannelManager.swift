@@ -335,8 +335,14 @@ public actor PhoenixChannelManager {
                     
                     do {
                         let data = try JSONSerialization.data(withJSONObject: payload)
+                        
+                        // Debug: Print the actual JSON string
+                        if let jsonString = String(data: data, encoding: .utf8) {
+                            print("🔍 [CREATE_DM] Raw JSON: \(jsonString)")
+                        }
+                        
                         let decoder = JSONDecoder()
-                        decoder.keyDecodingStrategy = .convertFromSnakeCase
+                        // Don't use convertFromSnakeCase - ThreadData has explicit CodingKeys
                         decoder.dateDecodingStrategy = .custom { decoder in
                             let container = try decoder.singleValueContainer()
                             let dateString = try container.decode(String.self)
