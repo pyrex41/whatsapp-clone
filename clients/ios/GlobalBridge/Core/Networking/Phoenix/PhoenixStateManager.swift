@@ -107,6 +107,7 @@ public class PhoenixStateManager {
         let message = try await channelManager.sendMessage(
             conversationId: conversationId,
             content: content,
+            clientMessageId: nil,  // PhoenixStateManager doesn't track client IDs
             replyToId: replyToId
         )
 
@@ -251,7 +252,8 @@ extension PhoenixStateManager {
                 content: "Hello!",
                 timestamp: Date().addingTimeInterval(-3600),
                 status: .delivered,
-                metadata: nil
+                metadata: nil,
+                clientMessageId: nil
             ),
             PhoenixMessage(
                 id: "2",
@@ -260,7 +262,8 @@ extension PhoenixStateManager {
                 content: "Hi there!",
                 timestamp: Date().addingTimeInterval(-1800),
                 status: .read,
-                metadata: nil
+                metadata: nil,
+                clientMessageId: nil
             )
         ]
 

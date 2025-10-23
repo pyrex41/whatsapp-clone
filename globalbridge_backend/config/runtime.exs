@@ -26,12 +26,16 @@ if config_env() == :prod do
     System.get_env("DATABASE_PATH") ||
       raise """
       environment variable DATABASE_PATH is missing.
-      For example: /etc/globalbridge_backend/shared_dbs/users.db
+      For example: /mnt/data/users.db
       """
 
   config :globalbridge_backend, GlobalbridgeBackend.Repo,
     database: database_path,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
+
+  # Configure dev_mode for bypassing authentication (use carefully in production!)
+  dev_mode = System.get_env("DEV_MODE") == "true"
+  config :globalbridge_backend, dev_mode: dev_mode
 end
 
 if config_env() == :prod do

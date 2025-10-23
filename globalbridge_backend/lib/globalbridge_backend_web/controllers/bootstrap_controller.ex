@@ -13,17 +13,21 @@ defmodule GlobalbridgeBackendWeb.BootstrapController do
     threads = Threads.list_user_threads(user.id, is_archived: false)
 
     # Format threads for Elm frontend
-    formatted_threads = Enum.map(threads, fn thread ->
-      %{
-        id: thread.id,
-        name: thread.title || "Untitled Thread",
-        unread_count: 0,  # TODO: Calculate from read receipts
-        created_at: thread.inserted_at,
-        updated_at: thread.updated_at,
-        last_message: nil,  # TODO: Fetch from thread's message database
-        bridge: nil  # TODO: Map bridge data when thread-bridge association is implemented
-      }
-    end)
+    formatted_threads =
+      Enum.map(threads, fn thread ->
+        %{
+          id: thread.id,
+          name: thread.title || "Untitled Thread",
+          # TODO: Calculate from read receipts
+          unread_count: 0,
+          created_at: thread.inserted_at,
+          updated_at: thread.updated_at,
+          # TODO: Fetch from thread's message database
+          last_message: nil,
+          # TODO: Map bridge data when thread-bridge association is implemented
+          bridge: nil
+        }
+      end)
 
     json(conn, %{
       data: %{
@@ -34,7 +38,8 @@ defmodule GlobalbridgeBackendWeb.BootstrapController do
           inserted_at: user.inserted_at
         },
         threads: formatted_threads,
-        bridges: [],  # TODO: Fetch user's bridge configurations
+        # TODO: Fetch user's bridge configurations
+        bridges: [],
         csrf_token: get_csrf_token()
       }
     })

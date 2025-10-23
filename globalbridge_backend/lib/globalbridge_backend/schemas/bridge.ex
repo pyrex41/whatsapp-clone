@@ -10,15 +10,19 @@ defmodule GlobalbridgeBackend.Schemas.Bridge do
   @foreign_key_type :binary_id
 
   schema "bridges" do
-    field :user_id, :binary_id
-    field :bridge_type, :string  # "whatsapp", "telegram", etc.
-    field :phone_number, :string
-    field :session_data, :map  # Encrypted session data
-    field :status, :string  # "connected", "disconnected", "error"
-    field :last_connected_at, :utc_datetime
-    field :error_message, :string
-    field :qr_code, :string  # For initial connection
-    field :is_active, :boolean, default: true
+    field(:user_id, :binary_id)
+    # "whatsapp", "telegram", etc.
+    field(:bridge_type, :string)
+    field(:phone_number, :string)
+    # Encrypted session data
+    field(:session_data, :map)
+    # "connected", "disconnected", "error"
+    field(:status, :string)
+    field(:last_connected_at, :utc_datetime)
+    field(:error_message, :string)
+    # For initial connection
+    field(:qr_code, :string)
+    field(:is_active, :boolean, default: true)
 
     timestamps(type: :utc_datetime)
   end

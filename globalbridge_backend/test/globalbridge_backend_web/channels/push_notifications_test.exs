@@ -17,51 +17,57 @@ defmodule GlobalbridgeBackendWeb.PushNotificationsTest do
 
   setup do
     # Create test users
-    user1 = Repo.insert!(%User{
-      id: Ecto.UUID.generate(),
-      username: "user1",
-      email: "user1@test.com",
-      phone: "+1234567890",
-      is_online: true
-    })
+    user1 =
+      Repo.insert!(%User{
+        id: Ecto.UUID.generate(),
+        username: "user1",
+        email: "user1@test.com",
+        phone: "+1234567890",
+        is_online: true
+      })
 
-    user2 = Repo.insert!(%User{
-      id: Ecto.UUID.generate(),
-      username: "user2",
-      email: "user2@test.com",
-      phone: "+1234567891",
-      is_online: false
-    })
+    user2 =
+      Repo.insert!(%User{
+        id: Ecto.UUID.generate(),
+        username: "user2",
+        email: "user2@test.com",
+        phone: "+1234567891",
+        is_online: false
+      })
 
-    user3 = Repo.insert!(%User{
-      id: Ecto.UUID.generate(),
-      username: "user3",
-      email: "user3@test.com",
-      phone: "+1234567892",
-      is_online: false
-    })
+    user3 =
+      Repo.insert!(%User{
+        id: Ecto.UUID.generate(),
+        username: "user3",
+        email: "user3@test.com",
+        phone: "+1234567892",
+        is_online: false
+      })
 
     # Register device tokens
-    device_token2 = Repo.insert!(%DeviceToken{
-      user_id: user2.id,
-      token: "APNS_TOKEN_USER2_DEVICE1",
-      device_type: "ios",
-      is_active: true
-    })
+    device_token2 =
+      Repo.insert!(%DeviceToken{
+        user_id: user2.id,
+        token: "APNS_TOKEN_USER2_DEVICE1",
+        device_type: "ios",
+        is_active: true
+      })
 
-    device_token3 = Repo.insert!(%DeviceToken{
-      user_id: user3.id,
-      token: "APNS_TOKEN_USER3_DEVICE1",
-      device_type: "ios",
-      is_active: true
-    })
+    device_token3 =
+      Repo.insert!(%DeviceToken{
+        user_id: user3.id,
+        token: "APNS_TOKEN_USER3_DEVICE1",
+        device_type: "ios",
+        is_active: true
+      })
 
     # Create test thread
-    thread = Repo.insert!(%Thread{
-      id: Ecto.UUID.generate(),
-      thread_type: "group",
-      database_shard_id: "test_shard_1"
-    })
+    thread =
+      Repo.insert!(%Thread{
+        id: Ecto.UUID.generate(),
+        thread_type: "group",
+        database_shard_id: "test_shard_1"
+      })
 
     # Add participants
     Repo.insert!(%ThreadParticipant{thread_id: thread.id, user_id: user1.id})
@@ -165,13 +171,14 @@ defmodule GlobalbridgeBackendWeb.PushNotificationsTest do
 
       # Check that APNS payload was generated
       # This would typically be sent to APNS, but in tests we verify structure
-      payload = Notifications.build_apns_payload(%{
-        thread_id: thread.id,
-        sender_id: user1.id,
-        sender_username: user1.username,
-        message_content: "Test notification",
-        message_id: message_id
-      })
+      payload =
+        Notifications.build_apns_payload(%{
+          thread_id: thread.id,
+          sender_id: user1.id,
+          sender_username: user1.username,
+          message_content: "Test notification",
+          message_id: message_id
+        })
 
       assert Map.has_key?(payload, :aps)
       assert Map.has_key?(payload.aps, :alert)
@@ -194,13 +201,14 @@ defmodule GlobalbridgeBackendWeb.PushNotificationsTest do
       ref = push(socket1, "new_message", %{"content" => "From user1"})
       assert_reply ref, :ok, %{id: message_id}
 
-      payload = Notifications.build_apns_payload(%{
-        thread_id: thread.id,
-        sender_id: user1.id,
-        sender_username: user1.username,
-        message_content: "From user1",
-        message_id: message_id
-      })
+      payload =
+        Notifications.build_apns_payload(%{
+          thread_id: thread.id,
+          sender_id: user1.id,
+          sender_username: user1.username,
+          message_content: "From user1",
+          message_id: message_id
+        })
 
       # Alert should include sender name
       assert payload.aps.alert.title =~ user1.username
@@ -215,21 +223,24 @@ defmodule GlobalbridgeBackendWeb.PushNotificationsTest do
       {:ok, socket1} = connect(UserSocket, %{"token" => "user:#{user1.id}"})
       {:ok, _, socket1} = subscribe_and_join(socket1, "thread:#{thread.id}", %{})
 
-      ref = push(socket1, "new_message", %{
-        "content" => "Photo",
-        "content_type" => "image",
-        "media_url" => "https://example.com/photo.jpg"
-      })
+      ref =
+        push(socket1, "new_message", %{
+          "content" => "Photo",
+          "content_type" => "image",
+          "media_url" => "https://example.com/photo.jpg"
+        })
+
       assert_reply ref, :ok, %{id: message_id}
 
-      payload = Notifications.build_apns_payload(%{
-        thread_id: thread.id,
-        sender_id: user1.id,
-        sender_username: user1.username,
-        message_content: "Photo",
-        content_type: "image",
-        message_id: message_id
-      })
+      payload =
+        Notifications.build_apns_payload(%{
+          thread_id: thread.id,
+          sender_id: user1.id,
+          sender_username: user1.username,
+          message_content: "Photo",
+          content_type: "image",
+          message_id: message_id
+        })
 
       # Should indicate media type in notification
       assert payload.aps.alert.body =~ "Photo" or payload.aps.alert.body =~ "image"
@@ -247,14 +258,15 @@ defmodule GlobalbridgeBackendWeb.PushNotificationsTest do
       ref = push(socket1, "new_message", %{"content" => "Test"})
       assert_reply ref, :ok, %{id: message_id}
 
-      payload = Notifications.build_apns_payload(%{
-        thread_id: thread.id,
-        thread_type: thread.thread_type,
-        sender_id: user1.id,
-        sender_username: user1.username,
-        message_content: "Test",
-        message_id: message_id
-      })
+      payload =
+        Notifications.build_apns_payload(%{
+          thread_id: thread.id,
+          thread_type: thread.thread_type,
+          sender_id: user1.id,
+          sender_username: user1.username,
+          message_content: "Test",
+          message_id: message_id
+        })
 
       assert payload.thread_id == thread.id
       assert payload.thread_type == thread.thread_type
@@ -282,15 +294,19 @@ defmodule GlobalbridgeBackendWeb.PushNotificationsTest do
       assert_receive {:notification, _}, 500
     end
 
-    test "does not trigger notification when user has no device tokens", %{thread: thread, user1: user1} do
+    test "does not trigger notification when user has no device tokens", %{
+      thread: thread,
+      user1: user1
+    } do
       # Create user without device token
-      user_no_token = Repo.insert!(%User{
-        id: Ecto.UUID.generate(),
-        username: "no_token",
-        email: "no_token@test.com",
-        phone: "+1999999999",
-        is_online: false
-      })
+      user_no_token =
+        Repo.insert!(%User{
+          id: Ecto.UUID.generate(),
+          username: "no_token",
+          email: "no_token@test.com",
+          phone: "+1999999999",
+          is_online: false
+        })
 
       Repo.insert!(%ThreadParticipant{thread_id: thread.id, user_id: user_no_token.id})
 
@@ -363,11 +379,12 @@ defmodule GlobalbridgeBackendWeb.PushNotificationsTest do
       Phoenix.PubSub.subscribe(GlobalbridgeBackend.PubSub, "notifications:#{user2.id}")
 
       # Send 5 messages rapidly
-      message_ids = Enum.map(1..5, fn i ->
-        ref = push(socket1, "new_message", %{"content" => "Burst #{i}"})
-        assert_reply ref, :ok, %{id: message_id}
-        message_id
-      end)
+      message_ids =
+        Enum.map(1..5, fn i ->
+          ref = push(socket1, "new_message", %{"content" => "Burst #{i}"})
+          assert_reply ref, :ok, %{id: message_id}
+          message_id
+        end)
 
       # Should receive all notifications
       for _i <- 1..5 do
@@ -377,7 +394,12 @@ defmodule GlobalbridgeBackendWeb.PushNotificationsTest do
   end
 
   describe "notification edge cases" do
-    test "handles inactive device tokens", %{thread: thread, user1: user1, user2: user2, device_token2: device_token2} do
+    test "handles inactive device tokens", %{
+      thread: thread,
+      user1: user1,
+      user2: user2,
+      device_token2: device_token2
+    } do
       # Deactivate device token
       Repo.update!(DeviceToken.changeset(device_token2, %{is_active: false}))
 
@@ -424,13 +446,14 @@ defmodule GlobalbridgeBackendWeb.PushNotificationsTest do
       ref = push(socket1, "new_message", %{"content" => long_message})
       assert_reply ref, :ok, %{id: message_id}
 
-      payload = Notifications.build_apns_payload(%{
-        thread_id: thread.id,
-        sender_id: user1.id,
-        sender_username: user1.username,
-        message_content: long_message,
-        message_id: message_id
-      })
+      payload =
+        Notifications.build_apns_payload(%{
+          thread_id: thread.id,
+          sender_id: user1.id,
+          sender_username: user1.username,
+          message_content: long_message,
+          message_id: message_id
+        })
 
       # Content should be truncated for notification
       assert String.length(payload.aps.alert.body) < 200
@@ -452,14 +475,15 @@ defmodule GlobalbridgeBackendWeb.PushNotificationsTest do
       # Get unread count for user2
       unread_count = Chat.get_unread_count(user2.id)
 
-      payload = Notifications.build_apns_payload(%{
-        thread_id: thread.id,
-        sender_id: user1.id,
-        sender_username: user1.username,
-        message_content: "Badge test",
-        message_id: message_id,
-        unread_count: unread_count
-      })
+      payload =
+        Notifications.build_apns_payload(%{
+          thread_id: thread.id,
+          sender_id: user1.id,
+          sender_username: user1.username,
+          message_content: "Badge test",
+          message_id: message_id,
+          unread_count: unread_count
+        })
 
       # Badge should be included
       assert is_integer(payload.aps.badge)

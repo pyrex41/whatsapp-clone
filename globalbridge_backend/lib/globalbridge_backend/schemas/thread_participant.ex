@@ -10,13 +10,14 @@ defmodule GlobalbridgeBackend.Schemas.ThreadParticipant do
   @foreign_key_type :binary_id
 
   schema "thread_participants" do
-    field :role, :string  # "admin", "member"
-    field :joined_at, :utc_datetime
-    field :left_at, :utc_datetime
-    field :is_active, :boolean, default: true
+    # "admin", "member"
+    field(:role, :string)
+    field(:joined_at, :utc_datetime)
+    field(:left_at, :utc_datetime)
+    field(:is_active, :boolean, default: true)
 
-    belongs_to :thread, GlobalbridgeBackend.Schemas.Thread
-    belongs_to :user, GlobalbridgeBackend.Schemas.User
+    belongs_to(:thread, GlobalbridgeBackend.Schemas.Thread)
+    belongs_to(:user, GlobalbridgeBackend.Schemas.User)
 
     timestamps(type: :utc_datetime)
   end

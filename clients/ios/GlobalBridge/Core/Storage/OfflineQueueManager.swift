@@ -75,7 +75,7 @@ final class OfflineQueueManager {
             // Parse message data from CDC log
             if let messageId = UUID(uuidString: log.recordId.uuidString),
                let threadId = UUID(uuidString: log.newData["thread_id"] ?? ""),
-               let senderId = UUID(uuidString: log.newData["sender_id"] ?? ""),
+               let senderId = log.newData["sender_id"],  // Changed: now a String, not UUID
                let content = log.newData["content"],
                let statusStr = log.newData["status"],
                let status = Message.MessageStatus(rawValue: statusStr),

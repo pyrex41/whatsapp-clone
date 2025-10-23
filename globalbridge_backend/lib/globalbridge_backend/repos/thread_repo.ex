@@ -38,12 +38,18 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
   Returns the database file path for a thread shard.
   """
   def database_path(shard_id) do
-    Path.join([
-      Application.app_dir(:globalbridge_backend),
-      "priv",
-      "threads",
-      "#{shard_id}.db"
-    ])
+    thread_dir =
+      System.get_env("THREAD_DATABASE_DIR") ||
+        Path.join([
+          Application.app_dir(:globalbridge_backend),
+          "priv",
+          "threads"
+        ])
+
+    # Ensure the directory exists
+    File.mkdir_p!(thread_dir)
+
+    Path.join([thread_dir, "#{shard_id}.db"])
   end
 
   @doc """
@@ -61,11 +67,12 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
 
   defp ensure_threads_directory do
     threads_dir =
-      Path.join([
-        Application.app_dir(:globalbridge_backend),
-        "priv",
-        "threads"
-      ])
+      System.get_env("THREAD_DATABASE_DIR") ||
+        Path.join([
+          Application.app_dir(:globalbridge_backend),
+          "priv",
+          "threads"
+        ])
 
     File.mkdir_p!(threads_dir)
   end

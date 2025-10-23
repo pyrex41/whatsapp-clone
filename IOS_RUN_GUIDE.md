@@ -61,6 +61,33 @@ Wait until you see:
 3. Select your target simulator (e.g., iPhone 15 Pro)
 4. Press **Cmd+R** to build and run
 
+### Run on Multiple Simulators (Cmd+R)
+
+To install and launch the app on multiple simulators at once (e.g., iPhone 17, iPhone 17 Pro, iPhone 17 Pro Max) when you run in Xcode:
+
+1) Ensure the helper script exists:
+- Path: `clients/ios/GlobalBridge/scripts/deploy-to-simulators.sh`
+
+2) Wire it into your scheme as a Run Post-action:
+- Xcode → Product → Scheme → Edit Scheme… → Run → Post-actions → + New Run Script Action
+- Set "Provide build settings from" to the **GlobalBridge** target
+- Script:
+  ```bash
+  bash "${SRCROOT}/scripts/deploy-to-simulators.sh"
+  ```
+- Optional: Add an environment variable to control target devices (comma-separated names):
+  - Name: `SIM_DEVICE_NAMES`
+  - Value: `iPhone 17,iPhone 17 Pro,iPhone 17 Pro Max`
+
+3) Press Cmd+R as usual
+- Xcode will build and run on the selected simulator
+- The post-action script will also install/launch the app on the additional simulators in parallel
+
+Notes:
+- The script auto-detects the built `.app` and bundle id from Xcode environment
+- You can change `SIM_DEVICE_NAMES` to any available simulator names
+- If a target simulator is not booted, the script boots it automatically
+
 ### Option B: Using Command Line
 
 ```bash
@@ -150,3 +177,17 @@ After successful setup:
 2. Send some messages
 3. Test offline mode by stopping the backend
 4. Verify sync when backend comes back online
+### Simulator Push Test (APNs)
+1. Ensure app is running in SYSTEM or AUTO mode (Debug menu or set scheme env var `IOS_NOTIFICATIONS_MODE=SYSTEM`).
+2. Update `clients/ios/GlobalBridge/test_notification.apns` with a valid `conversation_id` (thread UUID) and `message_id`.
+3. Push the payload:
+
+```bash
+xcrun simctl push booted name.reubenbrooks.globalbridge clients/ios/GlobalBridge/test_notification.apns
+```
+
+- Foreground: OS banner shows with title/body.
+- Tap: Opens the referenced thread.
+- Swipe down: Quick actions Reply and Mark Read.
+- Reply: Sends quick reply back to the thread.
+- Mark Read: Sends read receipt for `message_id`.

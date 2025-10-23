@@ -7,12 +7,13 @@ defmodule GlobalbridgeBackend.ChatTest do
   describe "read receipts" do
     setup do
       # Create test thread
-      thread = %Thread{
-        id: Ecto.UUID.generate(),
-        thread_type: "direct",
-        database_shard_id: "main"
-      }
-      |> Repo.insert!()
+      thread =
+        %Thread{
+          id: Ecto.UUID.generate(),
+          thread_type: "direct",
+          database_shard_id: "main"
+        }
+        |> Repo.insert!()
 
       user_id = Ecto.UUID.generate()
       message_id = Ecto.UUID.generate()
@@ -37,7 +38,11 @@ defmodule GlobalbridgeBackend.ChatTest do
       assert receipt.read_at != nil
     end
 
-    test "handles duplicate read receipts gracefully", %{thread: thread, user_id: user_id, message_id: message_id} do
+    test "handles duplicate read receipts gracefully", %{
+      thread: thread,
+      user_id: user_id,
+      message_id: message_id
+    } do
       # Mark as read first time
       {:ok, receipt1} = Chat.mark_message_read(thread.id, message_id, user_id)
       timestamp1 = receipt1.read_at

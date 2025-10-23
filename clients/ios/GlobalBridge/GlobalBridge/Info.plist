@@ -21,5 +21,9 @@
 	<string>id5kQQRxJtDhIQ10C9r6TGKmnu0FwIcj</string>
 	<key>Auth0Audience</key>
 	<string>https://globalbridge-api</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

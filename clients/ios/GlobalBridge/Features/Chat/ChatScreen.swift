@@ -12,16 +12,20 @@ struct ChatScreen: View {
     private var chatState: ChatState { store.state.chat }
 
     var body: some View {
+        let _ = print("🎨 [CHAT_VIEW] Rendering ChatScreen - currentThread: \(chatState.currentThread?.id.uuidString ?? "nil"), messages count: \(chatState.messages.count)")
         Group {
             if let thread = chatState.currentThread {
+                let _ = print("✅ [CHAT_VIEW] Showing chat for thread: \(thread.id) - \(thread.title ?? "Untitled")")
                 VStack(spacing: 0) {
                     ScrollViewReader { proxy in
                         ScrollView {
                             LazyVStack(spacing: 12) {
                                 ForEach(chatState.messages, id: \.id) { message in
+                                    let isOwn = message.senderId == store.state.user.id
+                                    let _ = print("🔍 [OWNERSHIP] Message \(message.id) | senderId=\(message.senderId) | currentUserId=\(store.state.user.id) | isOwn=\(isOwn)")
                                     MessageRow(
                                         message: message,
-                                        isOwnMessage: message.senderId == store.state.user.id
+                                        isOwnMessage: isOwn
                                     )
                                     .id(message.id)
                                 }
@@ -55,6 +59,7 @@ struct ChatScreen: View {
                         ),
                         isSending: chatState.composer.isSending,
                         onSend: {
+                            print("📤 [COMPOSER] Send button tapped")
                             store.send(.sendMessage)
                             composerFocused = true
                         },
@@ -62,9 +67,27 @@ struct ChatScreen: View {
                     )
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
+                    .onChange(of: composerFocused) { old, new in
+                        print("⌨️ [COMPOSER] Focus changed: \(old) -> \(new)")
+                    }
                 }
                 .onAppear {
+                    print("⌨️ [COMPOSER] ChatScreen appeared, setting focus to true")
                     composerFocused = true
+                    // Notify banner center of active thread for suppression
+                    InAppBannerCenter.shared.setActiveThread(thread.id)
+                    // Try again after a delay to ensure view hierarchy is ready
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        print("⌨️ [COMPOSER] Delayed focus attempt")
+                        composerFocused = true
+                    }
+                }
+                .onChange(of: chatState.currentThread?.id) { _, newId in
+                    InAppBannerCenter.shared.setActiveThread(newId)
+                }
+                .onDisappear {
+                    // Clear active thread when leaving chat
+                    InAppBannerCenter.shared.setActiveThread(nil)
                 }
                 .toolbar {
                     ToolbarItem(placement: .principal) {
@@ -85,6 +108,7 @@ struct ChatScreen: View {
                     }
                 }
             } else {
+                let _ = print("⚠️ [CHAT_VIEW] No thread selected - showing placeholder")
                 ContentUnavailableView(
                     "Select a thread",
                     systemImage: "bubble.left",
@@ -106,9 +130,16 @@ private struct MessageRow: View {
             if isOwnMessage { Spacer() }
 
             VStack(alignment: isOwnMessage ? .trailing : .leading, spacing: 6) {
+                // Show sender name for messages from others
+                if !isOwnMessage {
+                    Text(senderDisplayName)
+                        .font(.caption.bold())
+                        .foregroundColor(.secondary)
+                }
+                
                 Text(message.content)
                     .padding(12)
-                    .background(isOwnMessage ? Color.accentColor : Color(.secondarySystemBackground))
+                    .background(isOwnMessage ? Color.blue : Color(.systemGray5))
                     .foregroundColor(isOwnMessage ? .white : .primary)
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
@@ -121,5 +152,11 @@ private struct MessageRow: View {
             if !isOwnMessage { Spacer() }
         }
         .padding(.horizontal, 8)
+    }
+    
+    private var senderDisplayName: String {
+        // TODO: Fetch from user lookup - for now show sender ID prefix
+        let prefix = message.senderId.prefix(8)
+        return "User \(prefix)"
     }
 }

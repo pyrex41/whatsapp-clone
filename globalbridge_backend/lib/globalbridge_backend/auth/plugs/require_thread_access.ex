@@ -77,9 +77,10 @@ defmodule GlobalbridgeBackend.Auth.Plugs.RequireThreadAccess do
 
   defp has_thread_access?(user_id, thread_id) do
     query =
-      from tp in ThreadParticipant,
+      from(tp in ThreadParticipant,
         where: tp.user_id == ^user_id and tp.thread_id == ^thread_id,
         select: count(tp.id)
+      )
 
     case Repo.one(query) do
       nil -> false

@@ -10,14 +10,15 @@ defmodule GlobalbridgeBackend.Schemas.Device do
   @foreign_key_type :binary_id
 
   schema "devices" do
-    field :device_id, :string
-    field :device_name, :string
-    field :device_type, :string  # "ios", "android", "web", "desktop"
-    field :push_token, :string
-    field :last_active_at, :utc_datetime
-    field :is_active, :boolean, default: true
+    field(:device_id, :string)
+    field(:device_name, :string)
+    # "ios", "android", "web", "desktop"
+    field(:device_type, :string)
+    field(:push_token, :string)
+    field(:last_active_at, :utc_datetime)
+    field(:is_active, :boolean, default: true)
 
-    belongs_to :user, GlobalbridgeBackend.Schemas.User
+    belongs_to(:user, GlobalbridgeBackend.Schemas.User)
 
     timestamps(type: :utc_datetime)
   end

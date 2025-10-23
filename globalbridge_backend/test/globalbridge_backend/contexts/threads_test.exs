@@ -11,9 +11,17 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
       user2 = insert(:user)
 
       # Create threads
-      {:ok, thread1} = create_thread_with_participants([user1.id, user2.id], %{thread_type: "direct"})
-      {:ok, thread2} = create_thread_with_participants([user1.id, user2.id], %{thread_type: "group", title: "Test Group"})
-      {:ok, archived_thread} = create_thread_with_participants([user1.id], %{thread_type: "direct", is_archived: true})
+      {:ok, thread1} =
+        create_thread_with_participants([user1.id, user2.id], %{thread_type: "direct"})
+
+      {:ok, thread2} =
+        create_thread_with_participants([user1.id, user2.id], %{
+          thread_type: "group",
+          title: "Test Group"
+        })
+
+      {:ok, archived_thread} =
+        create_thread_with_participants([user1.id], %{thread_type: "direct", is_archived: true})
 
       %{
         user1: user1,
@@ -24,7 +32,11 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
       }
     end
 
-    test "lists all threads", %{thread1: thread1, thread2: thread2, archived_thread: archived_thread} do
+    test "lists all threads", %{
+      thread1: thread1,
+      thread2: thread2,
+      archived_thread: archived_thread
+    } do
       threads = Threads.list_threads()
       thread_ids = Enum.map(threads, & &1.id)
 
@@ -68,7 +80,9 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
 
   describe "get_thread!/1" do
     test "returns thread with id" do
-      {:ok, thread} = create_thread_with_participants([insert(:user).id], %{thread_type: "direct"})
+      {:ok, thread} =
+        create_thread_with_participants([insert(:user).id], %{thread_type: "direct"})
+
       found_thread = Threads.get_thread!(thread.id)
 
       assert found_thread.id == thread.id
@@ -84,7 +98,9 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
 
   describe "get_thread/1" do
     test "returns thread with id" do
-      {:ok, thread} = create_thread_with_participants([insert(:user).id], %{thread_type: "direct"})
+      {:ok, thread} =
+        create_thread_with_participants([insert(:user).id], %{thread_type: "direct"})
+
       found_thread = Threads.get_thread(thread.id)
 
       assert found_thread.id == thread.id
@@ -151,21 +167,27 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
     test "updates thread with valid attributes" do
       {:ok, thread} = create_thread_with_participants([insert(:user).id], %{thread_type: "group"})
 
-      assert {:ok, %Thread{} = updated_thread} = Threads.update_thread(thread, %{title: "Updated Title"})
+      assert {:ok, %Thread{} = updated_thread} =
+               Threads.update_thread(thread, %{title: "Updated Title"})
+
       assert updated_thread.title == "Updated Title"
     end
 
     test "fails with invalid attributes" do
-      {:ok, thread} = create_thread_with_participants([insert(:user).id], %{thread_type: "direct"})
+      {:ok, thread} =
+        create_thread_with_participants([insert(:user).id], %{thread_type: "direct"})
 
-      assert {:error, changeset} = Threads.update_thread(thread, %{title: String.duplicate("a", 200)})
+      assert {:error, changeset} =
+               Threads.update_thread(thread, %{title: String.duplicate("a", 200)})
+
       assert "should be at most 100 character(s)" in errors_on(changeset).title
     end
   end
 
   describe "delete_thread/1" do
     test "deletes thread" do
-      {:ok, thread} = create_thread_with_participants([insert(:user).id], %{thread_type: "direct"})
+      {:ok, thread} =
+        create_thread_with_participants([insert(:user).id], %{thread_type: "direct"})
 
       assert {:ok, %Thread{}} = Threads.delete_thread(thread)
       assert Threads.get_thread(thread.id) == nil
@@ -174,14 +196,19 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
 
   describe "archive_thread/1 and unarchive_thread/1" do
     test "archives a thread" do
-      {:ok, thread} = create_thread_with_participants([insert(:user).id], %{thread_type: "direct"})
+      {:ok, thread} =
+        create_thread_with_participants([insert(:user).id], %{thread_type: "direct"})
 
       assert {:ok, %Thread{} = archived} = Threads.archive_thread(thread)
       assert archived.is_archived == true
     end
 
     test "unarchives a thread" do
-      {:ok, thread} = create_thread_with_participants([insert(:user).id], %{thread_type: "direct", is_archived: true})
+      {:ok, thread} =
+        create_thread_with_participants([insert(:user).id], %{
+          thread_type: "direct",
+          is_archived: true
+        })
 
       assert {:ok, %Thread{} = unarchived} = Threads.unarchive_thread(thread)
       assert unarchived.is_archived == false
@@ -190,14 +217,19 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
 
   describe "mute_thread/1 and unmute_thread/1" do
     test "mutes a thread" do
-      {:ok, thread} = create_thread_with_participants([insert(:user).id], %{thread_type: "direct"})
+      {:ok, thread} =
+        create_thread_with_participants([insert(:user).id], %{thread_type: "direct"})
 
       assert {:ok, %Thread{} = muted} = Threads.mute_thread(thread)
       assert muted.is_muted == true
     end
 
     test "unmutes a thread" do
-      {:ok, thread} = create_thread_with_participants([insert(:user).id], %{thread_type: "direct", is_muted: true})
+      {:ok, thread} =
+        create_thread_with_participants([insert(:user).id], %{
+          thread_type: "direct",
+          is_muted: true
+        })
 
       assert {:ok, %Thread{} = unmuted} = Threads.unmute_thread(thread)
       assert unmuted.is_muted == false
@@ -210,7 +242,9 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
       new_user = insert(:user)
       {:ok, thread} = create_thread_with_participants([user.id], %{thread_type: "group"})
 
-      assert {:ok, %ThreadParticipant{} = participant} = Threads.add_participant(thread, new_user.id)
+      assert {:ok, %ThreadParticipant{} = participant} =
+               Threads.add_participant(thread, new_user.id)
+
       assert participant.user_id == new_user.id
       assert participant.role == "member"
     end
@@ -220,7 +254,9 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
       admin_user = insert(:user)
       {:ok, thread} = create_thread_with_participants([user.id], %{thread_type: "group"})
 
-      assert {:ok, %ThreadParticipant{} = participant} = Threads.add_participant(thread, admin_user.id, "admin")
+      assert {:ok, %ThreadParticipant{} = participant} =
+               Threads.add_participant(thread, admin_user.id, "admin")
+
       assert participant.role == "admin"
     end
   end
@@ -229,7 +265,9 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
     test "removes participant from thread" do
       user1 = insert(:user)
       user2 = insert(:user)
-      {:ok, thread} = create_thread_with_participants([user1.id, user2.id], %{thread_type: "group"})
+
+      {:ok, thread} =
+        create_thread_with_participants([user1.id, user2.id], %{thread_type: "group"})
 
       assert {:ok, %ThreadParticipant{}} = Threads.remove_participant(thread, user2.id)
 
@@ -249,7 +287,9 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
     test "lists all participants in a thread" do
       user1 = insert(:user)
       user2 = insert(:user)
-      {:ok, thread} = create_thread_with_participants([user1.id, user2.id], %{thread_type: "group"})
+
+      {:ok, thread} =
+        create_thread_with_participants([user1.id, user2.id], %{thread_type: "group"})
 
       participants = Threads.list_participants(thread)
       assert length(participants) == 2
@@ -274,7 +314,9 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
     test "finds existing direct message thread" do
       user1 = insert(:user)
       user2 = insert(:user)
-      {:ok, thread} = create_thread_with_participants([user1.id, user2.id], %{thread_type: "direct"})
+
+      {:ok, thread} =
+        create_thread_with_participants([user1.id, user2.id], %{thread_type: "direct"})
 
       assert {:ok, found_thread} = Threads.get_thread_for_direct_message(user1.id, user2.id)
       assert found_thread.id == thread.id
@@ -306,9 +348,14 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
       user2 = insert(:user)
       user3 = insert(:user)
 
-      {:ok, thread1} = create_thread_with_participants([user1.id, user2.id], %{thread_type: "direct"})
-      {:ok, thread2} = create_thread_with_participants([user1.id, user3.id], %{thread_type: "direct"})
-      {:ok, _thread3} = create_thread_with_participants([user2.id, user3.id], %{thread_type: "direct"})
+      {:ok, thread1} =
+        create_thread_with_participants([user1.id, user2.id], %{thread_type: "direct"})
+
+      {:ok, thread2} =
+        create_thread_with_participants([user1.id, user3.id], %{thread_type: "direct"})
+
+      {:ok, _thread3} =
+        create_thread_with_participants([user2.id, user3.id], %{thread_type: "direct"})
 
       user1_threads = Threads.list_user_threads(user1.id)
       thread_ids = Enum.map(user1_threads, & &1.id)
@@ -321,7 +368,9 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
     test "filters user threads by archived status" do
       user = insert(:user)
       {:ok, _active_thread} = create_thread_with_participants([user.id], %{thread_type: "direct"})
-      {:ok, _archived_thread} = create_thread_with_participants([user.id], %{thread_type: "direct", is_archived: true})
+
+      {:ok, _archived_thread} =
+        create_thread_with_participants([user.id], %{thread_type: "direct", is_archived: true})
 
       active_threads = Threads.list_user_threads(user.id, is_archived: false)
       archived_threads = Threads.list_user_threads(user.id, is_archived: true)
@@ -334,8 +383,18 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
   describe "search_threads/2" do
     test "searches threads by title" do
       user = insert(:user)
-      {:ok, thread1} = create_thread_with_participants([user.id], %{thread_type: "group", title: "Engineering Team"})
-      {:ok, _thread2} = create_thread_with_participants([user.id], %{thread_type: "group", title: "Marketing Team"})
+
+      {:ok, thread1} =
+        create_thread_with_participants([user.id], %{
+          thread_type: "group",
+          title: "Engineering Team"
+        })
+
+      {:ok, _thread2} =
+        create_thread_with_participants([user.id], %{
+          thread_type: "group",
+          title: "Marketing Team"
+        })
 
       results = Threads.search_threads("Engineering")
       assert length(results) == 1
@@ -344,7 +403,9 @@ defmodule GlobalbridgeBackend.Contexts.ThreadsTest do
 
     test "search is case-insensitive" do
       user = insert(:user)
-      {:ok, thread} = create_thread_with_participants([user.id], %{thread_type: "group", title: "Project Alpha"})
+
+      {:ok, thread} =
+        create_thread_with_participants([user.id], %{thread_type: "group", title: "Project Alpha"})
 
       results = Threads.search_threads("project alpha")
       assert length(results) == 1

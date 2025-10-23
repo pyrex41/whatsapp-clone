@@ -24,6 +24,10 @@ enum AppAction {
     case messageStatusUpdated(Message.ID, Message.Status)
 
     case receiveRealtimeMessage(Message)
-    case typingIndicator(Thread.ID, userID: UUID, isTyping: Bool)
+    case typingIndicator(Thread.ID, userID: String, isTyping: Bool)
     case handleOrphanedThread(Thread.ID)
+
+    // Notification actions
+    case markMessageRead(threadID: Thread.ID, messageID: String)
+    case sendQuickReply(threadID: Thread.ID, text: String)
 }

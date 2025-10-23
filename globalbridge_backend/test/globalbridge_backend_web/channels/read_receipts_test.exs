@@ -17,33 +17,37 @@ defmodule GlobalbridgeBackendWeb.ReadReceiptsTest do
 
   setup do
     # Create test users
-    user1 = Repo.insert!(%User{
-      id: Ecto.UUID.generate(),
-      username: "user1",
-      email: "user1@test.com",
-      phone: "+1234567890"
-    })
+    user1 =
+      Repo.insert!(%User{
+        id: Ecto.UUID.generate(),
+        username: "user1",
+        email: "user1@test.com",
+        phone: "+1234567890"
+      })
 
-    user2 = Repo.insert!(%User{
-      id: Ecto.UUID.generate(),
-      username: "user2",
-      email: "user2@test.com",
-      phone: "+1234567891"
-    })
+    user2 =
+      Repo.insert!(%User{
+        id: Ecto.UUID.generate(),
+        username: "user2",
+        email: "user2@test.com",
+        phone: "+1234567891"
+      })
 
-    user3 = Repo.insert!(%User{
-      id: Ecto.UUID.generate(),
-      username: "user3",
-      email: "user3@test.com",
-      phone: "+1234567892"
-    })
+    user3 =
+      Repo.insert!(%User{
+        id: Ecto.UUID.generate(),
+        username: "user3",
+        email: "user3@test.com",
+        phone: "+1234567892"
+      })
 
     # Create test thread
-    thread = Repo.insert!(%Thread{
-      id: Ecto.UUID.generate(),
-      thread_type: "group",
-      database_shard_id: "test_shard_1"
-    })
+    thread =
+      Repo.insert!(%Thread{
+        id: Ecto.UUID.generate(),
+        thread_type: "group",
+        database_shard_id: "test_shard_1"
+      })
 
     # Add participants
     Repo.insert!(%ThreadParticipant{thread_id: thread.id, user_id: user1.id})
@@ -157,10 +161,11 @@ defmodule GlobalbridgeBackendWeb.ReadReceiptsTest do
       :timer.sleep(100)
 
       # Verify read receipt in database
-      read_receipt = Repo.get_by(ReadReceipt,
-        message_id: message_id,
-        user_id: user2.id
-      )
+      read_receipt =
+        Repo.get_by(ReadReceipt,
+          message_id: message_id,
+          user_id: user2.id
+        )
 
       assert read_receipt != nil
       assert read_receipt.thread_id == thread.id
@@ -190,10 +195,12 @@ defmodule GlobalbridgeBackendWeb.ReadReceiptsTest do
       :timer.sleep(100)
 
       # Should only have one read receipt in DB
-      receipts = Repo.all(
-        from r in ReadReceipt,
-        where: r.message_id == ^message_id and r.user_id == ^user2.id
-      )
+      receipts =
+        Repo.all(
+          from(r in ReadReceipt,
+            where: r.message_id == ^message_id and r.user_id == ^user2.id
+          )
+        )
 
       assert length(receipts) == 1
     end
@@ -218,10 +225,12 @@ defmodule GlobalbridgeBackendWeb.ReadReceiptsTest do
       push(socket2, "mark_read", %{"message_id" => message_id})
       :timer.sleep(100)
 
-      first_receipt = Repo.get_by(ReadReceipt,
-        message_id: message_id,
-        user_id: user2.id
-      )
+      first_receipt =
+        Repo.get_by(ReadReceipt,
+          message_id: message_id,
+          user_id: user2.id
+        )
+
       first_read_at = first_receipt.read_at
 
       :timer.sleep(50)
@@ -230,10 +239,11 @@ defmodule GlobalbridgeBackendWeb.ReadReceiptsTest do
       push(socket2, "mark_read", %{"message_id" => message_id})
       :timer.sleep(100)
 
-      updated_receipt = Repo.get_by(ReadReceipt,
-        message_id: message_id,
-        user_id: user2.id
-      )
+      updated_receipt =
+        Repo.get_by(ReadReceipt,
+          message_id: message_id,
+          user_id: user2.id
+        )
 
       # Timestamp should be updated
       assert DateTime.compare(updated_receipt.read_at, first_read_at) in [:gt, :eq]
@@ -279,11 +289,12 @@ defmodule GlobalbridgeBackendWeb.ReadReceiptsTest do
       {:ok, _, socket2} = subscribe_and_join(socket2, "thread:#{thread.id}", %{})
 
       # User1 sends 10 messages
-      message_ids = Enum.map(1..10, fn i ->
-        ref = push(socket1, "new_message", %{"content" => "Message #{i}"})
-        assert_reply ref, :ok, %{id: message_id}
-        message_id
-      end)
+      message_ids =
+        Enum.map(1..10, fn i ->
+          ref = push(socket1, "new_message", %{"content" => "Message #{i}"})
+          assert_reply ref, :ok, %{id: message_id}
+          message_id
+        end)
 
       start_time = System.monotonic_time(:millisecond)
 

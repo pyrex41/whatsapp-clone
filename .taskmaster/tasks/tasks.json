@@ -2110,7 +2110,8 @@
         "mvp"
       ],
       "created": "2025-10-21T14:12:24.679Z",
-      "description": "Tasks for mvp context"
+      "description": "Tasks for mvp context",
+      "updated": "2025-10-21T14:12:24.679Z"
     }
   },
   "elm": {
@@ -3299,797 +3300,1698 @@
       "tags": [
         "elm"
       ],
-      "created": "2025-10-22T01:13:37.323Z",
-      "description": "Tasks for elm context"
+      "created": "2025-10-22T14:36:18.231Z",
+      "description": "Tasks for elm context",
+      "updated": "2025-10-22T14:36:18.231Z"
     }
   },
-  "uber": {
+  "ios": {
     "tasks": [
       {
-        "id": 1,
-        "title": "Configure Ueberauth and Auth0 in Phoenix Backend",
-        "description": "Set up Ueberauth with ueberauth_auth0 strategy and configure environment variables for Auth0 domain, client ID, secret, audience, and callback URL.",
-        "details": "Add dependencies :ueberauth and :ueberauth_auth0 to mix.exs. In runtime.exs or config.exs, configure Ueberauth providers with Auth0 strategy using System.get_env for AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET, and AUTH0_AUDIENCE. Set up the OAuth config for domain, client_id, and client_secret. Ensure HTTPS is enforced in production. Pseudo-code: config :ueberauth, Ueberauth, providers: [auth0: {Ueberauth.Strategy.Auth0, [default_audience: System.get_env(\"AUTH0_AUDIENCE\")]}]; config :ueberauth, Ueberauth.Strategy.Auth0.OAuth, domain: ..., client_id: ..., client_secret: ....",
-        "testStrategy": "Verify configuration by running the Phoenix server and checking that Ueberauth routes are accessible without errors. Use curl to test /auth/auth0 route and ensure it redirects to Auth0.",
+        "id": "1",
+        "title": "Implement NotificationConfig to read environment variable",
+        "description": "Create a NotificationConfig class that reads the IOS_NOTIFICATIONS_MODE environment variable and exposes the current notification mode (banner or system).",
+        "details": "In Swift, create a new file NotificationConfig.swift. Use ProcessInfo.processInfo.environment[\"IOS_NOTIFICATIONS_MODE\"] to read the value. Define an enum NotificationMode { case banner, system }. Provide a static property to get the current mode. Ensure it defaults appropriately and is shared with system push implementation.",
+        "testStrategy": "Unit tests to verify correct parsing of environment variables and default values.",
         "priority": "high",
         "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define NotificationMode enum",
+            "description": "Create an enum called NotificationMode with cases for banner and system notification modes.",
+            "dependencies": [],
+            "details": "In the new NotificationConfig.swift file, define the enum as follows: enum NotificationMode { case banner, system }. This will represent the possible modes for notifications.",
+            "status": "done",
+            "testStrategy": "Unit tests to verify the enum cases are correctly defined.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Create NotificationConfig class structure",
+            "description": "Set up the basic structure of the NotificationConfig class in NotificationConfig.swift.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a class named NotificationConfig. It should be designed to read environment variables and provide access to the notification mode. Ensure it's a simple utility class without instance methods initially.",
+            "status": "done",
+            "testStrategy": "Unit tests to confirm the class can be instantiated and basic structure is in place.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement environment variable reading",
+            "description": "Add functionality to read the IOS_NOTIFICATIONS_MODE environment variable using ProcessInfo.",
+            "dependencies": [
+              2
+            ],
+            "details": "Inside NotificationConfig, use ProcessInfo.processInfo.environment[\"IOS_NOTIFICATIONS_MODE\"] to retrieve the string value. Handle cases where the variable might be nil or have unexpected values.",
+            "status": "done",
+            "testStrategy": "Unit tests to verify correct reading of the environment variable, including edge cases like missing or invalid values.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Add static property for current mode",
+            "description": "Implement a static property that returns the current NotificationMode based on the environment variable.",
+            "dependencies": [
+              3
+            ],
+            "details": "Add a static computed property like static var currentMode: NotificationMode { get { ... } } that parses the environment string to return .banner or .system, with appropriate defaulting (e.g., default to .system if invalid).",
+            "status": "done",
+            "testStrategy": "Unit tests to check the static property returns correct modes for different environment values and defaults.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Ensure defaulting and integration readiness",
+            "description": "Finalize the class to ensure it defaults appropriately and is ready for sharing with system push implementation.",
+            "dependencies": [
+              4
+            ],
+            "details": "Verify that the default mode is set (e.g., .system if not specified). Add any necessary comments or preparations for integration with the system push notification system. Ensure the class is thread-safe if needed.",
+            "status": "done",
+            "testStrategy": "Integration tests to confirm the config works in a simulated environment and defaults correctly.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 2,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
+      },
+      {
+        "id": "2",
+        "title": "Define BannerItem data model",
+        "description": "Create the BannerItem struct with properties for id, threadId, title, subtitle, avatarURL, count, timestamp, and actions.",
+        "details": "In Swift, define a struct BannerItem in a new file BannerItem.swift. Use UUID for id and threadId, String for title and subtitle, URL? for avatarURL, Int for count, Date for timestamp, and an array of BannerAction for actions. Ensure it conforms to Codable if needed for persistence or logging.",
+        "testStrategy": "Unit tests for struct initialization and property validation.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create BannerItem.swift file",
+            "description": "Create a new Swift file named BannerItem.swift in the appropriate directory for the data model.",
+            "dependencies": [],
+            "details": "In the Xcode project, add a new Swift file called BannerItem.swift under the Models or Data group. Ensure the file is properly integrated into the project structure.",
+            "status": "done",
+            "testStrategy": null,
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Define BannerItem struct with basic properties",
+            "description": "Define the BannerItem struct with properties for id, threadId, title, subtitle, avatarURL, count, and timestamp.",
+            "dependencies": [
+              1
+            ],
+            "details": "Inside BannerItem.swift, declare a struct BannerItem with let id: UUID, let threadId: UUID, let title: String, let subtitle: String, let avatarURL: URL?, let count: Int, and let timestamp: Date. Use appropriate access levels.",
+            "status": "done",
+            "testStrategy": "Unit tests for struct initialization and property validation.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Add actions property to BannerItem",
+            "description": "Add the actions property as an array of BannerAction to the BannerItem struct.",
+            "dependencies": [
+              2
+            ],
+            "details": "Assuming BannerAction is defined elsewhere, add var actions: [BannerAction] to the BannerItem struct. Ensure the array can be modified if needed for future interactions.",
+            "status": "done",
+            "testStrategy": "Unit tests to verify actions array initialization and modification.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implement Codable conformance",
+            "description": "Make BannerItem conform to the Codable protocol for persistence or logging purposes.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Add Codable conformance to the BannerItem struct by ensuring all properties are Codable-compatible. Implement custom encoding/decoding if URL or other types require it, using CodingKeys if necessary.",
+            "status": "done",
+            "testStrategy": "Unit tests for encoding and decoding BannerItem instances.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Add initializers and utility methods",
+            "description": "Provide necessary initializers and any utility methods for BannerItem.",
+            "dependencies": [
+              2,
+              3,
+              4
+            ],
+            "details": "Add a custom initializer for BannerItem with parameters for all properties. Optionally add computed properties or methods if needed for the data model, ensuring it integrates well with the rest of the app.",
+            "status": "done",
+            "testStrategy": "Unit tests for initializer functionality and any added methods.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 1,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
+      },
+      {
+        "id": "3",
+        "title": "Implement InAppBannerCenter for queue management",
+        "description": "Develop InAppBannerCenter class to manage an in-memory queue of BannerItem, handle present/dismiss lifecycle, timers, and coalescing policy.",
+        "details": "Create InAppBannerCenter.swift as a singleton or observable object. Implement a FIFO queue, coalescing logic for events within 2s from the same thread, auto-dismiss after 4-6s, and public APIs: present(from event: NotificationEvent), dismiss(id:), clear(). Use Combine or SwiftUI's ObservableObject for state management.",
+        "testStrategy": "Unit tests for queueing, coalescing, and timer logic. Integration tests with mock events.",
+        "priority": "high",
+        "dependencies": [
+          "2"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up the singleton or observable object structure and basic queue",
+            "description": "Create the InAppBannerCenter class as a singleton or observable object with a basic FIFO queue for BannerItem.",
+            "dependencies": [],
+            "details": "Implement InAppBannerCenter.swift as a singleton using a shared instance or as an ObservableObject. Initialize an in-memory queue to hold BannerItem instances in FIFO order. Ensure thread-safety if needed for basic operations.",
+            "status": "done",
+            "testStrategy": "Unit tests for singleton initialization and queue operations like enqueue and dequeue.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement coalescing logic and timers for auto-dismiss",
+            "description": "Add logic to coalesce events from the same thread within 2 seconds and implement auto-dismiss timers for 4-6 seconds.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement coalescing policy to merge or ignore duplicate events from the same thread if they occur within 2 seconds. Set up timers using Timer or Combine publishers to automatically dismiss banners after 4-6 seconds. Handle timer invalidation on manual dismiss.",
+            "status": "done",
+            "testStrategy": "Unit tests for coalescing behavior with mock events and timer accuracy.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Add public APIs and integrate with Combine/SwiftUI for state management",
+            "description": "Implement public APIs for present, dismiss, and clear, and integrate state management using Combine or SwiftUI's ObservableObject.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Add public methods: present(from event: NotificationEvent) to add to queue with coalescing, dismiss(id:) to remove specific banner, and clear() to empty the queue. Use @Published properties or Combine publishers to notify observers of queue changes for SwiftUI integration.",
+            "status": "done",
+            "testStrategy": "Integration tests with mock events to verify API behavior and state updates.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break down the implementation into subtasks: 1) Set up the singleton or observable object structure and basic queue, 2) Implement coalescing logic and timers for auto-dismiss, 3) Add public APIs and integrate with Combine/SwiftUI for state management."
+      },
+      {
+        "id": "4",
+        "title": "Create InAppBannerView for visual presentation",
+        "description": "Build InAppBannerView using SwiftUI to display the banner with avatar, title, subtitle, gestures, and animations.",
+        "details": "In InAppBannerView.swift, use SwiftUI views like ZStack, HStack, Image, Text. Implement tap, swipe up, and optional swipe down gestures. Add animations for show/dismiss. Support light/dark themes and adaptive layout. Include haptic feedback on show and tap.",
+        "testStrategy": "UI snapshot tests for different themes, dynamic type, and accessibility. Interaction tests for gestures.",
+        "priority": "medium",
+        "dependencies": [
+          "2",
+          "3"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Basic SwiftUI Layout for InAppBannerView",
+            "description": "Create the foundational SwiftUI layout in InAppBannerView.swift using ZStack, HStack, Image, and Text to display avatar, title, subtitle, and implement tap, swipe up, and optional swipe down gestures.",
+            "dependencies": [],
+            "details": "Use SwiftUI views to structure the banner: ZStack for layering, HStack for horizontal alignment of avatar and text elements. Load avatar from URL using AsyncImage or similar, display title and subtitle as Text views. Add gesture recognizers for tap (to handle actions), swipe up (to dismiss), and optional swipe down (for additional interactions). Ensure the layout is adaptive and responsive.",
+            "status": "done",
+            "testStrategy": "UI snapshot tests for layout correctness and interaction tests for gesture recognition.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Add Animations, Theming, and Haptic Feedback to InAppBannerView",
+            "description": "Enhance InAppBannerView with animations for show/dismiss transitions, support for light/dark themes, adaptive layout, and integrate haptic feedback on show and tap events.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement SwiftUI animations using withAnimation for smooth show/dismiss effects, such as fade-in/fade-out or slide transitions. Add theme support by using ColorScheme and adaptive colors for light/dark modes. Integrate haptic feedback using UINotificationFeedbackGenerator for show and tap actions. Ensure the view adapts to dynamic type and accessibility features.",
+            "status": "done",
+            "testStrategy": "UI snapshot tests for different themes and dynamic type, interaction tests for animations and haptic feedback.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Break down into subtasks: 1) Implement the basic SwiftUI layout with avatar, title, subtitle, and gestures, 2) Add animations, theming support, and haptic feedback integration."
+      },
+      {
+        "id": "5",
+        "title": "Develop InAppBannerContainer for root overlay",
+        "description": "Implement InAppBannerContainer as a ZStack overlay attached to the app’s root view to host banners.",
+        "details": "Create InAppBannerContainer.swift as a SwiftUI View that overlays on the root. Use EnvironmentObject or ObservedObject to connect to InAppBannerCenter. Position at top of screen, avoiding status/navigation bars. Handle multiple banners by showing one at a time.",
+        "testStrategy": "UI tests to verify overlay positioning and banner display in various app screens.",
+        "priority": "medium",
+        "dependencies": [
+          "3",
+          "4"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement InAppBannerContainer with overlay, connection, positioning, and multiple banner handling",
+            "description": "Create InAppBannerContainer.swift as a SwiftUI View that overlays on the root using ZStack. Connect to InAppBannerCenter via EnvironmentObject or ObservedObject. Position at top of screen, avoiding status/navigation bars. Handle multiple banners by showing one at a time.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "The view should be attached to the app’s root view as a ZStack overlay. Use safe area insets or geometry reader to position at the top while avoiding status and navigation bars. Implement logic to observe the InAppBannerCenter for the current banner to display, ensuring only one banner is shown at a time, with proper dismissal handling.",
+            "status": "done",
+            "testStrategy": "UI tests to verify overlay positioning and banner display in various app screens, including handling of multiple banners and avoidance of system bars.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Break down into subtasks: 1) Create the overlay view and connect to InAppBannerCenter, 2) Implement positioning logic to avoid bars and handle multiple banners."
+      },
+      {
+        "id": "6",
+        "title": "Integrate event mapping from Phoenix/WebSocket",
+        "description": "Map realtime messages from PhoenixChannelManager to NotificationEvent and trigger banner presentation.",
+        "details": "In PhoenixChannelManager or a new event handler, on receiving a message, create NotificationEvent.messageReceived with metadata. Filter based on current visible thread, mute/DND settings. Call InAppBannerCenter.present(event) if conditions met.",
+        "testStrategy": "Integration tests simulating WebSocket messages and asserting banner presentation or suppression.",
+        "priority": "high",
+        "dependencies": [
+          "1",
+          "3"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up event mapping from WebSocket messages to NotificationEvent",
+            "description": "Create a mechanism in PhoenixChannelManager or a new event handler to listen for incoming WebSocket messages and map them to NotificationEvent.messageReceived, including relevant metadata such as thread ID and message content.",
+            "dependencies": [],
+            "details": "Implement a message handler that parses incoming Phoenix/WebSocket messages, extracts necessary metadata (e.g., threadId, sender, timestamp), and instantiates NotificationEvent.messageReceived objects accordingly. Ensure the handler is integrated into the existing PhoenixChannelManager without disrupting current functionality.",
+            "status": "done",
+            "testStrategy": "Unit tests to verify message parsing and NotificationEvent creation with mock WebSocket messages.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement filtering logic and trigger banner presentation",
+            "description": "Add logic to filter NotificationEvents based on current visible thread, mute settings, and Do Not Disturb (DND) status, then conditionally call InAppBannerCenter.present(event) to display the banner.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the event handler, check the current app state for visible thread, user mute preferences, and DND settings. If the message passes all filters (e.g., not from the visible thread, not muted, not in DND), invoke InAppBannerCenter.present(event) to trigger the in-app banner. Handle edge cases like multiple rapid messages.",
+            "status": "done",
+            "testStrategy": "Integration tests simulating various app states and settings, asserting whether banner presentation occurs or is suppressed.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Wire Phoenix message events to present banners",
+            "description": "Hook PhoenixChannelManager.onMessage(conversationId:) to InAppBannerCenter.presentMessageBanner(...) for non-active threads. Extract threadId, sender title, and message snippet. Ensure it runs only when NotificationConfig.current != .system.",
+            "details": "- In PhoenixChannelManager.onMessage(conversationId:), build a safe snippet from the message content (truncate ~120 chars, strip newlines).\n- Determine active thread via store/app state (add a lightweight isActiveThread(threadId:) accessor on Store/AppState).\n- If not active and thread is not muted/DND, call InAppBannerCenter.shared.presentMessageBanner(threadId:title:subtitle:avatarURL:).\n- Guard with NotificationConfig.current != .system to avoid duplicates with OS banners.\n- Add TODO: consider debounce/coalesce on the center side already implemented.",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 6,
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Add suppression/mute checks and store accessor",
+            "description": "Expose isActiveThread(threadId:) in Store/AppState and check conversation mute/DND settings before presenting banners.",
+            "details": "- Store/AppState: add a read-only accessor or computed property to detect the currently visible thread.\n- Thread settings: check existing mute flags on Thread/DB. If none, add a temporary utility to query DatabaseManager for muted status.\n- In event mapping, short-circuit when active or muted/DND.\n- Unit test with mocked active thread and mute states to verify suppression.",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 6,
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Break down into subtasks: 1) Set up event mapping from WebSocket messages to NotificationEvent, 2) Implement filtering logic based on settings and call InAppBannerCenter.present.",
+        "updatedAt": "2025-10-22T21:54:00.969Z"
+      },
+      {
+        "id": "7",
+        "title": "Implement navigation on banner tap",
+        "description": "Handle tap gesture to navigate to the relevant thread detail view using a shared Navigator or Router.",
+        "details": "In InAppBannerView, on tap, use NotificationCenter or a routing mechanism to push the thread view with threadId. Ensure deep-link style navigation works from any screen. Mark the thread as seen.",
+        "testStrategy": "Integration tests for tap navigation, verifying correct routing and state updates.",
+        "priority": "medium",
+        "dependencies": [
+          "4",
+          "5"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Handle tap gesture and implement routing to thread view with deep-link support",
+            "description": "Implement tap gesture handling in InAppBannerView to navigate to the thread detail view using a shared Navigator or Router, passing the threadId. Ensure deep-link style navigation works from any screen and update thread state by marking it as seen.",
+            "dependencies": [
+              4,
+              5
+            ],
+            "details": "In InAppBannerView, add a tap gesture recognizer or use SwiftUI's onTapGesture to trigger navigation. Use NotificationCenter or a routing mechanism (e.g., a shared Router) to push the thread view with the threadId. Implement deep-link handling to allow navigation from any screen, possibly by registering a URL scheme or using app delegate methods. After navigation, mark the thread as seen by updating the relevant data model or service. Ensure the implementation integrates with existing navigation systems and handles edge cases like invalid threadIds.",
+            "status": "done",
+            "testStrategy": "Integration tests for tap gesture triggering correct routing to thread view, verifying deep-link navigation from various screens, and confirming thread is marked as seen after navigation.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Wire banner tap to navigation/store",
+            "description": "On banner tap, navigate to the thread: compact → push via NavigationStack, split → select detail. Use Store to dispatch .threadSelected and ensure UI updates.",
+            "details": "- Implement a navigation helper that takes a UUID threadId and triggers appropriate navigation for compact/split layouts.\n- In GlobalBridgeApp, set InAppBannerCenter.shared.onTapThread to call this helper and dispatch store.send(.threadSelected(...)).\n- Clear banner after tap; mark messages as seen; optionally scroll to latest.\n- Add simple integration test hook to verify dispatch and UI path is hit.",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 7,
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Add scroll-to-last and badge/unread sync on tap",
+            "description": "After navigating on banner tap, ensure UI scrolls to most recent message and unread/badge counts sync appropriately.",
+            "details": "- After .threadSelected, trigger a scrollTo last message (if accessible via ChatScreen state) or schedule on appear.\n- Clear delivered banner and decrement any in-app unread count for that thread; if using system badges, call NotificationManager.clearBadge() if needed.\n- Add a basic test plan note for manual verification.",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 7,
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Break down into subtasks: 1) Handle tap gesture and routing to thread view, 2) Ensure deep-link navigation and state updates like marking as seen.",
+        "updatedAt": "2025-10-22T21:54:02.211Z"
+      },
+      {
+        "id": "8",
+        "title": "Add analytics logging for banner events",
+        "description": "Implement telemetry for banner impression, tap, dismiss, coalesce, with properties like threadId, count, latencyMs.",
+        "details": "In InAppBannerCenter and InAppBannerView, log events using the app's analytics framework (e.g., Firebase or custom). Track dwell duration, CTR. Ensure events are sent on impression, tap, dismiss.",
+        "testStrategy": "Unit tests for event logging. Analytics dashboard verification for captured events.",
+        "priority": "low",
+        "dependencies": [
+          "3",
+          "4"
+        ],
+        "status": "deferred",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Integrate analytics framework in InAppBannerCenter",
+            "description": "Set up the analytics framework (e.g., Firebase) in the InAppBannerCenter class to enable event logging.",
+            "dependencies": [
+              3
+            ],
+            "details": "Import the analytics framework into InAppBannerCenter.swift and initialize it if necessary. Ensure the framework is accessible for logging events like impression, tap, dismiss, and coalesce.",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify framework initialization and accessibility.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement impression event logging in InAppBannerView",
+            "description": "Add logging for banner impression events in InAppBannerView, including properties like threadId, count, and latencyMs.",
+            "dependencies": [
+              1,
+              4
+            ],
+            "details": "In InAppBannerView.swift, log an impression event when the banner is displayed. Include properties such as threadId, count, latencyMs, and start tracking dwell duration. Use the analytics framework to send the event.",
+            "status": "pending",
+            "testStrategy": "Unit tests for event logging on view appearance. Verify properties are correctly set.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement tap event logging in InAppBannerView",
+            "description": "Add logging for banner tap events in InAppBannerView, including CTR calculation.",
+            "dependencies": [
+              2
+            ],
+            "details": "In InAppBannerView.swift, log a tap event when the user taps the banner. Calculate and include CTR (click-through rate) based on impressions and taps. Send the event with properties like threadId and count using the analytics framework.",
+            "status": "pending",
+            "testStrategy": "Unit tests for tap gesture triggering event logging. Verify CTR calculation.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implement dismiss event logging",
+            "description": "Add logging for banner dismiss events, either manual or auto, in InAppBannerView and InAppBannerCenter.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Log dismiss events in InAppBannerView for manual dismiss (e.g., swipe) and in InAppBannerCenter for auto-dismiss. Include dwell duration in the event properties. Ensure events are sent with threadId, count, and latencyMs.",
+            "status": "pending",
+            "testStrategy": "Unit tests for dismiss triggers (manual and auto). Integration tests to verify dwell duration tracking.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Implement coalesce event logging in InAppBannerCenter",
+            "description": "Add logging for coalesce events when banners are merged in InAppBannerCenter.",
+            "dependencies": [
+              1,
+              4
+            ],
+            "details": "In InAppBannerCenter.swift, log a coalesce event when multiple events from the same thread are coalesced within 2 seconds. Include properties like threadId, count, and latencyMs. Ensure the event is sent using the analytics framework.",
+            "status": "pending",
+            "testStrategy": "Unit tests for coalescing logic and event logging. Verify event properties.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 3,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-22T21:54:03.495Z"
+      },
+      {
+        "id": "9",
+        "title": "Support theming and localization",
+        "description": "Ensure banners support light/dark modes and use localized strings.",
+        "details": "In InAppBannerView, use SwiftUI's ColorScheme and LocalizedStringKey. Add localization keys for all text. Validate RTL layout.",
+        "testStrategy": "UI snapshot tests for light/dark modes and different locales.",
+        "priority": "medium",
+        "dependencies": [
+          "4"
+        ],
+        "status": "deferred",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement theming and localization for InAppBannerView",
+            "description": "Add support for light/dark modes using SwiftUI's ColorScheme and implement localization keys for all text using LocalizedStringKey. Validate RTL layout to ensure proper display in right-to-left languages.",
+            "dependencies": [],
+            "details": "In InAppBannerView, integrate SwiftUI's ColorScheme to automatically adapt colors for light and dark modes. Replace hardcoded strings with LocalizedStringKey for title, subtitle, and any other text elements. Add localization keys to the app's Localizable.strings file. Test RTL layout by simulating right-to-left locales and ensuring text alignment, image positioning, and gesture handling work correctly. Use SwiftUI's environment to detect layout direction.",
+            "status": "pending",
+            "testStrategy": "UI snapshot tests for light/dark modes and different locales including RTL languages.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Break down into subtasks: 1) Add theming support for light/dark modes, 2) Implement localization keys and validate RTL layout.",
+        "updatedAt": "2025-10-22T14:50:22.446Z"
+      },
+      {
+        "id": "10",
+        "title": "Implement accessibility features",
+        "description": "Add VoiceOver announcements, large text support, sufficient contrast, and hit target sizes.",
+        "details": "In InAppBannerView, use AccessibilityModifier for announcements like “New message from <sender>: <snippet>. Tap to open.” Ensure dynamic type scales content. Provide adequate touch targets.",
+        "testStrategy": "Accessibility tests using XCUITest with VoiceOver enabled.",
+        "priority": "medium",
+        "dependencies": [
+          "4"
+        ],
+        "status": "deferred",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add VoiceOver announcements and dynamic type support",
+            "description": "Implement VoiceOver announcements for the InAppBannerView using AccessibilityModifier to announce new messages with sender and snippet details, and ensure dynamic type scales the content appropriately.",
+            "dependencies": [
+              4
+            ],
+            "details": "In InAppBannerView, apply AccessibilityModifier to provide announcements like “New message from <sender>: <snippet>. Tap to open.” Use SwiftUI's dynamic type modifiers to scale text sizes based on user preferences for large text support.",
+            "status": "pending",
+            "testStrategy": "Accessibility tests using XCUITest with VoiceOver enabled to verify announcements and dynamic type scaling.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Ensure sufficient contrast and hit targets",
+            "description": "Adjust the InAppBannerView to meet sufficient contrast ratios for text and backgrounds, and ensure all interactive elements have adequate hit target sizes for accessibility.",
+            "dependencies": [
+              4
+            ],
+            "details": "Review and modify color schemes in InAppBannerView to achieve WCAG-compliant contrast ratios. Increase padding or use minimum touch target sizes (at least 44x44 points) for buttons and tappable areas to support users with motor impairments.",
+            "status": "pending",
+            "testStrategy": "Accessibility tests using XCUITest to check contrast ratios and hit target sizes, including automated checks for compliance.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Break down into subtasks: 1) Add VoiceOver announcements and dynamic type support, 2) Ensure sufficient contrast and hit targets.",
+        "updatedAt": "2025-10-22T14:50:25.699Z"
+      },
+      {
+        "id": "11",
+        "title": "Handle app lifecycle and suppression",
+        "description": "Manage banner presentation based on app foreground state and suppress during full-screen activities like video calls.",
+        "details": "In InAppBannerCenter, listen to UIApplication lifecycle notifications. Suppress banners if app is not foreground or during specific activities. No replay on foregrounding.",
+        "testStrategy": "Integration tests for app state changes and banner suppression.",
+        "priority": "medium",
+        "dependencies": [
+          "3",
+          "5"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement lifecycle notification listening and banner suppression logic",
+            "description": "Listen to UIApplication lifecycle notifications in InAppBannerCenter and implement logic to suppress banners when app is not in foreground or during full-screen activities like video calls. Ensure no replay on foregrounding.",
+            "dependencies": [
+              3,
+              5
+            ],
+            "details": "In InAppBannerCenter, add observers for UIApplicationDidBecomeActiveNotification, UIApplicationWillResignActiveNotification, and notifications for full-screen activities (e.g., via AVFoundation or custom notifications for video calls). Implement conditional logic to check app state and suppress banner presentation accordingly. Use a boolean flag or state enum to track whether banners should be suppressed. Integrate this with the existing banner queue to pause or skip presentations during suppressed states. Ensure the logic handles transitions smoothly without replaying missed banners on foregrounding.",
+            "status": "pending",
+            "testStrategy": "Integration tests for app state changes and banner suppression during activities like video calls, verifying that banners are suppressed in background or during full-screen modes and resume appropriately.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Break down into subtasks: 1) Listen to lifecycle notifications and implement suppression logic, 2) Test suppression during activities like video calls.",
+        "updatedAt": "2025-10-22T21:54:04.752Z"
+      },
+      {
+        "id": "12",
+        "title": "Add haptic feedback",
+        "description": "Implement light impact on show and success haptic on tap, configurable and disabled for VoiceOver.",
+        "details": "In InAppBannerView, use UINotificationFeedbackGenerator or UIImpactFeedbackGenerator. Check for VoiceOver and disable if active.",
+        "testStrategy": "UI tests to verify haptics trigger correctly and respect settings.",
+        "priority": "low",
+        "dependencies": [
+          "4"
+        ],
+        "status": "deferred",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Integrate haptic feedback generators into InAppBannerView",
+            "description": "Add UINotificationFeedbackGenerator and UIImpactFeedbackGenerator instances to the InAppBannerView class for haptic feedback support.",
+            "dependencies": [],
+            "details": "In the InAppBannerView file, import UIKit and initialize private properties for UINotificationFeedbackGenerator and UIImpactFeedbackGenerator. Ensure they are lazily initialized to avoid unnecessary resource usage.",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify generators are initialized without errors.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement light impact haptic on banner show",
+            "description": "Trigger a light impact haptic feedback when the in-app banner is displayed.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the show method or equivalent lifecycle event of InAppBannerView, call the UIImpactFeedbackGenerator's impactOccurred() with light style. Ensure this is called only when the banner becomes visible.",
+            "status": "pending",
+            "testStrategy": "UI tests to simulate banner show and verify haptic feedback is triggered.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement success haptic on banner tap",
+            "description": "Trigger a success notification haptic feedback when the user taps on the in-app banner.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the tap gesture handler of InAppBannerView, call the UINotificationFeedbackGenerator's notificationOccurred() with success type. This should occur immediately upon tap detection.",
+            "status": "pending",
+            "testStrategy": "UI tests to simulate tap gestures and verify success haptic is triggered.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Add VoiceOver check and disable haptics if active",
+            "description": "Check if VoiceOver is enabled and disable haptic feedback accordingly to avoid conflicts.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Use UIAccessibility.isVoiceOverRunning to check VoiceOver status. Wrap haptic calls in conditional statements to skip if VoiceOver is active. Update the show and tap methods to include this check.",
+            "status": "pending",
+            "testStrategy": "UI tests with VoiceOver enabled to ensure no haptics are triggered.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Make haptic feedback configurable",
+            "description": "Add a configuration option to enable or disable haptic feedback based on user settings.",
+            "dependencies": [
+              4
+            ],
+            "details": "Introduce a boolean property or setting (e.g., via UserDefaults or app config) to control haptic feedback. Modify the haptic trigger methods to check this setting before executing feedback. Ensure the setting defaults to enabled.",
+            "status": "pending",
+            "testStrategy": "UI tests to verify haptics respect the configuration toggle.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 3,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-22T14:50:59.451Z"
+      },
+      {
+        "id": "13",
+        "title": "Implement error handling and performance optimizations",
+        "description": "Add error handling for failed presentations or navigation, and ensure rendering within 16ms frame budget.",
+        "details": "In InAppBannerCenter and views, log errors without crashing. Pre-measure text, limit queue to 5 items. Use SwiftUI's performance best practices.",
+        "testStrategy": "Performance tests for frame rendering. Unit tests for error scenarios.",
+        "priority": "medium",
+        "dependencies": [
+          "3",
+          "4",
+          "5"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Error Logging in InAppBannerCenter and Views",
+            "description": "Add error handling mechanisms to log errors without causing application crashes in the InAppBannerCenter class and associated views. This includes catching exceptions during presentation or navigation failures and logging them appropriately using Swift's logging framework.",
+            "dependencies": [
+              3,
+              4,
+              5
+            ],
+            "details": "In the InAppBannerCenter.swift file, wrap present and dismiss operations in do-catch blocks to log errors. In view files, use try-catch for rendering or navigation logic. Ensure logs are sent to console or a logging service without interrupting the app flow. This prevents crashes from failed presentations or navigation attempts.",
+            "status": "pending",
+            "testStrategy": "Unit tests for error scenarios, including mock failures in presentation and navigation to verify logging without crashes.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement Performance Optimizations for Rendering",
+            "description": "Optimize rendering performance to ensure it stays within the 16ms frame budget by pre-measuring text and limiting the banner queue to 5 items, while applying SwiftUI best practices.",
+            "dependencies": [
+              3,
+              4,
+              5
+            ],
+            "details": "In InAppBannerCenter, modify the queue to enforce a maximum of 5 items, discarding older ones if exceeded. In views, implement text pre-measurement using GeometryReader or SwiftUI's built-in tools to calculate text sizes before rendering. Apply performance best practices such as avoiding unnecessary view updates and using @StateObject efficiently. Ensure the entire rendering pipeline fits within 16ms per frame.",
+            "status": "pending",
+            "testStrategy": "Performance tests for frame rendering, measuring render times under various loads and verifying queue limits prevent excessive items.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Break down into subtasks: 1) Add error logging without crashes in InAppBannerCenter and views, 2) Implement performance optimizations like text pre-measurement and queue limits.",
+        "updatedAt": "2025-10-22T21:54:06.041Z"
+      },
+      {
+        "id": "14",
+        "title": "Add developer setting toggle",
+        "description": "Implement an optional runtime toggle in a hidden debug menu to switch notification modes.",
+        "details": "Add a debug menu view that allows changing modes at runtime, reading env on launch. Use UserDefaults for persistence if needed.",
+        "testStrategy": "UI tests for the debug menu and mode switching.",
+        "priority": "low",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create debug menu view for toggling notification modes",
+            "description": "Implement a hidden debug menu view that allows toggling between notification modes at runtime, integrating with UserDefaults for persistence and reading environment on launch.",
+            "dependencies": [],
+            "details": "Add a new view controller or SwiftUI view for the debug menu, accessible via a hidden gesture or menu. Include a toggle for notification modes. Use UserDefaults to store the selected mode and load it on app launch. Ensure the mode switch affects the runtime behavior of notifications.",
+            "status": "done",
+            "testStrategy": "UI tests for the debug menu and mode switching, verifying persistence with UserDefaults.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Break down into subtasks: 1) Create a debug menu view for toggling modes, 2) Integrate with UserDefaults and runtime switching."
+      },
+      {
+        "id": "15",
+        "title": "Conduct end-to-end testing and validation",
+        "description": "Perform comprehensive testing including unit, UI, integration, and acceptance criteria checks.",
+        "details": "Run all unit tests, UI snapshot tests, interaction tests, and integration tests. Validate against acceptance criteria: banner appearance within 300ms, navigation, respect for settings, no permission prompts.",
+        "testStrategy": "End-to-end tests simulating full user flows with mocked events and assertions on UI and analytics.",
+        "priority": "high",
+        "dependencies": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14"
+        ],
         "status": "pending",
         "subtasks": [
           {
             "id": 1,
-            "title": "Add Ueberauth and Auth0 dependencies to mix.exs",
-            "description": "Update the mix.exs file to include the necessary dependencies for Ueberauth and the Auth0 strategy.",
+            "title": "Run unit and UI tests for all components",
+            "description": "Execute all unit tests for individual components and UI snapshot tests to ensure visual consistency and interaction accuracy.",
             "dependencies": [],
-            "details": "Locate the mix.exs file in the Phoenix project root. In the deps function, add {:ueberauth, \"~> 0.10\"}, and {:ueberauth_auth0, \"~> 0.9\"} to the list of dependencies. Ensure the versions are compatible with the current Phoenix version. Run mix deps.get to fetch the new dependencies.",
+            "details": "Run the full suite of unit tests covering logic in InAppBannerCenter, NotificationEvent, and other models. Perform UI snapshot tests for InAppBannerView across different themes, dynamic type, and accessibility settings. Include interaction tests for gestures like tap and swipe.",
             "status": "pending",
-            "testStrategy": "Run mix compile to verify that the dependencies are correctly added and compile without errors."
+            "testStrategy": "Use XCTest for unit tests and SnapshotTesting for UI snapshots, asserting no regressions in component behavior and appearance.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
-            "title": "Configure environment variables for Auth0 in config files",
-            "description": "Set up the configuration for Auth0 environment variables in the Phoenix config files.",
+            "title": "Perform integration tests for flows",
+            "description": "Conduct integration tests to verify interactions between components, such as event mapping, banner presentation, and navigation.",
             "dependencies": [
               1
             ],
-            "details": "In config/runtime.exs (or config.exs if runtime config is not used), use System.get_env to retrieve AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET, and AUTH0_AUDIENCE. Ensure these are set as environment variables in the deployment environment. Add placeholders or defaults if needed for development.",
+            "details": "Test the integration between PhoenixChannelManager, NotificationEvent creation, InAppBannerCenter presentation, and InAppBannerView rendering. Simulate WebSocket messages and assert correct filtering based on settings like mute/DND. Verify error handling and performance optimizations in rendering.",
             "status": "pending",
-            "testStrategy": "Start the Phoenix server and check the application logs or use IEx to verify that the environment variables are being read correctly without errors."
+            "testStrategy": "Use integration test frameworks to mock WebSocket events and assert banner presentation, suppression, and state updates without full e2e setup.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
-            "title": "Configure Ueberauth providers with Auth0 strategy",
-            "description": "Set up the Ueberauth configuration to use the Auth0 strategy with the retrieved environment variables.",
+            "title": "Conduct end-to-end tests with mocked events",
+            "description": "Run end-to-end tests simulating full user flows with mocked events to check overall system behavior.",
             "dependencies": [
               2
             ],
-            "details": "In the config file (runtime.exs or config.exs), add the Ueberauth configuration: config :ueberauth, Ueberauth, providers: [auth0: {Ueberauth.Strategy.Auth0, [default_audience: System.get_env(\"AUTH0_AUDIENCE\")]}]. This configures Ueberauth to use the Auth0 provider with the default audience from the environment variable.",
+            "details": "Set up e2e tests that mimic real user interactions, including receiving notifications, displaying banners, handling gestures, and navigating to threads. Use mocked WebSocket events and analytics tracking to simulate complete flows from event reception to dismissal.",
             "status": "pending",
-            "testStrategy": "Run the Phoenix server and attempt to access the /auth/auth0 route using curl or a browser to ensure it does not throw configuration errors and redirects appropriately."
+            "testStrategy": "Employ tools like XCUITest or a testing framework for e2e, mocking external dependencies and asserting UI states, navigation, and event handling across the app.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
-            "title": "Set up OAuth configuration for Auth0",
-            "description": "Configure the OAuth settings for the Auth0 strategy including domain, client ID, and client secret.",
+            "title": "Validate against acceptance criteria including performance and analytics",
+            "description": "Check all acceptance criteria such as banner appearance time, navigation accuracy, settings respect, and absence of permission prompts, plus performance metrics.",
             "dependencies": [
               3
             ],
-            "details": "In the config file, add the OAuth configuration: config :ueberauth, Ueberauth.Strategy.Auth0.OAuth, domain: System.get_env(\"AUTH0_DOMAIN\"), client_id: System.get_env(\"AUTH0_CLIENT_ID\"), client_secret: System.get_env(\"AUTH0_CLIENT_SECRET\"). This sets up the OAuth parameters needed for the Auth0 integration.",
+            "details": "Measure banner appearance within 300ms, ensure navigation to correct threads, verify respect for mute/DND settings, confirm no unwanted permission prompts, and validate analytics tracking. Run performance tests to ensure rendering within 16ms frame budget and overall app stability.",
             "status": "pending",
-            "testStrategy": "Test the OAuth flow by initiating authentication and checking that the request is sent to the correct Auth0 domain with the provided client ID."
-          },
-          {
-            "id": 5,
-            "title": "Enforce HTTPS in production for Auth0 callbacks",
-            "description": "Ensure that HTTPS is enforced for Auth0 callback URLs in production environments.",
-            "dependencies": [
-              4
-            ],
-            "details": "In the production configuration, add settings to enforce HTTPS, such as using Plug.SSL or configuring the endpoint to force SSL. Set the callback URL in Auth0 to use HTTPS. Update the config to include force_ssl: [rewrite_on: [:x_forwarded_proto]] in the endpoint configuration if behind a load balancer.",
-            "status": "pending",
-            "testStrategy": "Deploy to a production-like environment and test the callback URL to ensure it enforces HTTPS and handles redirects securely without errors."
+            "testStrategy": "Use performance profiling tools for frame rate checks, manual or automated checks for acceptance criteria, and analytics verification through mocked events and assertions on logged data.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 8,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Break down into subtasks: 1) Run unit and UI tests for all components, 2) Perform integration tests for flows, 3) Conduct end-to-end tests with mocked events, 4) Validate against acceptance criteria including performance and analytics."
+      },
+      {
+        "id": "16",
+        "title": "iOS System Push (APNs) Integration",
+        "description": "Implement APNs-based system notifications: register and POST device tokens to backend, configure OS presentation and tap routing, define categories, validate via simulator pushes, and perform basic badge sync. Respect NotificationConfig to only prompt/register in system mode.",
+        "details": "Scope\n- Add OS-level push support gated by NotificationConfig.currentMode == .system.\n- Components: SystemPushManager (registration/presentation/routing), PushRegistrationService (token POST), NotificationRouting (maps payload → in-app navigation), AppDelegate hooks, and sample payloads for simulator testing.\n\nImplementation\n1) App startup and gating\n- On launch, if NotificationConfig.currentMode == .system: (a) set UNUserNotificationCenter.current().delegate = SystemPushManager.shared, (b) register notification categories, (c) request authorization (.alert, .badge, .sound) without prompting in banner mode, (d) call UIApplication.shared.registerForRemoteNotifications().\n- When mode changes at runtime (Task 14 already implemented): if switching to system, run the flow above; if switching away, keep registration but suppress OS presentation (willPresent returns []).\n\n2) Token handling and backend POST\n- Implement AppDelegate methods: didRegisterForRemoteNotificationsWithDeviceToken and didFailToRegisterForRemoteNotificationsWithError.\n- Convert deviceToken (Data) → lowercase hex string; persist lastSentToken + lastUserId to avoid duplicate POSTs.\n- PushRegistrationService.register(deviceToken: String, userId: String?, environment: String) using URLSession with JSON body: { deviceToken, platform: \"ios\", bundleId, appVersion, osVersion, environment: \"development\"|\"production\", mode: NotificationConfig.currentMode.rawValue, userId? }.\n- Determine environment with build flags (#if DEBUG → development else production). Retry with backoff on failures; never log the raw token.\n\n3) Notification categories\n- Define identifiers (e.g., MESSAGE, CALL). Add basic actions only for now (e.g., MARK_AS_READ, MUTE_1H). Create UNNotificationCategory sets and register at launch. Include category identifiers in server payloads to drive routing and actions.\n\n4) Foreground presentation behavior\n- Implement userNotificationCenter(_:willPresent:withCompletionHandler:). If mode == .system return [.banner, .list, .sound]; if mode == .banner return [] (so in-app banner can handle separately).\n\n5) Tap routing\n- Implement userNotificationCenter(_:didReceive:withCompletionHandler:). Parse userInfo for stable keys: { type: \"message\"|\"call\"|..., conversationId?, messageId?, callId?, screen? }.\n- Map payload to deep link (e.g., app://chat/<conversationId>) and call the app’s navigation coordinator/router on main thread. If the target is already visible, refresh/load message context.\n\n6) Badge sync (basic)\n- On receiving push with aps.badge, set UIApplication.shared.applicationIconBadgeNumber accordingly.\n- On app foreground, optionally reconcile by fetching unread count if available; otherwise clear when user views inbox. Keep logic minimal and safe.\n\n7) Error handling and privacy\n- Gracefully handle registration failures (surface non-fatal logs, schedule retry). Never crash on malformed payloads; fall back to opening inbox/home.\n- Do not store or log device tokens in plain text; redact in logs.\n\n8) Simulator push validation\n- Provide sample .apns JSON files (message.apns, call.apns) and document: xcrun simctl push <device_udid_or_booted> <bundle_id> ./message.apns.\n- Ensure payloads include aps.alert, aps.sound, aps.badge (for badge test), and category identifiers matching those registered.\n\nFiles to add\n- iOS/SystemPush/SystemPushManager.swift: delegate, category setup, willPresent/didReceive, badge handling.\n- iOS/SystemPush/PushRegistrationService.swift: POST token logic with retry and deduping.\n- iOS/AppDelegate+Push.swift (or App/AppDelegate.swift updates): hooks for token success/failure and startup gating.\n- iOS/SystemPush/NotificationRouting.swift: payload → deep link mapping and handoff to existing router.\n\nAnalytics/observability (optional)\n- Emit events: push_permission_requested/granted/denied, token_post_succeeded/failed, notification_received_foreground/background, notification_opened, route_applied/fallback.\n\nSecurity/compliance\n- Respect user opt-in/opt-out; do not send token to backend until permission is granted.\n- Token and payloads treated as sensitive; avoid PII in logs.",
+        "testStrategy": "Unit tests\n- DeviceToken conversion: Data → hex string correctness (leading zeros preserved).\n- PushRegistrationService: builds correct URLRequest (method, headers, JSON body fields), deduping (no POST if unchanged), environment flag based on build config, retries on transient errors.\n- SystemPushManager.willPresent: returns [.banner, .list, .sound] when mode == .system, and [] for .banner mode.\n- Category registration: registered identifiers match expected set (MESSAGE, CALL), actions attached.\n\nIntegration tests (simulator)\n- Use xcrun simctl push with sample message.apns and call.apns payloads:\n  - In foreground with mode == .system → OS banner displays (assert via willPresent path) and sound invoked.\n  - In background → tapping notification triggers didReceive and routes to correct screen.\n  - Payload with aps.badge updates UIApplication.shared.applicationIconBadgeNumber.\n- Toggle to banner mode and verify foreground pushes do not show OS banner (willPresent returns []).\n\nUI tests\n- Launch app, inject a mock notification response for type: message, conversationId: X; assert navigation lands on chat screen X.\n- From notification center (backgrounded app), tap a simulated notification and verify the same routing occurs.\n\nNegative/edge cases\n- Permission denied: no token POST occurs; app does not crash; user can enable later and token POST happens on next launch.\n- Token POST failure: retries with backoff; no duplicate POSTs after success.\n- Malformed payload: app opens safely to inbox/home with no crash.\n\nManual QA checklist\n- First launch in system mode: prompt shown once; accepting leads to token POST (verify via backend logs/dev proxy).\n- Foreground push shows OS banner; background tap opens target; badge increments from aps.badge.\n- Switch to banner mode: foreground system banners suppressed; switch back: banners resume.",
+        "status": "pending",
+        "dependencies": [
+          "1"
+        ],
+        "priority": "medium",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2025-10-22T21:54:06.043Z",
+      "taskCount": 16,
+      "completedCount": 10,
+      "tags": [
+        "ios"
+      ]
+    }
+  },
+  "push": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Configure Environment Variable for Notification Mode",
+        "description": "Implement parsing of the IOS_NOTIFICATIONS_MODE environment variable to determine whether to use SYSTEM, BANNER, or AUTO mode for notifications.",
+        "details": "In the app's configuration code, access ProcessInfo.processInfo.environment[\"IOS_NOTIFICATIONS_MODE\"] and parse it into an enum with cases .system, .banner, .auto. Handle default behavior: prefer SYSTEM in release, BANNER in debug. Use this to gate features like authorization requests. Ensure the configuration is accessible via a shared NotificationConfig struct.",
+        "testStrategy": "Unit tests to verify parsing of different env var values and default fallbacks. Integration tests to check mode selection in different build environments.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
       },
       {
         "id": 2,
-        "title": "Implement JWT Verification with JWKS Caching",
-        "description": "Implement RS256 JWT verification using Auth0 JWKS, including caching with TTL and validation of iss, aud, exp, nbf claims.",
-        "details": "Use :jose library for JWT verification. Fetch JWKS from https://<domain>/.well-known/jwks.json and cache for 10-15 minutes using a library like Cachex or built-in ETS. Validate signature with kid, and claims: iss == https://<domain>/, aud contains API audience, exp/nbf valid. Pseudo-code: def verify_token(token) do JWKS = fetch_and_cache_jwks(); JOSE.JWT.verify_strict(JWKS, [\"RS256\"], token); validate_claims(jwt.claims); end. Add httpoison or req for fetching.",
-        "testStrategy": "Unit tests with valid/invalid tokens; mock JWKS endpoint to test caching and claim validation. Ensure 401 on invalid tokens.",
+        "title": "Update NotificationConfig for Mode Handling",
+        "description": "Extend the existing NotificationConfig to include mode parsing and provide a shared instance for notification mode.",
+        "details": "Modify NotificationConfig to include a property for the notification mode (enum: system, banner, auto). Implement logic to parse the env var and set the mode. Ensure compatibility with the banner PRD. Use Swift's enum with associated values if needed for auto fallback.",
+        "testStrategy": "Unit tests for NotificationConfig initialization with various env var inputs. Verify mode is correctly set and accessible.",
         "priority": "high",
         "dependencies": [
           1
         ],
         "status": "pending",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Implement JWKS Fetching and Caching Mechanism with TTL",
-            "description": "Develop a mechanism to fetch JWKS from the Auth0 endpoint and cache it with a TTL of 10-15 minutes using a library like Cachex or ETS.",
-            "dependencies": [],
-            "details": "Use httpoison or req library to fetch JWKS from https://<domain>/.well-known/jwks.json. Implement caching logic to store the JWKS for 10-15 minutes to avoid repeated fetches. Handle cache expiration and refresh automatically. Ensure error handling for network failures.",
-            "status": "pending",
-            "testStrategy": "Unit tests to verify JWKS fetching, caching duration, and cache invalidation. Mock the endpoint to test success and failure scenarios."
-          },
-          {
-            "id": 2,
-            "title": "Set Up JWT Signature Verification Using JOSE Library",
-            "description": "Configure JWT signature verification using the :jose library with RS256 algorithm and the cached JWKS.",
-            "dependencies": [
-              1
-            ],
-            "details": "Integrate the :jose library to perform strict JWT verification. Use the fetched and cached JWKS to verify the signature based on the kid (key ID). Ensure the verification process handles RS256 specifically and integrates with the caching mechanism from subtask 1.",
-            "status": "pending",
-            "testStrategy": "Unit tests with valid and invalid JWT tokens to check signature verification. Mock JWKS to ensure proper use of cached keys and error handling for invalid signatures."
-          },
-          {
-            "id": 3,
-            "title": "Add Claim Validation for iss, aud, exp, nbf",
-            "description": "Implement validation for JWT claims including issuer (iss), audience (aud), expiration (exp), and not-before (nbf).",
-            "dependencies": [
-              2
-            ],
-            "details": "After signature verification, validate the claims: iss must equal https://<domain>/, aud must contain the API audience, exp must be in the future, nbf must be in the past or current. Raise appropriate errors for invalid claims. Integrate this into the overall verify_token function.",
-            "status": "pending",
-            "testStrategy": "Unit tests with various claim combinations (valid/invalid iss, aud, exp, nbf). Mock JWTs to test claim validation logic and ensure 401 responses for invalid claims."
-          }
-        ]
+        "subtasks": []
       },
       {
         "id": 3,
-        "title": "Create Auth Plug for API Authentication",
-        "description": "Develop a Phoenix plug that extracts Bearer token from Authorization header, verifies JWT, and assigns current_user or returns 401.",
-        "details": "Create GlobalbridgeBackendWeb.Plugs.Auth plug. Extract token from header, call JWT verification function, lookup user by auth0_id from sub claim, assign to conn.assigns[:current_user]. On failure, halt with 401. Pseudo-code: def call(conn, _opts) do case get_token(conn) do nil -> unauthorized(conn); token -> case verify_token(token) do {:ok, claims} -> assign_user(conn, claims[\"sub\"]); _ -> unauthorized(conn); end; end; end.",
-        "testStrategy": "Integration tests on protected routes: send requests with valid/invalid tokens, assert 200/401 responses and user assignment.",
+        "title": "Implement Device Token Registration in NotificationManager",
+        "description": "Update NotificationManager to request authorization and register for remote notifications when mode is system.",
+        "details": "In NotificationManager, conditionally call UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) only if mode is .system. Then call UIApplication.shared.registerForRemoteNotifications(). Capture the device token in didRegisterForRemoteNotificationsWithDeviceToken and store it securely in Keychain. Handle failures in didFailToRegisterForRemoteNotificationsWithError with logging and optional fallback to banner if auto mode.",
+        "testStrategy": "Unit tests for authorization request logic based on mode. Mock registration success/failure and verify token storage. Simulator tests for registration flow.",
         "priority": "high",
         "dependencies": [
           2
         ],
         "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Implement UNUserNotificationCenterDelegate for Foreground and Tap Handling",
+        "description": "Implement the delegate methods to handle notification presentation in foreground and user tap actions.",
+        "details": "Set NotificationManager as the UNUserNotificationCenterDelegate. In willPresent(notification:), return [.banner, .sound, .badge] if mode is system and app is foreground, optionally suppressing in-app banners. In didReceive(response:), parse userInfo for conversation_id and message_id, then navigate to the relevant thread using the app's navigation logic. Handle quick actions for category MESSAGE_CATEGORY.",
+        "testStrategy": "Unit tests for parsing userInfo and triggering navigation. Integration tests with mock notifications to verify presentation and tap routing.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Integrate AppDelegate Hooks for Token Handling",
+        "description": "Add AppDelegate methods to forward device token events to NotificationManager.",
+        "details": "In AppDelegate, implement didRegisterForRemoteNotificationsWithDeviceToken to call NotificationManager.setDeviceToken(_:). Implement didFailToRegisterForRemoteNotificationsWithError to handle failures, logging errors and triggering fallback if auto mode. Ensure these hooks are called only when mode is system.",
+        "testStrategy": "Unit tests for AppDelegate forwarding. Integration tests simulating token registration and failure scenarios.",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Implement Badge Count Management",
+        "description": "Handle badge increment, clearing, and synchronization with unread message state.",
+        "details": "In NotificationManager or a dedicated badge manager, use UIApplication.shared.applicationIconBadgeNumber to set badges based on payload.badge. On app open, sync with local DB unread counts. Clear badges when viewing messages or threads. Ensure thread-safety for badge updates.",
+        "testStrategy": "Unit tests for badge setting and clearing logic. Integration tests to verify badge sync with app state changes.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Define and Implement Payload Parsing",
+        "description": "Create a struct or model to parse the APNs payload and extract required fields for navigation and actions.",
+        "details": "Define a NotificationPayload struct with properties for aps.alert.title, body, badge, sound, category, and custom fields like type, conversation_id, message_id, sender_id, sent_at. Implement parsing from [AnyHashable: Any] userInfo. Validate required fields like conversation_id and message_id. Handle payload size implicitly by backend enforcement.",
+        "testStrategy": "Unit tests for payload parsing with valid and invalid JSON. Verify extraction of all fields and error handling for missing required fields.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Integrate Backend Device Token Registration",
+        "description": "Implement API call to register the device token with the backend push service.",
+        "details": "In NotificationManager, after obtaining device token, make a POST request to /api/push/devices with body { platform: \"ios\", device_token: hexString, app_version: Bundle.main.infoDictionary?[\"CFBundleShortVersionString\"] as? String, user_id: currentUserId }. Use Bearer token auth. Handle idempotent updates and retries on failure.",
+        "testStrategy": "Unit tests with mocked network responses. Integration tests for successful registration and error handling.",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Add Analytics and Telemetry Logging",
+        "description": "Implement logging for notification events to track registration, presentation, and taps.",
+        "details": "In NotificationManager and delegate methods, log events like push_token_registered, push_will_present, push_tap, push_registration_failed with properties { error, mode }. Use a telemetry service (e.g., Firebase Analytics or custom). Ensure no full token logging in production.",
+        "testStrategy": "Unit tests to verify logging calls. Integration tests to check telemetry data collection in test environments.",
+        "priority": "low",
+        "dependencies": [
+          4,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Implement Testing and Validation for Notification Flow",
+        "description": "Set up unit and integration tests for the entire notification system, including simulator push testing.",
+        "details": "Write unit tests for mode parsing, payload handling, and delegate logic. Create integration tests for full flow: registration, push receipt, presentation, tap navigation. Use xcrun simctl push for simulator testing with payload.apns files. Validate fallback behaviors and badge management.",
+        "testStrategy": "Run unit tests for individual components. Execute integration tests on simulator and device. Monitor for crashes or failures in CI.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-10-22T14:52:44.973Z",
+      "updated": "2025-10-22T14:52:44.973Z",
+      "description": "Tasks for push context"
+    }
+  },
+  "contact": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Create Database Migration for Contacts Table",
+        "description": "Implement the database migration to create the contacts table with necessary fields and indexes.",
+        "details": "Create a new migration file in `globalbridge_backend/priv/repo/migrations/[timestamp]_create_contacts_table.exs` with the provided Elixir code. This includes defining the table schema with id (binary_id), user_id, contact_user_id, display_name_override, is_favorite, notes, and timestamps. Add unique index on [user_id, contact_user_id] and other indexes for performance. Run the migration to apply changes to the database.",
+        "testStrategy": "Run the migration in a test environment and verify the table is created with correct columns and indexes using database inspection tools.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
-            "title": "Create Auth Plug Module Structure",
-            "description": "Set up the basic Phoenix plug module GlobalbridgeBackendWeb.Plugs.Auth with the necessary imports and initial call function structure.",
+            "title": "Generate migration file",
+            "description": "Create the migration file using mix ecto.gen.migration create_contacts_table",
             "dependencies": [],
-            "details": "Create a new file in lib/globalbridge_backend_web/plugs/auth.ex. Import Plug.Conn and alias necessary modules like GlobalbridgeBackend.Accounts for user lookup. Define the plug as a module with an init/1 function returning options, and start the call/2 function with the pseudo-code structure provided.",
-            "status": "pending",
-            "testStrategy": "Unit test to ensure the module compiles and the plug can be initialized without errors."
+            "details": "Run `cd globalbridge_backend && mix ecto.gen.migration create_contacts_table` to generate a timestamped migration file in priv/repo/migrations/. This creates the boilerplate migration module structure.",
+            "status": "done",
+            "testStrategy": "Verify migration file is created with correct timestamp and module name."
           },
           {
             "id": 2,
-            "title": "Implement Token Extraction from Authorization Header",
-            "description": "Add functionality to extract the Bearer token from the Authorization header in the conn.",
+            "title": "Define contacts table schema",
+            "description": "Implement the change/0 function to create the contacts table with all required fields",
             "dependencies": [
               1
             ],
-            "details": "Within the call/2 function, implement a helper function get_token/1 that checks for the 'authorization' header, verifies it starts with 'Bearer ', and extracts the token string. If no header or invalid format, return nil. This builds on the module structure from subtask 1.",
-            "status": "pending",
-            "testStrategy": "Unit tests for get_token/1 with various header scenarios: valid Bearer, missing header, invalid format, etc."
+            "details": "In the migration file, add create table(:contacts, primary_key: false) with fields: id (binary_id, primary key), user_id (references users), contact_user_id (references users), display_name_override (string), is_favorite (boolean, default false), notes (text), and timestamps. Include null: false constraints on user_id and contact_user_id. Use on_delete: :delete_all for foreign key cascades.",
+            "status": "done",
+            "testStrategy": "Review migration code for correct field types and constraints."
           },
           {
             "id": 3,
-            "title": "Integrate JWT Verification",
-            "description": "Call the JWT verification function to validate the extracted token and retrieve claims.",
+            "title": "Add database indexes",
+            "description": "Create indexes for performance on user_id, contact_user_id, and updated_at",
             "dependencies": [
               2
             ],
-            "details": "After extracting the token, implement the verification step using an existing JWT verification function (assuming it's available from dependencies). On success, get the claims; on failure, handle accordingly. This depends on token extraction being complete.",
-            "status": "pending",
-            "testStrategy": "Unit tests mocking the JWT verification to return valid claims or errors, ensuring the plug proceeds correctly."
+            "details": "Add unique_index(:contacts, [:user_id, :contact_user_id]) to prevent duplicate contacts. Add index(:contacts, [:user_id]) for user lookups, index(:contacts, [:contact_user_id]) for reverse lookups, and index(:contacts, [:updated_at]) for sync queries. All indexes improve query performance.",
+            "status": "done",
+            "testStrategy": "Verify indexes are created by inspecting database schema after migration."
           },
           {
             "id": 4,
-            "title": "Implement User Lookup and Assignment",
-            "description": "Lookup the user by auth0_id from the JWT sub claim and assign to conn.assigns[:current_user].",
+            "title": "Run and verify migration",
+            "description": "Execute the migration and confirm table creation in database",
             "dependencies": [
               3
             ],
-            "details": "Upon successful JWT verification, extract the 'sub' claim, use it to query the user from the database (e.g., via Accounts.get_user_by_auth0_id/1), and assign the user to conn.assigns[:current_user]. If user not found, treat as failure. This follows JWT verification.",
-            "status": "pending",
-            "testStrategy": "Integration tests with a test database: verify user assignment when valid token and user exists, and failure when user is missing."
+            "details": "Run `mix ecto.migrate` in the globalbridge_backend directory. Check the migration completes without errors. Use database inspection tools (e.g., `mix ecto.dump` or SQLite browser) to verify the contacts table exists with all columns and indexes.",
+            "status": "done",
+            "testStrategy": "Query the database schema to confirm contacts table structure matches migration definition."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Define Contact Schema",
+        "description": "Create the Ecto schema for the Contact model with validations and associations.",
+        "details": "Implement the Contact schema in `globalbridge_backend/lib/globalbridge_backend/schemas/contact.ex` using the provided Elixir code. Include fields, changeset with validations (required fields, unique constraint, foreign keys, and custom validation to prevent self-contact). Ensure associations to User schema.",
+        "testStrategy": "Create unit tests for the changeset function, verifying valid and invalid inputs, including self-contact prevention.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Contact schema file",
+            "description": "Create the contact.ex file in the schemas directory",
+            "dependencies": [],
+            "details": "Create `globalbridge_backend/lib/globalbridge_backend/schemas/contact.ex` with the module definition and Ecto.Schema import. Set @primary_key {:id, :binary_id, autogenerate: true} and @foreign_key_type :binary_id.",
+            "status": "done",
+            "testStrategy": "Verify file compiles without errors."
           },
           {
-            "id": 5,
-            "title": "Add Error Handling and 401 Response",
-            "description": "Implement unauthorized response for all failure cases, halting the connection with 401 status.",
+            "id": 2,
+            "title": "Define schema fields and associations",
+            "description": "Add all schema fields and belongs_to associations for user and contact_user",
             "dependencies": [
-              4
+              1
             ],
-            "details": "Define an unauthorized/1 helper function that sets the response status to 401, sends a JSON error message, and halts the connection. Call this in all error paths: no token, invalid token, verification failure, or user not found. Ensure the plug halts properly in these cases.",
-            "status": "pending",
-            "testStrategy": "Integration tests on protected routes: send requests without token, with invalid token, etc., and assert 401 responses with correct JSON body."
+            "details": "Define schema \"contacts\" block with belongs_to :user and :contact_user (both GlobalbridgeBackend.Schemas.User), fields for display_name_override (string), is_favorite (boolean, default false), notes (string), and timestamps(type: :utc_datetime).",
+            "status": "done",
+            "testStrategy": "Verify schema definition compiles and associations are properly defined."
+          },
+          {
+            "id": 3,
+            "title": "Implement changeset with basic validations",
+            "description": "Create changeset/2 function with cast and validate_required",
+            "dependencies": [
+              2
+            ],
+            "details": "Implement changeset(contact, attrs) that casts [:user_id, :contact_user_id, :display_name_override, :is_favorite, :notes] and validates required fields [:user_id, :contact_user_id]. Add unique_constraint([:user_id, :contact_user_id]) and foreign_key_constraint for both user associations.",
+            "status": "done",
+            "testStrategy": "Unit test changeset with valid and invalid data."
+          },
+          {
+            "id": 4,
+            "title": "Add custom self-contact validation",
+            "description": "Implement validate_not_self_contact/1 private function",
+            "dependencies": [
+              3
+            ],
+            "details": "Create defp validate_not_self_contact(changeset) that uses get_field to check if user_id equals contact_user_id. If equal, add_error(changeset, :contact_user_id, \"cannot add yourself as a contact\"). Otherwise return unchanged changeset. Call this in the changeset pipeline.",
+            "status": "done",
+            "testStrategy": "Unit test that attempting to add self as contact produces validation error."
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Implement Contacts Context",
+        "description": "Build the Contacts context module with functions for CRUD operations and searches.",
+        "details": "Create `globalbridge_backend/lib/globalbridge_backend/contexts/contacts.ex` with the provided Elixir code. Implement functions like find_user_by_email, search_users_by_email, search_contacts, list_contacts, list_contacts_since, add_contact, remove_contact, and update_contact. Use Ecto queries for efficient data retrieval.",
+        "testStrategy": "Write integration tests for each function, mocking the Repo to verify correct queries and data handling.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Contacts context module structure",
+            "description": "Create the contacts.ex file with module definition and imports",
+            "dependencies": [],
+            "details": "Create `globalbridge_backend/lib/globalbridge_backend/contexts/contacts.ex`. Add imports for Ecto.Query and aliases for Repo, Contact, and User schemas. Set up basic module structure.",
+            "status": "done",
+            "testStrategy": "Verify module compiles and imports are correct."
+          },
+          {
+            "id": 2,
+            "title": "Implement user lookup functions",
+            "description": "Add find_user_by_email and search_users_by_email functions",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement find_user_by_email(email) using Repo.get_by(User, email: String.downcase(email)). Implement search_users_by_email(email) with Ecto query using ilike on email field, selecting id, email, username, display_name, avatar_url, limited to 20 results.",
+            "status": "done",
+            "testStrategy": "Unit test both functions with various email formats and verify case-insensitive matching."
+          },
+          {
+            "id": 3,
+            "title": "Implement contact search and list functions",
+            "description": "Add search_contacts, list_contacts, and list_contacts_since functions",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement search_contacts(user_id, query) with join on User, filtering by user_id and ilike on email/username/display_name, preloading contact_user, ordered by is_favorite desc, updated_at desc. Add list_contacts(user_id) for all contacts. Add list_contacts_since(user_id, since_timestamp) for incremental sync queries.",
+            "status": "done",
+            "testStrategy": "Test search with various queries, verify ordering by favorites, test timestamp-based sync queries."
+          },
+          {
+            "id": 4,
+            "title": "Implement contact mutation functions",
+            "description": "Add add_contact, remove_contact, and update_contact functions",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement add_contact(user_id, contact_user_id, attrs) that merges attrs with IDs and calls Contact.changeset |> Repo.insert(). Add remove_contact(user_id, contact_user_id) using Repo.delete_all with where clauses. Add update_contact(contact_id, attrs) with Repo.get, changeset, and Repo.update().",
+            "status": "done",
+            "testStrategy": "Test add with valid/invalid data including duplicate prevention. Test remove and update operations."
           }
         ]
       },
       {
         "id": 4,
-        "title": "Implement Auth0Controller for Ueberauth Callback and Token Login",
-        "description": "Build a dedicated Auth0Controller with a callback action for Ueberauth success/failure and a login action for direct token verification. Use this separate controller name to avoid conflict with the existing Guardian-based AuthController, and mount all routes under /auth/auth0/*. Ensure all references use Auth0Controller (not AuthController) and routes are namespaced to avoid collisions.",
-        "status": "pending",
+        "title": "Update User Channel for Contact Operations",
+        "description": "Add handlers in the User Channel for contact-related WebSocket messages.",
+        "details": "Modify `globalbridge_backend/lib/globalbridge_backend_web/channels/user_channel.ex` to include handlers for 'search_users', 'search_contacts', 'get_contacts', 'sync_contacts', 'add_contact', and 'remove_contact'. Include helper functions for formatting contacts. Ensure proper error handling and replies.",
+        "testStrategy": "Use Phoenix Channel tests to simulate messages and verify correct responses, including error cases.",
+        "priority": "high",
         "dependencies": [
-          2,
           3
         ],
-        "priority": "high",
-        "details": "For callback: handle Ueberauth.Auth struct, mapping auth.uid/email to user lookup/creation, then return a minimal success page or JSON. For login: accept POST to /auth/auth0/login with access_token (Auth0 JWT), verify the JWT, find/create user, and return {user, token} JSON. Pseudo-code: def login(conn, %{\"access_token\" => token}) do case verify_token(token) do {:ok, claims} -> user = find_or_create_user(claims); render(conn, \"login.json\", user: user, token: token); _ -> render_error(conn, 401); end; end. All controller references must use Auth0Controller and all routes must live under /auth/auth0/* (e.g., GET/POST /auth/auth0/callback, POST /auth/auth0/login) to avoid any conflict with the existing Guardian-based AuthController. Ensure router scopes reflect this namespace and no routes are mounted directly under /auth/* that would collide with Guardian.",
-        "testStrategy": "- Ueberauth callback: integration tests with mock success/failure using auth.uid/email mapping; verify user creation/lookup and response payload. - Token login: API tests for POST /auth/auth0/login with valid/invalid Auth0 JWTs; verify JSON response shape {user, token} on success and 401 on failure. - Routing/scope: tests to ensure /auth/auth0/* routes dispatch to Auth0Controller and do not conflict with the existing Guardian-based AuthController (e.g., /auth/auth0/login works, while non-namespaced paths do not hit this controller).",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
-            "title": "Set up Auth0Controller module and basic structure",
-            "description": "Create the Auth0Controller module in the Phoenix application with necessary imports and basic setup for handling authentication actions.",
+            "title": "Add Contacts alias to user_channel.ex",
+            "description": "Import the Contacts context module",
             "dependencies": [],
-            "details": "In the Phoenix app, create a new controller file at lib/my_app_web/controllers/auth0_controller.ex. Import necessary modules like Phoenix.Controller, Plug.Conn, and any custom modules for user handling. Define the controller with use MyAppWeb, :controller. Ensure it follows Phoenix controller conventions for rendering JSON and HTML responses and that routes are namespaced under /auth/auth0/*.",
-            "status": "pending",
-            "testStrategy": "Unit test to verify the module compiles and can be instantiated without errors."
+            "details": "At the top of user_channel.ex, add `alias GlobalbridgeBackend.Contexts.Contacts` to make contact functions accessible.",
+            "status": "done",
+            "testStrategy": "Verify file compiles with new alias."
           },
           {
             "id": 2,
-            "title": "Implement Ueberauth callback action for success and failure",
-            "description": "Add the callback action in Auth0Controller to handle Ueberauth.Auth struct on successful or failed OAuth authentication, finding or creating users based on uid/email.",
+            "title": "Implement search_users handler",
+            "description": "Add handle_in for search_users to find non-contact users by email",
             "dependencies": [
               1
             ],
-            "details": "In Auth0Controller, define a callback/2 function that accepts conn and params. On success, pattern match on the Ueberauth.Auth struct, extracting uid and email to find or create a user via a user context module. On failure, handle error cases appropriately. Render a minimal success page or JSON response with user data. Ensure the Ueberauth plug handles the callback route under /auth/auth0/callback.",
-            "status": "pending",
-            "testStrategy": "Integration test with mock Ueberauth responses: simulate successful callback to verify user creation/lookup and response; test failure case for error handling."
+            "details": "Add handle_in(\"search_users\", %{\"query\" => query}, socket). Get user_id from socket.assigns. Call Contacts.search_users_by_email(query). Filter out current user and existing contacts using Contacts.list_contacts and MapSet. Reply with {:ok, %{users: filtered_results}}.",
+            "status": "done",
+            "testStrategy": "Channel test simulating search with query, verify filtering works correctly."
           },
           {
             "id": 3,
-            "title": "Implement login action for direct token verification",
-            "description": "Add the login action in Auth0Controller to accept POST requests with access_token, verify the Auth0 JWT, and find or create the user, returning JSON with token and user data.",
+            "title": "Implement search_contacts and get_contacts handlers",
+            "description": "Add handlers for searching and listing user's contacts",
             "dependencies": [
               1
             ],
-            "details": "In Auth0Controller, define a login/2 function that accepts conn and %{\"access_token\" => token}. Call a verify_token function to validate the Auth0 JWT using JWKS. On success, extract claims to find or create user. Render \"login.json\" with user and token. On failure, render 401 error. Ensure the action is routed as POST /auth/auth0/login.",
-            "status": "pending",
-            "testStrategy": "API test: send POST requests to /auth/auth0/login with valid and invalid tokens, verify JSON response with user data and token on success, 401 on failure; mock token verification."
+            "details": "Add handle_in(\"search_contacts\", %{\"query\" => query}, socket) calling Contacts.search_contacts with format_contacts helper. Add handle_in(\"get_contacts\", _payload, socket) calling Contacts.list_contacts with format_contacts helper.",
+            "status": "done",
+            "testStrategy": "Test both handlers with various queries and verify formatted responses."
           },
           {
             "id": 4,
-            "title": "Implement user finding and creation logic",
-            "description": "Develop helper functions or integrate with user context to find existing users by uid/email or create new ones from OAuth claims or JWT claims.",
+            "title": "Implement sync_contacts handler",
+            "description": "Add handler for incremental contact sync",
             "dependencies": [
               1
             ],
-            "details": "Create or extend a user context module (e.g., MyApp.Accounts) with functions like find_or_create_user_by_uid_email/2 and find_or_create_user_by_claims/1. For OAuth (Ueberauth), use uid and email from Ueberauth.Auth. For Auth0 JWT, use sub or email from claims. Handle database operations with Ecto, ensuring uniqueness constraints. Return user struct on success.",
-            "status": "pending",
-            "testStrategy": "Unit tests for user context functions: test finding existing user, creating new user, and handling duplicates; use test database to verify persistence."
+            "details": "Add handle_in(\"sync_contacts\", %{\"since\" => since_timestamp}, socket). Parse ISO8601 timestamp with DateTime.from_iso8601. Call Contacts.list_contacts_since. Reply with contacts and synced_at timestamp.",
+            "status": "done",
+            "testStrategy": "Test sync with various timestamps, verify only newer contacts returned."
           },
           {
             "id": 5,
-            "title": "Add error handling and response rendering",
-            "description": "Implement consistent error responses for authentication failures and ensure proper JSON/HTML rendering for all actions.",
+            "title": "Implement add_contact and remove_contact handlers",
+            "description": "Add mutation handlers for adding and removing contacts",
             "dependencies": [
-              2,
-              3
+              1
             ],
-            "details": "In Auth0Controller, add private functions for rendering errors, such as render_error/2 for 401 unauthorized. For the Ueberauth callback, render a simple HTML page on success or JSON. For login under /auth/auth0/login, ensure JSON responses. Use Phoenix's render/3 for templates like login.json. Handle edge cases like invalid tokens or missing users, logging errors appropriately.",
-            "status": "pending",
-            "testStrategy": "Integration tests: verify error responses for invalid inputs in callback and login actions; check response formats (JSON/HTML) and status codes."
+            "details": "Add handle_in(\"add_contact\", %{\"contact_user_id\" => contact_user_id}, socket) calling Contacts.add_contact, preloading contact_user, and formatting response. Add handle_in(\"remove_contact\", ...) calling Contacts.remove_contact, checking deletion count.",
+            "status": "done",
+            "testStrategy": "Test add with valid/invalid contact_user_id. Test remove for existing and non-existing contacts."
+          },
+          {
+            "id": 6,
+            "title": "Add contact formatting helper functions",
+            "description": "Implement format_contact and format_contacts private functions",
+            "dependencies": [
+              1
+            ],
+            "details": "Add defp format_contact(contact) that creates map with id, contact_user_id, display_name_override, is_favorite, notes, user map (with id, email, username, display_name, avatar_url from contact.contact_user), created_at, updated_at. Add defp format_contacts wrapping Enum.map.",
+            "status": "done",
+            "testStrategy": "Test formatting with sample contact data, verify JSON structure matches expected schema."
           }
         ]
       },
       {
         "id": 5,
-        "title": "Update User Model and Database Schema for Auth0 Mapping",
-        "description": "Ensure users table and User schema support Auth0 mapping (auth0_id/email + unique indexes). If already present, no further changes.",
-        "status": "pending",
+        "title": "Update Thread Creation to Resolve Emails",
+        "description": "Modify the thread creation handler to accept and resolve participant emails to user IDs.",
+        "details": "Update the 'create_thread' handler in `globalbridge_backend/lib/globalbridge_backend_web/channels/user_channel.ex` to process 'participant_emails', resolve them using find_user_by_email, combine with participant_ids, and proceed with thread creation. Ensure uniqueness of participants.",
+        "testStrategy": "Test the handler with various combinations of participant_ids and emails, verifying resolution and thread creation success.",
+        "priority": "medium",
         "dependencies": [
           4
         ],
-        "priority": "medium",
-        "details": "Shift this task to verification-first. Confirm the database and schema already support Auth0 mapping and only add/adjust where missing. Database: users table should have columns auth0_id (string) and email (string), each with a unique index (at minimum: unique on email; prefer unique on auth0_id). Use idempotent migrations (add_if_not_exists, unique_index with if_not_exists: true) so that re-running is a no-op if already present. Schema: User should include :auth0_id and :email fields with corresponding validations and unique constraints in the changeset. Logic: ensure a find_or_create_user (or equivalent) takes Auth0 claims (sub/email) and creates or updates a user accordingly without duplications. Example (simplified): def find_or_create_user(claims) do sub = claims[\"sub\"]; case Repo.get_by(User, auth0_id: sub) do nil -> %User{} |> User.registration_changeset(%{auth0_id: sub, email: claims[\"email\"], display_name: claims[\"name\"]}) |> Repo.insert(); user -> user |> User.update_changeset(%{email: claims[\"email\"], display_name: claims[\"name\"]}) |> Repo.update(); end; end. Prefer unique_index(:users, [:email], if_not_exists: true) and unique_index(:users, [:auth0_id], if_not_exists: true); add_if_not_exists :auth0_id, :string in an alter table block if the column is missing. Treat existing correct schema as a no-op.",
-        "testStrategy": "- Schema verification: query information_schema or pg_catalog to confirm presence of users.email and users.auth0_id and existence of unique indexes on both; ensure any migration uses add_if_not_exists/create unique_index with if_not_exists: true so it can run twice without error. - DB constraints: attempt inserting duplicate emails and duplicate auth0_id values and assert unique violations (or Ecto changeset errors) occur. - Model/schema: unit tests for User.changeset/registration_changeset enforcing required fields and unique_constraint on :email and :auth0_id. - find_or_create_user: unit/integration tests to verify creation on first call (with sub/email) and idempotent update on subsequent calls (email/display_name updated, no duplicate users).",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
-            "title": "Verify auth0_id and email columns exist (migration only if missing)",
-            "description": "Check the users table for :auth0_id and :email columns; create a migration only if either column is missing.",
+            "title": "Update create_thread pattern match",
+            "description": "Modify handle_in pattern to accept participant_emails parameter",
             "dependencies": [],
-            "details": "Introspect the DB (information_schema.columns) to verify users.email and users.auth0_id exist. If :auth0_id is missing, create an idempotent migration: alter table(:users) do add_if_not_exists :auth0_id, :string end. Do not modify existing columns if already correct. Keep migration reversible.",
-            "status": "pending",
-            "testStrategy": "Run migration in a fresh test DB where :auth0_id is absent and verify the column is added; re-run migration to confirm it is a no-op. In an environment where both columns already exist, confirm no changes are applied."
+            "details": "Update the create_thread handler's pattern match from %{\"thread_type\" => type, \"participant_ids\" => participants} to include \"participant_emails\" => emails in the payload. Make emails optional by using emails || [] in the logic.",
+            "status": "done",
+            "testStrategy": "Verify pattern matching works with and without participant_emails in payload."
           },
           {
             "id": 2,
-            "title": "Verify unique constraint on email (create only if missing)",
-            "description": "Ensure users.email is uniquely constrained; add a unique index only if absent.",
+            "title": "Implement email resolution logic",
+            "description": "Add logic to resolve participant_emails to user IDs using Contacts.find_user_by_email",
             "dependencies": [
               1
             ],
-            "details": "Check for an existing unique index on users.email (via pg_indexes or information_schema). If missing, create unique_index(:users, [:email], if_not_exists: true). Do not alter if an equivalent unique index already exists, even if named differently.",
-            "status": "pending",
-            "testStrategy": "Attempt to insert two users with the same email and assert a unique constraint violation (DB error or Ecto changeset error). Re-run the migration to confirm idempotence."
+            "details": "Use Enum.flat_map(emails || [], fn email -> case Contacts.find_user_by_email(email) do nil -> []; user -> [user.id] end end) to convert emails to user IDs, silently skipping non-existent users. Store result in email_user_ids variable.",
+            "status": "done",
+            "testStrategy": "Test with valid emails, invalid emails, and empty list. Verify only existing users are resolved."
           },
           {
             "id": 3,
-            "title": "Verify index on auth0_id (create only if missing)",
-            "description": "Ensure lookups by Auth0 ID are efficient and uniquely constrained; create a unique index on auth0_id only if missing.",
+            "title": "Combine and deduplicate participants",
+            "description": "Merge participant_ids and resolved email IDs with current user",
             "dependencies": [
-              1
+              2
             ],
-            "details": "Prefer a unique index on users.auth0_id to prevent duplicates and speed lookups: create unique_index(:users, [:auth0_id], if_not_exists: true). If a non-unique index exists but a unique constraint is desired, document the follow-up; otherwise, leave as-is if a unique index already exists (name may vary).",
-            "status": "pending",
-            "testStrategy": "Insert two records with the same auth0_id and assert a unique violation occurs when a unique index is present. Confirm that the index exists and the migration is safe to run multiple times."
-          },
-          {
-            "id": 4,
-            "title": "Verify User schema includes :auth0_id and :email with unique constraints",
-            "description": "Confirm User schema has fields :auth0_id and :email and that changesets enforce unique constraints.",
-            "dependencies": [
-              1
-            ],
-            "details": "In the User schema, ensure fields :auth0_id and :email are present and cast in changeset/registration_changeset. Add validate_required for both and unique_constraint(:email) and unique_constraint(:auth0_id) matching DB indexes. No changes if already present.",
-            "status": "pending",
-            "testStrategy": "Model tests creating Users with duplicate emails/auth0_id should surface unique_constraint errors in changesets. Verify required field validations are enforced."
-          },
-          {
-            "id": 5,
-            "title": "Ensure find_or_create_user (or equivalent) maps Auth0 sub/email to local user",
-            "description": "Verify there is a function that uses Auth0 claims (sub/email) to find or create a user and updates email/display_name on subsequent logins; implement minimal version only if missing.",
-            "dependencies": [
-              1,
-              4
-            ],
-            "details": "Locate a context or auth module with user mapping logic. The function should: (1) look up by auth0_id (claims[\"sub\"]); (2) insert if not found with auth0_id/email/display_name; (3) update email/display_name on subsequent calls; (4) return {:ok, user} or user as appropriate. If already present and correct, no changes.",
-            "status": "pending",
-            "testStrategy": "Unit tests with mock claims to verify: new user is created on first call; subsequent call updates fields without creating duplicates; lookups are by auth0_id, not email."
+            "details": "Update all_participants line to: ([user_id | participants] ++ email_user_ids) |> Enum.uniq() to combine all participant sources and remove duplicates. This ensures the creator is always included and no user appears twice.",
+            "status": "done",
+            "testStrategy": "Test with overlapping IDs and emails to verify deduplication works."
           }
         ]
       },
       {
         "id": 6,
-        "title": "Update UserSocket for Auth0 Token Verification",
-        "description": "Modify UserSocket to accept token param, verify Auth0 JWT using centralized Auth0Verifier.verify/1 (JWKS-backed), and assign current_user for Channels.",
-        "status": "pending",
-        "dependencies": [
-          2,
-          5
-        ],
-        "priority": "medium",
-        "details": "In UserSocket.connect/3, extract params[\"token\"], call centralized Auth0Verifier.verify/1 (JWKS-backed) to verify the JWT, then assign socket.assigns[:current_user]. Reuse user lookup via find_user(claims[\"sub\"]). Pseudo-code: def connect(%{\"token\" => token}, socket, _connect_info) do case Auth0Verifier.verify(token) do {:ok, claims} -> user = find_user(claims[\"sub\"]); {:ok, assign(socket, :current_user, user)}; _ -> :error; end; end.",
-        "testStrategy": "Channel tests: attempt connections with valid/invalid tokens, stubbing Auth0Verifier.verify/1 to simulate {:ok, claims} and error cases; assert connection success/failure and that assigns[:current_user] is set correctly on success.",
+        "title": "Create Contact Model in iOS",
+        "description": "Define the Contact struct and related types in Swift.",
+        "details": "Implement `Contact.swift` in `clients/ios/GlobalBridge/Core/Models/` with the provided Swift code. Include the Contact struct with CodingKeys, ContactUser nested struct, and computed displayName property. Ensure Codable compliance for JSON serialization.",
+        "testStrategy": "Write unit tests for encoding/decoding Contact instances and verify displayName computation.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
-            "title": "Modify UserSocket.connect/2 to extract token parameter",
-            "description": "Update the UserSocket.connect/2 function to pattern match and extract the 'token' from the params map.",
+            "title": "Create Contact.swift file and basic struct",
+            "description": "Create the Contact model file with basic struct definition",
             "dependencies": [],
-            "details": "In the UserSocket module, modify the connect/2 function to accept params containing a 'token' key. This involves changing the function head to def connect(%{\"token\" => token}, socket, _connect_info) do to handle the token extraction.",
-            "status": "pending",
-            "testStrategy": null
+            "details": "Create `clients/ios/GlobalBridge/Core/Models/Contact.swift`. Define struct Contact with Identifiable, Codable, Equatable conformance. Add core fields: id (UUID), contactUserId (String), displayNameOverride (String?), isFavorite (Bool), notes (String?), createdAt (Date), updatedAt (Date).",
+            "status": "done",
+            "testStrategy": "Verify file compiles and struct conforms to protocols."
           },
           {
             "id": 2,
-            "title": "Integrate JWT verification logic into UserSocket",
-            "description": "Call centralized Auth0Verifier.verify/1 (JWKS-backed) from connect/3; do not re-implement verification in the socket.",
+            "title": "Add ContactUser nested struct",
+            "description": "Define the nested ContactUser struct for contact user data",
             "dependencies": [
               1
             ],
-            "details": "Use the centralized Auth0Verifier.verify/1 module (JWKS-backed) rather than any inline or plug-specific verification. From the connect/3 function, call Auth0Verifier.verify(token) and handle the result with a case statement as per the pseudo-code.",
-            "status": "pending",
-            "testStrategy": "Unit test the verification call by stubbing Auth0Verifier.verify/1 with mock tokens to ensure it integrates correctly without full socket setup."
+            "details": "Add nested struct ContactUser: Codable, Equatable with fields: id (String), email (String), username (String?), displayName (String?), avatarUrl (String?). Place inside Contact struct definition.",
+            "status": "done",
+            "testStrategy": "Verify ContactUser compiles and can be encoded/decoded."
           },
           {
             "id": 3,
-            "title": "Implement user lookup based on verified JWT claims",
-            "description": "On successful token verification, extract the user ID from claims and find the corresponding user in the database.",
+            "title": "Add sync-related fields",
+            "description": "Add fields for local sync state tracking",
             "dependencies": [
-              2
+              1
             ],
-            "details": "After verifying the token and obtaining claims, use claims[\"sub\"] to find the user via a find_user function that queries the User model by auth0_id (updated in Task 5). Ensure the function handles cases where the user might not exist, though Task 5 ensures creation.",
-            "status": "pending",
-            "testStrategy": "Integration test with a test database to verify user lookup using mock claims."
+            "details": "Add to Contact struct: user (ContactUser), lastSyncedAt (Date?), needsSync (Bool = false), isDeleted (Bool = false). These track local state and sync status for offline-first architecture.",
+            "status": "done",
+            "testStrategy": "Verify fields compile and have correct default values."
           },
           {
             "id": 4,
-            "title": "Assign current_user to socket assigns",
-            "description": "Assign the found user to the socket's assigns under the key :current_user for use in Channels.",
-            "dependencies": [
-              3
-            ],
-            "details": "In the success branch of the case statement, use Phoenix.Socket.assign/3 to assign the user to socket.assigns[:current_user]. This makes the user available in subsequent channel operations.",
-            "status": "pending",
-            "testStrategy": "Socket test to assert that assigns[:current_user] is set correctly after connection."
-          },
-          {
-            "id": 5,
-            "title": "Handle connection errors and return appropriate responses",
-            "description": "Implement error handling for invalid tokens or verification failures, returning :error from connect/2.",
+            "title": "Implement CodingKeys enum",
+            "description": "Add CodingKeys for snake_case to camelCase mapping",
             "dependencies": [
               2,
               3
             ],
-            "details": "In the error branch of the case statement (when verify_token fails), simply return :error. Ensure no user is assigned and the connection is rejected. This completes the logic as per the pseudo-code provided.",
-            "status": "pending",
-            "testStrategy": "Channel integration tests: attempt connections with valid and invalid tokens, asserting success/failure and correct socket state."
+            "details": "Define enum CodingKeys: String, CodingKey with cases mapping Swift property names to JSON keys: contactUserId = \"contact_user_id\", displayNameOverride = \"display_name_override\", isFavorite = \"is_favorite\", createdAt = \"created_at\", updatedAt = \"updated_at\", lastSyncedAt = \"last_synced_at\", needsSync = \"needs_sync\", isDeleted = \"is_deleted\".",
+            "status": "done",
+            "testStrategy": "Test JSON encoding/decoding with backend response format."
+          },
+          {
+            "id": 5,
+            "title": "Add displayName computed property",
+            "description": "Implement computed property for display name with fallback logic",
+            "dependencies": [
+              2
+            ],
+            "details": "Add var displayName: String { displayNameOverride ?? user.displayName ?? user.username ?? user.email }. This provides cascading fallback for contact display names, prioritizing custom override.",
+            "status": "done",
+            "testStrategy": "Unit test with various combinations of nil values to verify fallback chain works correctly."
           }
         ]
       },
       {
         "id": 7,
-        "title": "Integrate Auth0 PKCE in iOS App",
-        "description": "Implement Auth0 iOS SDK with PKCE for login, obtain access_token and refresh_token, store securely in Keychain.",
-        "details": "Use Auth0 iOS SDK (latest version ~2.x). Configure with domain, client_id, scopes: openid profile email offline_access. On login success, store tokens in Keychain. Pseudo-code: let credentials = try await auth0.webAuth().start(); keychain.set(credentials.accessToken, forKey: \"accessToken\"); keychain.set(credentials.refreshToken, forKey: \"refreshToken\").",
-        "testStrategy": "Unit tests for login flow; manual QA: login/logout, verify tokens stored and retrievable from Keychain.",
-        "priority": "medium",
-        "dependencies": [],
-        "status": "pending",
+        "title": "Update Local Database Schema for Contacts",
+        "description": "Add contacts table to the iOS SQLite database.",
+        "details": "Modify `DatabaseManager.swift` in `clients/ios/GlobalBridge/Core/Storage/` to include SQL statements for creating the contacts table and indexes as provided. Execute these in the setupMainDatabase function.",
+        "testStrategy": "Run the app in a test environment, inspect the SQLite database to confirm table creation and indexes.",
+        "priority": "high",
+        "dependencies": [
+          6
+        ],
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
-            "title": "Install Auth0 iOS SDK",
-            "description": "Add the latest Auth0 iOS SDK (~2.x) to the iOS project using CocoaPods or Swift Package Manager.",
+            "title": "Define SQLite contacts table schema",
+            "description": "Add CREATE TABLE statement for contacts in setupMainDatabase",
             "dependencies": [],
-            "details": "Update the project's dependency manager to include Auth0 iOS SDK. Ensure compatibility with the iOS version and other dependencies. Run pod install or resolve packages to integrate the SDK into the project.",
-            "status": "pending",
-            "testStrategy": "Verify SDK installation by checking if Auth0 classes are importable in a test file."
+            "details": "In DatabaseManager.swift's setupMainDatabase function, add SQL string for CREATE TABLE IF NOT EXISTS contacts with columns: id (TEXT PRIMARY KEY), contact_user_id (TEXT NOT NULL), display_name_override (TEXT), is_favorite (INTEGER DEFAULT 0), notes (TEXT), user_email (TEXT NOT NULL), user_username (TEXT), user_display_name (TEXT), user_avatar_url (TEXT), created_at (TEXT NOT NULL), updated_at (TEXT NOT NULL), last_synced_at (TEXT), needs_sync (INTEGER DEFAULT 0), is_deleted (INTEGER DEFAULT 0).",
+            "status": "done",
+            "testStrategy": "Verify SQL syntax is valid for SQLite."
           },
           {
             "id": 2,
-            "title": "Configure Auth0 Client",
-            "description": "Set up the Auth0 client with domain, client_id, and required scopes for PKCE flow.",
+            "title": "Add contacts table indexes",
+            "description": "Create indexes for performance on contact queries",
             "dependencies": [
               1
             ],
-            "details": "Initialize the Auth0 client in the app delegate or a dedicated auth manager class. Configure with the Auth0 domain, client ID, and scopes: openid, profile, email, offline_access. Ensure the configuration is secure and not hardcoded in production.",
-            "status": "pending",
-            "testStrategy": "Unit test to assert that the Auth0 client is properly initialized with correct parameters."
+            "details": "Add SQL statements for CREATE INDEX IF NOT EXISTS on: contacts_contact_user_id_index (contact_user_id), contacts_needs_sync_index (needs_sync), contacts_is_deleted_index (is_deleted), contacts_updated_at_index (updated_at). These improve query performance for lookups and sync operations.",
+            "status": "done",
+            "testStrategy": "Verify indexes are created after running setupMainDatabase."
           },
           {
             "id": 3,
-            "title": "Implement PKCE Login Flow",
-            "description": "Implement the login functionality using Auth0's webAuth with PKCE to initiate the OAuth flow.",
+            "title": "Execute table creation in database initialization",
+            "description": "Add execute statements for contacts table and indexes",
             "dependencies": [
               2
             ],
-            "details": "Create a login method that calls auth0.webAuth().start() asynchronously. Handle the response to obtain credentials on success. Implement error handling for login failures. This sets up the PKCE flow as per Auth0 documentation.",
-            "status": "pending",
-            "testStrategy": "Manual QA: Attempt login and verify that the Auth0 login page opens and redirects back on success."
-          },
-          {
-            "id": 4,
-            "title": "Obtain and Handle Tokens",
-            "description": "Extract access_token and refresh_token from login credentials upon successful authentication.",
-            "dependencies": [
-              3
-            ],
-            "details": "In the login success callback, access credentials.accessToken and credentials.refreshToken. Prepare them for storage. Ensure tokens are handled securely without logging or exposing them in code. This step focuses on token extraction before storage.",
-            "status": "pending",
-            "testStrategy": "Unit test to mock login response and assert that tokens are correctly extracted from credentials object."
-          },
-          {
-            "id": 5,
-            "title": "Store Tokens Securely in Keychain",
-            "description": "Store the obtained access_token and refresh_token in the iOS Keychain for secure persistence.",
-            "dependencies": [
-              4
-            ],
-            "details": "Use Keychain services to store the accessToken under key 'accessToken' and refreshToken under 'refreshToken'. Implement secure storage with appropriate access controls. Ensure storage happens immediately after token extraction. Handle any Keychain errors gracefully.",
-            "status": "pending",
-            "testStrategy": "Manual QA: After login, check Keychain access via device tools or code to verify tokens are stored and retrievable."
+            "details": "In setupMainDatabase, after defining the SQL strings, add try db.execute(createContactsTable) and try db.execute(createContactsIndexes) to execute the SQL statements during database initialization.",
+            "status": "done",
+            "testStrategy": "Run app and inspect SQLite database file to confirm table and indexes exist."
           }
         ]
       },
       {
         "id": 8,
-        "title": "Implement Bearer Token Usage and Refresh in iOS",
-        "description": "Send Bearer token with API requests, handle 401 by refreshing token and retrying; connect Channels with token.",
-        "details": "For API: add Authorization header to requests. On 401, use refresh_token to get new access_token, retry. For Channels: pass token in socket params. Pseudo-code: func makeRequest(url: URL) { var req = URLRequest(url: url); req.setValue(\"Bearer \\(accessToken)\", forHTTPHeaderField: \"Authorization\"); // on 401: refresh and retry. } For socket: PhoenixSocket.connect(params: [\"token\": accessToken]).",
-        "testStrategy": "E2E tests: simulate API calls and 401 responses, verify refresh and retry; test Channel connection with token.",
-        "priority": "medium",
+        "title": "Implement Contact Manager in iOS",
+        "description": "Build the ContactManager actor for handling local and sync operations.",
+        "details": "Create `ContactManager.swift` in `clients/ios/GlobalBridge/Core/Storage/` with the provided Swift code. Implement optimistic local operations (add, remove), search functions, and sync logic including pulling from server and pushing local changes. Use async/await for concurrency.",
+        "testStrategy": "Unit tests for each method, mocking database and network calls to verify optimistic updates and sync behavior.",
+        "priority": "high",
         "dependencies": [
           7
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
-            "title": "Set up token storage and retrieval in iOS app",
-            "description": "Implement secure storage for access_token and refresh_token using Keychain, and provide methods to retrieve and update tokens.",
+            "title": "Create ContactManager actor structure",
+            "description": "Create the ContactManager.swift file with actor definition and dependencies",
             "dependencies": [],
-            "details": "Use iOS Keychain to store access_token and refresh_token securely. Create a TokenManager class with methods like getAccessToken(), getRefreshToken(), and updateTokens(access: String, refresh: String). Ensure thread-safety for async operations.",
-            "status": "pending",
-            "testStrategy": "Unit tests for TokenManager: verify storage, retrieval, and updates; mock Keychain to test security."
+            "details": "Create `clients/ios/GlobalBridge/Core/Storage/ContactManager.swift`. Define actor ContactManager with private properties for databaseManager (DatabaseManager) and phoenixManager (PhoenixChannelManager). Add init(databaseManager:phoenixManager:).",
+            "status": "done",
+            "testStrategy": "Verify actor compiles and initializes correctly."
           },
           {
             "id": 2,
-            "title": "Modify API client to include Bearer token in requests",
-            "description": "Update the API client to automatically add Authorization header with Bearer token to all outgoing requests.",
+            "title": "Implement optimistic add/remove operations",
+            "description": "Add addContact and removeContact methods with optimistic updates",
             "dependencies": [
               1
             ],
-            "details": "In the API client class, modify the request preparation method to retrieve the access_token from TokenManager and set req.setValue(\"Bearer \\(accessToken)\", forHTTPHeaderField: \"Authorization\"). Ensure this applies to all API calls.",
-            "status": "pending",
-            "testStrategy": "Integration tests: mock API calls and verify Authorization header is present with correct token."
+            "details": "Implement addContact(_ contactUserId, email) that creates Contact locally with needsSync=true, calls saveContactLocally, then syncs to backend in Task. Implement removeContact(_ contactId) that marks as deleted locally, then syncs deletion in Task. Both return immediately for optimistic UX.",
+            "status": "done",
+            "testStrategy": "Test that operations complete locally before backend sync. Mock network delays to verify optimistic behavior."
           },
           {
             "id": 3,
-            "title": "Implement token refresh logic",
-            "description": "Create a method to refresh the access_token using the refresh_token by calling the auth endpoint.",
+            "title": "Implement search functions",
+            "description": "Add searchContacts and searchUsersByEmail methods",
             "dependencies": [
               1
             ],
-            "details": "Add a refreshToken() method in TokenManager that makes a POST request to the refresh endpoint with refresh_token, parses the response for new access_token and refresh_token, and updates storage. Handle network errors and invalid refresh tokens.",
-            "status": "pending",
-            "testStrategy": "Unit tests with mocked network responses: test successful refresh, failure cases, and token updates."
+            "details": "Implement searchContacts(query:) that calls fetchContactsLocally with search query filtering on local SQLite. Implement searchUsersByEmail(query:) that calls phoenixManager.searchUsers for backend user lookup. Both return async results.",
+            "status": "done",
+            "testStrategy": "Test both search methods with various queries, verify local vs backend search behavior."
           },
           {
             "id": 4,
-            "title": "Handle 401 errors by refreshing token and retrying requests",
-            "description": "Intercept 401 responses in API client, trigger token refresh, and retry the original request with new token.",
-            "dependencies": [
-              2,
-              3
-            ],
-            "details": "In the API client's response handler, check for 401 status. If detected, call refreshToken(), then retry the original request with the new access_token. Implement a retry limit to avoid infinite loops. Use async/await or completion handlers for sequencing.",
-            "status": "pending",
-            "testStrategy": "E2E tests: simulate 401 responses, verify refresh call, token update, and successful retry of the request."
-          },
-          {
-            "id": 5,
-            "title": "Integrate token into Channels socket connection",
-            "description": "Modify the Phoenix socket connection to include the access_token in connection parameters.",
+            "title": "Implement bidirectional sync logic",
+            "description": "Add syncContacts method with pull/merge/push operations",
             "dependencies": [
               1
             ],
-            "details": "In the socket initialization, retrieve access_token from TokenManager and pass it in PhoenixSocket.connect(params: [\"token\": accessToken]). Ensure the socket reconnects with updated token if refreshed during session.",
-            "status": "pending",
-            "testStrategy": "Integration tests: verify socket connects successfully with token in params; test reconnection after token refresh."
+            "details": "Implement syncContacts() that: 1) Gets lastSyncTime, 2) Pulls server contacts via phoenixManager.syncContacts(since:), 3) Merges each using mergeContactFromServer (server wins on conflicts), 4) Pushes unsynced local contacts via syncContactToBackend, 5) Updates lastSyncTime. This ensures eventual consistency.",
+            "status": "done",
+            "testStrategy": "Test sync with offline changes, conflicts, and verify server state wins."
+          },
+          {
+            "id": 5,
+            "title": "Implement private helper methods",
+            "description": "Add saveContactLocally, markContactAsDeleted, syncContactToBackend, mergeContactFromServer helpers",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement all private helper methods for database operations: saveContactLocally (INSERT), markContactAsDeleted (UPDATE is_deleted=1, needs_sync=1), fetchContactLocally (SELECT by id), updateContactLocally (UPDATE), updateContactSyncStatus, fetchUnsyncedContacts, getLastSyncTime, updateLastSyncTime. Use SQLite.swift for all database operations.",
+            "status": "done",
+            "testStrategy": "Unit test each helper method independently with mocked database."
           }
         ]
       },
       {
         "id": 9,
-        "title": "Implement Auth0 Integration in Elm Web Client",
-        "description": "Choose Option A: Use Auth0 SPA SDK via JS bridge and Elm ports for login/logout/refresh, store token in sessionStorage.",
-        "details": "Create JS module wrapping Auth0 SPA SDK (latest ~2.x). Expose login, logout, getToken via ports. Elm stores token in sessionStorage, sends Bearer header. Pseudo-code (JS): auth0.loginWithRedirect(); ports.login.subscribe(() => auth0.loginWithRedirect()); Elm: port login : () -> Cmd msg; store token in model.",
-        "testStrategy": "Manual testing: login/logout flow, verify token storage and API calls with Bearer header; check Channels connection.",
-        "priority": "medium",
-        "dependencies": [],
-        "status": "pending",
+        "title": "Add Phoenix Contact Methods",
+        "description": "Extend PhoenixChannelManager with contact-related channel operations.",
+        "details": "Update `PhoenixChannelManager.swift` in `clients/ios/GlobalBridge/Core/Networking/Phoenix/` to add methods like searchUsers, addContact, and syncContacts. Use Phoenix channel pushes and continuations for async handling.",
+        "testStrategy": "Integration tests simulating channel interactions, verifying message sends and response parsing.",
+        "priority": "high",
+        "dependencies": [
+          4
+        ],
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
-            "title": "Create JavaScript Module Wrapping Auth0 SPA SDK",
-            "description": "Develop a JavaScript module that initializes and wraps the Auth0 SPA SDK (version ~2.x) to handle authentication operations.",
+            "title": "Implement searchUsers method",
+            "description": "Add method to search for non-contact users via Phoenix channel",
             "dependencies": [],
-            "details": "Initialize Auth0 client with domain, client ID, and audience. Create functions for loginWithRedirect, logout, and getTokenSilently. Ensure proper error handling and configuration for redirect URIs.",
-            "status": "pending",
-            "testStrategy": "Manual testing: verify SDK initialization and basic function calls in browser console."
+            "details": "Add public func searchUsers(query: String) async throws -> [Contact.ContactUser]. Get user channel with channel(for: \"user:\\(currentUserId)\"). Push \"search_users\" with payload [\"query\": query]. Use withCheckedThrowingContinuation to handle response, parsing users array from response.payload[\"users\"].",
+            "status": "done",
+            "testStrategy": "Test with various queries, verify Contact.ContactUser array is parsed correctly."
           },
           {
             "id": 2,
-            "title": "Define Elm Ports for Auth0 Communication",
-            "description": "Set up Elm ports to communicate between Elm and JavaScript for login, logout, and token retrieval.",
-            "dependencies": [
-              1
-            ],
-            "details": "In Elm, define outgoing ports for login and logout commands, and incoming ports for receiving tokens or errors. In JavaScript, subscribe to outgoing ports and send responses back via incoming ports.",
-            "status": "pending",
-            "testStrategy": "Unit tests: check port subscriptions and message passing between Elm and JS."
+            "title": "Implement addContact method",
+            "description": "Add method to add contact via Phoenix channel",
+            "dependencies": [],
+            "details": "Add public func addContact(contactUserId: String) async throws -> Contact. Push \"add_contact\" with payload [\"contact_user_id\": contactUserId] to user channel. Parse response into Contact struct using JSON decoder.",
+            "status": "done",
+            "testStrategy": "Test adding valid and invalid contact IDs, verify error handling."
           },
           {
             "id": 3,
-            "title": "Implement Login Functionality in Elm",
-            "description": "Add login logic in Elm to trigger the Auth0 login flow via ports and handle the response.",
-            "dependencies": [
-              2
-            ],
-            "details": "Create a login command that sends a message through the port. Update the Elm model to store the received token in sessionStorage upon successful authentication. Handle login errors gracefully.",
-            "status": "pending",
-            "testStrategy": "Manual testing: simulate login flow, verify token storage in sessionStorage."
+            "title": "Implement syncContacts method",
+            "description": "Add method for incremental contact sync from server",
+            "dependencies": [],
+            "details": "Add public func syncContacts(since: Date) async throws -> [Contact]. Convert Date to ISO8601 string. Push \"sync_contacts\" with payload [\"since\": timestamp] to user channel. Parse response contacts array and synced_at timestamp.",
+            "status": "done",
+            "testStrategy": "Test sync with various timestamps, verify incremental sync returns only new/updated contacts."
           },
           {
             "id": 4,
-            "title": "Implement Logout Functionality in Elm",
-            "description": "Add logout logic in Elm to clear the session and trigger Auth0 logout via ports.",
-            "dependencies": [
-              2,
-              3
-            ],
-            "details": "Create a logout command that sends a message through the port to perform Auth0 logout. Clear the token from sessionStorage and reset the Elm model state. Ensure proper redirect after logout.",
-            "status": "pending",
-            "testStrategy": "Manual testing: perform logout, verify token removal from sessionStorage and redirect."
-          },
-          {
-            "id": 5,
-            "title": "Implement Token Refresh and API Integration",
-            "description": "Handle token refresh in Elm and integrate token usage for API calls with Bearer header.",
-            "dependencies": [
-              3
-            ],
-            "details": "Implement logic to check token expiration and refresh it silently via ports. Modify HTTP requests in Elm to include the Bearer token from sessionStorage. Ensure token is sent with API calls to the backend.",
-            "status": "pending",
-            "testStrategy": "Manual testing: verify token refresh on expiration and successful API calls with Bearer header."
+            "title": "Implement removeContact method",
+            "description": "Add method to remove contact via Phoenix channel",
+            "dependencies": [],
+            "details": "Add public func removeContact(contactUserId: String) async throws. Push \"remove_contact\" with payload [\"contact_user_id\": contactUserId] to user channel. Handle success/error responses.",
+            "status": "done",
+            "testStrategy": "Test removing existing and non-existing contacts, verify proper error handling."
           }
         ]
       },
       {
         "id": 10,
-        "title": "Apply Bearer Token to Elm API and Channels",
-        "description": "Use stored access_token for API Bearer auth and Channels connection in Elm.",
-        "status": "pending",
+        "title": "Update Thread Creation UI",
+        "description": "Modify CreateThreadView to include contact search and selection.",
+        "details": "Implement updates in `CreateThreadView.swift` for searching contacts and emails, displaying results, and selecting participants. Integrate with ContactManager for searches and handle UI state changes.",
+        "testStrategy": "UI tests using SwiftUI testing framework to verify search functionality, selection toggling, and thread creation button enablement.",
+        "priority": "medium",
         "dependencies": [
           9
         ],
-        "priority": "medium",
-        "details": "In Elm HTTP requests, add Authorization header. For Channels, connect with params: {token: accessToken}. Pseudo-code: request = Http.request { url = apiUrl, headers = [Http.header \"Authorization\" \"Bearer \" ++ token], ... }; socket = Socket.connect \"/socket\" {params: {token: token}}.",
-        "testStrategy": "Integration tests: Elm app makes authenticated API calls and connects to Channels, verify 200 responses and socket auth.",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
-            "title": "Update Elm Model to Store Access Token",
-            "description": "Modify the Elm application model to include a field for storing the access token retrieved from storage.",
+            "title": "Add search and state properties",
+            "description": "Add @State properties for search query, contacts, search results, and selected participants",
             "dependencies": [],
-            "details": "Add an accessToken field of type Maybe String to the main Model type. Ensure the token is loaded during application initialization from local storage or passed via flags. This allows the token to be accessible throughout the app for API and Channels usage.",
-            "status": "pending",
-            "testStrategy": "Unit tests to verify the model updates correctly when token is set or cleared."
+            "details": "In CreateThreadView, add @State private var searchQuery = \"\", @State private var contacts: [Contact] = [], @State private var searchResults: [Contact.ContactUser] = [], @State private var selectedParticipants: Set<String> = []. These track search state and selections.",
+            "status": "done",
+            "testStrategy": "Verify properties are declared and initialized correctly."
           },
           {
             "id": 2,
-            "title": "Implement Token Retrieval from Storage",
-            "description": "Implement Token Retrieval from sessionStorage or in-memory storage (prefer sessionStorage over localStorage)",
+            "title": "Implement search UI components",
+            "description": "Add TextField for search with onChange handler",
             "dependencies": [
               1
             ],
-            "details": "Use Elm's Browser.LocalStorage or a port to fetch the stored access_token. Handle cases where the token is missing or expired. Integrate this into the app's init or update functions to populate the model.",
-            "status": "pending",
-            "testStrategy": "Integration tests to check token retrieval on app start and error handling for missing tokens."
+            "details": "Add TextField(\"Search contacts or enter email\", text: $searchQuery).onChange(of: searchQuery) { _, newValue in searchContactsOrEmail(newValue) }. This triggers search as user types.",
+            "status": "done",
+            "testStrategy": "Test that typing in field triggers search function."
           },
           {
             "id": 3,
-            "title": "Add Bearer Authorization Header to HTTP Requests",
-            "description": "Update all Elm HTTP request functions to include the Authorization header with the Bearer token.",
+            "title": "Implement contact search logic",
+            "description": "Add searchContactsOrEmail function to query contacts and users",
             "dependencies": [
-              1,
-              2
+              1
             ],
-            "details": "Modify the Http.request configurations to append Http.header \"Authorization\" (\"Bearer \" ++ token) to the headers list. Ensure this is applied consistently across all API calls in the application. Handle cases where token is absent by either skipping auth or showing an error.",
-            "status": "pending",
-            "testStrategy": "Unit tests for request builders to verify headers are added; integration tests for actual API calls with mocked responses."
+            "details": "Implement searchContactsOrEmail(_ query: String) in Task that calls contactManager.searchContacts(query:) to update contacts array. If query.contains(\"@\"), also call contactManager.searchUsersByEmail(query:) to update searchResults array. Use try await for async operations.",
+            "status": "done",
+            "testStrategy": "Test search with contact names and email addresses, verify both result arrays update."
           },
           {
             "id": 4,
-            "title": "Integrate Token into Channels Socket Connection",
-            "description": "Update the Channels socket connection in Elm to pass the access token as a parameter.",
+            "title": "Add contact and user result lists",
+            "description": "Display contacts and search results with selection",
             "dependencies": [
-              1,
               2
             ],
-            "details": "In the Socket.connect call, include params: {token: accessToken} as specified. Ensure the socket is initialized with the token from the model. Handle connection failures due to invalid tokens by attempting reconnection or notifying the user.",
-            "status": "pending",
-            "testStrategy": "Integration tests to verify socket connection succeeds with valid token and fails gracefully with invalid token."
+            "details": "Add List(contacts) { contact in ContactRow(contact: contact) { toggleSelection(contact.contactUserId) } }. Add Section(\"Search Results\") with ForEach(searchResults, id: \\.id) { user in UserRow(user: user) { toggleSelection(user.id) } }. Show search results only if !searchResults.isEmpty.",
+            "status": "done",
+            "testStrategy": "Verify lists display and selection toggles work."
           },
           {
             "id": 5,
-            "title": "Handle Authentication Errors and Token Refresh",
-            "description": "Implement error handling for 401 responses in API calls and socket disconnections, with logic to refresh or re-authenticate.",
+            "title": "Implement selection and create logic",
+            "description": "Add toggleSelection and createThread functions",
             "dependencies": [
-              3,
-              4
+              1
             ],
-            "details": "Add error decoders for HTTP responses to detect 401 status. For Channels, listen for disconnection events. On auth failure, trigger a re-authentication flow, possibly by redirecting to login or refreshing the token via a port to external logic. Update the model accordingly.",
-            "status": "pending",
-            "testStrategy": "E2E tests simulating 401 errors and verifying app behavior, such as re-auth prompts or token refresh."
+            "details": "Implement toggleSelection(_ userId: String) that inserts/removes from selectedParticipants Set. Implement createThread() that calls environment.database.createThread with title and selectedParticipants array. Update Create button with .disabled(selectedParticipants.isEmpty).",
+            "status": "done",
+            "testStrategy": "Test selection toggling and thread creation with selected participants."
           }
         ]
       },
       {
         "id": 11,
-        "title": "Add Security Measures: Rate Limiting, CORS, and Logging",
-        "description": "Implement rate limiting on auth endpoints, review/update CORS origins for iOS/Elm, and redact token logging.",
-        "status": "pending",
-        "dependencies": [
-          1,
-          3
-        ],
+        "title": "Implement Sync Logic for Contacts",
+        "description": "Ensure bidirectional sync between local and server for contacts.",
+        "details": "Refine the syncContacts method in ContactManager to handle pulling server changes, merging (server wins), pushing local changes, and updating sync timestamps. Handle conflicts by prioritizing server state.",
+        "testStrategy": "End-to-end tests simulating offline/online scenarios, verifying data consistency across devices.",
         "priority": "medium",
-        "details": "Use PlugAttack for rate limiting on /auth/auth0/login. CORS is already integrated via CORSPlug—review and update allowed origins to cover Elm web client and any iOS usage; focus on configuration only (no new dependency). Verify CORSPlug placement in Phoenix pipelines that serve /auth and /api, and ensure preflight (OPTIONS) requests are handled. In logs, redact tokens to prefixes and capture sub/jti from JWT payloads. Pseudo-code: plug PlugAttack when action: :throttle, method: :post, path: \"/auth/auth0/login\"; configure CORSPlug origins in config/runtime for Elm and iOS contexts.",
-        "testStrategy": "Load tests: simulate high request rates and verify throttling; CORS tests: verify allowed/disallowed origins and successful preflight (OPTIONS) for /auth and /api; logging audits: ensure tokens are redacted and sub/jti present.",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Add PlugAttack Dependency for Rate Limiting",
-            "description": "Add the PlugAttack library to the Phoenix project's dependencies in mix.exs to enable rate limiting functionality.",
-            "dependencies": [],
-            "details": "Update the mix.exs file to include {:plug_attack, \"~> 0.4\"} in the deps list. Run mix deps.get to fetch the dependency. This sets up the foundation for implementing rate limiting on auth endpoints.",
-            "status": "pending",
-            "testStrategy": "Verify the dependency is installed by checking mix deps and ensuring no compilation errors."
-          },
-          {
-            "id": 2,
-            "title": "Configure PlugAttack for Auth Endpoint Throttling",
-            "description": "Configure PlugAttack to throttle POST requests to /auth/auth0/login with a specified rate limit.",
-            "dependencies": [
-              1
-            ],
-            "details": "In the router.ex file, add the PlugAttack plug with configuration for action: :throttle, method: :post, and path: \"/auth/auth0/login\". Define the throttling rules, such as allowing a certain number of requests per minute. Ensure the plug is placed appropriately in the pipeline before the auth routes.",
-            "status": "pending",
-            "testStrategy": "Use load testing tools like Apache Bench or Siege to simulate multiple POST requests to the endpoint and verify that requests are throttled after exceeding the limit."
-          },
-          {
-            "id": 3,
-            "title": "Review/update CORSPlug allowed origins for Elm/iOS (no new dependency)",
-            "description": "Review existing CORSPlug configuration and update allowed origins for Elm web and iOS clients; no new dependency should be added.",
-            "dependencies": [],
-            "details": "Do not modify mix.exs. In config.exs or runtime.exs, review the existing CORSPlug configuration and update the allowed origins to include the Elm web client domains (dev and prod) and any applicable iOS webview/custom-scheme contexts as required. Adjust allowed methods/headers (e.g., Authorization, Content-Type) and credentials settings as needed. Prefer environment-based configuration (e.g., ALLOWED_ORIGINS) to separate dev/prod.",
-            "status": "pending",
-            "testStrategy": "From allowed origins, verify successful CORS responses including Access-Control-Allow-Origin and required headers. From disallowed origins, confirm the request is blocked. Validate that preflight requests receive correct headers."
-          },
-          {
-            "id": 4,
-            "title": "Verify CORSPlug placement/pipeline and test preflight for /auth and /api",
-            "description": "Ensure CORSPlug is correctly placed in the Phoenix router pipelines and that preflight (OPTIONS) requests succeed for /auth and /api endpoints.",
-            "dependencies": [
-              3
-            ],
-            "details": "In router.ex, verify CORSPlug runs early in the relevant pipelines (e.g., :api, any auth pipeline) so it applies to /auth and /api routes. Confirm that preflight (OPTIONS) requests are handled and not blocked by other plugs. If necessary, ensure OPTIONS requests route through the pipeline where CORSPlug is active.",
-            "status": "pending",
-            "testStrategy": "Perform integration tests sending cross-origin requests and explicit preflight (OPTIONS) requests to /auth/* and /api/*; confirm correct CORS headers for allowed origins and rejections for disallowed ones."
-          },
-          {
-            "id": 5,
-            "title": "Implement Token Redaction in Logging",
-            "description": "Modify the logging configuration to redact sensitive tokens, showing only prefixes, and log relevant claims like sub and jti.",
-            "dependencies": [],
-            "details": "Update the logger configuration in config.exs to use a custom formatter or plug that redacts tokens in logs. For example, replace full tokens with prefixes (e.g., \"Bearer eyJ...\" becomes \"Bearer eyJ***\"). Ensure logs capture sub and jti from JWT payloads. Implement this in a custom plug or logger backend to scrub logs before output.",
-            "status": "pending",
-            "testStrategy": "Audit logs after making authenticated requests; verify that full tokens are not logged, only redacted versions, and that sub/jti are present. Use log parsing tools to check for sensitive data leakage."
-          }
-        ]
-      },
-      {
-        "id": 12,
-        "title": "Perform End-to-End Testing and Migration Validation",
-        "description": "Conduct QA for iOS and Elm flows, including 401 refresh, Channel auth, and backfill existing users.",
-        "details": "E2E tests: iOS login -> API -> Channels; Elm login -> API -> Channels; test token refresh on 401. Backfill users: script to set auth0_id for existing emails. Pseudo-code: Repo.update_all(from u in User, set: [auth0_id: get_auth0_sub(u.email)]). Validate migration by running legacy vs new auth side-by-side.",
-        "testStrategy": "Automated E2E tests using tools like Appium for iOS and Cypress for Elm; manual QA for full flows; verify user backfill and no data loss.",
-        "priority": "low",
         "dependencies": [
-          5,
-          6,
-          8,
-          10,
-          11
+          8
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
-            "title": "Set up E2E test suite for iOS login and API/Channels flow",
-            "description": "Establish an end-to-end testing framework specifically for the iOS application, covering the login process, API interactions, and Channels authentication, including token refresh on 401 errors.",
-            "dependencies": [
-              8
-            ],
-            "details": "Utilize tools like Appium to automate the iOS flow: start with login, proceed to API calls, and connect to Channels. Ensure the test handles token refresh by simulating 401 responses and verifying retry with new tokens. Integrate with existing CI/CD pipelines for automated runs.",
-            "status": "pending",
-            "testStrategy": "Automated E2E tests using Appium for iOS, simulating user login, API requests, and Channel connections, with assertions for successful flows and token refresh handling."
+            "title": "Implement pull from server logic",
+            "description": "Add logic to fetch contacts modified since last sync",
+            "dependencies": [],
+            "details": "In syncContacts(), get lastSyncTime from local storage. Call phoenixManager.syncContacts(since: lastSyncTime) to fetch server-side changes. Store results in serverContacts array for processing.",
+            "status": "done",
+            "testStrategy": "Test with various last sync timestamps, verify only newer contacts are fetched."
           },
           {
             "id": 2,
-            "title": "Configure E2E tests for Elm client",
-            "description": "Set up end-to-end testing for the Elm application, focusing on login, API calls, and Channels integration, with emphasis on Bearer token usage and 401 refresh mechanisms.",
-            "dependencies": [
-              10
-            ],
-            "details": "Employ Cypress or similar tools to test the Elm client: automate login to API, perform authenticated requests, and establish Channels connections. Include scenarios for token expiration and refresh to ensure seamless user experience.",
-            "status": "pending",
-            "testStrategy": "Automated E2E tests using Cypress for Elm, verifying login flows, API authentication, Channels connectivity, and automatic token refresh on 401 errors."
-          },
-          {
-            "id": 3,
-            "title": "Implement user backfill script and validation",
-            "description": "Develop and execute a script to backfill existing users with Auth0 IDs based on their email addresses, and validate the migration to ensure no data loss or inconsistencies.",
+            "title": "Implement server wins merge logic",
+            "description": "Add mergeContactFromServer with timestamp-based conflict resolution",
             "dependencies": [
               1
             ],
-            "details": "Write a script using Elixir Repo.update_all to set auth0_id for users by fetching from Auth0 sub claims via email. Pseudo-code: Repo.update_all(from u in User, set: [auth0_id: get_auth0_sub(u.email)]). Run validation checks to compare legacy and new auth data side-by-side, ensuring all users are migrated correctly.",
-            "status": "pending",
-            "testStrategy": "Unit tests for the script to verify auth0_id assignment; integration tests to run legacy vs new auth in parallel and assert no data discrepancies or user access issues."
+            "details": "Implement mergeContactFromServer(_ serverContact: Contact) that fetches local contact by ID. If exists locally, compare updatedAt timestamps: if serverContact.updatedAt > localContact.updatedAt, call updateContactLocally. If doesn't exist locally, call saveContactLocally. This ensures server state always wins conflicts.",
+            "status": "done",
+            "testStrategy": "Test merge with various scenarios: new contacts, updated contacts, and conflicts. Verify server always wins."
+          },
+          {
+            "id": 3,
+            "title": "Implement push unsynced changes",
+            "description": "Add logic to push local changes that haven't synced to server",
+            "dependencies": [
+              1
+            ],
+            "details": "After merging server changes, call fetchUnsyncedContacts() to get contacts where needsSync=1. For each unsynced contact, call syncContactToBackend(contact) which pushes to Phoenix and updates local sync status on success.",
+            "status": "done",
+            "testStrategy": "Test with offline-created contacts, verify they sync to server when online."
           },
           {
             "id": 4,
-            "title": "Conduct manual QA and side-by-side migration testing",
-            "description": "Perform comprehensive manual quality assurance on both iOS and Elm flows, including full end-to-end scenarios, and validate the migration by comparing legacy and new authentication systems in parallel.",
+            "title": "Update sync timestamp tracking",
+            "description": "Implement lastSyncTime persistence in local storage",
             "dependencies": [
               1,
               2,
               3
             ],
-            "details": "Manually test complete user journeys: iOS and Elm login to API to Channels, with 401 refresh. Execute side-by-side testing of legacy auth versus new Auth0-based auth to confirm identical behavior, data integrity, and no regressions. Document any issues found during QA.",
-            "status": "pending",
-            "testStrategy": "Manual QA sessions: test full flows on iOS and Elm, simulate 401 scenarios, and compare legacy/new auth outputs; use checklists to verify migration success and user backfill accuracy."
+            "details": "Implement getLastSyncTime() that reads from UserDefaults or SQLite metadata table. Implement updateLastSyncTime(Date()) that stores timestamp after successful sync. Call updateLastSyncTime at end of syncContacts() to track last successful sync.",
+            "status": "done",
+            "testStrategy": "Test that sync timestamp updates after successful sync and persists across app restarts."
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Conduct Comprehensive Testing",
+        "description": "Execute the testing plan for contact management and thread invitations.",
+        "details": "Perform tests for contact addition, sync, deletion, thread creation with contacts/emails, and sync conflicts as outlined in the PRD. Use a combination of unit, integration, and manual tests to validate functionality.",
+        "testStrategy": "Follow the testing plan: automate where possible, manually test cross-device sync and conflict resolution.",
+        "priority": "low",
+        "dependencies": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Test contact addition flow",
+            "description": "Verify end-to-end contact addition with optimistic updates and backend sync",
+            "dependencies": [],
+            "details": "Test scenario: Add contact by email, verify it appears in contacts list immediately (optimistic), wait for backend sync, verify sync success. Check local database has needsSync=0 after sync. Test with invalid emails to verify error handling.",
+            "status": "done",
+            "testStrategy": "Automated integration test plus manual verification in running app."
+          },
+          {
+            "id": 2,
+            "title": "Test cross-device contact sync",
+            "description": "Verify contacts sync across multiple devices/sessions",
+            "dependencies": [],
+            "details": "Test scenario: Add contact on Device A (or test user 1), log in as same user on Device B (or test user 2 using same account), trigger contact sync, verify contact appears on Device B. Test that sync_contacts handler returns correct data based on lastSyncTime.",
+            "status": "done",
+            "testStrategy": "Manual test with multiple iOS simulators or test users, verify data consistency."
+          },
+          {
+            "id": 3,
+            "title": "Test contact deletion and sync",
+            "description": "Verify contact deletion propagates to backend and other devices",
+            "dependencies": [],
+            "details": "Test scenario: Delete contact locally, verify removed from list immediately, verify deletion syncs to backend, verify deletion appears on other devices after sync. Check that isDeleted=1 in local database before sync completes.",
+            "status": "done",
+            "testStrategy": "Test deletion flow with network monitoring to verify backend API call."
+          },
+          {
+            "id": 4,
+            "title": "Test thread creation with contacts",
+            "description": "Verify creating threads with contact selection and email lookup",
+            "dependencies": [],
+            "details": "Test scenario: Create thread selecting contacts from list, verify all participants receive thread. Create thread using email lookup for non-contacts, verify email resolution works and thread created. Verify all participants see messages correctly.",
+            "status": "done",
+            "testStrategy": "Create threads with various participant combinations, verify all participants can send/receive messages."
+          },
+          {
+            "id": 5,
+            "title": "Test sync conflict resolution",
+            "description": "Verify server wins on conflicts during sync",
+            "dependencies": [],
+            "details": "Test scenario: Add contact offline on Device A, delete same contact on server (or Device B), bring Device A online, trigger sync, verify server state wins (contact is deleted on Device A). Test various conflict scenarios to ensure server state always prevails.",
+            "status": "done",
+            "testStrategy": "Simulate offline changes and server-side modifications, verify conflict resolution favors server."
           }
         ]
       }
     ],
     "metadata": {
-      "created": "2025-10-22T01:11:18.485Z",
-      "updated": "2025-10-22T01:11:18.485Z",
-      "description": "Tasks for uber context"
+      "created": "2025-10-22T15:27:40.435Z",
+      "updated": "2025-10-22T17:27:07.574Z",
+      "description": "Tasks for contact context"
     }
   }
 }
