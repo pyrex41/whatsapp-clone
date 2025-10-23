@@ -54,3 +54,18 @@ coordination/orchestration/*
 claude-flow
 # Removed Windows wrapper files per user request
 hive-mind-prompt-*.txt
+
+# Elm build artifacts
+elm-stuff/
+clients/elm-client/public/elm.js
+
+# Xcode user-specific files
+*.xcuserstate
+xcuserdata/
+
+# Repomix output
+repomix-output.xml
+
+# Backend shared DB files
+globalbridge_backend/priv/shared_dbs/*.db-shm
+globalbridge_backend/priv/shared_dbs/*.db-wal
