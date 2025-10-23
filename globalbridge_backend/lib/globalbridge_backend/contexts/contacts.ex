@@ -15,8 +15,9 @@ defmodule GlobalbridgeBackend.Contexts.Contacts do
   def search_users_by_email(email) when is_binary(email) do
     email_pattern = "%#{String.downcase(email)}%"
 
+    # Use fragment for SQLite compatibility (SQLite doesn't support ilike)
     from(u in User,
-      where: ilike(u.email, ^email_pattern),
+      where: fragment("lower(?) LIKE ?", u.email, ^email_pattern),
       select: %{
         id: u.id,
         email: u.email,
@@ -33,14 +34,15 @@ defmodule GlobalbridgeBackend.Contexts.Contacts do
   def search_contacts(user_id, query) when is_binary(query) do
     search_pattern = "%#{String.downcase(query)}%"
 
+    # Use fragment for SQLite compatibility (SQLite doesn't support ilike)
     from(c in Contact,
       join: u in User,
       on: c.contact_user_id == u.id,
       where: c.user_id == ^user_id,
       where:
-        ilike(u.email, ^search_pattern) or
-          ilike(u.username, ^search_pattern) or
-          ilike(u.display_name, ^search_pattern),
+        fragment("lower(?) LIKE ?", u.email, ^search_pattern) or
+          fragment("lower(?) LIKE ?", u.username, ^search_pattern) or
+          fragment("lower(?) LIKE ?", u.display_name, ^search_pattern),
       preload: [contact_user: u],
       order_by: [desc: c.is_favorite, desc: c.updated_at]
     )
