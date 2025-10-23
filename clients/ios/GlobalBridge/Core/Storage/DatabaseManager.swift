@@ -95,6 +95,7 @@ final class DatabaseManager {
     private let messageReplyToId = Expression<String?>("reply_to_id")
     private let messageEditedAt = Expression<Date?>("edited_at")
     private let messageDeletedAt = Expression<Date?>("deleted_at")
+    private let messageClientMessageId = Expression<String?>("client_message_id")  // For deduplication
     private let messageCreatedAt = Expression<Date>("created_at")
     private let messageUpdatedAt = Expression<Date>("updated_at")
 
@@ -287,6 +288,7 @@ final class DatabaseManager {
             t.column(messageReplyToId)
             t.column(messageEditedAt)
             t.column(messageDeletedAt)
+            t.column(messageClientMessageId)  // For deduplication tracking
             t.column(messageCreatedAt, defaultValue: Date())
             t.column(messageUpdatedAt, defaultValue: Date())
         })
@@ -315,6 +317,15 @@ final class DatabaseManager {
         // Create indexes for CDC logs
         try connection.run(cdcLogsTable.createIndex(cdcTableName, cdcRecordId, ifNotExists: true))
         try connection.run(cdcLogsTable.createIndex(cdcTimestamp, ifNotExists: true))
+
+        // Migration: Add client_message_id column to existing messages tables
+        do {
+            try connection.run(messagesTable.addColumn(messageClientMessageId))
+            print("✅ [MIGRATION] Added client_message_id column to messages table")
+        } catch {
+            // Column already exists or other error - safe to ignore
+            print("ℹ️ [MIGRATION] client_message_id column migration skipped (likely already exists)")
+        }
 
         // Add is_synced column for CDC logs
         let cdcIsSynced = Expression<Bool>("is_synced")
@@ -748,6 +759,7 @@ final class DatabaseManager {
                 messageReplyToId <- message.replyToId?.uuidString,
                 messageEditedAt <- message.editedAt,
                 messageDeletedAt <- message.deletedAt,
+                messageClientMessageId <- message.clientMessageId,  // For deduplication
                 messageCreatedAt <- message.createdAt,
                 messageUpdatedAt <- message.updatedAt
             )
@@ -807,7 +819,8 @@ final class DatabaseManager {
                     editedAt: row[messageEditedAt],
                     deletedAt: row[messageDeletedAt],
                     createdAt: row[messageCreatedAt],
-                    updatedAt: row[messageUpdatedAt]
+                    updatedAt: row[messageUpdatedAt],
+                    clientMessageId: row[messageClientMessageId]  // Preserve for deduplication
                 )
                 messages.append(message)
             }

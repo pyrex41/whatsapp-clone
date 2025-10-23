@@ -320,14 +320,17 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 let now = Date()
                 
                 // 1. OFFLINE-FIRST: Create message locally FIRST with "pending" status
+                let clientId = UUID()
                 let localMessage = Message(
+                    id: clientId,
                     threadId: threadID,
                     senderId: currentUser.id,
                     content: text,
                     messageType: .text,
                     status: .pending,  // ← Mark as pending/sending
                     createdAt: now,
-                    updatedAt: now
+                    updatedAt: now,
+                    clientMessageId: clientId.uuidString  // Track original client ID for dedup
                 )
                 
                 print("💾 [SEND] Saving locally FIRST: \(localMessage.id.uuidString) with status=pending")
@@ -452,14 +455,17 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             do {
                 // Optimistic local insert similar to sendMessage
                 let now = Date()
+                let clientId = UUID()
                 let localMessage = Message(
+                    id: clientId,
                     threadId: threadID,
                     senderId: currentUser.id,
                     content: text,
                     messageType: .text,
                     status: .pending,
                     createdAt: now,
-                    updatedAt: now
+                    updatedAt: now,
+                    clientMessageId: clientId.uuidString  // Track for deduplication
                 )
                 try await environment.database.storeMessage(localMessage)
                 send(.messageSent(.success(localMessage)))
