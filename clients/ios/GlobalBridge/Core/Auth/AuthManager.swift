@@ -66,11 +66,18 @@ final class AuthManager: ObservableObject {
         Auth0Config.audience
     }
 
+    private var sessionRestorationTask: Task<Void, Never>?
+    
     private init() {
         // Check if we have stored credentials
-        Task {
+        sessionRestorationTask = Task {
             await restoreSession()
         }
+    }
+    
+    /// Wait for session restoration to complete before checking auth status
+    func ensureSessionRestored() async {
+        await sessionRestorationTask?.value
     }
     
     /// Restore session from stored credentials

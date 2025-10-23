@@ -17,6 +17,11 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
     case .checkAuthentication:
         print("🔐 [STARTUP] Checking if user is authenticated...")
         return .run(priority: nil) { send in
+            // CRITICAL: Wait for session restoration to complete first
+            print("⏳ [STARTUP] Waiting for session restoration...")
+            await AuthManager.shared.ensureSessionRestored()
+            print("✅ [STARTUP] Session restoration complete")
+            
             let isAuthenticated = await AuthManager.shared.isAuthenticated
             print("🔐 [STARTUP] Auth check result: \(isAuthenticated)")
             send(.authenticationChecked(isAuthenticated: isAuthenticated))
