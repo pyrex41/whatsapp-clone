@@ -10,22 +10,23 @@ defmodule GlobalbridgeBackend.Schemas.Message do
   @foreign_key_type :binary_id
 
   schema "messages" do
-    field :thread_id, :binary_id
-    field :sender_id, :binary_id
-    field :content, :string
-    field :content_type, :string  # "text", "image", "video", "audio", "file", "location"
-    field :media_url, :string
-    field :media_size, :integer
-    field :media_mime_type, :string
-    field :is_encrypted, :boolean, default: false
-    field :encryption_key_id, :string
-    field :reply_to_id, :binary_id
-    field :is_deleted, :boolean, default: false
-    field :deleted_at, :utc_datetime
-    field :edited_at, :utc_datetime
+    field(:thread_id, :binary_id)
+    field(:sender_id, :binary_id)
+    field(:content, :string)
+    # "text", "image", "video", "audio", "file", "location"
+    field(:content_type, :string)
+    field(:media_url, :string)
+    field(:media_size, :integer)
+    field(:media_mime_type, :string)
+    field(:is_encrypted, :boolean, default: false)
+    field(:encryption_key_id, :string)
+    field(:reply_to_id, :binary_id)
+    field(:is_deleted, :boolean, default: false)
+    field(:deleted_at, :utc_datetime)
+    field(:edited_at, :utc_datetime)
 
     # Client-side timestamps for CDC sync
-    field :client_created_at, :utc_datetime
+    field(:client_created_at, :utc_datetime)
 
     timestamps(type: :utc_datetime)
   end

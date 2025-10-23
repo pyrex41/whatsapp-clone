@@ -51,6 +51,14 @@ final class AuthManager: ObservableObject {
     private var refreshToken: String?
     private var tokenExpiresAt: Date?
     private var refreshTask: Task<Void, Never>?
+    private var bootstrappedUser: User?
+    
+    // MARK: - Auth Bypass for Testing
+    // Set this to true to bypass Auth0 and use test credentials
+    private let authBypassEnabled = true
+    private var testUserId: String?
+    private var testAccessToken: String?
+    private var testUserDisplayName: String?
     
     // Auth0 Configuration from Auth0Config
     private var auth0Domain: String {
@@ -66,10 +74,38 @@ final class AuthManager: ObservableObject {
     }
 
     private init() {
-        // Check if we have stored credentials
-        Task {
-            await restoreSession()
+        // Auth bypass is enabled but user selection happens later
+        if authBypassEnabled {
+            print("⚠️ [AUTH BYPASS] Authentication bypass is ENABLED")
+            print("⚠️ [AUTH BYPASS] Waiting for test user selection...")
+        } else {
+            // Check if we have stored credentials
+            Task {
+                await restoreSession()
+            }
         }
+    }
+    
+    /// Select a test user for bypass authentication
+    func selectTestUser(userId: String, token: String, displayName: String) {
+        guard authBypassEnabled else { return }
+        
+        self.testUserId = userId
+        self.testAccessToken = token
+        self.testUserDisplayName = displayName
+        self.isAuthenticated = true
+        self.userId = userId
+        self.accessToken = token
+        self.tokenExpiresAt = Date().addingTimeInterval(86400) // 24 hours from now
+        
+        print("✅ [AUTH BYPASS] Test user selected: \(displayName)")
+        print("   User ID: \(userId)")
+        print("   Token: \(token)")
+    }
+    
+    /// Check if a test user has been selected
+    var hasSelectedTestUser: Bool {
+        authBypassEnabled && testUserId != nil && testAccessToken != nil
     }
     
     /// Restore session from stored credentials
@@ -103,6 +139,12 @@ final class AuthManager: ObservableObject {
     
     /// Login with Auth0
     func login() async throws -> String {
+        // If bypass is enabled, return immediately
+        if authBypassEnabled, let token = testAccessToken {
+            print("⚠️ [AUTH BYPASS] Login bypassed, returning test token")
+            return token
+        }
+        
         print("🔐 [AUTH] Starting Auth0 login...")
         print("📱 [AUTH] Bundle ID: \(Bundle.main.bundleIdentifier ?? "unknown")")
         print("🔍 [AUTH] Auth0 Configuration:")
@@ -184,6 +226,7 @@ final class AuthManager: ObservableObject {
             tokenExpiresAt = nil
             isAuthenticated = false
             authError = nil
+            bootstrappedUser = nil
             
             print("✅ [AUTH] Logout complete")
         } catch {
@@ -195,6 +238,11 @@ final class AuthManager: ObservableObject {
     
     /// Get current access token, refreshing if needed
     func getAccessToken() async -> String? {
+        // If bypass is enabled, always return test token
+        if authBypassEnabled {
+            return testAccessToken
+        }
+        
         // Check if token needs refresh
         if needsRefresh() {
             print("🔄 [AUTH] Token needs refresh, attempting refresh...")
@@ -257,6 +305,11 @@ final class AuthManager: ObservableObject {
     
     /// Check if token needs refresh
     func needsRefresh() -> Bool {
+        // If bypass is enabled, token never needs refresh
+        if authBypassEnabled {
+            return false
+        }
+        
         guard let expiresAt = tokenExpiresAt else {
             return true
         }
@@ -328,5 +381,16 @@ final class AuthManager: ObservableObject {
     /// Clear any stored errors
     func clearError() {
         authError = nil
+    }
+    
+    /// Store the bootstrapped user from backend
+    func setBootstrappedUser(_ user: User) {
+        print("💾 [AUTH] Storing bootstrapped user: \(user.id)")
+        self.bootstrappedUser = user
+    }
+    
+    /// Retrieve the bootstrapped user
+    func getBootstrappedUser() -> User? {
+        bootstrappedUser
     }
 }

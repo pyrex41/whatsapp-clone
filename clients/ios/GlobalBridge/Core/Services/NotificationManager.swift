@@ -69,6 +69,22 @@ public class NotificationManager: NSObject, ObservableObject {
         let tokenString = token.map { String(format: "%02.2hhx", $0) }.joined()
         deviceToken = tokenString
         print("[Notifications] Device token: \(tokenString)")
+
+        // Attempt to register with backend (best-effort)
+        Task {
+            do {
+                guard let userId = await AuthManager.shared.getUserId() else {
+                    print("[Notifications] Skipping token register: no user id")
+                    return
+                }
+                let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown"
+                let service = PushService()
+                try await service.registerDeviceToken(token: tokenString, userId: userId, appVersion: appVersion)
+                print("[Notifications] Device token registered with backend")
+            } catch {
+                print("[Notifications] Device token register failed: \(error)")
+            }
+        }
     }
 
     /// Handle registration error from AppDelegate
@@ -143,11 +159,9 @@ public class NotificationManager: NSObject, ObservableObject {
 
     private func handleNotificationResponse(_ response: UNNotificationResponse) {
         let userInfo = response.notification.request.content.userInfo
-
         print("[Notifications] Notification tapped: \(userInfo)")
-
-        // Notify all handlers
-        notificationHandlers.forEach { handler in
+        // Notify all handlers safely
+        for handler in notificationHandlers {
             handler(response)
         }
     }

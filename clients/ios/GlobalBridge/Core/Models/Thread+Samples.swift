@@ -51,7 +51,7 @@ extension Message {
             ),
             Message(
                 threadId: threadId,
-                senderId: UUID(),
+                senderId: "alice-user-id",  // Changed from UUID() to String
                 content: "Great to be here. Let's connect Slack and Telegram next.",
                 messageType: .text,
                 status: .read,

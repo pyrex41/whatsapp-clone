@@ -11,14 +11,16 @@ defmodule GlobalbridgeBackend.Schemas.SyncState do
   @foreign_key_type :binary_id
 
   schema "sync_states" do
-    field :device_id, :binary_id
-    field :thread_id, :binary_id
-    field :entity_type, :string  # "message", "thread", "user"
-    field :entity_id, :binary_id
-    field :operation, :string  # "insert", "update", "delete"
-    field :last_sync_at, :utc_datetime
-    field :sync_cursor, :integer
-    field :is_synced, :boolean, default: false
+    field(:device_id, :binary_id)
+    field(:thread_id, :binary_id)
+    # "message", "thread", "user"
+    field(:entity_type, :string)
+    field(:entity_id, :binary_id)
+    # "insert", "update", "delete"
+    field(:operation, :string)
+    field(:last_sync_at, :utc_datetime)
+    field(:sync_cursor, :integer)
+    field(:is_synced, :boolean, default: false)
 
     timestamps(type: :utc_datetime)
   end

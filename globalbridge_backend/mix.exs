@@ -55,7 +55,11 @@ defmodule GlobalbridgeBackend.MixProject do
       {:bcrypt_elixir, "~> 3.0"},
       {:guardian, "~> 2.3"},
       {:joken, "~> 2.6"},
-      {:cors_plug, "~> 3.0"}
+      {:cors_plug, "~> 3.0"},
+      {:ueberauth, "~> 0.10"},
+      {:ueberauth_auth0, "~> 2.0"},
+      {:hammer, "~> 6.0"},
+      {:plug_attack, "~> 0.4"}
     ]
   end
 

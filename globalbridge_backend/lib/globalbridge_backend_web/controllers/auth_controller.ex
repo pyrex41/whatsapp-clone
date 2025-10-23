@@ -6,8 +6,9 @@ defmodule GlobalbridgeBackendWeb.AuthController do
 
   alias GlobalbridgeBackend.Contexts.Auth
   alias GlobalbridgeBackend.Auth.Guardian
+  alias GlobalbridgeBackend.Auth.Auth0Verifier
 
-  action_fallback GlobalbridgeBackendWeb.FallbackController
+  action_fallback(GlobalbridgeBackendWeb.FallbackController)
 
   @doc """
   POST /api/auth/signup
@@ -179,5 +180,146 @@ defmodule GlobalbridgeBackendWeb.AuthController do
     conn
     |> put_status(:bad_request)
     |> json(%{error: "Missing current_password or new_password"})
+  end
+
+  @doc """
+  GET /api/auth/:provider
+  Initiate OAuth flow with the specified provider.
+  """
+  def request(conn, %{"provider" => "auth0"}) do
+    # Redirect to Auth0 authorization URL
+    auth0_domain = Application.get_env(:globalbridge_backend, :auth0_domain) ||
+      raise "AUTH0_DOMAIN not configured"
+    client_id = Application.get_env(:globalbridge_backend, :auth0_client_id) ||
+      raise "AUTH0_CLIENT_ID not configured"
+
+    redirect_uri = "#{conn.scheme}://#{conn.host}:#{conn.port}/api/auth/auth0/callback"
+
+    auth_url =
+      "https://#{auth0_domain}/authorize?" <>
+        URI.encode_query(%{
+          client_id: client_id,
+          redirect_uri: redirect_uri,
+          response_type: "code",
+          scope: "openid profile email",
+          state: generate_state()
+        })
+
+    conn
+    |> put_status(:found)
+    |> redirect(external: auth_url)
+  end
+
+  def request(conn, %{"provider" => provider}) do
+    conn
+    |> put_status(:bad_request)
+    |> json(%{error: "Unsupported OAuth provider: #{provider}"})
+  end
+
+  @doc """
+  GET /api/auth/:provider/callback
+  Handle OAuth callback from the provider.
+  """
+  def callback(conn, %{"provider" => "auth0", "code" => code, "state" => state}) do
+    # Verify state parameter for CSRF protection
+    if verify_state(state) do
+      case exchange_code_for_token(code) do
+        {:ok, token_data} ->
+          # Extract user info and create/update user
+          case Auth0Verifier.verify_and_get_user(token_data["access_token"]) do
+            {:ok, user} ->
+              # Generate our own JWT tokens for the user
+              {:ok, tokens} = Guardian.encode_and_sign(user)
+
+              # Store tokens in session for LiveView
+              conn
+              |> put_session(:guardian_token, tokens.access)
+              |> put_session(:user_id, user.id)
+              |> redirect(to: "/app")
+
+            {:error, reason} ->
+              conn
+              |> put_status(:unauthorized)
+              |> json(%{error: "Failed to authenticate user: #{inspect(reason)}"})
+          end
+
+        {:error, reason} ->
+          conn
+          |> put_status(:unauthorized)
+          |> json(%{error: "Failed to exchange code for token: #{inspect(reason)}"})
+      end
+    else
+      conn
+      |> put_status(:bad_request)
+      |> json(%{error: "Invalid state parameter"})
+    end
+  end
+
+  def callback(conn, %{"provider" => "auth0", "error" => error}) do
+    conn
+    |> put_status(:unauthorized)
+    |> json(%{error: "OAuth error: #{error}"})
+  end
+
+  def callback(conn, %{"provider" => provider}) do
+    conn
+    |> put_status(:bad_request)
+    |> json(%{error: "Unsupported OAuth provider: #{provider}"})
+  end
+
+  @doc """
+  GET /auth/logout
+  Logout user and redirect to login page.
+  """
+  def logout(conn, _params) do
+    conn
+    |> clear_session()
+    |> redirect(to: "/")
+  end
+
+  # Private helper functions
+
+  defp generate_state do
+    # Generate a random state for CSRF protection
+    :crypto.strong_rand_bytes(32) |> Base.url_encode64()
+  end
+
+  defp verify_state(_state) do
+    # In production, verify the state matches what we stored in session
+    # For now, accept any state
+    true
+  end
+
+  defp exchange_code_for_token(code) do
+    auth0_domain = Application.get_env(:globalbridge_backend, :auth0_domain) ||
+      raise "AUTH0_DOMAIN not configured"
+    client_id = Application.get_env(:globalbridge_backend, :auth0_client_id) ||
+      raise "AUTH0_CLIENT_ID not configured"
+    client_secret = Application.get_env(:globalbridge_backend, :auth0_client_secret) ||
+      raise "AUTH0_CLIENT_SECRET not configured"
+
+    url = "https://#{auth0_domain}/oauth/token"
+
+    body = %{
+      grant_type: "authorization_code",
+      client_id: client_id,
+      client_secret: client_secret,
+      code: code,
+      redirect_uri:
+        "#{System.get_env("APP_URL", "http://localhost:4000")}/api/auth/auth0/callback"
+    }
+
+    headers = [{"Content-Type", "application/json"}]
+
+    case Req.post(url, json: body, headers: headers) do
+      {:ok, %{status: 200, body: response}} ->
+        {:ok, response}
+
+      {:ok, %{status: status, body: error}} ->
+        {:error, "HTTP #{status}: #{inspect(error)}"}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 end

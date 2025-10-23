@@ -11,7 +11,7 @@ import Foundation
 struct Message: Identifiable, Codable, Equatable {
     let id: UUID
     let threadId: UUID
-    let senderId: UUID
+    let senderId: String  // Changed from UUID to String to match backend
     var content: String
     var messageType: MessageType
     var status: MessageStatus
@@ -24,6 +24,7 @@ struct Message: Identifiable, Codable, Equatable {
     var ciphertext: Data?
     let createdAt: Date
     let updatedAt: Date
+    var clientMessageId: String?  // For deduplication - tracks original client UUID
 
     enum MessageType: String, Codable {
         case text = "text"
@@ -49,7 +50,7 @@ struct Message: Identifiable, Codable, Equatable {
     nonisolated init(
         id: UUID = UUID(),
         threadId: UUID,
-        senderId: UUID,
+        senderId: String,  // Changed from UUID to String
         content: String,
         messageType: MessageType = .text,
         status: MessageStatus = .pending,
@@ -61,7 +62,8 @@ struct Message: Identifiable, Codable, Equatable {
         encryptionKeyId: String? = nil,
         ciphertext: Data? = nil,
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
+        clientMessageId: String? = nil
     ) {
         self.id = id
         self.threadId = threadId
@@ -78,6 +80,7 @@ struct Message: Identifiable, Codable, Equatable {
         self.ciphertext = ciphertext
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.clientMessageId = clientMessageId
     }
 }
 
@@ -85,8 +88,7 @@ extension Message {
     nonisolated static func fromPhoenix(_ phoenixMessage: PhoenixMessage) -> Message? {
         guard
             let messageId = UUID(uuidString: phoenixMessage.id),
-            let threadId = UUID(uuidString: phoenixMessage.conversationId),
-            let senderId = UUID(uuidString: phoenixMessage.senderId)
+            let threadId = UUID(uuidString: phoenixMessage.conversationId)
         else {
             return nil
         }
@@ -113,7 +115,7 @@ extension Message {
         return Message(
             id: messageId,
             threadId: threadId,
-            senderId: senderId,
+            senderId: phoenixMessage.senderId,  // Now a String
             content: phoenixMessage.content,
             messageType: .text,
             status: status,
@@ -125,7 +127,8 @@ extension Message {
             encryptionKeyId: nil,
             ciphertext: nil,
             createdAt: phoenixMessage.timestamp,
-            updatedAt: phoenixMessage.timestamp
+            updatedAt: phoenixMessage.timestamp,
+            clientMessageId: phoenixMessage.clientMessageId
         )
     }
 }

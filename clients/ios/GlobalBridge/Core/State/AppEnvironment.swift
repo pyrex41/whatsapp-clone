@@ -6,6 +6,17 @@
 import Foundation
 import SwiftUI
 
+// Actor to safely guard one-time registration for global message handler
+actor GlobalBannerHandlerRegistry {
+    static let shared = GlobalBannerHandlerRegistry()
+    private var registered = false
+    func markIfNeeded() -> Bool {
+        if registered { return false }
+        registered = true
+        return true
+    }
+}
+
 struct DatabaseClient {
     var loadThreads: @Sendable () async throws -> [Thread]
     var createThread: @Sendable (_ title: String, _ creator: User) async throws -> Thread
@@ -18,8 +29,9 @@ struct RealtimeClient {
     var ensureConnection: @Sendable () async throws -> Void
     var connect: @Sendable (_ threadID: UUID, _ handler: @Sendable @escaping (Message) -> Void) async throws -> Void
     var disconnect: @Sendable (_ threadID: UUID) async -> Void
-    var sendTyping: @Sendable (_ threadID: UUID, _ userID: UUID, _ isTyping: Bool) async -> Void
-    var sendMessage: @Sendable (_ threadID: UUID, _ content: String, _ author: User, _ replyTo: UUID?) async throws -> Message
+    var sendTyping: @Sendable (_ threadID: UUID, _ userID: String, _ isTyping: Bool) async -> Void  // Changed userID from UUID to String
+    var sendMessage: @Sendable (_ threadID: UUID, _ content: String, _ author: User, _ clientMessageId: UUID?) async throws -> Message
+    var sendReadReceipt: @Sendable (_ threadID: UUID, _ messageId: String) async -> Void
 }
 
 struct SyncClient {
@@ -35,6 +47,7 @@ struct AppEnvironment {
     var sync: SyncClient
     var uuid: @Sendable () -> UUID = { UUID() }
     var now: @Sendable () -> Date = { Date() }
+    var deviceId: UUID = UUID() // Unique device identifier for deduplication
 }
 
 extension AppEnvironment {
@@ -70,7 +83,8 @@ extension AppEnvironment {
             sendTyping: { _, _, _ in },
             sendMessage: { threadID, content, author, _ in
                 await store.createMessage(threadID: threadID, content: content, author: author)
-            }
+            },
+            sendReadReceipt: { _, _ in }
         )
 
         let sync = SyncClient(
@@ -90,7 +104,7 @@ extension AppEnvironment {
             try await databaseManager.seedSampleDataIfNeeded()
         }
 
-        let phoenixConfig = PhoenixConfig.development
+        let phoenixConfig = PhoenixConfig.current  // Auto-selects dev/prod based on build config
         let phoenixManager = PhoenixChannelManager(config: phoenixConfig)
 
         let threadService = ThreadService()
@@ -117,17 +131,28 @@ extension AppEnvironment {
                 
                 print("📥 [LOAD_THREADS] Starting thread load...")
                 
-                // Check if we should sync from backend
+                // ALWAYS fetch user identity from backend
+                print("👤 [LOAD_THREADS] Fetching current user identity...")
+                let user = try await databaseManager.fetchUserFromBackend(phoenixManager: phoenixManager)
+                print("✅ [LOAD_THREADS] User identity confirmed: \(user.id)")
+                await AuthManager.shared.setBootstrappedUser(user)
+                
+                // Check if we should sync threads from backend
                 let localThreads = try await databaseManager.fetchThreads()
                 
                 if localThreads.isEmpty {
                     print("📥 [LOAD_THREADS] No local threads, syncing from backend...")
                     
-                    // Sync from backend via Phoenix bootstrap
-                    let syncedThreads = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
-                    
-                    print("✅ [LOAD_THREADS] Synced \(syncedThreads.count) threads from backend")
-                    return syncedThreads
+                    do {
+                        // Sync threads from backend via Phoenix bootstrap
+                        let (syncedThreads, _) = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
+                        print("✅ [LOAD_THREADS] Synced \(syncedThreads.count) threads from backend")
+                        return syncedThreads
+                    } catch {
+                        print("❌ [LOAD_THREADS] Bootstrap sync failed: \(error)")
+                        print("❌ [LOAD_THREADS] Error details: \(error.localizedDescription)")
+                        throw error
+                    }
                 } else {
                     print("✅ [LOAD_THREADS] Loaded \(localThreads.count) threads from local DB")
                     return localThreads
@@ -137,12 +162,14 @@ extension AppEnvironment {
                 _ = try await initializationTask.value
                 
                 print("🆕 [CREATE_THREAD] Creating thread '\(title)' via backend...")
+                print("🆕 [CREATE_THREAD] Using creator ID from backend: \(creator.id)")
                 
                 // 1. Create thread on backend first via Phoenix
+                // Use the backend-provided user ID (which comes from UserData.id from bootstrap)
                 let threadData = try await phoenixManager.createThread(
                     threadType: "group",
                     title: title,
-                    participantIds: [creator.id.uuidString]
+                    participantIds: [creator.id]  // creator.id is already a String
                 )
                 
                 print("✅ [CREATE_THREAD] Backend created thread: \(threadData.id)")
@@ -209,13 +236,74 @@ extension AppEnvironment {
                 
                 let authToken = await AuthManager.shared.getAccessToken()
                 print("🔌 [REALTIME] Connecting with Auth0 token...")
-                try await phoenixManager.connect(authToken: authToken)
+                
+                // Retry connection up to 3 times with delay
+                var lastError: Error?
+                for attempt in 1...3 {
+                    do {
+                        try await phoenixManager.connect(authToken: authToken)
+                        print("✅ [REALTIME] Phoenix connected on attempt \(attempt)")
+                        break
+                    } catch {
+                        lastError = error
+                        if attempt < 3 {
+                            print("⚠️ [REALTIME] Connection attempt \(attempt) failed, retrying in 1s...")
+                            try? await Task.sleep(nanoseconds: 1_000_000_000)
+                        }
+                    }
+                }
+                
+                // If all retries failed, throw the last error
+                if let error = lastError {
+                    let state = await phoenixManager.getConnectionState()
+                    if case .connected = state {
+                        print("✅ [REALTIME] Connected despite error")
+                    } else {
+                        print("❌ [REALTIME] All connection attempts failed")
+                        throw error
+                    }
+                }
                 
                 // Join user channel for bootstrap
                 if let userId = await AuthManager.shared.getUserId() {
                     print("👤 [REALTIME] Joining user channel for: \(userId)")
                     try await phoenixManager.joinUserChannel(userId: userId)
                     print("✅ [REALTIME] User channel joined")
+
+                    // Register global new_message handler once (user-wide feed)
+                    if await GlobalBannerHandlerRegistry.shared.markIfNeeded() {
+                        await phoenixManager.onAnyMessage { phoenixMessage in
+                            guard let message = Message.fromPhoenix(phoenixMessage) else { return }
+                            // Present banner in banner mode only
+                            Task { @Sendable in
+                                guard NotificationConfig.current != .system else { return }
+                                // Skip self messages
+                                let currentUserId = await AuthManager.shared.getUserId()
+                                if let currentUserId, currentUserId == message.senderId { return }
+                                // Respect mute
+                                let thread = try? await databaseManager.fetchThread(id: message.threadId)
+                                if thread?.isMuted == true { return }
+                                // Build event
+                                let raw = message.content.replacingOccurrences(of: "\n", with: " ")
+                                let snippet = String(raw.prefix(120))
+                                let title = thread?.title ?? "New message"
+                                let event = NotificationEvent.messageReceived(
+                                    .init(threadId: message.threadId, title: title, snippet: snippet, avatarURL: nil)
+                                )
+                                await MainActor.run {
+                                    InAppBannerCenter.shared.present(event: event)
+                                }
+                                // Ensure thread exists locally and persist message for non-active threads
+                                if (try? await databaseManager.fetchThread(id: message.threadId)) == nil {
+                                    if let remote = try? await threadService.fetchThreads().first(where: { $0.id == message.threadId }) {
+                                        try? await databaseManager.upsertThread(remote)
+                                    }
+                                }
+                                try? await databaseManager.createMessage(message)
+                            }
+                            
+                        }
+                    }
                 }
             },
             connect: { threadID, handler in
@@ -229,16 +317,16 @@ extension AppEnvironment {
                 print("✅ [CONNECT] Phoenix connected")
 
                 let conversationId = threadID.uuidString
-                print("🔌 [CONNECT] Joining channel: thread:\(conversationId)")
-                try await phoenixManager.joinConversation(conversationId)
-                print("✅ [CONNECT] Channel joined successfully!")
-
+                // Register UI handler BEFORE joining to avoid missing early events
                 await phoenixManager.onMessage(conversationId: conversationId) { phoenixMessage in
                     guard let message = Message.fromPhoenix(phoenixMessage) else { return }
                     Task { @MainActor in
                         handler(message)
                     }
                 }
+                print("🔌 [CONNECT] Joining channel: thread:\(conversationId)")
+                try await phoenixManager.joinConversation(conversationId)
+                print("✅ [CONNECT] Channel joined successfully!")
                 print("✅ [CONNECT] Message handler registered for thread: \(threadID)")
             },
             disconnect: { threadID in
@@ -247,8 +335,8 @@ extension AppEnvironment {
             sendTyping: { threadID, _, isTyping in
                 await phoenixManager.sendTypingIndicator(conversationId: threadID.uuidString, isTyping: isTyping)
             },
-            sendMessage: { threadID, content, _, replyTo in
-                print("📤 [ENV] sendMessage called - thread: \(threadID.uuidString), content: \"\(content)\", replyTo: \(replyTo?.uuidString ?? "nil")")
+            sendMessage: { threadID, content, _, clientMessageId in
+                print("📤 [ENV] sendMessage called - thread: \(threadID.uuidString), content: \"\(content)\", clientMessageId: \(clientMessageId?.uuidString ?? "nil")")
 
                 // Get Auth0 token
                 let token = await AuthManager.shared.getAccessToken()
@@ -261,7 +349,8 @@ extension AppEnvironment {
                 let phoenixMessage = try await phoenixManager.sendMessage(
                     conversationId: threadID.uuidString,
                     content: content,
-                    replyToId: replyTo?.uuidString
+                    clientMessageId: clientMessageId?.uuidString,
+                    replyToId: nil
                 )
                 print("✅ [ENV] Phoenix response: id=\(phoenixMessage.id), conversationId=\(phoenixMessage.conversationId), senderId=\(phoenixMessage.senderId), content=\"\(phoenixMessage.content)\", status=\(phoenixMessage.status.rawValue)")
 
@@ -273,6 +362,9 @@ extension AppEnvironment {
                 print("✅ [ENV] Message converted successfully: id=\(message.id.uuidString)")
 
                 return message
+            },
+            sendReadReceipt: { threadID, messageId in
+                await phoenixManager.sendReadReceipt(conversationId: threadID.uuidString, messageId: messageId)
             }
         )
 
@@ -287,8 +379,11 @@ extension AppEnvironment {
                 } catch {
                     print("⚠️ Failed to fetch remote threads: \\(error.localizedDescription)")
                 }
-                let actor = await syncActorTask.value
-                await actor.syncAllThreads()
+                // Note: syncAllThreads() is NOT called here because thread channels aren't joined yet
+                // Sync will be triggered automatically when:
+                // 1. User taps on a thread → channel joins → sync happens
+                // 2. Connectivity monitoring detects connection → syncs all threads
+                print("✅ Initial sync preparation complete (channels will sync when joined)")
             },
             startMonitoring: {
                 let actor = await syncActorTask.value

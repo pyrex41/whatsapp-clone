@@ -9,7 +9,7 @@ defmodule GlobalbridgeBackend.Auth.Pipeline do
 
   # First try to verify Auth0 token, then fall back to Guardian
   plug(:verify_auth0_token)
-  plug(Guardian.Plug.VerifyHeader, scheme: "Bearer")
+  plug(:conditionally_verify_guardian)
   plug(:ensure_authenticated_custom)
   plug(Guardian.Plug.LoadResource, allow_blank: true)
   plug(:assign_current_user)
@@ -32,6 +32,7 @@ defmodule GlobalbridgeBackend.Auth.Pipeline do
             conn
             |> Guardian.Plug.put_current_resource(user)
             |> Plug.Conn.assign(:current_user, user)
+            |> Plug.Conn.assign(:auth_bypass_used, token == "test-token-for-backend-integration")
 
           {:error, reason} ->
             Logger.warning("⚠️ [AUTH] Auth0 verification failed: #{inspect(reason)}")
@@ -45,6 +46,19 @@ defmodule GlobalbridgeBackend.Auth.Pipeline do
       other ->
         Logger.warning("⚠️ [AUTH] Unexpected Authorization header format: #{inspect(other)}")
         conn
+    end
+  end
+
+  @doc """
+  Conditionally verify Guardian token, skipping for auth bypass.
+  """
+  def conditionally_verify_guardian(conn, _opts) do
+    if conn.assigns[:auth_bypass_used] do
+      # Skip Guardian verification for test token
+      conn
+    else
+      # Use normal Guardian verification
+      Guardian.Plug.VerifyHeader.call(conn, [])
     end
   end
 

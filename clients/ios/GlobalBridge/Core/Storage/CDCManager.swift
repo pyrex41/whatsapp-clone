@@ -266,8 +266,7 @@ final class CDCManager {
     private func parseMessage(from data: [String: String], threadId: UUID) throws -> Message {
         guard let idStr = data["id"],
               let id = UUID(uuidString: idStr),
-              let senderIdStr = data["sender_id"],
-              let senderId = UUID(uuidString: senderIdStr),
+              let senderId = data["sender_id"],  // Changed: now a String, not UUID
               let content = data["content"],
               let messageTypeStr = data["message_type"],
               let messageType = Message.MessageType(rawValue: messageTypeStr),

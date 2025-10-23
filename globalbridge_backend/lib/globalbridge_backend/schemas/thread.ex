@@ -10,19 +10,20 @@ defmodule GlobalbridgeBackend.Schemas.Thread do
   @foreign_key_type :binary_id
 
   schema "threads" do
-    field :thread_type, :string  # "direct", "group"
-    field :title, :string
-    field :avatar_url, :string
-    field :last_message_at, :utc_datetime
-    field :is_archived, :boolean, default: false
-    field :is_muted, :boolean, default: false
+    # "direct", "group"
+    field(:thread_type, :string)
+    field(:title, :string)
+    field(:avatar_url, :string)
+    field(:last_message_at, :utc_datetime)
+    field(:is_archived, :boolean, default: false)
+    field(:is_muted, :boolean, default: false)
 
     # For sharding - indicates which database file this thread uses
-    field :database_shard_id, :string
+    field(:database_shard_id, :string)
 
     # Associations
-    has_many :thread_participants, GlobalbridgeBackend.Schemas.ThreadParticipant
-    has_many :participants, through: [:thread_participants, :user]
+    has_many(:thread_participants, GlobalbridgeBackend.Schemas.ThreadParticipant)
+    has_many(:participants, through: [:thread_participants, :user])
 
     timestamps(type: :utc_datetime)
   end
