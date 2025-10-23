@@ -406,15 +406,26 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         if let clientMsgId = message.clientMessageId,
            let clientUUID = UUID(uuidString: clientMsgId),
            let existingIndex = state.chat.messages.firstIndex(where: { $0.id == clientUUID }) {
-            // This is our own message coming back from server - update with server ID
-            print("🔄 [RECEIVE] Updating local message \(clientMsgId) with server ID: \(message.id)")
+            // This is our own message coming back from server - replace with server version
+            print("🔄 [RECEIVE] Replacing local message \(clientMsgId) with server ID: \(message.id)")
             
-            // Update the existing message with the server's ID and data
+            // Update in memory
             state.chat.messages[existingIndex] = message
             
-            // Update in database
+            // CRITICAL: Delete old client message and store server message
             return .fireAndForget {
-                try? await environment.database.storeMessage(message)
+                do {
+                    // Delete the old client-generated message
+                    print("🗑️ [RECEIVE] Deleting client message: \(clientUUID)")
+                    try await DatabaseManager.shared.deleteMessage(id: clientUUID, threadId: message.threadId)
+                    
+                    // Store the server message
+                    print("💾 [RECEIVE] Storing server message: \(message.id)")
+                    try await environment.database.storeMessage(message)
+                    print("✅ [RECEIVE] Deduplication complete - old deleted, new stored")
+                } catch {
+                    print("⚠️ [RECEIVE] Deduplication error: \(error)")
+                }
             }
         }
         
