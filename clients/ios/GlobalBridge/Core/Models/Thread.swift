@@ -17,6 +17,7 @@ struct Thread: Identifiable, Codable, Equatable {
     var isArchived: Bool
     var isMuted: Bool
     let databaseShardId: String
+    var participantIds: [String]?  // For displaying DM names
     var unreadCount: Int
     var lastReadMessageId: UUID?
     var encryptionVersion: Int
@@ -39,6 +40,7 @@ struct Thread: Identifiable, Codable, Equatable {
         isArchived: Bool = false,
         isMuted: Bool = false,
         databaseShardId: String? = nil,
+        participantIds: [String]? = nil,
         unreadCount: Int = 0,
         lastReadMessageId: UUID? = nil,
         encryptionVersion: Int = 1,
@@ -54,12 +56,31 @@ struct Thread: Identifiable, Codable, Equatable {
         self.isArchived = isArchived
         self.isMuted = isMuted
         self.databaseShardId = databaseShardId ?? "thread_\(id.uuidString)"
+        self.participantIds = participantIds
         self.unreadCount = unreadCount
         self.lastReadMessageId = lastReadMessageId
         self.encryptionVersion = encryptionVersion
         self.encryptionSalt = encryptionSalt
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+    
+    /// Display name for the thread (for DMs, shows other participant)
+    func displayName(currentUserId: String) -> String {
+        // For groups, use the title
+        if threadType != .direct {
+            return title ?? "Group Chat"
+        }
+        
+        // For DMs, show the other participant
+        // TODO: Look up actual user name from contacts/users
+        if let participants = participantIds,
+           let otherParticipant = participants.first(where: { $0 != currentUserId }) {
+            let prefix = otherParticipant.prefix(8)
+            return "User \(prefix)"
+        }
+        
+        return title ?? "Direct Message"
     }
 }
 

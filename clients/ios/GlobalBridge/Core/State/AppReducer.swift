@@ -536,6 +536,7 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                     isArchived: threadData.isArchived,
                     isMuted: threadData.isMuted,
                     databaseShardId: threadData.databaseShardId,
+                    participantIds: threadData.participantIds,  // Include for DM name display
                     createdAt: threadData.createdAt,
                     updatedAt: threadData.updatedAt
                 )
@@ -616,6 +617,7 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                     isArchived: threadData.isArchived,
                     isMuted: threadData.isMuted,
                     databaseShardId: threadData.databaseShardId,
+                    participantIds: threadData.participantIds,  // Include participants
                     createdAt: threadData.createdAt,
                     updatedAt: threadData.updatedAt
                 )

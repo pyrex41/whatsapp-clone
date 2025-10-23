@@ -92,7 +92,7 @@ struct ChatScreen: View {
                 .toolbar {
                     ToolbarItem(placement: .principal) {
                         VStack(spacing: 2) {
-                            Text(thread.title ?? "Conversation")
+                            Text(thread.displayName(currentUserId: store.state.user.id))
                                 .font(.headline)
                             if let lastMessageAt = thread.lastMessageAt {
                                 Text("Active \(TimestampFormatter.string(for: lastMessageAt))")
@@ -116,7 +116,7 @@ struct ChatScreen: View {
                 )
             }
         }
-        .navigationTitle(chatState.currentThread?.title ?? "Messages")
+        .navigationTitle(chatState.currentThread?.displayName(currentUserId: store.state.user.id) ?? "Messages")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

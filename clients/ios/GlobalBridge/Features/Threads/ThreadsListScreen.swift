@@ -26,7 +26,8 @@ struct ThreadsListScreen: View {
                     ForEach(threadsState.filteredItems, id: \.id) { thread in
                         ThreadRow(
                             thread: thread,
-                            isSelected: thread.id == threadsState.selectedThreadID
+                            isSelected: thread.id == threadsState.selectedThreadID,
+                            currentUserId: store.state.user.id
                         )
                         .contentShape(Rectangle())
                         .onTapGesture {
@@ -152,6 +153,7 @@ struct ThreadsListScreen: View {
 struct ThreadRow: View {
     let thread: Thread
     let isSelected: Bool
+    let currentUserId: String
 
     var body: some View {
         HStack(spacing: 12) {
@@ -167,7 +169,7 @@ struct ThreadRow: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(thread.title ?? "Untitled")
+                    Text(thread.displayName(currentUserId: currentUserId))
                         .font(.headline)
                         .lineLimit(1)
                     Spacer()
@@ -249,7 +251,8 @@ struct ThreadsListCompactView: View {
                         NavigationLink(value: thread.id) {
                             ThreadRow(
                                 thread: thread,
-                                isSelected: thread.id == threadsState.selectedThreadID
+                                isSelected: thread.id == threadsState.selectedThreadID,
+                                currentUserId: store.state.user.id
                             )
                         }
                         .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
