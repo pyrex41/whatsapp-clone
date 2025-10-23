@@ -28,7 +28,9 @@ defmodule GlobalbridgeBackendWeb.Router do
   end
 
   def rate_limit_api(conn, _opts) do
-    case Hammer.check_rate("api:#{conn.remote_ip}", 60_000, 100) do
+    ip_string = conn.remote_ip |> Tuple.to_list() |> Enum.join(".")
+
+    case Hammer.check_rate("api:#{ip_string}", 60_000, 100) do
       {:allow, _count} ->
         conn
 
@@ -47,7 +49,9 @@ defmodule GlobalbridgeBackendWeb.Router do
   end
 
   def rate_limit_auth(conn, _opts) do
-    case Hammer.check_rate("auth:#{conn.remote_ip}", 60_000, 5) do
+    ip_string = conn.remote_ip |> Tuple.to_list() |> Enum.join(".")
+
+    case Hammer.check_rate("auth:#{ip_string}", 60_000, 5) do
       {:allow, _count} ->
         conn
 

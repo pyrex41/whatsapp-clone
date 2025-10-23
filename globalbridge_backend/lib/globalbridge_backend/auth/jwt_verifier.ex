@@ -9,8 +9,6 @@ defmodule GlobalbridgeBackend.Auth.JWTVerifier do
   require Logger
 
   @expected_issuer_prefix "https://"
-  # Note: Using compile_env for module attribute - requires config at compile time
-  @expected_audience Application.compile_env(:globalbridge_backend, :auth0_client_id)
 
   @doc """
   Verifies an Auth0 JWT token.
@@ -55,7 +53,9 @@ defmodule GlobalbridgeBackend.Auth.JWTVerifier do
   defp extract_kid(_), do: {:error, :missing_kid}
 
   defp verify_signature(token, jwk) do
-    signer = Joken.Signer.create("RS256", jwk)
+    # Convert JOSE.JWK struct to map format that Joken expects
+    {_kty, key_map} = JOSE.JWK.to_map(jwk)
+    signer = Joken.Signer.create("RS256", key_map)
 
     case Joken.verify(token, signer) do
       {:ok, claims} -> {:ok, claims}
@@ -89,11 +89,13 @@ defmodule GlobalbridgeBackend.Auth.JWTVerifier do
   defp validate_issuer(_), do: {:error, :missing_issuer}
 
   defp validate_audience(%{"aud" => audience}) do
+    expected_audience = Application.get_env(:globalbridge_backend, :auth0_audience, "globalbridge-api")
+
     cond do
-      is_binary(audience) and audience == @expected_audience ->
+      is_binary(audience) and audience == expected_audience ->
         :ok
 
-      is_list(audience) and @expected_audience in audience ->
+      is_list(audience) and expected_audience in audience ->
         :ok
 
       true ->

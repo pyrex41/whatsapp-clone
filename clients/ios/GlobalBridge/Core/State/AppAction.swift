@@ -7,7 +7,7 @@ import Foundation
 
 enum AppAction {
     case onAppear
-    case threadsLoaded(Result<[Thread], Error>)
+    case threadsLoaded(Result<(user: User, threads: [Thread]), Error>)
     case threadSelected(Thread.ID)
     case setSearchQuery(String)
     case toggleCreationSheet(Bool)
@@ -30,4 +30,10 @@ enum AppAction {
     // Notification actions
     case markMessageRead(threadID: Thread.ID, messageID: String)
     case sendQuickReply(threadID: Thread.ID, text: String)
+    
+    // Thread creation actions
+    case createDirectMessage(userId: String)
+    case directMessageCreated(Result<Thread, Error>)
+    case createGroupThread(title: String, participantIds: [String])
+    case groupThreadCreated(Result<Thread, Error>)
 }

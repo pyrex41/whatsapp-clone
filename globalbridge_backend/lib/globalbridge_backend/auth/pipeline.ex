@@ -10,8 +10,8 @@ defmodule GlobalbridgeBackend.Auth.Pipeline do
   # First try to verify Auth0 token, then fall back to Guardian
   plug(:verify_auth0_token)
   plug(:conditionally_verify_guardian)
-  plug(:ensure_authenticated_custom)
   plug(Guardian.Plug.LoadResource, allow_blank: true)
+  plug(:ensure_authenticated_custom)
   plug(:assign_current_user)
 
   @doc """

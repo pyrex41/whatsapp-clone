@@ -23,8 +23,8 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 // Step 2: Load threads (which uses Phoenix for bootstrap if needed)
                 await environment.sync.initialSync()
                 await environment.sync.startMonitoring()
-                let threads = try await environment.database.loadThreads()
-                send(.threadsLoaded(.success(threads)))
+                let result = try await environment.database.loadThreads()
+                send(.threadsLoaded(.success(result)))
             } catch {
                 print("❌ [STARTUP] Failed: \(error.localizedDescription)")
                 send(.threadsLoaded(.failure(error)))
@@ -35,18 +35,13 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         state.threads.isLoading = false
         state.threads.hasLoaded = true
         switch result {
-        case let .success(threads):
-            // Update user from bootstrap if available
-            let user = MainActor.assumeIsolated {
-                AuthManager.shared.getBootstrappedUser()
-            }
-            if let bootstrappedUser = user {
-                print("👤 [LOADED] Updating app state with bootstrapped user: \(bootstrappedUser.id)")
-                state.user = bootstrappedUser
-            }
+        case let .success(result):
+            // Set user from bootstrap
+            state.user = result.user
+            print("👤 [LOADED] User set: \(result.user.id)")
             
-            state.threads.items = threads
-            if let firstThread = threads.first {
+            state.threads.items = result.threads
+            if let firstThread = result.threads.first {
                 print("📋 [LOADED] Auto-selecting first thread: \(firstThread.id)")
                 state.threads.selectedThreadID = firstThread.id
                 state.chat.currentThread = firstThread
@@ -472,5 +467,147 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         state.threads.errorMessage = "This conversation is no longer available on the server. It has been removed from your list."
 
         return .none
+    
+    case let .createDirectMessage(userId):
+        print("💬 [DM] Creating direct message with user: \(userId)")
+        return .run(priority: nil) { send in
+            do {
+                let threadData = try await environment.realtime.createDirectMessage(userId)
+                print("✅ [DM] Backend created DM: \(threadData.id)")
+                
+                // Convert ThreadData to Thread
+                let thread = Thread(
+                    id: UUID(uuidString: threadData.id)!,
+                    threadType: Thread.ThreadType(rawValue: threadData.threadType) ?? .direct,
+                    title: threadData.title,
+                    avatarUrl: nil,
+                    lastMessageAt: threadData.lastMessageAt,
+                    isArchived: threadData.isArchived,
+                    isMuted: threadData.isMuted,
+                    databaseShardId: threadData.databaseShardId,
+                    createdAt: threadData.createdAt,
+                    updatedAt: threadData.updatedAt
+                )
+                
+                send(.directMessageCreated(.success(thread)))
+            } catch {
+                print("❌ [DM] Failed to create: \(error.localizedDescription)")
+                send(.directMessageCreated(.failure(error)))
+            }
+        }
+    
+    case let .directMessageCreated(result):
+        switch result {
+        case let .success(thread):
+            print("✅ [DM] DM created successfully: \(thread.id)")
+            
+            // Add to threads list if not already present
+            if !state.threads.items.contains(where: { $0.id == thread.id }) {
+                state.threads.items.insert(thread, at: 0)
+            }
+            
+            // Select the new thread
+            state.threads.selectedThreadID = thread.id
+            state.chat.currentThread = thread
+            state.chat.messages = []
+            state.chat.isLoadingMessages = true
+            
+            // Join channel and load messages
+            let threadID = thread.id
+            return .merge(
+                .run(priority: nil) { send in
+                    send(.loadMessages(threadID))
+                },
+                .run(priority: nil) { send in
+                    do {
+                        try await environment.realtime.ensureConnection()
+                        try await environment.realtime.connect(threadID) { message in
+                            Task { @MainActor in
+                                send(.receiveRealtimeMessage(message))
+                            }
+                        }
+                        await environment.sync.syncThread(threadID)
+                    } catch {
+                        print("❌ [DM] Failed to connect to thread: \(error)")
+                    }
+                }
+            )
+            
+        case let .failure(error):
+            print("❌ [DM] Creation failed: \(error.localizedDescription)")
+            state.threads.errorMessage = "Failed to create conversation: \(error.localizedDescription)"
+            return .none
+        }
+    
+    case let .createGroupThread(title, participantIds):
+        print("👥 [GROUP] Creating group thread: \(title)")
+        return .run(priority: nil) { send in
+            do {
+                let threadData = try await environment.realtime.createGroupThread(title, participantIds)
+                print("✅ [GROUP] Backend created group: \(threadData.id)")
+                
+                // Convert ThreadData to Thread
+                let thread = Thread(
+                    id: UUID(uuidString: threadData.id)!,
+                    threadType: Thread.ThreadType(rawValue: threadData.threadType) ?? .group,
+                    title: threadData.title,
+                    avatarUrl: nil,
+                    lastMessageAt: threadData.lastMessageAt,
+                    isArchived: threadData.isArchived,
+                    isMuted: threadData.isMuted,
+                    databaseShardId: threadData.databaseShardId,
+                    createdAt: threadData.createdAt,
+                    updatedAt: threadData.updatedAt
+                )
+                
+                send(.groupThreadCreated(.success(thread)))
+            } catch {
+                print("❌ [GROUP] Failed to create: \(error.localizedDescription)")
+                send(.groupThreadCreated(.failure(error)))
+            }
+        }
+    
+    case let .groupThreadCreated(result):
+        switch result {
+        case let .success(thread):
+            print("✅ [GROUP] Group created successfully: \(thread.id)")
+            
+            // Add to threads list if not already present
+            if !state.threads.items.contains(where: { $0.id == thread.id }) {
+                state.threads.items.insert(thread, at: 0)
+            }
+            
+            // Select the new thread
+            state.threads.selectedThreadID = thread.id
+            state.chat.currentThread = thread
+            state.chat.messages = []
+            state.chat.isLoadingMessages = true
+            
+            // Join channel and load messages
+            let threadID = thread.id
+            return .merge(
+                .run(priority: nil) { send in
+                    send(.loadMessages(threadID))
+                },
+                .run(priority: nil) { send in
+                    do {
+                        try await environment.realtime.ensureConnection()
+                        try await environment.realtime.connect(threadID) { message in
+                            Task { @MainActor in
+                                send(.receiveRealtimeMessage(message))
+                            }
+                        }
+                        await environment.sync.syncThread(threadID)
+                    } catch {
+                        print("❌ [GROUP] Failed to connect to thread: \(error)")
+                    }
+                }
+            )
+            
+        case let .failure(error):
+            print("❌ [GROUP] Creation failed: \(error.localizedDescription)")
+            state.threads.errorMessage = "Failed to create group: \(error.localizedDescription)"
+            return .none
+        }
     }
 }

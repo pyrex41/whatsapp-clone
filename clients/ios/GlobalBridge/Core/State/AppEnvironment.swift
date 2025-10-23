@@ -18,7 +18,7 @@ actor GlobalBannerHandlerRegistry {
 }
 
 struct DatabaseClient {
-    var loadThreads: @Sendable () async throws -> [Thread]
+    var loadThreads: @Sendable () async throws -> (user: User, threads: [Thread])
     var createThread: @Sendable (_ title: String, _ creator: User) async throws -> Thread
     var loadMessages: @Sendable (_ threadID: UUID) async throws -> [Message]
     var createMessage: @Sendable (_ threadID: UUID, _ content: String, _ author: User) async throws -> Message
@@ -32,6 +32,9 @@ struct RealtimeClient {
     var sendTyping: @Sendable (_ threadID: UUID, _ userID: String, _ isTyping: Bool) async -> Void  // Changed userID from UUID to String
     var sendMessage: @Sendable (_ threadID: UUID, _ content: String, _ author: User, _ clientMessageId: UUID?) async throws -> Message
     var sendReadReceipt: @Sendable (_ threadID: UUID, _ messageId: String) async -> Void
+    var searchUsers: @Sendable (_ query: String) async throws -> [UserSearchResult]
+    var createDirectMessage: @Sendable (_ userId: String) async throws -> ThreadData
+    var createGroupThread: @Sendable (_ title: String, _ participantIds: [String]) async throws -> ThreadData
 }
 
 struct SyncClient {
@@ -56,7 +59,8 @@ extension AppEnvironment {
 
         let database = DatabaseClient(
             loadThreads: {
-                await store.loadThreads()
+                let threads = await store.loadThreads()
+                return (user: User.sampleCurrent, threads: threads)
             },
             createThread: { title, creator in
                 await store.createThread(title: title, creator: creator)
@@ -84,7 +88,14 @@ extension AppEnvironment {
             sendMessage: { threadID, content, author, _ in
                 await store.createMessage(threadID: threadID, content: content, author: author)
             },
-            sendReadReceipt: { _, _ in }
+            sendReadReceipt: { _, _ in },
+            searchUsers: { _ in [] },
+            createDirectMessage: { _ in
+                throw NSError(domain: "Preview", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not available in preview"])
+            },
+            createGroupThread: { _, _ in
+                throw NSError(domain: "Preview", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not available in preview"])
+            }
         )
 
         let sync = SyncClient(
@@ -135,7 +146,7 @@ extension AppEnvironment {
                 print("👤 [LOAD_THREADS] Fetching current user identity...")
                 let user = try await databaseManager.fetchUserFromBackend(phoenixManager: phoenixManager)
                 print("✅ [LOAD_THREADS] User identity confirmed: \(user.id)")
-                await AuthManager.shared.setBootstrappedUser(user)
+                // User is stored in AppState, not in AuthManager
                 
                 // Check if we should sync threads from backend
                 let localThreads = try await databaseManager.fetchThreads()
@@ -147,7 +158,7 @@ extension AppEnvironment {
                         // Sync threads from backend via Phoenix bootstrap
                         let (syncedThreads, _) = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
                         print("✅ [LOAD_THREADS] Synced \(syncedThreads.count) threads from backend")
-                        return syncedThreads
+                        return (user: user, threads: syncedThreads)
                     } catch {
                         print("❌ [LOAD_THREADS] Bootstrap sync failed: \(error)")
                         print("❌ [LOAD_THREADS] Error details: \(error.localizedDescription)")
@@ -155,7 +166,7 @@ extension AppEnvironment {
                     }
                 } else {
                     print("✅ [LOAD_THREADS] Loaded \(localThreads.count) threads from local DB")
-                    return localThreads
+                    return (user: user, threads: localThreads)
                 }
             },
             createThread: { title, creator in
@@ -235,6 +246,13 @@ extension AppEnvironment {
                 }
                 
                 let authToken = await AuthManager.shared.getAccessToken()
+                
+                // Verify we actually got a token after login
+                guard authToken != nil else {
+                    print("❌ [REALTIME] Login failed - no token received")
+                    throw NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "Authentication required"])
+                }
+                
                 print("🔌 [REALTIME] Connecting with Auth0 token...")
                 
                 // Retry connection up to 3 times with delay
@@ -365,6 +383,15 @@ extension AppEnvironment {
             },
             sendReadReceipt: { threadID, messageId in
                 await phoenixManager.sendReadReceipt(conversationId: threadID.uuidString, messageId: messageId)
+            },
+            searchUsers: { query in
+                return try await phoenixManager.searchUsers(query: query)
+            },
+            createDirectMessage: { userId in
+                return try await phoenixManager.createDirectMessage(withUserId: userId)
+            },
+            createGroupThread: { title, participantIds in
+                return try await phoenixManager.createThread(threadType: "group", title: title, participantIds: participantIds)
             }
         )
 

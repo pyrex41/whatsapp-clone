@@ -176,7 +176,7 @@ struct NewDirectMessageView: View {
     
     private func createDM(with user: UserSearchResult) {
         // Send create DM request
-        store.send(.phoenixChannel(.createDM(userId: user.id)))
+        store.send(.createDirectMessage(userId: user.id))
         dismiss()
     }
 }

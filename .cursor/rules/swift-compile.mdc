@@ -4,5 +4,4 @@ alwaysApply: false
 ---
 xcodebuild -project GlobalBridge.xcodeproj -scheme GlobalBridge -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' build
 
-This command will compile the entire iOS project and show any compilation errors in the Cursor output panel, allowing you to fix issues
-immediately after editing Swift files. The scheme "GlobalBridge" is confirmed from the project's .xcscheme file.
+This command will compile the entire iOS project and show any compilation errors in the Cursor output panel, allowing you to fix issues immediately after editing Swift files. The scheme "GlobalBridge" is confirmed from the project's .xcscheme file.

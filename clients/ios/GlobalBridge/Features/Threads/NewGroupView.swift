@@ -221,10 +221,10 @@ struct NewGroupView: View {
     
     private func createGroup() {
         let participantIds = Array(selectedUsers)
-        store.send(.phoenixChannel(.createGroup(
+        store.send(.createGroupThread(
             title: groupName,
             participantIds: participantIds
-        )))
+        ))
         dismiss()
     }
 }
