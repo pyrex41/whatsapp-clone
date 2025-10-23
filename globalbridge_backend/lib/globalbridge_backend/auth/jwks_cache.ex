@@ -57,10 +57,7 @@ defmodule GlobalbridgeBackend.Auth.JWKSCache do
       auth0_domain: auth0_domain
     }
 
-    # Schedule initial fetch
-    Process.send_after(self(), :fetch_jwks, 100)
-
-    # Schedule periodic refresh
+    # Schedule periodic refresh (but don't fetch immediately)
     Process.send_after(self(), :schedule_refresh, @refresh_interval)
 
     {:ok, state}
@@ -68,6 +65,21 @@ defmodule GlobalbridgeBackend.Auth.JWKSCache do
 
   @impl true
   def handle_call({:get_key, kid}, _from, state) do
+    # Lazy load keys if not already fetched
+    state =
+      if state.last_fetched == nil do
+        case fetch_jwks(state.auth0_domain) do
+          {:ok, keys} ->
+            %{state | keys: keys, last_fetched: DateTime.utc_now()}
+
+          {:error, _reason} ->
+            # Keep trying on next call
+            state
+        end
+      else
+        state
+      end
+
     case Map.get(state.keys, kid) do
       nil ->
         Logger.warning("JWKS key not found for kid: #{kid}")
@@ -89,22 +101,6 @@ defmodule GlobalbridgeBackend.Auth.JWKSCache do
       {:error, reason} ->
         Logger.error("Failed to refresh JWKS cache: #{inspect(reason)}")
         {:reply, {:error, reason}, state}
-    end
-  end
-
-  @impl true
-  def handle_info(:fetch_jwks, state) do
-    case fetch_jwks(state.auth0_domain) do
-      {:ok, keys} ->
-        new_state = %{state | keys: keys, last_fetched: DateTime.utc_now()}
-        Logger.info("JWKS cache initialized successfully")
-        {:noreply, new_state}
-
-      {:error, reason} ->
-        Logger.error("Failed to initialize JWKS cache: #{inspect(reason)}")
-        # Retry after 30 seconds
-        Process.send_after(self(), :fetch_jwks, :timer.seconds(30))
-        {:noreply, state}
     end
   end
 

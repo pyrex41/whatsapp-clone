@@ -1,10 +1,8 @@
-# Production Database Seeding
+# Production Database Seeding - DEPRECATED
 
-This document explains how test users and threads are seeded in production.
+**This document is for historical reference only. Production seeding has been removed as of [current date] to improve startup performance.**
 
-## Overview
-
-The production deployment automatically seeds test users and threads on first startup. The seeding process is **idempotent** - it's safe to run multiple times and won't create duplicate data.
+Previously, the production deployment automatically seeded test users and threads on first startup. This functionality has been removed to reduce backend startup time from ~60 seconds to ~5-10 seconds.
 
 ## Test Users
 

@@ -13,6 +13,7 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
   alias GlobalbridgeBackend.Chat
   alias GlobalbridgeBackend.Notifications
   alias GlobalbridgeBackend.Sync
+  alias GlobalbridgeBackend.Cache.ParticipantCache
   alias GlobalbridgeBackendWeb.Presence
   require Logger
 
@@ -39,7 +40,7 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
           |> assign(:thread_id, thread_id)
           |> assign(:thread, thread)
 
-        # Track join time for latency metrics
+        # Track join time for latency metrics and defer presence setup
         send(self(), :after_join)
 
         {:ok, %{thread_id: thread_id, joined_at: DateTime.utc_now()}, socket}
@@ -381,7 +382,8 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
         {:error, :thread_not_found}
 
       thread ->
-        if Chat.is_thread_participant?(thread_id, user_id) do
+        # Use cached participant check for better performance
+        if ParticipantCache.is_participant?(thread_id, user_id) do
           {:ok, thread}
         else
           {:error, :not_participant}

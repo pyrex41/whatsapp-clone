@@ -17,6 +17,8 @@ defmodule GlobalbridgeBackend.Application do
       GlobalbridgeBackendWeb.Presence,
       # JWKS cache for Auth0 JWT verification
       GlobalbridgeBackend.Auth.JWKSCache,
+      # Participant cache for thread authorization
+      GlobalbridgeBackend.Cache.ParticipantCache,
       # Task supervisor for async operations (message persistence, read receipts, notifications)
       {Task.Supervisor, name: GlobalbridgeBackend.TaskSupervisor},
       # Start a worker by calling: GlobalbridgeBackend.Worker.start_link(arg)

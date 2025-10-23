@@ -219,15 +219,25 @@ defmodule GlobalbridgeBackend.Contexts.Threads do
       {:ok, %ThreadParticipant{}}
   """
   def add_participant(%Thread{} = thread, user_id, role \\ "member") do
-    attrs = %{
-      thread_id: thread.id,
-      user_id: user_id,
-      role: role
-    }
+    result =
+      %ThreadParticipant{}
+      |> ThreadParticipant.create_changeset(%{
+        thread_id: thread.id,
+        user_id: user_id,
+        role: role
+      })
+      |> Repo.insert()
 
-    %ThreadParticipant{}
-    |> ThreadParticipant.create_changeset(attrs)
-    |> Repo.insert()
+    # Invalidate participant cache for this thread
+    case result do
+      {:ok, _participant} ->
+        GlobalbridgeBackend.Cache.ParticipantCache.invalidate_thread(thread.id)
+
+      _ ->
+        :ok
+    end
+
+    result
   end
 
   @doc """
@@ -244,10 +254,22 @@ defmodule GlobalbridgeBackend.Contexts.Threads do
         where: tp.thread_id == ^thread.id and tp.user_id == ^user_id
       )
 
-    case Repo.one(query) do
-      nil -> {:error, :not_found}
-      participant -> Repo.delete(participant)
+    result =
+      case Repo.one(query) do
+        nil -> {:error, :not_found}
+        participant -> Repo.delete(participant)
+      end
+
+    # Invalidate participant cache for this thread
+    case result do
+      {:ok, _participant} ->
+        GlobalbridgeBackend.Cache.ParticipantCache.invalidate_thread(thread.id)
+
+      _ ->
+        :ok
     end
+
+    result
   end
 
   @doc """

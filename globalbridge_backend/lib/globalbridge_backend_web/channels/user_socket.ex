@@ -125,40 +125,49 @@ defmodule GlobalbridgeBackendWeb.UserSocket do
   # Private helper functions
 
   defp verify_token(token) do
-    # Try Auth0 JWT first, then Guardian, then fallback to simple format
-    case Auth0Verifier.verify_and_get_user(token) do
-      {:ok, user} ->
-        {:ok, user}
+    # Detect token type from JWT header to optimize verification
+    case detect_token_type(token) do
+      :auth0 ->
+        # Try Auth0 JWT first
+        case Auth0Verifier.verify_and_get_user(token) do
+          {:ok, user} ->
+            {:ok, user}
 
-      {:error, :token_expired} ->
-        Logger.warning("⏰ [AUTH] Auth0 token has expired")
-        {:error, :token_expired}
+          {:error, :token_expired} ->
+            Logger.warning("⏰ [AUTH] Auth0 token has expired")
+            {:error, :token_expired}
 
-      {:error, :invalid_claims} ->
-        Logger.debug("ℹ️ [AUTH] Not an Auth0 token, trying Guardian...")
-        # Try Guardian JWT
-        case Guardian.decode_and_verify(token) do
-          {:ok, claims} ->
-            Guardian.resource_from_claims(claims)
-
-          {:error, _jwt_error} ->
-            # Fallback to simple token format for backward compatibility
-            verify_simple_token(token)
+          {:error, reason} ->
+            Logger.debug("ℹ️ [AUTH] Auth0 verification failed: #{inspect(reason)}")
+            {:error, reason}
         end
 
-      {:error, other_reason} ->
-        Logger.debug(
-          "ℹ️ [AUTH] Auth0 verification failed (#{inspect(other_reason)}), trying Guardian..."
-        )
-
+      :guardian ->
         # Try Guardian JWT
         case Guardian.decode_and_verify(token) do
           {:ok, claims} ->
             Guardian.resource_from_claims(claims)
 
-          {:error, _jwt_error} ->
-            # Fallback to simple token format for backward compatibility
-            verify_simple_token(token)
+          {:error, reason} ->
+            Logger.debug("ℹ️ [AUTH] Guardian verification failed: #{inspect(reason)}")
+            {:error, reason}
+        end
+
+      :simple ->
+        # Fallback to simple token format
+        verify_simple_token(token)
+
+      :unknown ->
+        # Try all methods in sequence as fallback
+        case Auth0Verifier.verify_and_get_user(token) do
+          {:ok, user} ->
+            {:ok, user}
+
+          _ ->
+            case Guardian.decode_and_verify(token) do
+              {:ok, claims} -> Guardian.resource_from_claims(claims)
+              _ -> verify_simple_token(token)
+            end
         end
     end
   end
@@ -174,6 +183,39 @@ defmodule GlobalbridgeBackendWeb.UserSocket do
 
       _ ->
         {:error, :invalid_token}
+    end
+  end
+
+  defp detect_token_type(token) do
+    # Try to decode JWT header to detect token type
+    case String.split(token, ".") do
+      [header_b64, _payload, _signature] ->
+        try do
+          header_json = Base.url_decode64!(header_b64, padding: false)
+          header = Jason.decode!(header_json)
+
+          case header do
+            %{"alg" => "RS256", "typ" => "JWT", "kid" => _kid} ->
+              # Looks like Auth0 token (RS256 with kid)
+              :auth0
+
+            %{"alg" => "HS256", "typ" => "JWT"} ->
+              # Looks like Guardian token (HS256)
+              :guardian
+
+            _ ->
+              :unknown
+          end
+        rescue
+          _ -> :unknown
+        end
+
+      ["user", _user_id] ->
+        # Simple token format
+        :simple
+
+      _ ->
+        :unknown
     end
   end
 end
