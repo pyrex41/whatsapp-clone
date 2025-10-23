@@ -86,44 +86,10 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             print("👤 [LOADED] User set: \(result.user.id)")
             
             state.threads.items = result.threads
-            if let firstThread = result.threads.first {
-                print("📋 [LOADED] Auto-selecting first thread: \(firstThread.id)")
-                state.threads.selectedThreadID = firstThread.id
-                state.chat.currentThread = firstThread
-                state.chat.messages = []
-                state.chat.isLoadingMessages = true
-
-                // Join channel and load messages for the first thread
-                print("🔌 [LOADED] Connecting to realtime for first thread: \(firstThread.id)")
-                let threadID = firstThread.id
-                return .merge(
-                    .run(priority: nil) { send in
-                        send(.loadMessages(threadID))
-                    },
-                    .run(priority: nil) { send in
-                        print("🔌 [LOADED] Executing realtime.connect for first thread: \(threadID)")
-                        do {
-                            try await environment.realtime.ensureConnection()
-                            try await environment.realtime.connect(threadID) { message in
-                                Task { @MainActor in
-                                    send(.receiveRealtimeMessage(message))
-                                }
-                            }
-                            print("✅ [LOADED] realtime.connect completed for first thread: \(threadID)")
-                            
-                            // Now that channel is joined, trigger sync for this thread
-                            print("🔄 [LOADED] Triggering sync for first thread after successful channel join")
-                            await environment.sync.syncThread(threadID)
-                            print("✅ [LOADED] Initial sync complete for first thread")
-                        } catch {
-                            print("❌ [LOADED] realtime.connect failed for first thread: \(threadID): \(error.localizedDescription)")
-                            if error.localizedDescription.contains("Thread not found") {
-                                send(.handleOrphanedThread(threadID))
-                            }
-                        }
-                    }
-                )
-            }
+            print("📋 [LOADED] Loaded \(result.threads.count) threads - showing list (not auto-selecting)")
+            
+            // Don't auto-select any thread - let user choose from the list
+            // This provides better UX similar to WhatsApp/iMessage
             return .none
 
         case let .failure(error):
