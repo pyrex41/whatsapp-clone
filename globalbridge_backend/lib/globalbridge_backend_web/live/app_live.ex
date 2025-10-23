@@ -6,6 +6,10 @@ defmodule GlobalbridgeBackendWeb.AppLive do
 
   @impl true
   def mount(_params, session, socket) do
+    # TODO: Migrate to Auth0 tokens for web sessions
+    # Currently using Guardian JWT for LiveView during transition period.
+    # Auth0 is used for mobile/API, Guardian for web sessions via OAuth callback.
+    # See globalbridge_backend/AUTH_STRATEGY.md for migration plan.
     case session["guardian_token"] do
       nil ->
         {:ok, redirect(socket, to: "/")}
@@ -53,25 +57,29 @@ defmodule GlobalbridgeBackendWeb.AppLive do
   def handle_event("send_message", %{"content" => content}, socket) do
     %{current_thread: thread, user: user} = socket.assigns
 
-    # Broadcast message via Phoenix Channel
-    GlobalbridgeBackendWeb.Endpoint.broadcast("thread:#{thread.id}", "new_message", %{
-      content: content,
-      sender_id: user.id,
-      thread_id: thread.id
-    })
+    # Persist message to database first, then broadcast
+    case Contexts.Messages.create_message(thread.id, %{
+           content: content,
+           sender_id: user.id
+         }) do
+      {:ok, message} ->
+        # Broadcast the persisted message to all connected clients
+        GlobalbridgeBackendWeb.Endpoint.broadcast("thread:#{thread.id}", "new_message", %{
+          id: message.id,
+          content: message.content,
+          sender_id: message.sender_id,
+          thread_id: message.thread_id,
+          inserted_at: message.inserted_at
+        })
 
-    # Optimistically add message to UI (will be replaced by broadcast)
-    temp_message = %{
-      id: "temp-#{System.system_time(:millisecond)}",
-      content: content,
-      sender_id: user.id,
-      thread_id: thread.id,
-      inserted_at: DateTime.utc_now()
-    }
+        # Update UI with the real persisted message
+        messages = socket.assigns.messages ++ [message]
+        {:noreply, assign(socket, messages: messages)}
 
-    messages = socket.assigns.messages ++ [temp_message]
-
-    {:noreply, assign(socket, messages: messages)}
+      {:error, changeset} ->
+        # Show error to user if message creation fails
+        {:noreply, put_flash(socket, :error, "Failed to send message: #{inspect(changeset.errors)}")}
+    end
   end
 
   @impl true

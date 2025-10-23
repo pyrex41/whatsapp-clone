@@ -45,9 +45,11 @@ defmodule GlobalbridgeBackendWeb.AuthLive do
   end
 
   defp build_auth0_login_url do
-    domain = System.get_env("AUTH0_DOMAIN")
-    client_id = System.get_env("AUTH0_CLIENT_ID")
-    audience = System.get_env("AUTH0_AUDIENCE", "globalbridge-api")
+    domain = Application.get_env(:globalbridge_backend, :auth0_domain) ||
+      raise "AUTH0_DOMAIN not configured. See AUTH0_ENV_SETUP.md"
+    client_id = Application.get_env(:globalbridge_backend, :auth0_client_id) ||
+      raise "AUTH0_CLIENT_ID not configured. See AUTH0_ENV_SETUP.md"
+    audience = Application.get_env(:globalbridge_backend, :auth0_audience, "globalbridge-api")
 
     redirect_uri = "#{GlobalbridgeBackendWeb.Endpoint.url()}/api/auth/auth0/callback"
 

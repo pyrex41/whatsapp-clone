@@ -188,8 +188,10 @@ defmodule GlobalbridgeBackendWeb.AuthController do
   """
   def request(conn, %{"provider" => "auth0"}) do
     # Redirect to Auth0 authorization URL
-    auth0_domain = System.get_env("AUTH0_DOMAIN")
-    client_id = System.get_env("AUTH0_CLIENT_ID")
+    auth0_domain = Application.get_env(:globalbridge_backend, :auth0_domain) ||
+      raise "AUTH0_DOMAIN not configured"
+    client_id = Application.get_env(:globalbridge_backend, :auth0_client_id) ||
+      raise "AUTH0_CLIENT_ID not configured"
 
     redirect_uri = "#{conn.scheme}://#{conn.host}:#{conn.port}/api/auth/auth0/callback"
 
@@ -289,9 +291,12 @@ defmodule GlobalbridgeBackendWeb.AuthController do
   end
 
   defp exchange_code_for_token(code) do
-    auth0_domain = System.get_env("AUTH0_DOMAIN")
-    client_id = System.get_env("AUTH0_CLIENT_ID")
-    client_secret = System.get_env("AUTH0_CLIENT_SECRET")
+    auth0_domain = Application.get_env(:globalbridge_backend, :auth0_domain) ||
+      raise "AUTH0_DOMAIN not configured"
+    client_id = Application.get_env(:globalbridge_backend, :auth0_client_id) ||
+      raise "AUTH0_CLIENT_ID not configured"
+    client_secret = Application.get_env(:globalbridge_backend, :auth0_client_secret) ||
+      raise "AUTH0_CLIENT_SECRET not configured"
 
     url = "https://#{auth0_domain}/oauth/token"
 

@@ -9,7 +9,8 @@ defmodule GlobalbridgeBackend.Auth.JWTVerifier do
   require Logger
 
   @expected_issuer_prefix "https://"
-  @expected_audience System.get_env("AUTH0_CLIENT_ID")
+  # Note: Using compile_env for module attribute - requires config at compile time
+  @expected_audience Application.compile_env(:globalbridge_backend, :auth0_client_id)
 
   @doc """
   Verifies an Auth0 JWT token.
@@ -73,7 +74,8 @@ defmodule GlobalbridgeBackend.Auth.JWTVerifier do
   end
 
   defp validate_issuer(%{"iss" => issuer}) do
-    auth0_domain = System.get_env("AUTH0_DOMAIN")
+    auth0_domain = Application.get_env(:globalbridge_backend, :auth0_domain) ||
+      raise "AUTH0_DOMAIN not configured"
 
     expected_issuer = @expected_issuer_prefix <> auth0_domain <> "/"
 
