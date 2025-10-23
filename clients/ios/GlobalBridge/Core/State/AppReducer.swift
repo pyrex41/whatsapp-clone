@@ -288,6 +288,7 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         state.chat.isLoadingMessages = false
         switch result {
         case let .success(messages):
+            print("📊 [MESSAGES] Loaded \(messages.count) messages from local DB for thread: \(threadID)")
             if messages.isEmpty {
                 // Local database is empty - fetch from backend
                 print("📥 [MESSAGES] Local DB empty, fetching from backend for thread: \(threadID)")
