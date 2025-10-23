@@ -6,39 +6,40 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
   use GlobalbridgeBackendWeb, :channel
   require Logger
 
-  alias GlobalbridgeBackend.Contexts.{Auth, Threads}
+  alias GlobalbridgeBackend.Contexts.{Threads, Contacts}
   alias GlobalbridgeBackend.Repo
 
   # Intercept outgoing broadcasts
   intercept(["thread_created"])
 
   @impl true
-  def join("user:" <> user_id, _payload, socket) do
-    socket_user = socket.assigns.user
+  def join("user:" <> identifier, _payload, socket) do
+    # Verify user owns this channel
+    # Support both UUID and username for test mode
     socket_user_id = socket.assigns.user_id
+    socket_user = socket.assigns[:user]
+    socket_auth0_id = if socket_user, do: socket_user.auth0_id, else: nil
+    socket_username = if socket_user, do: socket_user.username, else: nil
 
-    Logger.info("🔐 [USER_CHANNEL] Join attempt:")
-    Logger.info("   - Channel user_id: #{user_id}")
-    Logger.info("   - Socket user.id: #{socket_user_id}")
-    Logger.info("   - Socket user.auth0_id: #{socket_user.auth0_id || "none"}")
+    authorized? =
+      socket_user_id == identifier or
+        socket_auth0_id == identifier or
+        socket_username == identifier
 
-    # Verify user owns this channel - accept either database UUID or Auth0 ID
-    user_owns_channel =
-      socket_user_id == user_id or socket_user.auth0_id == user_id
+    if authorized? do
+      Logger.info(
+        "✅ [USER_CHANNEL] User #{identifier} joined their channel (matched: #{cond do
+          socket_user_id == identifier -> "ID"
+          socket_auth0_id == identifier -> "Auth0"
+          socket_username == identifier -> "username"
+          true -> "unknown"
+        end})"
+      )
 
-    if user_owns_channel do
-      Logger.info("✅ [USER_CHANNEL] User #{user_id} joined their channel")
-
-      # Return the database user ID so client knows what to use for future joins
-      {:ok,
-       %{
-         joined_at: DateTime.utc_now(),
-         user_id: socket_user_id,
-         auth0_id: socket_user.auth0_id
-       }, socket}
+      {:ok, %{joined_at: DateTime.utc_now()}, socket}
     else
       Logger.warning(
-        "❌ [USER_CHANNEL] Unauthorized join attempt: socket_user=#{socket_user_id}, channel_user=#{user_id}"
+        "❌ [USER_CHANNEL] Unauthorized join attempt: socket_user=#{socket_user_id}, socket_auth0_id=#{socket_auth0_id}, socket_username=#{socket_username}, channel_identifier=#{identifier}"
       )
 
       {:error, %{reason: "Unauthorized"}}
@@ -71,49 +72,6 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
   end
 
   @impl true
-  def handle_in("search_users", %{"query" => query}, socket) do
-    user_id = socket.assigns.user_id
-    Logger.info("🔍 [USER_CHANNEL] User search: query=#{query}, user=#{user_id}")
-
-    users = Auth.search_users(query, user_id)
-
-    formatted_users =
-      Enum.map(users, fn user ->
-        %{
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          display_name: user.display_name,
-          avatar_url: user.avatar_url,
-          is_online: user.is_online
-        }
-      end)
-
-    Logger.info("✅ [USER_CHANNEL] Found #{length(formatted_users)} users")
-    {:reply, {:ok, %{users: formatted_users}}, socket}
-  end
-
-  @impl true
-  def handle_in("create_dm", %{"user_id" => other_user_id}, socket) do
-    user_id = socket.assigns.user_id
-
-    Logger.info(
-      "💬 [USER_CHANNEL] Create/get DM: requester=#{user_id}, other_user=#{other_user_id}"
-    )
-
-    case Threads.get_thread_for_direct_message(user_id, other_user_id) do
-      {:ok, thread} ->
-        Logger.info("✅ [USER_CHANNEL] DM thread: #{thread.id}")
-        formatted_thread = format_thread(thread)
-        {:reply, {:ok, formatted_thread}, socket}
-
-      {:error, reason} ->
-        Logger.error("❌ [USER_CHANNEL] DM creation failed: #{inspect(reason)}")
-        {:reply, {:error, %{reason: "Failed to create DM", details: inspect(reason)}}, socket}
-    end
-  end
-
-  @impl true
   def handle_in(
         "create_thread",
         %{"thread_type" => type, "participant_ids" => participants} = payload,
@@ -125,8 +83,17 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
       "🆕 [USER_CHANNEL] Create thread request: type=#{type}, creator=#{user_id}, participants=#{inspect(participants)}"
     )
 
-    # Create thread with current user + participants
-    all_participants = [user_id | participants] |> Enum.uniq()
+    # Resolve emails to user IDs
+    email_user_ids =
+      Enum.flat_map(payload["participant_emails"] || [], fn email ->
+        case Contacts.find_user_by_email(email) do
+          nil -> []
+          user -> [user.id]
+        end
+      end)
+
+    # Create thread with current user + participants + resolved emails
+    all_participants = ([user_id | participants] ++ email_user_ids) |> Enum.uniq()
 
     attrs = %{
       thread_type: type,
@@ -153,10 +120,6 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
 
         {:reply, {:ok, formatted_thread}, socket}
 
-      {:error, reason} when is_binary(reason) ->
-        Logger.error("❌ [USER_CHANNEL] Thread creation failed: #{reason}")
-        {:reply, {:error, %{reason: reason}}, socket}
-
       {:error, changeset} ->
         errors = format_errors(changeset)
         Logger.error("❌ [USER_CHANNEL] Thread creation failed: #{inspect(errors)}")
@@ -173,6 +136,99 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
 
     push(socket, "thread_created", payload)
     {:noreply, socket}
+  end
+
+  # Contact management handlers
+
+  @doc "Search for users by email to add as contact"
+  @impl true
+  def handle_in("search_users", %{"query" => query}, socket) do
+    user_id = socket.assigns.user_id
+    Logger.debug("🔍 [USER_CHANNEL] Search users: query=#{query}, user=#{user_id}")
+
+    results = Contacts.search_users_by_email(query)
+
+    # Filter out current user and existing contacts
+    contact_ids =
+      Contacts.list_contacts(user_id)
+      |> Enum.map(& &1.contact_user_id)
+      |> MapSet.new()
+
+    filtered_results =
+      Enum.reject(results, fn user ->
+        user.id == user_id or MapSet.member?(contact_ids, user.id)
+      end)
+
+    {:reply, {:ok, %{users: filtered_results}}, socket}
+  end
+
+  @doc "Search existing contacts"
+  @impl true
+  def handle_in("search_contacts", %{"query" => query}, socket) do
+    user_id = socket.assigns.user_id
+    Logger.debug("🔍 [USER_CHANNEL] Search contacts: query=#{query}, user=#{user_id}")
+
+    contacts = Contacts.search_contacts(user_id, query)
+
+    {:reply, {:ok, %{contacts: format_contacts(contacts)}}, socket}
+  end
+
+  @doc "Get all contacts"
+  @impl true
+  def handle_in("get_contacts", _payload, socket) do
+    user_id = socket.assigns.user_id
+    Logger.debug("📋 [USER_CHANNEL] Get all contacts for user: #{user_id}")
+
+    contacts = Contacts.list_contacts(user_id)
+
+    {:reply, {:ok, %{contacts: format_contacts(contacts)}}, socket}
+  end
+
+  @doc "Sync contacts (get changes since timestamp)"
+  @impl true
+  def handle_in("sync_contacts", %{"since" => since_timestamp}, socket) do
+    user_id = socket.assigns.user_id
+    Logger.debug("🔄 [USER_CHANNEL] Sync contacts since: #{since_timestamp}, user=#{user_id}")
+
+    {:ok, since_dt, _} = DateTime.from_iso8601(since_timestamp)
+    contacts = Contacts.list_contacts_since(user_id, since_dt)
+
+    {:reply, {:ok, %{contacts: format_contacts(contacts), synced_at: DateTime.utc_now()}}, socket}
+  end
+
+  @doc "Add contact"
+  @impl true
+  def handle_in("add_contact", %{"contact_user_id" => contact_user_id} = payload, socket) do
+    user_id = socket.assigns.user_id
+    Logger.info("➕ [USER_CHANNEL] Add contact: user=#{user_id}, contact=#{contact_user_id}")
+
+    case Contacts.add_contact(user_id, contact_user_id, payload) do
+      {:ok, contact} ->
+        contact = Repo.preload(contact, [:contact_user])
+        Logger.info("✅ [USER_CHANNEL] Contact added: #{contact.id}")
+        {:reply, {:ok, format_contact(contact)}, socket}
+
+      {:error, changeset} ->
+        Logger.error("❌ [USER_CHANNEL] Add contact failed: #{inspect(changeset.errors)}")
+        {:reply, {:error, %{errors: format_errors(changeset)}}, socket}
+    end
+  end
+
+  @doc "Remove contact"
+  @impl true
+  def handle_in("remove_contact", %{"contact_user_id" => contact_user_id}, socket) do
+    user_id = socket.assigns.user_id
+    Logger.info("➖ [USER_CHANNEL] Remove contact: user=#{user_id}, contact=#{contact_user_id}")
+
+    case Contacts.remove_contact(user_id, contact_user_id) do
+      {1, _} ->
+        Logger.info("✅ [USER_CHANNEL] Contact removed")
+        {:reply, {:ok, %{removed: true}}, socket}
+
+      _ ->
+        Logger.warning("⚠️  [USER_CHANNEL] Contact not found for removal")
+        {:reply, {:error, %{reason: "Contact not found"}}, socket}
+    end
   end
 
   # Private helper functions
@@ -211,5 +267,28 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
         String.replace(acc, "%{#{key}}", to_string(value))
       end)
     end)
+  end
+
+  defp format_contact(contact) do
+    %{
+      id: contact.id,
+      contact_user_id: contact.contact_user_id,
+      display_name_override: contact.display_name_override,
+      is_favorite: contact.is_favorite,
+      notes: contact.notes,
+      user: %{
+        id: contact.contact_user.id,
+        email: contact.contact_user.email,
+        username: contact.contact_user.username,
+        display_name: contact.contact_user.display_name,
+        avatar_url: contact.contact_user.avatar_url
+      },
+      created_at: contact.inserted_at,
+      updated_at: contact.updated_at
+    }
+  end
+
+  defp format_contacts(contacts) do
+    Enum.map(contacts, &format_contact/1)
   end
 end

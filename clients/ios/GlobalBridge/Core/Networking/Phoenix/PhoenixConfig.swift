@@ -41,7 +41,7 @@ public struct PhoenixConfig: Sendable {
         enableLogging: true
     )
 
-    /// Default configuration for production (Fly.io)
+    /// Default configuration for production (Fly.io deployment)
     public static let production = PhoenixConfig(
         socketURL: URL(string: "wss://globalbridge-backend.fly.dev/socket")!,
         authToken: nil,
@@ -51,26 +51,14 @@ public struct PhoenixConfig: Sendable {
         reconnectDelay: 5,
         enableLogging: false
     )
-
-    /// Current active configuration - automatically selects based on environment
-    /// Set BACKEND_ENV=production in Xcode scheme to use production backend
-    /// Defaults to development (localhost) for Debug builds
+    
+    /// Current active configuration (change this to switch environments)
     public static var current: PhoenixConfig {
-        // Check environment variable first
-        if let backendEnv = ProcessInfo.processInfo.environment["BACKEND_ENV"] {
-            if backendEnv.lowercased() == "production" {
-                print("🌐 [PhoenixConfig] Using PRODUCTION backend: globalbridge-backend.fly.dev")
-                return .production
-            }
-        }
-
-        // Default to development for Debug builds, production for Release
+        return .production   // Production (wss://globalbridge-backend.fly.dev)
         #if DEBUG
-        print("🏠 [PhoenixConfig] Using LOCAL backend: localhost:4000")
-        return .development
+        return .development  // Local development (ws://localhost:4000)
         #else
-        print("🌐 [PhoenixConfig] Using PRODUCTION backend: globalbridge-backend.fly.dev")
-        return .production
+        return .production  // Production (wss://globalbridge-backend.fly.dev)
         #endif
     }
 

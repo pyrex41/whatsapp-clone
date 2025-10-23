@@ -35,6 +35,9 @@ defmodule GlobalbridgeBackendWeb.ThreadJSON do
   end
 
   defp format_timestamp(nil), do: nil
-  defp format_timestamp(%NaiveDateTime{} = datetime), do: DateTime.from_naive!(datetime, "Etc/UTC") |> DateTime.to_iso8601()
+
+  defp format_timestamp(%NaiveDateTime{} = datetime),
+    do: DateTime.from_naive!(datetime, "Etc/UTC") |> DateTime.to_iso8601()
+
   defp format_timestamp(%DateTime{} = datetime), do: DateTime.to_iso8601(datetime)
 end

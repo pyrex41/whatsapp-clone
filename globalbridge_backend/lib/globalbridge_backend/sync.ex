@@ -246,7 +246,8 @@ defmodule GlobalbridgeBackend.Sync do
 
     changeset = Message.create_changeset(message_struct, attrs)
 
-    case repo.insert(changeset) do
+    # Use insert with on_conflict to handle duplicate messages gracefully
+    case repo.insert(changeset, on_conflict: :nothing, conflict_target: :id) do
       {:ok, message} ->
         GlobalbridgeBackend.Sync.CDCLogger.log_message_insert(thread, message,
           timestamp: timestamp

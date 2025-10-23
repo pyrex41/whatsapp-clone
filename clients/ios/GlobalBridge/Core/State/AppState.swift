@@ -83,7 +83,7 @@ struct ChatState: Equatable {
     var isLoadingMessages: Bool = false
     var messageError: String?
     var composer = MessageComposerState()
-    var typingUsers: Set<UUID> = []
+    var typingUsers: Set<String> = []
 }
 
 struct MessageComposerState: Equatable {

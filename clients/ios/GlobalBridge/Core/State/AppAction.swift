@@ -24,25 +24,10 @@ enum AppAction {
     case messageStatusUpdated(Message.ID, Message.Status)
 
     case receiveRealtimeMessage(Message)
-    case typingIndicator(Thread.ID, userID: UUID, isTyping: Bool)
+    case typingIndicator(Thread.ID, userID: String, isTyping: Bool)
     case handleOrphanedThread(Thread.ID)
 
-    // Auth
-    case authenticationFailed(Error)
-    case dismissAuthError
-    
-    // Connection state
-    case connectionStateChanged(ConnectionState)
-    
-    // Phoenix Channel actions
-    case phoenixChannel(PhoenixChannelAction)
-}
-
-enum PhoenixChannelAction {
-    case searchUsers(query: String)
-    case userSearchResults(Result<[UserSearchResult], Error>)
-    case createDM(userId: String)
-    case createGroup(title: String, participantIds: [String])
-    case dmCreated(Result<Thread, Error>)
-    case groupCreated(Result<Thread, Error>)
+    // Notification actions
+    case markMessageRead(threadID: Thread.ID, messageID: String)
+    case sendQuickReply(threadID: Thread.ID, text: String)
 }

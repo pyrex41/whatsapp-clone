@@ -73,10 +73,12 @@ defmodule GlobalbridgeBackendWeb.AuthControllerTest do
     end
 
     test "authenticates with username and returns tokens", %{conn: conn} do
-      conn = post(conn, ~p"/api/auth/login", %{
-        "identifier" => "testuser",
-        "password" => "TestPassword123"
-      })
+      conn =
+        post(conn, ~p"/api/auth/login", %{
+          "identifier" => "testuser",
+          "password" => "TestPassword123"
+        })
+
       assert %{"data" => data} = json_response(conn, 200)
       assert %{"user" => user, "tokens" => tokens} = data
       assert user["username"] == "testuser"
@@ -85,36 +87,44 @@ defmodule GlobalbridgeBackendWeb.AuthControllerTest do
     end
 
     test "authenticates with phone number", %{conn: conn} do
-      conn = post(conn, ~p"/api/auth/login", %{
-        "identifier" => "+1234567890",
-        "password" => "TestPassword123"
-      })
+      conn =
+        post(conn, ~p"/api/auth/login", %{
+          "identifier" => "+1234567890",
+          "password" => "TestPassword123"
+        })
+
       assert %{"data" => data} = json_response(conn, 200)
       assert data["user"]["phone_number"] == "+1234567890"
     end
 
     test "sets is_online to true after login", %{conn: conn} do
-      conn = post(conn, ~p"/api/auth/login", %{
-        "identifier" => "testuser",
-        "password" => "TestPassword123"
-      })
+      conn =
+        post(conn, ~p"/api/auth/login", %{
+          "identifier" => "testuser",
+          "password" => "TestPassword123"
+        })
+
       assert %{"data" => %{"user" => user}} = json_response(conn, 200)
       assert user["is_online"] == true
     end
 
     test "returns error with wrong password", %{conn: conn} do
-      conn = post(conn, ~p"/api/auth/login", %{
-        "identifier" => "testuser",
-        "password" => "WrongPassword"
-      })
+      conn =
+        post(conn, ~p"/api/auth/login", %{
+          "identifier" => "testuser",
+          "password" => "WrongPassword"
+        })
+
       assert %{"error" => _} = json_response(conn, 401)
     end
 
     test "returns error with non-existent user", %{conn: conn} do
-      conn = post(conn, ~p"/api/auth/login", %{
-        "identifier" => "nonexistent",
-        "password" => "SomePassword"
-      })
+      conn =
+        post(conn, ~p"/api/auth/login", %{
+          "identifier" => "nonexistent",
+          "password" => "SomePassword"
+        })
+
       assert %{"error" => _} = json_response(conn, 401)
     end
 
@@ -136,9 +146,11 @@ defmodule GlobalbridgeBackendWeb.AuthControllerTest do
     end
 
     test "refreshes tokens with valid refresh token", %{conn: conn, tokens: tokens} do
-      conn = post(conn, ~p"/api/auth/refresh", %{
-        "refresh_token" => tokens.refresh_token
-      })
+      conn =
+        post(conn, ~p"/api/auth/refresh", %{
+          "refresh_token" => tokens.refresh_token
+        })
+
       assert %{"data" => new_tokens} = json_response(conn, 200)
       assert Map.has_key?(new_tokens, "access_token")
       assert Map.has_key?(new_tokens, "refresh_token")
@@ -221,12 +233,15 @@ defmodule GlobalbridgeBackendWeb.AuthControllerTest do
   describe "GET /api/auth/public-key/:user_id (protected)" do
     setup do
       {:ok, user1, tokens} = Auth.signup(@signup_attrs)
-      {:ok, user2, _} = Auth.signup(%{
-        "username" => "user2",
-        "phone_number" => "+1987654321",
-        "password" => "Password123",
-        "public_key" => "user2_public_key"
-      })
+
+      {:ok, user2, _} =
+        Auth.signup(%{
+          "username" => "user2",
+          "phone_number" => "+1987654321",
+          "password" => "Password123",
+          "public_key" => "user2_public_key"
+        })
+
       %{user1: user1, user2: user2, tokens: tokens}
     end
 
@@ -308,10 +323,12 @@ defmodule GlobalbridgeBackendWeb.AuthControllerTest do
       assert %{"message" => _} = json_response(conn, 200)
 
       # Verify new password works
-      login_conn = post(build_conn(), ~p"/api/auth/login", %{
-        "identifier" => "testuser",
-        "password" => "NewPassword456"
-      })
+      login_conn =
+        post(build_conn(), ~p"/api/auth/login", %{
+          "identifier" => "testuser",
+          "password" => "NewPassword456"
+        })
+
       assert json_response(login_conn, 200)
     end
 
@@ -328,10 +345,12 @@ defmodule GlobalbridgeBackendWeb.AuthControllerTest do
     end
 
     test "returns error without token", %{conn: conn} do
-      conn = put(conn, ~p"/api/auth/password", %{
-        "current_password" => "TestPassword123",
-        "new_password" => "NewPassword456"
-      })
+      conn =
+        put(conn, ~p"/api/auth/password", %{
+          "current_password" => "TestPassword123",
+          "new_password" => "NewPassword456"
+        })
+
       assert json_response(conn, 401)
     end
 

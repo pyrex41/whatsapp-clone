@@ -70,11 +70,13 @@ defmodule GlobalbridgeBackend.Contexts.AuthTest do
 
   describe "login/2" do
     setup do
-      {:ok, user, _tokens} = Auth.signup(%{
-        "username" => "loginuser",
-        "phone_number" => "+1987654321",
-        "password" => "LoginPassword123"
-      })
+      {:ok, user, _tokens} =
+        Auth.signup(%{
+          "username" => "loginuser",
+          "phone_number" => "+1987654321",
+          "password" => "LoginPassword123"
+        })
+
       %{user: user}
     end
 
@@ -117,11 +119,12 @@ defmodule GlobalbridgeBackend.Contexts.AuthTest do
 
   describe "get_user/1" do
     test "returns user by ID" do
-      {:ok, user, _tokens} = Auth.signup(%{
-        "username" => "getuser",
-        "phone_number" => "+1111111111",
-        "password" => "Password123"
-      })
+      {:ok, user, _tokens} =
+        Auth.signup(%{
+          "username" => "getuser",
+          "phone_number" => "+1111111111",
+          "password" => "Password123"
+        })
 
       assert {:ok, fetched_user} = Auth.get_user(user.id)
       assert fetched_user.id == user.id
@@ -135,11 +138,13 @@ defmodule GlobalbridgeBackend.Contexts.AuthTest do
 
   describe "update_public_key/2" do
     setup do
-      {:ok, user, _tokens} = Auth.signup(%{
-        "username" => "keyuser",
-        "phone_number" => "+1222222222",
-        "password" => "Password123"
-      })
+      {:ok, user, _tokens} =
+        Auth.signup(%{
+          "username" => "keyuser",
+          "phone_number" => "+1222222222",
+          "password" => "Password123"
+        })
+
       %{user: user}
     end
 
@@ -162,12 +167,14 @@ defmodule GlobalbridgeBackend.Contexts.AuthTest do
 
   describe "get_public_key/1" do
     setup do
-      {:ok, user, _tokens} = Auth.signup(%{
-        "username" => "pubkeyuser",
-        "phone_number" => "+1333333333",
-        "password" => "Password123",
-        "public_key" => "user_public_key"
-      })
+      {:ok, user, _tokens} =
+        Auth.signup(%{
+          "username" => "pubkeyuser",
+          "phone_number" => "+1333333333",
+          "password" => "Password123",
+          "public_key" => "user_public_key"
+        })
+
       %{user: user}
     end
 
@@ -177,11 +184,12 @@ defmodule GlobalbridgeBackend.Contexts.AuthTest do
     end
 
     test "returns error when user has no public key" do
-      {:ok, user, _tokens} = Auth.signup(%{
-        "username" => "nokeyuser",
-        "phone_number" => "+1444444444",
-        "password" => "Password123"
-      })
+      {:ok, user, _tokens} =
+        Auth.signup(%{
+          "username" => "nokeyuser",
+          "phone_number" => "+1444444444",
+          "password" => "Password123"
+        })
 
       assert {:error, :no_public_key} = Auth.get_public_key(user.id)
     end
@@ -193,11 +201,13 @@ defmodule GlobalbridgeBackend.Contexts.AuthTest do
 
   describe "update_online_status/2" do
     setup do
-      {:ok, user, _tokens} = Auth.signup(%{
-        "username" => "statususer",
-        "phone_number" => "+1555555555",
-        "password" => "Password123"
-      })
+      {:ok, user, _tokens} =
+        Auth.signup(%{
+          "username" => "statususer",
+          "phone_number" => "+1555555555",
+          "password" => "Password123"
+        })
+
       %{user: user}
     end
 
@@ -225,22 +235,27 @@ defmodule GlobalbridgeBackend.Contexts.AuthTest do
 
   describe "change_password/3" do
     setup do
-      {:ok, user, _tokens} = Auth.signup(%{
-        "username" => "pwduser",
-        "phone_number" => "+1666666666",
-        "password" => "OldPassword123"
-      })
+      {:ok, user, _tokens} =
+        Auth.signup(%{
+          "username" => "pwduser",
+          "phone_number" => "+1666666666",
+          "password" => "OldPassword123"
+        })
+
       %{user: user}
     end
 
     test "changes password with correct current password", %{user: user} do
-      assert {:ok, updated_user} = Auth.change_password(user.id, "OldPassword123", "NewPassword456")
+      assert {:ok, updated_user} =
+               Auth.change_password(user.id, "OldPassword123", "NewPassword456")
+
       assert Bcrypt.verify_pass("NewPassword456", updated_user.password_hash)
       refute Bcrypt.verify_pass("OldPassword123", updated_user.password_hash)
     end
 
     test "fails with incorrect current password", %{user: user} do
-      assert {:error, :invalid_password} = Auth.change_password(user.id, "WrongPassword", "NewPassword456")
+      assert {:error, :invalid_password} =
+               Auth.change_password(user.id, "WrongPassword", "NewPassword456")
     end
 
     test "returns error for non-existent user" do
@@ -255,6 +270,7 @@ defmodule GlobalbridgeBackend.Contexts.AuthTest do
         "phone_number" => "+1777777777",
         "password" => "VerifyPassword123"
       })
+
       :ok
     end
 
@@ -264,7 +280,8 @@ defmodule GlobalbridgeBackend.Contexts.AuthTest do
     end
 
     test "fails with invalid credentials" do
-      assert {:error, :invalid_credentials} = Auth.verify_credentials("verifyuser", "WrongPassword")
+      assert {:error, :invalid_credentials} =
+               Auth.verify_credentials("verifyuser", "WrongPassword")
     end
   end
 end

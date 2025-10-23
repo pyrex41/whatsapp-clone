@@ -12,31 +12,33 @@ defmodule GlobalbridgeBackend.Schemas.Notification do
   @foreign_key_type :binary_id
 
   schema "notifications" do
-    field :user_id, :binary_id
-    field :thread_id, :binary_id
-    field :message_id, :binary_id
+    field(:user_id, :binary_id)
+    field(:thread_id, :binary_id)
+    field(:message_id, :binary_id)
 
     # Notification type: "message", "mention", "reaction"
-    field :notification_type, :string
+    field(:notification_type, :string)
 
     # Delivery tracking
-    field :device_token, :string
-    field :platform, :string  # "apns" or "fcm"
-    field :status, :string    # "pending", "sent", "delivered", "failed"
-    field :sent_at, :utc_datetime
-    field :delivered_at, :utc_datetime
-    field :failed_at, :utc_datetime
-    field :error_message, :string
+    field(:device_token, :string)
+    # "apns" or "fcm"
+    field(:platform, :string)
+    # "pending", "sent", "delivered", "failed"
+    field(:status, :string)
+    field(:sent_at, :utc_datetime)
+    field(:delivered_at, :utc_datetime)
+    field(:failed_at, :utc_datetime)
+    field(:error_message, :string)
 
     # Notification payload
-    field :title, :string
-    field :body, :string
-    field :badge_count, :integer
-    field :sound, :string, default: "default"
+    field(:title, :string)
+    field(:body, :string)
+    field(:badge_count, :integer)
+    field(:sound, :string, default: "default")
 
     # Retry tracking
-    field :retry_count, :integer, default: 0
-    field :last_retry_at, :utc_datetime
+    field(:retry_count, :integer, default: 0)
+    field(:last_retry_at, :utc_datetime)
 
     timestamps(type: :utc_datetime)
   end

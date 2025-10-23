@@ -44,7 +44,11 @@ defmodule GlobalbridgeBackendWeb.PresenceTest do
       assert Presence.user_online?(thread_id, user_id)
     end
 
-    test "counts online users correctly", %{thread_id: thread_id, user_id_1: user1, user_id_2: user2} do
+    test "counts online users correctly", %{
+      thread_id: thread_id,
+      user_id_1: user1,
+      user_id_2: user2
+    } do
       socket1 = %Phoenix.Socket{topic: "thread:#{thread_id}", assigns: %{user_id: user1}}
       socket2 = %Phoenix.Socket{topic: "thread:#{thread_id}", assigns: %{user_id: user2}}
 

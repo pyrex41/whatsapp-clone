@@ -9,7 +9,7 @@ import Foundation
 
 /// Primary user model mirroring the backend schema.
 struct User: Identifiable, Codable, Equatable {
-    let id: UUID
+    let id: String  // Changed from UUID to String to match backend
     var handle: String
     var displayName: String
     var avatarURL: URL?
@@ -17,7 +17,7 @@ struct User: Identifiable, Codable, Equatable {
     var phoneNumber: String?
     var status: UserStatus
     var publicKey: String?
-    var devicePublicKeys: [UUID: String]
+    var devicePublicKeys: [String: String]  // Changed from [UUID: String] to match
     var preferences: Preferences
     let createdAt: Date
     var updatedAt: Date
@@ -53,7 +53,7 @@ struct User: Identifiable, Codable, Equatable {
     }
 
     nonisolated init(
-        id: UUID = UUID(),
+        id: String,  // Changed from UUID to String
         handle: String,
         displayName: String,
         avatarURL: URL? = nil,
@@ -61,7 +61,7 @@ struct User: Identifiable, Codable, Equatable {
         phoneNumber: String? = nil,
         status: UserStatus = .active,
         publicKey: String? = nil,
-        devicePublicKeys: [UUID: String] = [:],
+        devicePublicKeys: [String: String] = [:],  // Changed from [UUID: String]
         preferences: Preferences? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
@@ -82,13 +82,25 @@ struct User: Identifiable, Codable, Equatable {
 }
 
 extension User {
+    /// Initialize from UserData received from backend
+    nonisolated static func from(_ userData: UserData) -> User {
+        User(
+            id: userData.id,
+            handle: userData.username ?? "Unknown",
+            displayName: userData.displayName ?? userData.username ?? "User",
+            email: userData.email ?? "",
+            preferences: .defaultPreferences()
+        )
+    }
+    
     nonisolated static var sampleCurrent: User {
         User(
+            id: "6abe02c6-92e1-4012-8e2c-f30ea22e71c1",
             handle: "reuben",
             displayName: "Reuben Brooks",
             avatarURL: nil,
             email: "reuben@example.com",
-            devicePublicKeys: [UUID(): "DEVICE_PUBLIC_KEY_SAMPLE"]
+            devicePublicKeys: [:]
         )
     }
 }

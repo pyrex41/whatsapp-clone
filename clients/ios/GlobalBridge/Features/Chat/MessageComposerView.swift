@@ -19,6 +19,9 @@ struct MessageComposerView: View {
                 .submitLabel(.send)
                 .disabled(isSending)
                 .onSubmit(sendIfPossible)
+                .onChange(of: text) { old, new in
+                    print("⌨️ [TEXT_FIELD] Text changed: '\(old)' -> '\(new)'")
+                }
 
             Button {
                 sendIfPossible()

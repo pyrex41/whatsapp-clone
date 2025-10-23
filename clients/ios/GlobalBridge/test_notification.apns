@@ -1,0 +1,18 @@
+{
+  "Simulator Target Bundle": "name.reubenbrooks.globalbridge",
+  "aps": {
+    "alert": {
+      "title": "Chat with Alice",
+      "body": "Hey! Are we still on for today?"
+    },
+    "badge": 3,
+    "sound": "default",
+    "category": "MESSAGE_CATEGORY"
+  },
+  "type": "message",
+  "conversation_id": "00000000-0000-0000-0000-000000000000",
+  "message_id": "11111111-1111-1111-1111-111111111111",
+  "sender_id": "user_alice",
+  "sent_at": "2024-10-22T12:00:00Z"
+}
+

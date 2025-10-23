@@ -9,12 +9,16 @@ import Combine
 struct AppRootView: View {
     @ObservedObject var store: Store<AppState, AppAction>
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @State private var navPath: [Thread.ID] = []
 
     var body: some View {
+        let _ = print("📱 [APP_ROOT] Rendering - horizontalSizeClass: \(horizontalSizeClass == .compact ? "compact (iPhone)" : "regular (iPad)")")
         if horizontalSizeClass == .compact {
-            NavigationStack {
+            let _ = print("📱 [APP_ROOT] Using NavigationStack with compact view")
+            NavigationStack(path: $navPath) {
                 ThreadsListCompactView(store: store)
                     .navigationDestination(for: Thread.ID.self) { threadID in
+                        let _ = print("🎬 [NAVIGATION] Navigation destination triggered for thread: \(threadID)")
                         ChatScreen(store: store)
                             .onAppear {
                                 print("🎬 [UI] ChatScreen appeared for thread: \(threadID)")
@@ -25,9 +29,22 @@ struct AppRootView: View {
                     }
             }
             .onAppear {
+                print("📱 [APP_ROOT] NavigationStack appeared, sending .onAppear")
                 store.send(.onAppear)
             }
+            .onChange(of: store.state.threads.selectedThreadID) { _, newValue in
+                if let id = newValue {
+                    // Programmatically navigate to selected thread
+                    navPath = [id]
+                } else {
+                    navPath.removeAll()
+                }
+            }
+            .safeAreaInset(edge: .top) {
+                InAppBannerContainer()
+            }
         } else {
+            let _ = print("📱 [APP_ROOT] Using NavigationSplitView")
             NavigationSplitView {
                 ThreadsListScreen(store: store)
             } detail: {
@@ -35,6 +52,9 @@ struct AppRootView: View {
             }
             .onAppear {
                 store.send(.onAppear)
+            }
+            .safeAreaInset(edge: .top) {
+                InAppBannerContainer()
             }
         }
     }

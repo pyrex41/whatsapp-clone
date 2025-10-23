@@ -7,6 +7,9 @@ import SwiftUI
 
 struct ThreadsListScreen: View {
     @ObservedObject var store: Store<AppState, AppAction>
+    #if DEBUG
+    @State private var showDebugMenu = false
+    #endif
 
     private var threadsState: ThreadsState { store.state.threads }
     private var connectionState: ConnectionState { store.state.connectionState }
@@ -28,10 +31,13 @@ struct ThreadsListScreen: View {
                         .contentShape(Rectangle())
                         .onTapGesture {
                             print("👆 [UI] Thread tapped: \(thread.id) - \(thread.title ?? "Untitled")")
+                            print("👆 [UI] Currently selected: \(threadsState.selectedThreadID?.uuidString ?? "none")")
+                            print("👆 [UI] Is same thread: \(thread.id == threadsState.selectedThreadID)")
                             print("👆 [UI] Sending .threadSelected action...")
                             store.send(.threadSelected(thread.id))
                             print("👆 [UI] .threadSelected action sent")
                         }
+                        .animation(.easeInOut(duration: 0.15), value: thread.id == threadsState.selectedThreadID)
                     }
                 }
             }
@@ -80,10 +86,25 @@ struct ThreadsListScreen: View {
                 }
                 .accessibilityLabel("New thread")
             }
+            #if DEBUG
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    showDebugMenu = true
+                } label: {
+                    Image(systemName: "wrench.and.screwdriver")
+                }
+                .accessibilityLabel("Debug Menu")
+            }
+            #endif
         }
         .sheet(isPresented: creationSheetBinding) {
             NewConversationView(store: store)
         }
+        #if DEBUG
+        .sheet(isPresented: $showDebugMenu) {
+            DebugMenuView()
+        }
+        #endif
     }
     
     private var emptyStateView: some View {
@@ -208,6 +229,9 @@ struct ConnectionStatusIndicator: View {
 
 struct ThreadsListCompactView: View {
     @ObservedObject var store: Store<AppState, AppAction>
+    #if DEBUG
+    @State private var showDebugMenu = false
+    #endif
 
     private var threadsState: ThreadsState { store.state.threads }
     private var connectionState: ConnectionState { store.state.connectionState }
@@ -228,6 +252,7 @@ struct ThreadsListCompactView: View {
                                 isSelected: thread.id == threadsState.selectedThreadID
                             )
                         }
+                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     }
                 }
             }
@@ -276,10 +301,25 @@ struct ThreadsListCompactView: View {
                 }
                 .accessibilityLabel("New thread")
             }
+            #if DEBUG
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    showDebugMenu = true
+                } label: {
+                    Image(systemName: "wrench.and.screwdriver")
+                }
+                .accessibilityLabel("Debug Menu")
+            }
+            #endif
         }
         .sheet(isPresented: creationSheetBinding) {
             NewConversationView(store: store)
         }
+        #if DEBUG
+        .sheet(isPresented: $showDebugMenu) {
+            DebugMenuView()
+        }
+        #endif
     }
     
     private var emptyStateView: some View {

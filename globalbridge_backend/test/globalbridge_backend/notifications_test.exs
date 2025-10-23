@@ -7,36 +7,38 @@ defmodule GlobalbridgeBackend.NotificationsTest do
   describe "notification creation" do
     setup do
       # Create test user
-      user = %User{
-        id: Ecto.UUID.generate(),
-        phone_number: "+1234567890",
-        password_hash: "test_hash"
-      }
-      |> Repo.insert!()
+      user =
+        %User{
+          id: Ecto.UUID.generate(),
+          phone_number: "+1234567890",
+          password_hash: "test_hash"
+        }
+        |> Repo.insert!()
 
       # Create test device
-      device = %Device{
-        id: Ecto.UUID.generate(),
-        user_id: user.id,
-        device_token: "test_apns_token_123",
-        device_type: "ios",
-        platform: "apns",
-        is_active: true
-      }
-      |> Repo.insert!()
+      device =
+        %Device{
+          id: Ecto.UUID.generate(),
+          user_id: user.id,
+          device_token: "test_apns_token_123",
+          device_type: "ios",
+          platform: "apns",
+          is_active: true
+        }
+        |> Repo.insert!()
 
       # Create test thread
-      thread = %Thread{
-        id: Ecto.UUID.generate(),
-        thread_type: "direct",
-        database_shard_id: "main"
-      }
-      |> Repo.insert!()
+      thread =
+        %Thread{
+          id: Ecto.UUID.generate(),
+          thread_type: "direct",
+          database_shard_id: "main"
+        }
+        |> Repo.insert!()
 
       message_id = Ecto.UUID.generate()
 
-      {:ok,
-       user: user, device: device, thread: thread, message_id: message_id}
+      {:ok, user: user, device: device, thread: thread, message_id: message_id}
     end
 
     test "creates notification record", %{
@@ -112,29 +114,32 @@ defmodule GlobalbridgeBackend.NotificationsTest do
 
   describe "notification sending" do
     setup do
-      user = %User{
-        id: Ecto.UUID.generate(),
-        phone_number: "+1234567890",
-        password_hash: "test_hash"
-      }
-      |> Repo.insert!()
+      user =
+        %User{
+          id: Ecto.UUID.generate(),
+          phone_number: "+1234567890",
+          password_hash: "test_hash"
+        }
+        |> Repo.insert!()
 
-      device = %Device{
-        id: Ecto.UUID.generate(),
-        user_id: user.id,
-        device_token: "test_token",
-        device_type: "ios",
-        platform: "apns",
-        is_active: true
-      }
-      |> Repo.insert!()
+      device =
+        %Device{
+          id: Ecto.UUID.generate(),
+          user_id: user.id,
+          device_token: "test_token",
+          device_type: "ios",
+          platform: "apns",
+          is_active: true
+        }
+        |> Repo.insert!()
 
-      thread = %Thread{
-        id: Ecto.UUID.generate(),
-        thread_type: "direct",
-        database_shard_id: "main"
-      }
-      |> Repo.insert!()
+      thread =
+        %Thread{
+          id: Ecto.UUID.generate(),
+          thread_type: "direct",
+          database_shard_id: "main"
+        }
+        |> Repo.insert!()
 
       {:ok, user: user, device: device, thread: thread}
     end
@@ -238,19 +243,21 @@ defmodule GlobalbridgeBackend.NotificationsTest do
 
   describe "notification queries" do
     setup do
-      user = %User{
-        id: Ecto.UUID.generate(),
-        phone_number: "+1234567890",
-        password_hash: "test_hash"
-      }
-      |> Repo.insert!()
+      user =
+        %User{
+          id: Ecto.UUID.generate(),
+          phone_number: "+1234567890",
+          password_hash: "test_hash"
+        }
+        |> Repo.insert!()
 
-      thread = %Thread{
-        id: Ecto.UUID.generate(),
-        thread_type: "direct",
-        database_shard_id: "main"
-      }
-      |> Repo.insert!()
+      thread =
+        %Thread{
+          id: Ecto.UUID.generate(),
+          thread_type: "direct",
+          database_shard_id: "main"
+        }
+        |> Repo.insert!()
 
       {:ok, user: user, thread: thread}
     end

@@ -11,38 +11,40 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         guard state.threads.hasLoaded == false else { return .none }
         state.threads.isLoading = true
         state.threads.errorMessage = nil
-        state.connectionState = .connecting
 
-        let ensureRealtime = Command<AppAction>.run(priority: nil) { send in
+        // Connect to Phoenix FIRST, then load threads
+        return Command<AppAction>.run(priority: nil) { send in
             do {
-                send(.connectionStateChanged(.connecting))
+                // Step 1: Ensure Phoenix connection
+                print("🔌 [STARTUP] Ensuring Phoenix connection...")
                 try await environment.realtime.ensureConnection()
-                send(.connectionStateChanged(.connected))
-            } catch {
-                print("⚠️ Realtime connection failed: \(error)")
-                send(.connectionStateChanged(.error(error.localizedDescription)))
-                send(.authenticationFailed(error))
-            }
-        }
-
-        let loadThreads = Command<AppAction>.run(priority: nil) { send in
-            do {
+                print("✅ [STARTUP] Phoenix connected, proceeding to load threads")
+                
+                // Step 2: Load threads (which uses Phoenix for bootstrap if needed)
                 await environment.sync.initialSync()
                 await environment.sync.startMonitoring()
                 let threads = try await environment.database.loadThreads()
                 send(.threadsLoaded(.success(threads)))
             } catch {
+                print("❌ [STARTUP] Failed: \(error.localizedDescription)")
                 send(.threadsLoaded(.failure(error)))
             }
         }
-
-        return .merge(ensureRealtime, loadThreads)
 
     case let .threadsLoaded(result):
         state.threads.isLoading = false
         state.threads.hasLoaded = true
         switch result {
         case let .success(threads):
+            // Update user from bootstrap if available
+            let user = MainActor.assumeIsolated {
+                AuthManager.shared.getBootstrappedUser()
+            }
+            if let bootstrappedUser = user {
+                print("👤 [LOADED] Updating app state with bootstrapped user: \(bootstrappedUser.id)")
+                state.user = bootstrappedUser
+            }
+            
             state.threads.items = threads
             if let firstThread = threads.first {
                 print("📋 [LOADED] Auto-selecting first thread: \(firstThread.id)")
@@ -68,6 +70,11 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                                 }
                             }
                             print("✅ [LOADED] realtime.connect completed for first thread: \(threadID)")
+                            
+                            // Now that channel is joined, trigger sync for this thread
+                            print("🔄 [LOADED] Triggering sync for first thread after successful channel join")
+                            await environment.sync.syncThread(threadID)
+                            print("✅ [LOADED] Initial sync complete for first thread")
                         } catch {
                             print("❌ [LOADED] realtime.connect failed for first thread: \(threadID): \(error.localizedDescription)")
                             if error.localizedDescription.contains("Thread not found") {
@@ -108,6 +115,10 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                         }
                     }
                     print("✅ [ACTION] Re-connection confirmed for thread: \(threadID)")
+                    
+                    // Sync after channel is confirmed joined
+                    print("🔄 [ACTION] Syncing thread after re-connection")
+                    await environment.sync.syncThread(threadID)
                 } catch {
                     print("❌ [ACTION] Re-connection failed for thread: \(threadID): \(error.localizedDescription)")
                     if error.localizedDescription.contains("Thread not found") {
@@ -153,6 +164,11 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                         }
                     }
                     print("✅ [ACTION] realtime.connect completed for thread: \(threadID)")
+                    
+                    // Sync after channel is successfully joined
+                    print("🔄 [ACTION] Syncing thread after successful channel join")
+                    await environment.sync.syncThread(threadID)
+                    print("✅ [ACTION] Sync complete for thread: \(threadID)")
                 } catch {
                     print("❌ [ACTION] realtime.connect failed for thread: \(threadID): \(error.localizedDescription)")
                     // Handle specific error case where thread doesn't exist on backend
@@ -285,10 +301,10 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 // 2. Show in UI immediately (optimistic update)
                 send(.messageSent(.success(localMessage)))
                 
-                // 3. Send to backend via Phoenix
-                print("📤 [SEND] Calling Phoenix.sendMessage...")
-                let phoenixMessage = try await environment.realtime.sendMessage(threadID, text, currentUser, nil)
-                print("✅ [SEND] Phoenix confirmed: \(phoenixMessage.id.uuidString)")
+                // 3. Send to backend via Phoenix (include client message ID for deduplication)
+                print("📤 [SEND] Calling Phoenix.sendMessage with client ID: \(localMessage.id.uuidString)...")
+                let phoenixMessage = try await environment.realtime.sendMessage(threadID, text, currentUser, localMessage.id)
+                print("✅ [SEND] Phoenix confirmed - server ID: \(phoenixMessage.id.uuidString), client ID: \(localMessage.id.uuidString)")
                 
                 // 4. Update status to "sent" in local DB
                 var updatedMessage = localMessage
@@ -342,16 +358,39 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 try? await environment.database.storeMessage(message)
             }
         }
-        if !state.chat.messages.contains(where: { $0.id == message.id }) {
-            state.chat.messages.append(message)
-            if let index = state.threads.items.firstIndex(where: { $0.id == message.threadId }) {
-                state.threads.items[index].lastMessageAt = message.createdAt
-                state.threads.items[index].updatedAt = message.updatedAt
-                let updatedThread = state.threads.items.remove(at: index)
-                state.threads.items.insert(updatedThread, at: 0)
-                state.chat.currentThread = updatedThread
+        
+        // Check for existing message by client ID (for deduplication)
+        if let clientMsgId = message.clientMessageId,
+           let clientUUID = UUID(uuidString: clientMsgId),
+           let existingIndex = state.chat.messages.firstIndex(where: { $0.id == clientUUID }) {
+            // This is our own message coming back from server - update with server ID
+            print("🔄 [RECEIVE] Updating local message \(clientMsgId) with server ID: \(message.id)")
+            
+            // Update the existing message with the server's ID and data
+            state.chat.messages[existingIndex] = message
+            
+            // Update in database
+            return .fireAndForget {
+                try? await environment.database.storeMessage(message)
             }
         }
+        
+        // Check if server ID already exists (shouldn't happen but safety check)
+        if state.chat.messages.contains(where: { $0.id.uuidString.lowercased() == message.id.uuidString.lowercased() }) {
+            print("⏭️ [RECEIVE] Skipping duplicate message by server ID: \(message.id)")
+            return .none
+        }
+        
+        // Add the message since it's not a duplicate
+        state.chat.messages.append(message)
+        if let index = state.threads.items.firstIndex(where: { $0.id == message.threadId }) {
+            state.threads.items[index].lastMessageAt = message.createdAt
+            state.threads.items[index].updatedAt = message.updatedAt
+            let updatedThread = state.threads.items.remove(at: index)
+            state.threads.items.insert(updatedThread, at: 0)
+            state.chat.currentThread = updatedThread
+        }
+        
         return .fireAndForget {
             try? await environment.database.storeMessage(message)
         }
@@ -366,6 +405,41 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             state.chat.typingUsers.remove(userID)
         }
         return .none
+
+    case let .markMessageRead(threadID, messageID):
+        return .fireAndForget {
+            await environment.realtime.sendReadReceipt(threadID, messageID)
+        }
+
+    case let .sendQuickReply(threadID, text):
+        let currentUser = state.user
+        return .run(priority: nil) { send in
+            do {
+                // Optimistic local insert similar to sendMessage
+                let now = Date()
+                let localMessage = Message(
+                    threadId: threadID,
+                    senderId: currentUser.id,
+                    content: text,
+                    messageType: .text,
+                    status: .pending,
+                    createdAt: now,
+                    updatedAt: now
+                )
+                try await environment.database.storeMessage(localMessage)
+                send(.messageSent(.success(localMessage)))
+
+                let serverMessage = try await environment.realtime.sendMessage(threadID, text, currentUser, localMessage.id)
+                var updated = localMessage
+                updated.status = .sent
+                try await environment.database.storeMessage(updated)
+                send(.messageStatusUpdated(localMessage.id, .sent))
+                // Also deliver the server message shape to maintain consistency
+                send(.receiveRealtimeMessage(serverMessage))
+            } catch {
+                send(.messageSent(.failure(error)))
+            }
+        }
 
     case let .handleOrphanedThread(threadID):
         print("🗑️ [ORPHAN] Handling orphaned thread: \(threadID)")
@@ -398,136 +472,5 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         state.threads.errorMessage = "This conversation is no longer available on the server. It has been removed from your list."
 
         return .none
-
-    case let .authenticationFailed(error):
-        print("❌ [AUTH] Authentication failed: \(error.localizedDescription)")
-        state.authError = error.localizedDescription
-        return .none
-
-    case .dismissAuthError:
-        state.authError = nil
-        return .none
-    
-    case let .connectionStateChanged(newState):
-        state.connectionState = newState
-        return .none
-    
-    case let .phoenixChannel(phoenixAction):
-        return handlePhoenixChannelAction(phoenixAction, state: &state, environment: environment)
-    }
-}
-
-// MARK: - Phoenix Channel Action Handler
-
-private func handlePhoenixChannelAction(
-    _ action: PhoenixChannelAction,
-    state: inout AppState,
-    environment: AppEnvironment
-) -> Command<AppAction> {
-    switch action {
-    case let .searchUsers(query):
-        // Handle user search
-        return .run(priority: nil) { send in
-            do {
-                let results = try await environment.realtime.searchUsers(query)
-                send(.phoenixChannel(.userSearchResults(.success(results))))
-            } catch {
-                send(.phoenixChannel(.userSearchResults(.failure(error))))
-            }
-        }
-    
-    case .userSearchResults:
-        // Results handled in UI directly
-        return .none
-    
-    case let .createDM(userId):
-        // Create or get DM with user
-        return .run(priority: nil) { send in
-            do {
-                let threadData = try await environment.realtime.createDirectMessage(userId)
-                // Convert ThreadData to Thread model
-                let thread = Thread(
-                    id: UUID(uuidString: threadData.id) ?? UUID(),
-                    threadType: Thread.ThreadType(rawValue: threadData.threadType) ?? .direct,
-                    title: threadData.title,
-                    avatarUrl: nil,
-                    lastMessageAt: threadData.lastMessageAt,
-                    isArchived: threadData.isArchived,
-                    isMuted: threadData.isMuted,
-                    databaseShardId: threadData.databaseShardId,
-                    unreadCount: 0,
-                    lastReadMessageId: nil,
-                    encryptionVersion: 1,
-                    encryptionSalt: nil,
-                    createdAt: threadData.createdAt,
-                    updatedAt: threadData.updatedAt
-                )
-                send(.phoenixChannel(.dmCreated(.success(thread))))
-            } catch {
-                send(.phoenixChannel(.dmCreated(.failure(error))))
-            }
-        }
-    
-    case let .dmCreated(result):
-        switch result {
-        case let .success(thread):
-            // Add thread to list if not exists
-            if !state.threads.items.contains(where: { $0.id == thread.id }) {
-                state.threads.items.insert(thread, at: 0)
-            }
-            // Select and navigate to the DM
-            state.threads.selectedThreadID = thread.id
-            state.chat.currentThread = thread
-            return .run(priority: nil) { send in
-                send(.loadMessages(thread.id))
-            }
-        case let .failure(error):
-            state.threads.errorMessage = error.localizedDescription
-            return .none
-        }
-    
-    case let .createGroup(title, participantIds):
-        // Create group thread
-        return .run(priority: nil) { send in
-            do {
-                let threadData = try await environment.realtime.createThread("group", title, participantIds)
-                // Convert ThreadData to Thread model
-                let thread = Thread(
-                    id: UUID(uuidString: threadData.id) ?? UUID(),
-                    threadType: Thread.ThreadType(rawValue: threadData.threadType) ?? .group,
-                    title: threadData.title,
-                    avatarUrl: nil,
-                    lastMessageAt: threadData.lastMessageAt,
-                    isArchived: threadData.isArchived,
-                    isMuted: threadData.isMuted,
-                    databaseShardId: threadData.databaseShardId,
-                    unreadCount: 0,
-                    lastReadMessageId: nil,
-                    encryptionVersion: 1,
-                    encryptionSalt: nil,
-                    createdAt: threadData.createdAt,
-                    updatedAt: threadData.updatedAt
-                )
-                send(.phoenixChannel(.groupCreated(.success(thread))))
-            } catch {
-                send(.phoenixChannel(.groupCreated(.failure(error))))
-            }
-        }
-    
-    case let .groupCreated(result):
-        switch result {
-        case let .success(thread):
-            // Add thread to list
-            state.threads.items.insert(thread, at: 0)
-            // Select and navigate to the group
-            state.threads.selectedThreadID = thread.id
-            state.chat.currentThread = thread
-            return .run(priority: nil) { send in
-                send(.loadMessages(thread.id))
-            }
-        case let .failure(error):
-            state.threads.errorMessage = error.localizedDescription
-            return .none
-        }
     }
 }

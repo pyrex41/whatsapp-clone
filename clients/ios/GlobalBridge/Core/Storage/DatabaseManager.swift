@@ -64,6 +64,23 @@ final class DatabaseManager {
     private let participantCreatedAt = Expression<Date>("created_at")
     private let participantUpdatedAt = Expression<Date>("updated_at")
 
+    // Contacts table
+    private let contactsTable = Table("contacts")
+    private let contactId = Expression<String>("id")
+    private let contactUserId = Expression<String>("contact_user_id")
+    private let contactDisplayNameOverride = Expression<String?>("display_name_override")
+    private let contactIsFavorite = Expression<Bool>("is_favorite")
+    private let contactNotes = Expression<String?>("notes")
+    private let contactUserEmail = Expression<String>("user_email")
+    private let contactUserUsername = Expression<String?>("user_username")
+    private let contactUserDisplayName = Expression<String?>("user_display_name")
+    private let contactUserAvatarUrl = Expression<String?>("user_avatar_url")
+    private let contactCreatedAt = Expression<Date>("created_at")
+    private let contactUpdatedAt = Expression<Date>("updated_at")
+    private let contactLastSyncedAt = Expression<Date?>("last_synced_at")
+    private let contactNeedsSync = Expression<Bool>("needs_sync")
+    private let contactIsDeleted = Expression<Bool>("is_deleted")
+
     // MARK: - Per-Thread Table Definitions
 
     // Messages table (per-thread shard)
@@ -194,6 +211,30 @@ final class DatabaseManager {
         try db.run(participantsTable.createIndex(participantThreadId, participantUserId, unique: true, ifNotExists: true))
         try db.run(participantsTable.createIndex(participantUserId, ifNotExists: true))
         try db.run(participantsTable.createIndex(participantIsActive, ifNotExists: true))
+
+        // Create contacts table
+        try db.run(contactsTable.create(ifNotExists: true) { t in
+            t.column(contactId, primaryKey: true)
+            t.column(contactUserId)
+            t.column(contactDisplayNameOverride)
+            t.column(contactIsFavorite, defaultValue: false)
+            t.column(contactNotes)
+            t.column(contactUserEmail)
+            t.column(contactUserUsername)
+            t.column(contactUserDisplayName)
+            t.column(contactUserAvatarUrl)
+            t.column(contactCreatedAt, defaultValue: Date())
+            t.column(contactUpdatedAt, defaultValue: Date())
+            t.column(contactLastSyncedAt)
+            t.column(contactNeedsSync, defaultValue: false)
+            t.column(contactIsDeleted, defaultValue: false)
+        })
+
+        // Create indexes for contacts
+        try db.run(contactsTable.createIndex(contactUserId, ifNotExists: true))
+        try db.run(contactsTable.createIndex(contactNeedsSync, ifNotExists: true))
+        try db.run(contactsTable.createIndex(contactIsDeleted, ifNotExists: true))
+        try db.run(contactsTable.createIndex(contactUpdatedAt, ifNotExists: true))
 
         print("✅ Main tables created successfully")
     }
@@ -509,17 +550,32 @@ final class DatabaseManager {
         }
     }
 
+    /// Fetch user data from backend without syncing threads
+    func fetchUserFromBackend(phoenixManager: PhoenixChannelManager) async throws -> User {
+        print("👤 [USER_SYNC] Fetching user from backend...")
+        
+        let bootstrap = try await phoenixManager.fetchBootstrap()
+        let user = User.from(bootstrap.user)
+        
+        print("✅ [USER_SYNC] Received user: \(user.id) - \(user.displayName)")
+        return user
+    }
+
     /// Sync threads from backend via Phoenix channel
-    func syncThreadsFromBackend(phoenixManager: PhoenixChannelManager) async throws -> [Thread] {
-        print("📥 Syncing threads from backend...")
+    func syncThreadsFromBackend(phoenixManager: PhoenixChannelManager) async throws -> ([Thread], User) {
+        print("📥 Syncing threads and user from backend...")
         
         // 1. Fetch bootstrap data via Phoenix channel
         let bootstrap = try await phoenixManager.fetchBootstrap()
         
-        // 2. Clear existing local threads
+        // 2. Convert UserData to User
+        let user = User.from(bootstrap.user)
+        print("👤 [SYNC] Received user from backend: \(user.id) - \(user.displayName)")
+        
+        // 3. Clear existing local threads
         try await clearAllThreads()
         
-        // 3. Insert backend threads into local database
+        // 4. Insert backend threads into local database
         for threadData in bootstrap.threads {
             let thread = Thread(
                 id: UUID(uuidString: threadData.id)!,
@@ -538,8 +594,9 @@ final class DatabaseManager {
             try await createThreadLocally(thread)
         }
         
-        print("✅ Synced \(bootstrap.threads.count) threads from backend")
-        return try await fetchThreads()
+        let threads = try await fetchThreads()
+        print("✅ Synced \(bootstrap.threads.count) threads and user from backend")
+        return (threads, user)
     }
 
     /// Create thread locally only (used during sync)
@@ -683,7 +740,7 @@ final class DatabaseManager {
             let insert = messagesTable.insert(
                 messageId <- message.id.uuidString,
                 messageThreadId <- message.threadId.uuidString,
-                messageSenderId <- message.senderId.uuidString,
+                messageSenderId <- message.senderId,  // Now a String, not UUID
                 messageContent <- message.content,
                 messageType <- message.messageType.rawValue,
                 messageStatus <- message.status.rawValue,
@@ -741,7 +798,7 @@ final class DatabaseManager {
                 let message = Message(
                     id: UUID(uuidString: row[messageId])!,
                     threadId: UUID(uuidString: row[messageThreadId])!,
-                    senderId: UUID(uuidString: row[messageSenderId])!,
+                    senderId: row[messageSenderId],  // Now a String, not UUID
                     content: row[messageContent],
                     messageType: Message.MessageType(rawValue: row[messageType])!,
                     status: Message.Status(rawValue: row[messageStatus])!,
@@ -841,11 +898,19 @@ final class DatabaseManager {
                     changedFields = try? JSONDecoder().decode([String].self, from: data)
                 }
 
+                // Safely parse UUIDs
+                guard let logId = UUID(uuidString: row[cdcId]),
+                      let recordId = UUID(uuidString: row[cdcRecordId]),
+                      let operation = CDCLog.CDCOperation(rawValue: row[cdcOperation]) else {
+                    print("⚠️ [CDC] Skipping invalid CDC log: id=\(row[cdcId]), recordId=\(row[cdcRecordId]), operation=\(row[cdcOperation])")
+                    continue
+                }
+
                 let log = CDCLog(
-                    id: UUID(uuidString: row[cdcId])!,
+                    id: logId,
                     tableName: row[cdcTableName],
-                    recordId: UUID(uuidString: row[cdcRecordId])!,
-                    operation: CDCLog.CDCOperation(rawValue: row[cdcOperation])!,
+                    recordId: recordId,
+                    operation: operation,
                     oldData: oldData,
                     newData: newData,
                     changedFields: changedFields,
@@ -1005,7 +1070,7 @@ final class DatabaseManager {
         var dict: [String: String] = [
             "id": message.id.uuidString,
             "thread_id": message.threadId.uuidString,
-            "sender_id": message.senderId.uuidString,
+            "sender_id": message.senderId,  // Now a String, not UUID
             "content": message.content,
             "message_type": message.messageType.rawValue,
             "status": message.status.rawValue,
