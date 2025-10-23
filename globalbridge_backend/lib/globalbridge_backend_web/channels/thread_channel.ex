@@ -206,6 +206,40 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     {:reply, {:ok, broadcast_message}, socket}
   end
 
+  @doc """
+  Fetch historical messages for a thread.
+  Used when client's local database is empty and needs to pull down existing messages.
+  """
+  @impl true
+  def handle_in("fetch_messages", payload, socket) do
+    thread_id = socket.assigns.thread_id
+    limit = payload["limit"] || 50
+    before_timestamp = payload["before"]
+    
+    Logger.debug("📥 [FETCH] Fetching messages: thread=#{thread_id}, limit=#{limit}, before=#{inspect(before_timestamp)}")
+    
+    filters = [limit: limit]
+    filters = if before_timestamp, do: [{:before, before_timestamp} | filters], else: filters
+    
+    messages = Chat.list_messages(thread_id, filters)
+    
+    formatted_messages = Enum.map(messages, fn msg ->
+      %{
+        id: msg.id,
+        thread_id: msg.thread_id,
+        sender_id: msg.sender_id,
+        content: msg.content,
+        content_type: msg.content_type || "text",
+        created_at: msg.inserted_at,
+        reply_to_id: msg.reply_to_id,
+        media_url: msg.media_url
+      }
+    end)
+    
+    Logger.info("✅ [FETCH] Returning #{length(formatted_messages)} messages for thread #{thread_id}")
+    {:reply, {:ok, %{messages: formatted_messages}}, socket}
+  end
+
   @impl true
   def handle_in("edit_message", %{"message_id" => message_id, "content" => new_content}, socket) do
     thread_id = socket.assigns.thread_id

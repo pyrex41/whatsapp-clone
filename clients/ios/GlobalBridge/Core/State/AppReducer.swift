@@ -288,7 +288,32 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         state.chat.isLoadingMessages = false
         switch result {
         case let .success(messages):
-            state.chat.messages = messages.sorted(by: { $0.createdAt < $1.createdAt })
+            if messages.isEmpty {
+                // Local database is empty - fetch from backend
+                print("📥 [MESSAGES] Local DB empty, fetching from backend for thread: \(threadID)")
+                return .run(priority: nil) { send in
+                    do {
+                        let phoenixMessages = try await environment.realtime.fetchMessages(threadID, 100)
+                        print("✅ [MESSAGES] Fetched \(phoenixMessages.count) messages from backend")
+                        
+                        // Convert and store them locally
+                        for phoenixMsg in phoenixMessages {
+                            if let message = Message.fromPhoenix(phoenixMsg) {
+                                try? await environment.database.storeMessage(message)
+                                print("💾 [MESSAGES] Stored message: \(message.id)")
+                            }
+                        }
+                        
+                        // Reload from local DB to show in UI
+                        send(.loadMessages(threadID))
+                    } catch {
+                        print("⚠️ [MESSAGES] Backend fetch failed: \(error.localizedDescription)")
+                        // Error already logged - UI will show empty state
+                    }
+                }
+            } else {
+                state.chat.messages = messages.sorted(by: { $0.createdAt < $1.createdAt })
+            }
         case let .failure(error):
             state.chat.messageError = error.localizedDescription
         }

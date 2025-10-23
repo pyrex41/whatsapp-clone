@@ -36,6 +36,7 @@ struct RealtimeClient {
     var searchUsers: @Sendable (_ query: String) async throws -> [UserSearchResult]
     var createDirectMessage: @Sendable (_ userId: String) async throws -> ThreadData
     var createGroupThread: @Sendable (_ title: String, _ participantIds: [String]) async throws -> ThreadData
+    var fetchMessages: @Sendable (_ threadID: UUID, _ limit: Int) async throws -> [PhoenixMessage]
 }
 
 struct SyncClient {
@@ -99,7 +100,8 @@ extension AppEnvironment {
             },
             createGroupThread: { _, _ in
                 throw NSError(domain: "Preview", code: -1, userInfo: [NSLocalizedDescriptionKey: "Not available in preview"])
-            }
+            },
+            fetchMessages: { _, _ in [] }
         )
 
         let sync = SyncClient(
@@ -392,6 +394,9 @@ extension AppEnvironment {
             },
             createGroupThread: { title, participantIds in
                 return try await phoenixManager.createThread(threadType: "group", title: title, participantIds: participantIds)
+            },
+            fetchMessages: { threadID, limit in
+                return try await phoenixManager.fetchMessages(conversationId: threadID.uuidString, limit: limit)
             }
         )
 

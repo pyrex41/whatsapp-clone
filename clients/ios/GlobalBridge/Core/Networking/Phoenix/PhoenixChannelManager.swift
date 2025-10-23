@@ -998,6 +998,52 @@ public actor PhoenixChannelManager {
                 print("[Phoenix] Failed to send read receipt: \(message.payload)")
             }
     }
+    
+    /// Fetch historical messages from backend
+    public func fetchMessages(conversationId: String, limit: Int = 50, before: Date? = nil) async throws -> [PhoenixMessage] {
+        guard let channel = channel(for: conversationId) else {
+            throw PhoenixError.channelNotJoined
+        }
+        
+        var payload: [String: Any] = ["limit": limit]
+        if let before = before {
+            payload["before"] = ISO8601DateFormatter().string(from: before)
+        }
+        
+        print("📥 [FETCH_MESSAGES] Fetching from backend: conversationId=\(conversationId), limit=\(limit)")
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            channel.push("fetch_messages", payload: payload)
+                .receive("ok") { response in
+                    guard let messages = response.payload["messages"] as? [[String: Any]] else {
+                        continuation.resume(returning: [])
+                        return
+                    }
+                    
+                    print("✅ [FETCH_MESSAGES] Received \(messages.count) messages")
+                    
+                    var phoenixMessages: [PhoenixMessage] = []
+                    for msgPayload in messages {
+                        do {
+                            let phoenixMsg = try self.parsePhoenixMessage(from: msgPayload)
+                            phoenixMessages.append(phoenixMsg)
+                        } catch {
+                            print("⚠️ [FETCH_MESSAGES] Failed to parse message: \(error)")
+                        }
+                    }
+                    
+                    continuation.resume(returning: phoenixMessages)
+                }
+                .receive("error") { message in
+                    print("❌ [FETCH_MESSAGES] Error: \(message.payload)")
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
+                }
+                .receive("timeout") { _ in
+                    print("❌ [FETCH_MESSAGES] Timeout")
+                    continuation.resume(throwing: PhoenixError.timeout)
+                }
+        }
+    }
 
     // MARK: - Private Methods
 
