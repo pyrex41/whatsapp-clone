@@ -118,3 +118,62 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
+
+# Auth0 Configuration (for all environments that use Auth0)
+if config_env() in [:dev, :prod] do
+  # Validate and configure Auth0 environment variables
+  auth0_domain = System.get_env("AUTH0_DOMAIN")
+  auth0_client_id = System.get_env("AUTH0_CLIENT_ID")
+  auth0_client_secret = System.get_env("AUTH0_CLIENT_SECRET")
+  auth0_audience = System.get_env("AUTH0_AUDIENCE", "globalbridge-api")
+
+  # Warn about missing Auth0 variables in development
+  if config_env() == :dev do
+    required_vars = [
+      {"AUTH0_DOMAIN", "your-tenant.auth0.com", auth0_domain},
+      {"AUTH0_CLIENT_ID", "your_client_id_here", auth0_client_id},
+      {"AUTH0_CLIENT_SECRET", "your_client_secret_here", auth0_client_secret}
+    ]
+
+    for {var_name, example, value} <- required_vars do
+      unless value do
+        IO.warn("""
+        ⚠️  Missing Auth0 environment variable: #{var_name}
+        Example: export #{var_name}="#{example}"
+        See globalbridge_backend/AUTH0_ENV_SETUP.md for configuration details.
+        """)
+      end
+    end
+  end
+
+  # In production, require all Auth0 variables
+  if config_env() == :prod do
+    unless auth0_domain do
+      raise """
+      environment variable AUTH0_DOMAIN is required in production.
+      Example: your-tenant.auth0.com
+      """
+    end
+
+    unless auth0_client_id do
+      raise """
+      environment variable AUTH0_CLIENT_ID is required in production.
+      Get this from your Auth0 application settings.
+      """
+    end
+
+    unless auth0_client_secret do
+      raise """
+      environment variable AUTH0_CLIENT_SECRET is required in production.
+      Get this from your Auth0 application settings.
+      """
+    end
+  end
+
+  # Store in application config for runtime access
+  config :globalbridge_backend,
+    auth0_domain: auth0_domain,
+    auth0_client_id: auth0_client_id,
+    auth0_client_secret: auth0_client_secret,
+    auth0_audience: auth0_audience
+end

@@ -6,81 +6,23 @@ defmodule GlobalbridgeBackend.Auth.Auth0Verifier do
 
   alias GlobalbridgeBackend.Repo
   alias GlobalbridgeBackend.Schemas.User
+  alias GlobalbridgeBackend.Auth.JWTVerifier
   require Logger
-
-  # Auth bypass for testing - maps test tokens to usernames
-  @test_tokens %{
-    "test-token-alice" => "alice",
-    "test-token-bob" => "bob",
-    "test-token-testuser" => "testuser",
-    # Legacy support
-    "test-token-for-backend-integration" => "test_user"
-  }
 
   @doc """
   Verify an Auth0 JWT token and return the associated user.
   Creates a new user if one doesn't exist.
-  Supports test token bypass for development/testing.
   """
   def verify_and_get_user(token) do
-    # Check for test token bypass
-    case Map.get(@test_tokens, token) do
-      nil ->
-        # Not a test token, proceed with normal verification
-        Logger.info("🔐 [AUTH0] Attempting to verify token: #{String.slice(token, 0, 20)}...")
+    Logger.info("🔐 [AUTH0] Attempting to verify token: #{String.slice(token, 0, 20)}...")
 
-        with {:ok, claims} <- decode_jwt(token),
-             :ok <- verify_auth0_token(claims),
-             {:ok, user} <- ensure_user_exists(claims) do
-          {:ok, user}
-        else
-          {:error, reason} ->
-            Logger.error("❌ [AUTH0] Token verification failed: #{inspect(reason)}")
-            {:error, reason}
-        end
-
-      username ->
-        # Test token found
-        Logger.warning("⚠️ [AUTH BYPASS] Test token detected for user: #{username}")
-        get_test_user_by_username(username)
-    end
-  end
-
-  @doc """
-  Decode a JWT token without signature verification (for development).
-  In production, use proper JWT library with signature verification.
-  """
-  def decode_jwt(token) do
-    case String.split(token, ".") do
-      [_header, payload, _signature] ->
-        with {:ok, decoded} <- Base.url_decode64(payload, padding: false),
-             {:ok, json} <- Jason.decode(decoded) do
-          {:ok, json}
-        else
-          _ -> {:error, :invalid_jwt}
-        end
-
-      _ ->
-        {:error, :invalid_jwt}
-    end
-  rescue
-    _ -> {:error, :invalid_jwt}
-  end
-
-  defp verify_auth0_token(claims) do
-    # Check if this looks like an Auth0 token
-    if Map.has_key?(claims, "sub") and
-         (Map.has_key?(claims, "iss") or Map.has_key?(claims, "aud")) do
-      # In production, verify:
-      # 1. Token signature against Auth0's public keys
-      # 2. Issuer (iss) matches your Auth0 domain
-      # 3. Audience (aud) matches your API identifier
-      # 4. Token hasn't expired (exp)
-
-      # For development, we'll accept it
-      :ok
+    with {:ok, claims} <- JWTVerifier.verify_token(token),
+         {:ok, user} <- ensure_user_exists(claims) do
+      {:ok, user}
     else
-      {:error, :not_auth0_token}
+      {:error, reason} ->
+        Logger.error("❌ [AUTH0] Token verification failed: #{inspect(reason)}")
+        {:error, reason}
     end
   end
 
@@ -142,18 +84,5 @@ defmodule GlobalbridgeBackend.Auth.Auth0Verifier do
 
     # Add timestamp to ensure uniqueness
     "#{base}_#{:os.system_time(:millisecond)}"
-  end
-
-  # Get test user by username for auth bypass testing
-  defp get_test_user_by_username(username) do
-    case Repo.get_by(User, username: username) do
-      nil ->
-        Logger.error("❌ [AUTH BYPASS] Test user not found: #{username}")
-        {:error, :user_not_found}
-
-      user ->
-        Logger.info("✅ [AUTH BYPASS] Test user found: id=#{user.id}, username=#{user.username}")
-        {:ok, user}
-    end
   end
 end

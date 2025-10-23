@@ -15,6 +15,8 @@ defmodule GlobalbridgeBackend.Application do
       {Phoenix.PubSub, name: GlobalbridgeBackend.PubSub},
       # Phoenix Presence for online/offline tracking
       GlobalbridgeBackendWeb.Presence,
+      # JWKS cache for Auth0 JWT verification
+      GlobalbridgeBackend.Auth.JWKSCache,
       # Task supervisor for async operations (message persistence, read receipts, notifications)
       {Task.Supervisor, name: GlobalbridgeBackend.TaskSupervisor},
       # Start a worker by calling: GlobalbridgeBackend.Worker.start_link(arg)

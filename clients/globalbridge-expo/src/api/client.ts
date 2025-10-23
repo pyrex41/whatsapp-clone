@@ -9,6 +9,7 @@ export interface ApiClientOptions {
   baseUrl?: string;
   getAccessToken?: () => string | null;
   onUnauthorized?: () => void;
+  onTokenRefresh?: () => Promise<void>;
   fetchImpl?: typeof fetch;
 }
 
@@ -37,12 +38,14 @@ export class ApiClient {
   private readonly baseUrl: string;
   private readonly getAccessToken?: () => string | null;
   private readonly onUnauthorized?: () => void;
+  private readonly onTokenRefresh?: () => Promise<void>;
   private readonly fetchImpl: typeof fetch;
 
   constructor(options: ApiClientOptions = {}) {
     this.baseUrl = options.baseUrl ?? env.apiUrl;
     this.getAccessToken = options.getAccessToken;
     this.onUnauthorized = options.onUnauthorized;
+    this.onTokenRefresh = options.onTokenRefresh;
     this.fetchImpl = options.fetchImpl ?? fetch;
   }
 
@@ -61,12 +64,36 @@ export class ApiClient {
       body = JSON.stringify(options.body);
     }
 
-    const response = await this.fetchImpl(url, {
+    let response = await this.fetchImpl(url, {
       method: options.method ?? 'GET',
       headers,
       body,
       signal: options.signal,
     });
+
+    // If we get a 401 and have a token refresh callback, try refreshing once
+    if (response.status === 401 && this.onTokenRefresh) {
+      try {
+        await this.onTokenRefresh();
+
+        // Retry the request with the new token
+        const newAccessToken = this.getAccessToken?.();
+        if (newAccessToken && newAccessToken !== accessToken) {
+          const newHeaders = new Headers({ Accept: 'application/json', ...(options.headers ?? {}) });
+          newHeaders.set('Authorization', `Bearer ${newAccessToken}`);
+
+          response = await this.fetchImpl(url, {
+            method: options.method ?? 'GET',
+            headers: newHeaders,
+            body,
+            signal: options.signal,
+          });
+        }
+      } catch (refreshError) {
+        // If refresh fails, fall through to unauthorized handling
+        console.warn('[ApiClient] Token refresh failed:', refreshError);
+      }
+    }
 
     if (response.status === 401) {
       this.onUnauthorized?.();
@@ -138,6 +165,9 @@ export class ApiClient {
 
 export const apiClient = new ApiClient({
   getAccessToken: () => useSessionStore.getState().tokens?.accessToken ?? null,
+  onTokenRefresh: async () => {
+    await useSessionStore.getState().refresh();
+  },
   onUnauthorized: () => {
     const { logout, status } = useSessionStore.getState();
     if (status !== 'unauthenticated') {
