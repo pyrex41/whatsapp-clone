@@ -26,4 +26,23 @@ enum AppAction {
     case receiveRealtimeMessage(Message)
     case typingIndicator(Thread.ID, userID: UUID, isTyping: Bool)
     case handleOrphanedThread(Thread.ID)
+
+    // Auth
+    case authenticationFailed(Error)
+    case dismissAuthError
+    
+    // Connection state
+    case connectionStateChanged(ConnectionState)
+    
+    // Phoenix Channel actions
+    case phoenixChannel(PhoenixChannelAction)
+}
+
+enum PhoenixChannelAction {
+    case searchUsers(query: String)
+    case userSearchResults(Result<[UserSearchResult], Error>)
+    case createDM(userId: String)
+    case createGroup(title: String, participantIds: [String])
+    case dmCreated(Result<Thread, Error>)
+    case groupCreated(Result<Thread, Error>)
 }

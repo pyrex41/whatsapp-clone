@@ -117,7 +117,11 @@ defmodule GlobalbridgeBackend.Contexts.Auth do
         user
         |> User.update_changeset(%{
           is_online: is_online,
-          last_seen_at: if(is_online, do: DateTime.utc_now() |> DateTime.truncate(:second), else: user.last_seen_at)
+          last_seen_at:
+            if(is_online,
+              do: DateTime.utc_now() |> DateTime.truncate(:second),
+              else: user.last_seen_at
+            )
         })
         |> Repo.update()
 
@@ -149,6 +153,26 @@ defmodule GlobalbridgeBackend.Contexts.Auth do
       {:ok, user, _tokens} -> {:ok, user}
       error -> error
     end
+  end
+
+  @doc """
+  Search for users by email, username, or display name.
+  Excludes the searching user from results.
+  """
+  def search_users(query, current_user_id, opts \\ []) do
+    limit = Keyword.get(opts, :limit, 20)
+    search_pattern = "%#{String.downcase(query)}%"
+
+    from(u in User,
+      where: u.id != ^current_user_id,
+      where:
+        like(fragment("lower(?)", u.email), ^search_pattern) or
+          like(fragment("lower(?)", u.username), ^search_pattern) or
+          like(fragment("lower(?)", u.display_name), ^search_pattern),
+      limit: ^limit,
+      order_by: [asc: u.username]
+    )
+    |> Repo.all()
   end
 
   # Private functions

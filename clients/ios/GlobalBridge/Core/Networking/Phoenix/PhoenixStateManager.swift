@@ -51,6 +51,12 @@ public class PhoenixStateManager {
         await channelManager.disconnect()
         connectionState = .disconnected
     }
+    
+    /// Get current connection state
+    public func getConnectionState() async -> PhoenixConnectionState {
+        let state = await channelManager.getConnectionState()
+        return state
+    }
 
     /// Join a conversation channel
     public func joinConversation(_ conversationId: String) async throws {

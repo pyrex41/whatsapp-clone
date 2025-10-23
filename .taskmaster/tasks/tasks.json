@@ -3300,5 +3300,347 @@
         "elm"
       ]
     }
+  },
+  "ai-backend": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Set up Agens framework and OTP integration",
+        "description": "Initialize Agens multi-agent framework with OTP supervision tree, configure dependencies, and wire up Agens.Supervisor.",
+        "details": "Add {:agens, \"~> 0.1.3\"} to mix.exs. Create Messaging.AI.Supervisor in application.ex supervision tree. Configure Agens.Supervisor with default prefixes. Set up Serving adapter for OpenAI API. Test Agens agents can be spawned and communicate with serving.",
+        "testStrategy": "Unit tests verify Agens.Supervisor starts without errors. Integration tests confirm agents can be spawned and receive messages from serving.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Implement EmbeddingService and vector store foundation",
+        "description": "Build embedding generation service with OpenAI API and SQLite vec0 vector storage for per-thread databases.",
+        "details": "Create Messaging.AI.RAG.EmbeddingService module to call OpenAI text-embedding-3-large. Install and test sqlite-vec extension. Implement Messaging.AI.RAG.VectorStore for inserting/searching embeddings. Add database migrations for embedding columns. Set up Redis caching for embeddings with content-hash deduplication.",
+        "testStrategy": "Unit tests for embedding service API calls. Integration tests verify vec0 tables work correctly. Performance tests confirm <2s embedding generation per message.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Create TranslationJob with TranslatorAgent and CulturalContextTool",
+        "description": "Implement Agens.Job for real-time translation with cultural context detection using multi-step workflow.",
+        "details": "Build Messaging.AI.Agents.TranslatorAgent (Agens.Agent) specialized for translation. Create Messaging.AI.Tools.CulturalContextTool (Agens.Tool) for idiom/cultural note generation. Implement Messaging.AI.Jobs.TranslationJob with 2 steps: (1) TranslatorAgent translates, (2) CulturalContextTool adds cultural notes. Add caching for 7-day TTL. Wire to AIController.translate/2 endpoint. Support 10+ languages (EN, ES, FR, DE, HI, JA, ZH, PT, AR, RU).",
+        "testStrategy": "Test job execution with mock LLM responses. Verify cultural notes are generated correctly. Benchmark translation latency <5s P95. Test cache hit rates.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Build SemanticSearchTool and RAGRetrieverAgent",
+        "description": "Implement RAG-powered semantic search with vector similarity and recency bias using Agens multi-agent pattern.",
+        "details": "Create Messaging.AI.Tools.SemanticSearchTool (Agens.Tool) for vector search operations. Build Messaging.AI.Agents.RAGRetrieverAgent with recency bias (boost recent 7-day messages +0.1 score). Implement Messaging.AI.RAG.Retriever for cosine similarity search on per-thread vector stores. Add ContextBuilder to format retrieved messages for LLM consumption. Support multilingual search (embeddings language-agnostic). Wire to AIController.search_semantic/2 endpoint.",
+        "testStrategy": "Test semantic search accuracy on multilingual threads. Verify recency bias ranking. Benchmark search latency <500ms P95 for 1000-message threads. Validate cross-language search (query in EN, find results in other languages).",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Create SummarizationJob with RAG enhancement",
+        "description": "Build Agens.Job for intelligent thread summarization combining RAG retrieval with LLM summarization.",
+        "details": "Create Messaging.AI.Agents.SummarizerAgent (Agens.Agent) for LLM-based summarization. Build Messaging.AI.Jobs.SummarizationJob with 2+ steps: (1) RAGRetrieverAgent retrieves important messages via semantic search (queries: \"decisions\", \"actions\", \"deadlines\", \"questions\"), (2) SummarizerAgent creates structured JSON summary. Implement summary structure: key_topics, decisions, action_items, deadlines, unresolved_questions, sentiment, participant_count. Use Claude Haiku for cost efficiency. Target <10s for 100 messages.",
+        "testStrategy": "Test on realistic 100-message threads with known decisions/actions. Verify summary structure completeness. Benchmark latency <10s P95. Test multilingual thread summaries.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2,
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Implement TaskExtractionTool with function calling",
+        "description": "Build Agens.Tool for extracting tasks, deadlines, and action items using LLM function calling with structured output.",
+        "details": "Create Messaging.AI.Tools.TaskExtractionTool (Agens.Tool) implementing Agens.Tool behaviour with function calling instructions. Define JSON schema for task extraction output (task description, deadline, assignee, category, confidence, source_message_id). Build Messaging.AI.Jobs.TaskExtractionJob combining RAG retrieval (find task-related messages) + tool invocation. Use GPT-4-turbo for accuracy. Support task categories: action_item, decision, deadline, question. Wire to AIController.extract_tasks/2.",
+        "testStrategy": "Test extraction accuracy on sample conversations (75%+ target). Verify confidence scores correlate with accuracy. Test deadline parsing (ISO dates + natural language like \"by Friday\"). Benchmark latency <7s P95.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Add background job processing for async embeddings",
+        "description": "Implement Oban background jobs for asynchronous embedding generation with batching and retry logic.",
+        "details": "Create Messaging.AI.Jobs.GenerateEmbeddingJob (Oban worker) for single message embeddings. Create Messaging.AI.Jobs.BatchEmbedJob for batching 10 messages per API call (90% cost reduction). Add retry logic with 3 attempts, exponential backoff. Update message creation to enqueue embedding job. Track embedding status in metadata table. Add cache hit checking before API calls. Monitor queue depth and performance.",
+        "testStrategy": "Test job execution and message embedding. Verify batch processing (10 messages = 1 API call). Test retry logic on API failures. Benchmark batch embedding performance <2s per message.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Wire up API endpoints and feature flag guards",
+        "description": "Create AIController endpoints for all AI features with feature flag checks and proper error handling.",
+        "details": "Implement MessagingWeb.AIController with endpoints: translate/2, analyze_tone/2, summarize_thread/2, search_semantic/2, extract_tasks/2. Add feature flag guards (Pro/Enterprise tier checks). Implement cost tracking via Messaging.AI.CostTracker module. Add rate limiting per feature per user (Pro: 100 requests/day, Enterprise: unlimited). Integrate with Messaging.Accounts for tier/feature checks. Add telemetry hooks for monitoring.",
+        "testStrategy": "Test endpoint access with different user tiers (Free/Pro/Enterprise). Verify rate limits enforced. Test error handling for invalid inputs. Load test with concurrent requests.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          4,
+          5,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Build comprehensive test suite for AI features",
+        "description": "Create unit, integration, and performance tests covering all Agens jobs, tools, and RAG components.",
+        "details": "Write ExUnit tests for each agent/job/tool. Mock OpenAI responses using Mox. Create integration tests for end-to-end job execution. Add RAG tests with sample SQLite databases. Implement performance benchmarks for critical paths (translation <5s, search <500ms, summarization <10s). Test multilingual scenarios. Add fuzzing tests for prompt injection safety.",
+        "testStrategy": "Achieve 85%+ code coverage. Run full test suite on CI. Benchmark against targets: translation P95 <5s, search P95 <500ms, summarization P95 <10s.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Implement cost tracking and budget monitoring",
+        "description": "Build cost tracking system for AI API usage with alerts and emergency brakes.",
+        "details": "Create Messaging.AI.CostTracker module to calculate and log costs per request (tokens × model pricing). Implement daily/monthly budget monitoring with alerts at 80% threshold. Add emergency brake to disable AI features if daily budget exceeded. Track costs by feature, user, model. Add dashboard metrics for cost trending. Implement daily job to check spend and alert ops team.",
+        "testStrategy": "Test cost calculations against known token counts. Verify budget alerts trigger correctly. Test emergency brake disables features at threshold.",
+        "priority": "medium",
+        "dependencies": [
+          8
+        ],
+        "status": "deferred",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "iOS integration and end-to-end testing",
+        "description": "Integrate AI backend endpoints with iOS client AIService and conduct end-to-end testing.",
+        "details": "Update iOS AIService.swift to call new /api/v1/ai/* endpoints. Implement error handling and retry logic in Swift. Add optimistic UI updates. Test on real devices and simulators. Create smoke tests for each AI feature. Document API contracts. Add request/response logging for debugging.",
+        "testStrategy": "Test each endpoint from iOS client. Verify proper error handling on network failures. Performance test on real devices. Load test with concurrent requests.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          4,
+          5,
+          6,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Production optimization and performance tuning",
+        "description": "Optimize AI backend for production: caching strategies, query optimization, monitoring, and alerting.",
+        "details": "Profile Agens job execution for bottlenecks. Implement query result caching for popular searches. Add comprehensive metrics to Phoenix LiveDashboard. Set up alerts for latency regressions. Optimize SQLite queries (indexes, query plans). Tune batch embedding sizes. Add tracing for request flows. Performance test at scale (1000 concurrent users).",
+        "testStrategy": "Run production load tests. Monitor metrics dashboard. Verify all latency targets met (translation <5s P95, search <500ms, summarization <10s). Check cache hit rates are healthy.",
+        "priority": "medium",
+        "dependencies": [
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-10-23T15:19:27.151Z",
+      "updated": "2025-10-23T15:19:27.151Z",
+      "description": "Tasks for ai-backend context"
+    }
+  },
+  "ai-ios": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Set up SwiftUI Project with MVVM-C Architecture",
+        "description": "Initialize the iOS project using SwiftUI and establish the core MVVM-C architecture with AppCoordinator, AIServiceProtocol, and basic view models.",
+        "details": "Create a new SwiftUI project in Xcode. Implement the AppCoordinator class to manage navigation and AI features. Define the AIServiceProtocol with methods for translation, tone analysis, summarization, search, and task extraction. Set up basic ViewModels like MessageThreadViewModel following the provided code snippets. Use Combine for reactive updates and ensure the app launches with a basic ContentView containing ThreadListView and MessageThreadView placeholders.",
+        "testStrategy": "Unit tests for AppCoordinator initialization and AIServiceProtocol mock implementations. UI tests to verify basic navigation between views. Performance test for app launch time under 2 seconds.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Implement Core Messaging UI Components",
+        "description": "Build the fundamental UI components for messaging, including ThreadListView, MessageThreadView, MessageBubbleView, and MessageComposerView without AI features initially.",
+        "details": "Develop ThreadListView with a list of threads displaying title, last message, and timestamp. Implement MessageThreadView to show a scrollable list of messages. Create MessageBubbleView for displaying individual messages with sender info and basic styling. Add MessageComposerView for text input and sending messages. Use SwiftUI's List, ScrollView, and TextField. Ensure accessibility with VoiceOver support and dynamic type.",
+        "testStrategy": "UI tests for message composition, sending, and display. Unit tests for view models handling message loading. Accessibility tests to confirm VoiceOver navigation.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Integrate Smart Translation Interface",
+        "description": "Add tap-to-translate functionality to MessageBubbleView with TranslationOverlay, including cultural context hints and offline support.",
+        "details": "Extend MessageBubbleView with a tap gesture to trigger translation. Implement TranslationOverlay view displaying translated text, confidence, and cultural notes. Integrate with AIServiceProtocol for online translation and LocalAIModels for offline. Add CoreML models for basic language detection and translation. Cache translations using CacheManager. Handle animations with SwiftUI transitions.",
+        "testStrategy": "Unit tests for translation caching and offline fallback. UI tests for tap-to-translate gesture and overlay appearance. Performance tests ensuring translation under 500ms.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Implement AI-Powered Thread Summaries",
+        "description": "Add AI summary generation and display in ThreadListView and MessageThreadView, with caching and offline access.",
+        "details": "Enhance ThreadListView with AISummaryCard that expands to show key topics, decisions, action items, and questions. Integrate summarization in MessageThreadViewModel using AIServiceProtocol. Implement background processing for summaries and cache them via CacheManager. Add pull-to-refresh to trigger fresh summaries. Use SwiftUI's @State for expansion and animations.",
+        "testStrategy": "Unit tests for summary caching and background loading. UI tests for summary card expansion and refresh. Integration tests verifying summary accuracy against mock data.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Develop Intelligent Semantic Search",
+        "description": "Build AISearchView with natural language search, cross-language results, and filtering by AI-extracted categories.",
+        "details": "Create AISearchView with a search bar, filter buttons (all, tasks, decisions, questions), and SearchResultRow for displaying results with highlighting. Implement semantic search via AIServiceProtocol. Add local vector search capabilities. Integrate with ThreadListView for searchable interface. Use SwiftUI's searchable modifier and handle query changes asynchronously.",
+        "testStrategy": "Unit tests for search result filtering and caching. UI tests for search input and result display. Performance tests for search completion under 1 second.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Add Cultural Communication Assistant",
+        "description": "Implement CulturalAssistantView with real-time formality analysis, cultural warnings, and rephrasing suggestions.",
+        "details": "Develop CulturalAssistantView with TextEditor for input, culture picker, formality slider, and cards for warnings and suggestions. Integrate tone analysis and formality adjustment via AIServiceProtocol. Add inline suggestions in MessageComposerView. Use SwiftUI's Slider and Picker for controls, and handle onChange events for real-time analysis.",
+        "testStrategy": "Unit tests for cultural analysis and suggestion generation. UI tests for slider interactions and suggestion display. Integration tests for message rephrasing accuracy.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2,
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Implement Offline-First Architecture",
+        "description": "Set up CoreML models, offline queue management, and caching for AI features to work without internet.",
+        "details": "Integrate LocalAIModels for language detection, sentiment analysis, and basic translation. Implement OfflineManager for queuing AI requests and processing when online. Extend CacheManager for translations, summaries, and search results. Use ModelManager for downloading and managing CoreML models. Ensure OfflineSyncManager persists pending requests to disk.",
+        "testStrategy": "Unit tests for offline queue processing and model management. UI tests for offline indicators in views. Performance tests for offline translation under 500ms.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          3,
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Add Task Extraction and Management",
+        "description": "Integrate AI-powered task extraction in MessageThreadView with badges and action item tracking.",
+        "details": "Extend MessageThreadViewModel to load and display extracted tasks. Add TaskIndicator to MessageBubbleView. Implement ActionItemRow in AISummaryCard for marking tasks complete. Use AIServiceProtocol for extractTasks. Integrate with thread summaries for action items. Ensure tasks are cached and sync when online.",
+        "testStrategy": "Unit tests for task extraction and caching. UI tests for task indicators and completion marking. Integration tests verifying task accuracy from message content.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2,
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Optimize Performance and Accessibility",
+        "description": "Ensure 60fps animations, sub-second response times, and full accessibility support across all features.",
+        "details": "Profile and optimize SwiftUI views for smooth animations. Implement lazy loading for AI models and background processing. Add full VoiceOver support with accessibility labels and traits. Use dynamic type for text. Monitor performance with Instruments and ensure targets: translation <500ms, summary <2s, search <1s, analysis <300ms, launch <2s.",
+        "testStrategy": "Performance tests using XCTest for response times. Accessibility tests with XCUITest for VoiceOver. UI tests for animation smoothness on various devices.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Implement Testing and Deployment Preparation",
+        "description": "Develop comprehensive unit, UI, and performance tests, and prepare for App Store deployment with feature flags.",
+        "details": "Write unit tests for AIService, view models, and managers following the provided test examples. Implement UI tests for key interactions like translation and search. Add performance tests for concurrent operations. Set up FeatureFlags for phased rollout and RemoteConfigManager for configuration. Prepare App Store metadata and beta release strategy.",
+        "testStrategy": "Run full test suite to achieve high code coverage. Validate feature flags in staging environment. Conduct beta testing for user feedback on AI features.",
+        "priority": "low",
+        "dependencies": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-10-23T15:31:34.776Z",
+      "updated": "2025-10-23T15:31:34.776Z",
+      "description": "Tasks for ai-ios context"
+    }
   }
 }

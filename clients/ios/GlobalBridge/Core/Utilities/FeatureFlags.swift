@@ -2,7 +2,7 @@ import Foundation
 
 /// Feature flags system for tier-based feature gating
 /// Integrates with backend feature API to determine available features
-class FeatureFlags {
+public class FeatureFlags {
 
     // MARK: - Singleton
 
@@ -104,15 +104,13 @@ class FeatureFlags {
     }
 
     /// Fetch features from API
-    func fetchFeatures(completion: @escaping (Result<Void, Error>) -> Void) {
+    func fetchFeatures() async throws {
         guard let url = URL(string: "\(APIConfig.baseURL)/api/v1/features") else {
-            completion(.failure(FeatureFlagsError.invalidURL))
-            return
+            throw FeatureFlagsError.invalidURL
         }
 
-        guard let token = AuthManager.shared.getAccessToken() else {
-            completion(.failure(FeatureFlagsError.notAuthenticated))
-            return
+        guard let token = await AuthManager.shared.getAccessToken() else {
+            throw FeatureFlagsError.notAuthenticated
         }
 
         var request = URLRequest(url: url)
@@ -120,70 +118,39 @@ class FeatureFlags {
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
+        let (data, _) = try await URLSession.shared.data(for: request)
 
-            guard let data = data else {
-                completion(.failure(FeatureFlagsError.noData))
-                return
-            }
+        let decoder = JSONDecoder()
+        let response = try decoder.decode(FeatureResponse.self, from: data)
 
-            do {
-                let decoder = JSONDecoder()
-                let response = try decoder.decode(FeatureResponse.self, from: data)
-
-                DispatchQueue.main.async {
-                    self?.updateFeatures(
-                        tier: response.data.tier,
-                        features: response.data.features,
-                        limits: response.data.limits
-                    )
-                    completion(.success(()))
-                }
-            } catch {
-                completion(.failure(error))
-            }
-        }.resume()
+        await MainActor.run {
+            updateFeatures(
+                tier: response.data.tier,
+                features: response.data.features,
+                limits: response.data.limits
+            )
+        }
     }
 
     /// Check a specific feature from API
-    func checkFeature(_ feature: Feature, completion: @escaping (Result<Bool, Error>) -> Void) {
+    func checkFeature(_ feature: Feature) async throws -> Bool {
         guard let url = URL(string: "\(APIConfig.baseURL)/api/v1/features/\(feature.rawValue)") else {
-            completion(.failure(FeatureFlagsError.invalidURL))
-            return
+            throw FeatureFlagsError.invalidURL
         }
 
-        guard let token = AuthManager.shared.getAccessToken() else {
-            completion(.failure(FeatureFlagsError.notAuthenticated))
-            return
+        guard let token = await AuthManager.shared.getAccessToken() else {
+            throw FeatureFlagsError.notAuthenticated
         }
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
+        let (data, _) = try await URLSession.shared.data(for: request)
 
-            guard let data = data else {
-                completion(.failure(FeatureFlagsError.noData))
-                return
-            }
-
-            do {
-                let decoder = JSONDecoder()
-                let response = try decoder.decode(FeatureCheckResponse.self, from: data)
-                completion(.success(response.data.hasAccess))
-            } catch {
-                completion(.failure(error))
-            }
-        }.resume()
+        let decoder = JSONDecoder()
+        let response = try decoder.decode(FeatureCheckResponse.self, from: data)
+        return response.data.hasAccess
     }
 
     // MARK: - Private Methods
@@ -222,6 +189,15 @@ class FeatureFlags {
         self.currentTier = UserTier(rawValue: cache.tier) ?? .free
         self.features = cache.features
         self.limits = cache.limits
+    }
+
+    /// Clear cached feature flags (call on logout)
+    public func clearCache() {
+        UserDefaults.standard.removeObject(forKey: "cached_features")
+        currentTier = .free
+        features = [:]
+        limits = nil
+        print("🗑️ [FEATURE_FLAGS] Cache cleared")
     }
 
     // MARK: - Supporting Types
@@ -285,5 +261,18 @@ extension Notification.Name {
 // MARK: - API Configuration
 
 private struct APIConfig {
-    static let baseURL = "http://localhost:4000" // Update with actual API URL
+    static var baseURL: String {
+        // Check environment variable first
+        if let backendEnv = ProcessInfo.processInfo.environment["BACKEND_ENV"],
+           backendEnv.lowercased() == "production" {
+            return "https://globalbridge-backend.fly.dev"
+        }
+
+        // Default to localhost for Debug, production for Release
+        #if DEBUG
+        return "http://localhost:4000"
+        #else
+        return "https://globalbridge-backend.fly.dev"
+        #endif
+    }
 }

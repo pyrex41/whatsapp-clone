@@ -6,7 +6,7 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
   use GlobalbridgeBackendWeb, :channel
   require Logger
 
-  alias GlobalbridgeBackend.Contexts.Threads
+  alias GlobalbridgeBackend.Contexts.{Auth, Threads}
   alias GlobalbridgeBackend.Repo
 
   # Intercept outgoing broadcasts
@@ -14,13 +14,31 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
 
   @impl true
   def join("user:" <> user_id, _payload, socket) do
-    # Verify user owns this channel
-    if socket.assigns.user_id == user_id do
+    socket_user = socket.assigns.user
+    socket_user_id = socket.assigns.user_id
+
+    Logger.info("🔐 [USER_CHANNEL] Join attempt:")
+    Logger.info("   - Channel user_id: #{user_id}")
+    Logger.info("   - Socket user.id: #{socket_user_id}")
+    Logger.info("   - Socket user.auth0_id: #{socket_user.auth0_id || "none"}")
+
+    # Verify user owns this channel - accept either database UUID or Auth0 ID
+    user_owns_channel =
+      socket_user_id == user_id or socket_user.auth0_id == user_id
+
+    if user_owns_channel do
       Logger.info("✅ [USER_CHANNEL] User #{user_id} joined their channel")
-      {:ok, %{joined_at: DateTime.utc_now()}, socket}
+
+      # Return the database user ID so client knows what to use for future joins
+      {:ok,
+       %{
+         joined_at: DateTime.utc_now(),
+         user_id: socket_user_id,
+         auth0_id: socket_user.auth0_id
+       }, socket}
     else
       Logger.warning(
-        "❌ [USER_CHANNEL] Unauthorized join attempt: socket_user=#{socket.assigns.user_id}, channel_user=#{user_id}"
+        "❌ [USER_CHANNEL] Unauthorized join attempt: socket_user=#{socket_user_id}, channel_user=#{user_id}"
       )
 
       {:error, %{reason: "Unauthorized"}}
@@ -49,6 +67,49 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
       e ->
         Logger.error("❌ [USER_CHANNEL] Bootstrap failed for user #{user_id}: #{inspect(e)}")
         {:reply, {:error, %{reason: "Bootstrap failed", details: Exception.message(e)}}, socket}
+    end
+  end
+
+  @impl true
+  def handle_in("search_users", %{"query" => query}, socket) do
+    user_id = socket.assigns.user_id
+    Logger.info("🔍 [USER_CHANNEL] User search: query=#{query}, user=#{user_id}")
+
+    users = Auth.search_users(query, user_id)
+
+    formatted_users =
+      Enum.map(users, fn user ->
+        %{
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          display_name: user.display_name,
+          avatar_url: user.avatar_url,
+          is_online: user.is_online
+        }
+      end)
+
+    Logger.info("✅ [USER_CHANNEL] Found #{length(formatted_users)} users")
+    {:reply, {:ok, %{users: formatted_users}}, socket}
+  end
+
+  @impl true
+  def handle_in("create_dm", %{"user_id" => other_user_id}, socket) do
+    user_id = socket.assigns.user_id
+
+    Logger.info(
+      "💬 [USER_CHANNEL] Create/get DM: requester=#{user_id}, other_user=#{other_user_id}"
+    )
+
+    case Threads.get_thread_for_direct_message(user_id, other_user_id) do
+      {:ok, thread} ->
+        Logger.info("✅ [USER_CHANNEL] DM thread: #{thread.id}")
+        formatted_thread = format_thread(thread)
+        {:reply, {:ok, formatted_thread}, socket}
+
+      {:error, reason} ->
+        Logger.error("❌ [USER_CHANNEL] DM creation failed: #{inspect(reason)}")
+        {:reply, {:error, %{reason: "Failed to create DM", details: inspect(reason)}}, socket}
     end
   end
 
@@ -91,6 +152,10 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
         end)
 
         {:reply, {:ok, formatted_thread}, socket}
+
+      {:error, reason} when is_binary(reason) ->
+        Logger.error("❌ [USER_CHANNEL] Thread creation failed: #{reason}")
+        {:reply, {:error, %{reason: reason}}, socket}
 
       {:error, changeset} ->
         errors = format_errors(changeset)

@@ -12,6 +12,8 @@ import Observation
 struct ThreadListView: View {
     @Bindable var phoenixState: PhoenixStateManager
     @State private var threads: [ThreadViewModel] = []
+    @State private var showingNewConversation = false
+    @State private var connectionState: PhoenixConnectionState = .disconnected
 
     init(phoenixState: PhoenixStateManager) {
         self._phoenixState = Bindable(phoenixState)
@@ -19,25 +21,74 @@ struct ThreadListView: View {
 
     var body: some View {
         NavigationView {
-            List(threads) { thread in
-                NavigationLink(destination: destinationView(for: thread)) {
-                    ThreadRowView(
-                        thread: thread,
-                        presence: phoenixState.getPresence(for: thread.id).values.first
-                    )
+            Group {
+                if threads.isEmpty {
+                    emptyState
+                } else {
+                    List(threads) { thread in
+                        NavigationLink(destination: destinationView(for: thread)) {
+                            ThreadRowView(
+                                thread: thread,
+                                presence: phoenixState.getPresence(for: thread.id).values.first
+                            )
+                        }
+                    }
                 }
             }
             .navigationTitle("Messages")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    PhoenixConnectionIndicator(state: connectionState)
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {}) {
+                    Button(action: { showingNewConversation = true }) {
                         Image(systemName: "square.and.pencil")
                     }
+                }
+            }
+            .sheet(isPresented: $showingNewConversation) {
+                NewConversationView()
+            }
+        }
+        .task {
+            // Monitor connection state
+            for await _ in Timer.publish(every: 1, on: .main, in: .common).autoconnect().values {
+                let newState = await phoenixState.getConnectionState()
+                if connectionState != newState {
+                    connectionState = newState
                 }
             }
         }
         .onAppear {
             loadThreads()
+        }
+    }
+    
+    private var emptyState: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "message.circle")
+                .font(.system(size: 80))
+                .foregroundColor(.secondary)
+            
+            Text("No conversations yet")
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            Text("Tap the compose button to start a conversation")
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            Button(action: { showingNewConversation = true }) {
+                Label("New Conversation", systemImage: "square.and.pencil")
+                    .font(.headline)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            .padding(.top)
         }
     }
 
@@ -189,6 +240,54 @@ struct ThreadRowView: View {
             let formatter = DateFormatter()
             formatter.dateFormat = "MMM d"
             return formatter.string(from: date)
+        }
+    }
+}
+
+/// Phoenix connection status indicator
+struct PhoenixConnectionIndicator: View {
+    let state: PhoenixConnectionState
+    
+    var body: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(statusColor)
+                .frame(width: 8, height: 8)
+            
+            if case .connecting = state {
+                ProgressView()
+                    .scaleEffect(0.7)
+                    .frame(width: 12, height: 12)
+            }
+        }
+        .accessibilityLabel(statusText)
+    }
+    
+    private var statusColor: Color {
+        switch state {
+        case .disconnected:
+            return .red
+        case .connecting, .reconnecting:
+            return .orange
+        case .connected:
+            return .green
+        case .error:
+            return .red
+        }
+    }
+    
+    private var statusText: String {
+        switch state {
+        case .disconnected:
+            return "Offline"
+        case .connecting:
+            return "Connecting..."
+        case .reconnecting:
+            return "Reconnecting..."
+        case .connected:
+            return "Connected"
+        case .error(let error):
+            return "Error: \(error.localizedDescription)"
         }
     }
 }

@@ -4,20 +4,59 @@
 //
 
 import Foundation
+import SwiftUI
 
 struct AppState: Equatable {
     var user: User
     var threads: ThreadsState
     var chat: ChatState
+    var authError: String?
+    var connectionState: ConnectionState = .disconnected
 
     init(
         user: User = .sampleCurrent,
         threads: ThreadsState = .init(),
-        chat: ChatState = .init()
+        chat: ChatState = .init(),
+        authError: String? = nil,
+        connectionState: ConnectionState = .disconnected
     ) {
         self.user = user
         self.threads = threads
         self.chat = chat
+        self.authError = authError
+        self.connectionState = connectionState
+    }
+}
+
+enum ConnectionState: Equatable {
+    case disconnected
+    case connecting
+    case connected
+    case error(String)
+    
+    var isConnected: Bool {
+        if case .connected = self {
+            return true
+        }
+        return false
+    }
+    
+    var displayText: String {
+        switch self {
+        case .disconnected: return "Offline"
+        case .connecting: return "Connecting..."
+        case .connected: return "Connected"
+        case .error: return "Connection Error"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .disconnected: return .red
+        case .connecting: return .orange
+        case .connected: return .green
+        case .error: return .red
+        }
     }
 }
 

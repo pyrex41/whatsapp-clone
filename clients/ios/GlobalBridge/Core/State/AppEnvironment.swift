@@ -20,6 +20,9 @@ struct RealtimeClient {
     var disconnect: @Sendable (_ threadID: UUID) async -> Void
     var sendTyping: @Sendable (_ threadID: UUID, _ userID: UUID, _ isTyping: Bool) async -> Void
     var sendMessage: @Sendable (_ threadID: UUID, _ content: String, _ author: User, _ replyTo: UUID?) async throws -> Message
+    var searchUsers: @Sendable (_ query: String) async throws -> [UserSearchResult]
+    var createDirectMessage: @Sendable (_ withUserId: String) async throws -> ThreadData
+    var createThread: @Sendable (_ threadType: String, _ title: String?, _ participantIds: [String]) async throws -> ThreadData
 }
 
 struct SyncClient {
@@ -70,6 +73,13 @@ extension AppEnvironment {
             sendTyping: { _, _, _ in },
             sendMessage: { threadID, content, author, _ in
                 await store.createMessage(threadID: threadID, content: content, author: author)
+            },
+            searchUsers: { _ in [] },
+            createDirectMessage: { _ in
+                throw NSError(domain: "Preview", code: 0, userInfo: [NSLocalizedDescriptionKey: "Not available in preview"])
+            },
+            createThread: { _, _, _ in
+                throw NSError(domain: "Preview", code: 0, userInfo: [NSLocalizedDescriptionKey: "Not available in preview"])
             }
         )
 
@@ -90,7 +100,7 @@ extension AppEnvironment {
             try await databaseManager.seedSampleDataIfNeeded()
         }
 
-        let phoenixConfig = PhoenixConfig.development
+        let phoenixConfig = PhoenixConfig.current
         let phoenixManager = PhoenixChannelManager(config: phoenixConfig)
 
         let threadService = ThreadService()
@@ -201,13 +211,23 @@ extension AppEnvironment {
             ensureConnection: {
                 // Get Auth0 token
                 let token = await AuthManager.shared.getAccessToken()
-                
+
                 if token == nil {
                     print("🔐 [REALTIME] No auth token, attempting Auth0 login...")
+                    // Auth0 login handles UI presentation internally
                     _ = try await AuthManager.shared.login()
                 }
-                
+
                 let authToken = await AuthManager.shared.getAccessToken()
+
+                // Verify we actually got a token after login
+                guard authToken != nil else {
+                    print("❌ [REALTIME] Login failed - no token received")
+                    throw NSError(domain: "Auth", code: 401, userInfo: [
+                        NSLocalizedDescriptionKey: "Authentication required. Please log in."
+                    ])
+                }
+
                 print("🔌 [REALTIME] Connecting with Auth0 token...")
                 try await phoenixManager.connect(authToken: authToken)
                 
@@ -273,6 +293,22 @@ extension AppEnvironment {
                 print("✅ [ENV] Message converted successfully: id=\(message.id.uuidString)")
 
                 return message
+            },
+            searchUsers: { query in
+                print("🔍 [ENV] Searching users: \(query)")
+                return try await phoenixManager.searchUsers(query: query)
+            },
+            createDirectMessage: { userId in
+                print("💬 [ENV] Creating DM with user: \(userId)")
+                return try await phoenixManager.createDirectMessage(withUserId: userId)
+            },
+            createThread: { threadType, title, participantIds in
+                print("🆕 [ENV] Creating thread: type=\(threadType), title=\(title ?? "nil")")
+                return try await phoenixManager.createThread(
+                    threadType: threadType,
+                    title: title,
+                    participantIds: participantIds
+                )
             }
         )
 

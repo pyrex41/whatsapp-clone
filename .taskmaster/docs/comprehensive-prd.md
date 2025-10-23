@@ -25,8 +25,8 @@ GlobalBridge Messenger is a privacy-first, AI-ready messaging application design
 - Per-thread bridge activation (not workspace-wide) for granular control
 - AI abstraction layer supporting on-device (MLX) and cloud processing without rebuild
 - Feature flag architecture enabling tiered functionality
-- E2EE-ready design with client-side encryption
 - Manual CDC providing full sync control and offline-first capability
+- E2EE-ready design with client-side encryption (stretch goal)
 
 ---
 
@@ -42,7 +42,6 @@ Global collaborators (freelancers, NGO workers, distributed teams) face fragment
 - **Privacy Concerns:** Existing solutions require cloud processing of sensitive data
 
 **Technical Challenge:** Build a system that unifies these platforms while maintaining:
-- End-to-end encryption capability
 - Offline-first architecture with reliable sync
 - Extensible AI processing (on-device or cloud) without architectural rebuild
 - Per-thread granular bridge control (not workspace-wide)
@@ -52,10 +51,10 @@ Global collaborators (freelancers, NGO workers, distributed teams) face fragment
 The solution must:
 - Handle real-time messaging with <100ms latency for native messages
 - Support bi-directional sync with external platforms (Slack, Telegram) via bridges
-- Maintain E2EE readiness with client-side encryption/decryption
 - Enable AI features to be added post-MVP without refactoring core architecture
 - Provide offline capability with conflict resolution
 - Scale to support 1M+ concurrent connections (Elixir/Phoenix baseline)
+- E2EE capability (stretch goal - not required for MVP)
 
 ---
 
@@ -80,7 +79,7 @@ The solution must:
 - Creates project-specific threads
 - Activates bridges per conversation (not workspace-wide)
 - Requires offline capability for unreliable connectivity
-- Values E2EE for client confidentiality
+- Values privacy and data control
 - Needs AI processing without cloud dependency (on-device option)
 
 ### 2.2 Core Use Cases
@@ -146,7 +145,7 @@ The solution must:
 - **Privacy Toggle:** User selects on-device vs. server processing
 
 **Security:**
-- **Encryption:** Signal Protocol (E2EE), libsodium for key management
+- **Encryption:** Transport security with TLS 1.3
 - **Storage:** Encrypted SQLite with per-thread keys
 - **Bridge Security:** OAuth scopes limited to specific channels
 
@@ -198,7 +197,7 @@ The solution must:
 -- Users
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
-  public_key BLOB NOT NULL,
+  -- public_key BLOB,  -- For future E2EE (stretch goal)
   created_at INTEGER NOT NULL
 );
 
@@ -206,7 +205,7 @@ CREATE TABLE users (
 CREATE TABLE threads (
   id TEXT PRIMARY KEY,
   name TEXT,
-  encrypted_key BLOB NOT NULL,  -- Per-thread E2EE key
+  -- encrypted_key BLOB,  -- Per-thread E2EE key (stretch goal)
   bridge_config TEXT,            -- JSON: {slack: {channel_id, token}, telegram: {chat_id}}
   created_at INTEGER NOT NULL
 );
@@ -216,7 +215,8 @@ CREATE TABLE messages (
   id TEXT PRIMARY KEY,
   thread_id TEXT NOT NULL,
   sender_id TEXT NOT NULL,
-  encrypted_content BLOB NOT NULL,  -- E2EE payload
+  content TEXT NOT NULL,
+  -- encrypted_content BLOB,  -- E2EE stretch goal - not implemented in MVP
   timestamp INTEGER NOT NULL,
   source TEXT,                       -- "native", "slack", "telegram"
   FOREIGN KEY (thread_id) REFERENCES threads(id),
@@ -305,15 +305,14 @@ The system is designed to support AI features without architectural changes. MVP
 ```sql
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
-  public_key BLOB,  -- For future E2EE
+  -- public_key BLOB,  -- For future E2EE (stretch goal)
   created_at INTEGER NOT NULL
 );
 
 CREATE TABLE threads (
   id TEXT PRIMARY KEY,
   name TEXT,
-  encryption_enabled BOOLEAN DEFAULT FALSE,  -- Feature flag
-  encrypted_key BLOB,  -- Per-thread E2EE key (future)
+  -- encrypted_key BLOB,  -- Per-thread E2EE key (stretch goal)
   created_at INTEGER NOT NULL
 );
 
@@ -321,8 +320,8 @@ CREATE TABLE messages (
   id TEXT PRIMARY KEY,
   thread_id TEXT NOT NULL,
   sender_id TEXT NOT NULL,
-  content TEXT,  -- Plaintext in MVP, encrypted blob in future
-  encrypted_content BLOB,  -- NULL in MVP
+  content TEXT NOT NULL,
+  -- encrypted_content BLOB,  -- E2EE stretch goal - not implemented in MVP
   timestamp INTEGER NOT NULL,
   source TEXT DEFAULT 'native',  -- "native", "slack", "telegram"
   metadata TEXT,  -- JSON: reply_to, attachments, etc.
@@ -713,8 +712,8 @@ class FeatureFlags {
 - Poll `conversations.history` every 5s as fallback
 - Forward Slack messages to Phoenix Channel as `message:new` events
 - Forward app messages to Slack via `chat.postMessage` API
-- Maintain E2EE: encrypt Slack imports before storing locally
 - Offline: queue outbound messages, retry on reconnect
+- E2EE: encrypt Slack imports before storing locally (stretch goal)
 
 **Acceptance Criteria:**
 - User can authorize Slack in <3 taps
@@ -768,8 +767,8 @@ end
 - Webhook at `/telegram/webhook` OR poll `getUpdates` every 5s
 - Extract `chat_id` from first message, link to thread
 - Forward messages both directions with author mapping
-- E2EE: encrypt Telegram imports locally
 - Handle media (files, images) with CDN URLs
+- E2EE: encrypt Telegram imports locally (stretch goal)
 
 **Acceptance Criteria:**
 - Bot responds to `/start thread123` with confirmation
@@ -872,7 +871,7 @@ class AIAdapter {
 
 ### 4.3 Enhanced Security & Privacy (Future)
 
-#### F8: End-to-End Encryption (Full Implementation)
+#### F8: End-to-End Encryption (Stretch Goal - Post-MVP)
 - Per-message encryption with Signal Protocol
 - Perfect forward secrecy with ratcheting keys
 - Per-thread disappearing timer
@@ -1634,9 +1633,9 @@ iOS configuration (Xcode schemes):
 ### 6.4 Security Requirements
 
 **Encryption:**
-- E2EE readiness: Architecture supports Signal Protocol integration
 - Transport security: TLS 1.3 for all API communication
 - Local storage: Encrypted SQLite (AES-256) with per-thread keys
+- E2EE: Signal Protocol integration (stretch goal - not required for MVP)
 - Key management: iOS Keychain (secure enclave on supported devices)
 
 **Authentication & Authorization:**
@@ -1705,7 +1704,7 @@ iOS configuration (Xcode schemes):
 | Risk | Impact | Likelihood | Mitigation Strategy | Owner |
 |------|---------|-----------|---------------------|-------|
 | Turso sync complexity delays development | High | Medium | Use manual CDC as primary implementation; Turso as optional toggle | Backend Lead |
-| E2EE performance overhead on older devices | Medium | Medium | Test on iPhone 11 (2019); optimize crypto with hardware acceleration; consider message batching | iOS Lead |
+| E2EE performance overhead on older devices | Medium | Low | Test on iPhone 11 (2019); optimize crypto with hardware acceleration; consider message batching (stretch goal) | iOS Lead |
 | Bridge API rate limits cause message delays | High | High | Implement exponential backoff, queue messages, batch reads; monitor with alerts at 80% capacity | Backend Lead |
 | Slack/Telegram API breaking changes | High | Low | Version lock dependencies; subscribe to API changelogs; maintain mock APIs for testing | DevOps |
 | WebSocket connection stability issues | High | Medium | Implement heartbeat/keepalive; automatic reconnection with exponential backoff; fallback to HTTP polling | Backend Lead |
@@ -1785,7 +1784,7 @@ iOS configuration (Xcode schemes):
 
 **MVP Exclusions:**
 - AI features (translation, summarization) - architecture ready, not implemented
-- Full E2EE implementation - crypto layer designed, keys not exchanged
+- Full E2EE implementation - crypto layer designed, keys not exchanged (stretch goal)
 - Video/voice calls
 - File storage beyond basic media (images)
 - Desktop clients (macOS, Windows, Linux)
@@ -1858,7 +1857,7 @@ iOS configuration (Xcode schemes):
   "thread_id": "thread_abc123",
   "sender_id": "user_xyz789",
   "content": "Hello, world!",
-  "encrypted_content": null,
+  // "encrypted_content": null,  // E2EE stretch goal - not implemented in MVP
   "timestamp": 1698019200000,
   "source": "native",
   "metadata": {

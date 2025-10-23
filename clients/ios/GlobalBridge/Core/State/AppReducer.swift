@@ -11,12 +11,17 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         guard state.threads.hasLoaded == false else { return .none }
         state.threads.isLoading = true
         state.threads.errorMessage = nil
+        state.connectionState = .connecting
 
-        let ensureRealtime = Command<AppAction>.run(priority: nil) { _ in
+        let ensureRealtime = Command<AppAction>.run(priority: nil) { send in
             do {
+                send(.connectionStateChanged(.connecting))
                 try await environment.realtime.ensureConnection()
+                send(.connectionStateChanged(.connected))
             } catch {
                 print("⚠️ Realtime connection failed: \(error)")
+                send(.connectionStateChanged(.error(error.localizedDescription)))
+                send(.authenticationFailed(error))
             }
         }
 
@@ -393,5 +398,136 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         state.threads.errorMessage = "This conversation is no longer available on the server. It has been removed from your list."
 
         return .none
+
+    case let .authenticationFailed(error):
+        print("❌ [AUTH] Authentication failed: \(error.localizedDescription)")
+        state.authError = error.localizedDescription
+        return .none
+
+    case .dismissAuthError:
+        state.authError = nil
+        return .none
+    
+    case let .connectionStateChanged(newState):
+        state.connectionState = newState
+        return .none
+    
+    case let .phoenixChannel(phoenixAction):
+        return handlePhoenixChannelAction(phoenixAction, state: &state, environment: environment)
+    }
+}
+
+// MARK: - Phoenix Channel Action Handler
+
+private func handlePhoenixChannelAction(
+    _ action: PhoenixChannelAction,
+    state: inout AppState,
+    environment: AppEnvironment
+) -> Command<AppAction> {
+    switch action {
+    case let .searchUsers(query):
+        // Handle user search
+        return .run(priority: nil) { send in
+            do {
+                let results = try await environment.realtime.searchUsers(query)
+                send(.phoenixChannel(.userSearchResults(.success(results))))
+            } catch {
+                send(.phoenixChannel(.userSearchResults(.failure(error))))
+            }
+        }
+    
+    case .userSearchResults:
+        // Results handled in UI directly
+        return .none
+    
+    case let .createDM(userId):
+        // Create or get DM with user
+        return .run(priority: nil) { send in
+            do {
+                let threadData = try await environment.realtime.createDirectMessage(userId)
+                // Convert ThreadData to Thread model
+                let thread = Thread(
+                    id: UUID(uuidString: threadData.id) ?? UUID(),
+                    threadType: Thread.ThreadType(rawValue: threadData.threadType) ?? .direct,
+                    title: threadData.title,
+                    avatarUrl: nil,
+                    lastMessageAt: threadData.lastMessageAt,
+                    isArchived: threadData.isArchived,
+                    isMuted: threadData.isMuted,
+                    databaseShardId: threadData.databaseShardId,
+                    unreadCount: 0,
+                    lastReadMessageId: nil,
+                    encryptionVersion: 1,
+                    encryptionSalt: nil,
+                    createdAt: threadData.createdAt,
+                    updatedAt: threadData.updatedAt
+                )
+                send(.phoenixChannel(.dmCreated(.success(thread))))
+            } catch {
+                send(.phoenixChannel(.dmCreated(.failure(error))))
+            }
+        }
+    
+    case let .dmCreated(result):
+        switch result {
+        case let .success(thread):
+            // Add thread to list if not exists
+            if !state.threads.items.contains(where: { $0.id == thread.id }) {
+                state.threads.items.insert(thread, at: 0)
+            }
+            // Select and navigate to the DM
+            state.threads.selectedThreadID = thread.id
+            state.chat.currentThread = thread
+            return .run(priority: nil) { send in
+                send(.loadMessages(thread.id))
+            }
+        case let .failure(error):
+            state.threads.errorMessage = error.localizedDescription
+            return .none
+        }
+    
+    case let .createGroup(title, participantIds):
+        // Create group thread
+        return .run(priority: nil) { send in
+            do {
+                let threadData = try await environment.realtime.createThread("group", title, participantIds)
+                // Convert ThreadData to Thread model
+                let thread = Thread(
+                    id: UUID(uuidString: threadData.id) ?? UUID(),
+                    threadType: Thread.ThreadType(rawValue: threadData.threadType) ?? .group,
+                    title: threadData.title,
+                    avatarUrl: nil,
+                    lastMessageAt: threadData.lastMessageAt,
+                    isArchived: threadData.isArchived,
+                    isMuted: threadData.isMuted,
+                    databaseShardId: threadData.databaseShardId,
+                    unreadCount: 0,
+                    lastReadMessageId: nil,
+                    encryptionVersion: 1,
+                    encryptionSalt: nil,
+                    createdAt: threadData.createdAt,
+                    updatedAt: threadData.updatedAt
+                )
+                send(.phoenixChannel(.groupCreated(.success(thread))))
+            } catch {
+                send(.phoenixChannel(.groupCreated(.failure(error))))
+            }
+        }
+    
+    case let .groupCreated(result):
+        switch result {
+        case let .success(thread):
+            // Add thread to list
+            state.threads.items.insert(thread, at: 0)
+            // Select and navigate to the group
+            state.threads.selectedThreadID = thread.id
+            state.chat.currentThread = thread
+            return .run(priority: nil) { send in
+                send(.loadMessages(thread.id))
+            }
+        case let .failure(error):
+            state.threads.errorMessage = error.localizedDescription
+            return .none
+        }
     }
 }

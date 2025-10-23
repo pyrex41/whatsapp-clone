@@ -79,6 +79,23 @@ public actor PhoenixChannelManager {
 
         var params: [String: Any] = [:]
         if let token = authToken ?? config.authToken {
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            print("🔌 [PHOENIX] About to connect to backend")
+            print("📊 [PHOENIX] Token being sent to backend:")
+            print("   - First 40 chars: \(String(token.prefix(40)))...")
+            print("   - Last 40 chars: ...\(String(token.suffix(40)))")
+            print("   - Total length: \(token.count) characters")
+
+            let parts = token.split(separator: ".")
+            print("   - Parts count: \(parts.count) (JWT=3, JWE=5)")
+
+            if parts.count > 0 {
+                print("   - First part: \(String(parts[0].prefix(50)))...")
+            }
+
+            print("   - Backend URL: \(config.socketURL.absoluteString)")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
             params["token"] = token
         }
 
@@ -245,6 +262,110 @@ public actor PhoenixChannelManager {
                 }
                 .receive("timeout") { _ in
                     print("❌ [BOOTSTRAP] Request timed out")
+                    continuation.resume(throwing: PhoenixError.timeout)
+                }
+        }
+    }
+    
+    /// Search for users via user channel
+    public func searchUsers(query: String) async throws -> [UserSearchResult] {
+        guard let userId = currentUserId else {
+            throw PhoenixError.notConnected
+        }
+        
+        guard let channel = channel(for: "user:\(userId)") else {
+            throw PhoenixError.channelNotJoined
+        }
+        
+        let payload: [String: Any] = ["query": query]
+        print("🔍 [SEARCH_USERS] Searching for: \(query)")
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            channel.push("search_users", payload: payload)
+                .receive("ok") { response in
+                    let payload = response.payload
+                    print("✅ [SEARCH_USERS] Results received: \(payload)")
+                    
+                    do {
+                        let data = try JSONSerialization.data(withJSONObject: payload)
+                        let decoder = JSONDecoder()
+                        decoder.keyDecodingStrategy = .convertFromSnakeCase
+                        
+                        let searchResponse = try decoder.decode(UserSearchResponse.self, from: data)
+                        print("✅ [SEARCH_USERS] Parsed \(searchResponse.users.count) users")
+                        continuation.resume(returning: searchResponse.users)
+                    } catch {
+                        print("❌ [SEARCH_USERS] Failed to parse results: \(error)")
+                        continuation.resume(throwing: PhoenixError.decodingFailed(error))
+                    }
+                }
+                .receive("error") { message in
+                    print("❌ [SEARCH_USERS] Error: \(message.payload)")
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
+                }
+                .receive("timeout") { _ in
+                    print("❌ [SEARCH_USERS] Timeout")
+                    continuation.resume(throwing: PhoenixError.timeout)
+                }
+        }
+    }
+    
+    /// Create or get existing direct message thread
+    public func createDirectMessage(withUserId otherUserId: String) async throws -> ThreadData {
+        guard let userId = currentUserId else {
+            throw PhoenixError.notConnected
+        }
+        
+        guard let channel = channel(for: "user:\(userId)") else {
+            throw PhoenixError.channelNotJoined
+        }
+        
+        let payload: [String: Any] = ["user_id": otherUserId]
+        print("💬 [CREATE_DM] Creating/getting DM with user: \(otherUserId)")
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            channel.push("create_dm", payload: payload)
+                .receive("ok") { response in
+                    let payload = response.payload
+                    print("✅ [CREATE_DM] DM ready: \(payload)")
+                    
+                    do {
+                        let data = try JSONSerialization.data(withJSONObject: payload)
+                        let decoder = JSONDecoder()
+                        decoder.keyDecodingStrategy = .convertFromSnakeCase
+                        decoder.dateDecodingStrategy = .custom { decoder in
+                            let container = try decoder.singleValueContainer()
+                            let dateString = try container.decode(String.self)
+                            
+                            let formatter = ISO8601DateFormatter()
+                            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                            
+                            if let date = formatter.date(from: dateString) {
+                                return date
+                            }
+                            
+                            formatter.formatOptions = [.withInternetDateTime]
+                            if let date = formatter.date(from: dateString) {
+                                return date
+                            }
+                            
+                            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date format: \(dateString)")
+                        }
+                        
+                        let thread = try decoder.decode(ThreadData.self, from: data)
+                        print("✅ [CREATE_DM] Parsed thread: \(thread.id)")
+                        continuation.resume(returning: thread)
+                    } catch {
+                        print("❌ [CREATE_DM] Failed to parse response: \(error)")
+                        continuation.resume(throwing: PhoenixError.decodingFailed(error))
+                    }
+                }
+                .receive("error") { message in
+                    print("❌ [CREATE_DM] Error: \(message.payload)")
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
+                }
+                .receive("timeout") { _ in
+                    print("❌ [CREATE_DM] Timeout")
                     continuation.resume(throwing: PhoenixError.timeout)
                 }
         }

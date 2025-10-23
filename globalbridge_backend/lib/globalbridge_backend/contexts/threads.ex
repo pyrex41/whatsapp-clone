@@ -97,6 +97,9 @@ defmodule GlobalbridgeBackend.Contexts.Threads do
       |> Map.delete(:participant_ids)
 
     Ecto.Multi.new()
+    |> Ecto.Multi.run(:validate_participants, fn _repo, _changes ->
+      validate_participant_ids(participant_ids)
+    end)
     |> Ecto.Multi.insert(:thread, Thread.create_changeset(%Thread{}, attrs))
     |> Ecto.Multi.run(:participants, fn _repo, %{thread: thread} ->
       add_participants(thread, participant_ids)
@@ -105,6 +108,9 @@ defmodule GlobalbridgeBackend.Contexts.Threads do
     |> case do
       {:ok, %{thread: thread}} ->
         {:ok, get_thread!(thread.id)}
+
+      {:error, :validate_participants, reason, _} ->
+        {:error, reason}
 
       {:error, :thread, changeset, _} ->
         {:error, changeset}
@@ -409,5 +415,25 @@ defmodule GlobalbridgeBackend.Contexts.Threads do
     # Generate a unique shard ID using UUID
     # This will be used for the per-thread database filename
     Ecto.UUID.generate()
+  end
+
+  defp validate_participant_ids(participant_ids) do
+    alias GlobalbridgeBackend.Schemas.User
+
+    # Check that all participant IDs exist
+    existing_user_ids =
+      from(u in User, where: u.id in ^participant_ids, select: u.id)
+      |> Repo.all()
+      |> MapSet.new()
+
+    participant_ids_set = MapSet.new(participant_ids)
+    missing_ids = MapSet.difference(participant_ids_set, existing_user_ids)
+
+    if MapSet.size(missing_ids) == 0 do
+      {:ok, :valid}
+    else
+      missing_list = MapSet.to_list(missing_ids)
+      {:error, "Invalid participant IDs: #{Enum.join(missing_list, ", ")}"}
+    end
   end
 end
