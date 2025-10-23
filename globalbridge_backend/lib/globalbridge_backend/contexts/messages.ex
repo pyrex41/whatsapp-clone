@@ -240,12 +240,13 @@ defmodule GlobalbridgeBackend.Contexts.Messages do
     thread = get_thread_with_shard(thread_id)
     repo = ThreadRepo.get_repo(thread.database_shard_id)
 
-    search_pattern = "%#{query_string}%"
+    search_pattern = "%#{String.downcase(query_string)}%"
 
+    # Use fragment for SQLite compatibility (SQLite doesn't support ilike)
     query =
       from(m in Message,
         where: m.thread_id == ^thread_id,
-        where: ilike(m.content, ^search_pattern),
+        where: fragment("lower(?) LIKE ?", m.content, ^search_pattern),
         where: m.is_deleted == false
       )
 

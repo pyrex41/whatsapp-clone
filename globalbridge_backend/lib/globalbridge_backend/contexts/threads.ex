@@ -362,11 +362,12 @@ defmodule GlobalbridgeBackend.Contexts.Threads do
       [%Thread{}, ...]
   """
   def search_threads(query_string, filters \\ []) do
-    search_pattern = "%#{query_string}%"
+    search_pattern = "%#{String.downcase(query_string)}%"
 
+    # Use fragment for SQLite compatibility (SQLite doesn't support ilike)
     query =
       from(t in Thread,
-        where: ilike(t.title, ^search_pattern)
+        where: fragment("lower(?) LIKE ?", t.title, ^search_pattern)
       )
 
     query
