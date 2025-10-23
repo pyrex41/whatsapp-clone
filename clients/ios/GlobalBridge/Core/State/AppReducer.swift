@@ -141,28 +141,45 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             return .none
         }
 
-        // If selecting the same thread, just ensure we're connected (no-op if already connected)
+        // If selecting the same thread, ensure connection and load messages if empty
         if state.threads.selectedThreadID == threadID {
-            print("ℹ️ [ACTION] Thread already selected, ensuring connection: \(threadID)")
-            // Don't reload messages or change state, just ensure channel is connected
-            return .run(priority: nil) { send in
-                print("🔌 [ACTION] Re-ensuring realtime connection for thread: \(threadID)")
-                do {
-                    try await environment.realtime.ensureConnection()
-                    try await environment.realtime.connect(threadID) { message in
-                        Task { @MainActor in
-                            send(.receiveRealtimeMessage(message))
+            print("ℹ️ [ACTION] Thread already selected: \(threadID)")
+            
+            // If we have no messages loaded, we need to load them
+            if state.chat.messages.isEmpty {
+                print("📥 [ACTION] Messages empty for already-selected thread, loading...")
+                return .merge(
+                    .run(priority: nil) { send in
+                        send(.loadMessages(threadID))
+                    },
+                    .run(priority: nil) { send in
+                        do {
+                            try await environment.realtime.ensureConnection()
+                            try await environment.realtime.connect(threadID) { message in
+                                Task { @MainActor in
+                                    send(.receiveRealtimeMessage(message))
+                                }
+                            }
+                            await environment.sync.syncThread(threadID)
+                        } catch {
+                            print("❌ [ACTION] Connection failed: \(error.localizedDescription)")
                         }
                     }
-                    print("✅ [ACTION] Re-connection confirmed for thread: \(threadID)")
-                    
-                    // Sync after channel is confirmed joined
-                    print("🔄 [ACTION] Syncing thread after re-connection")
-                    await environment.sync.syncThread(threadID)
-                } catch {
-                    print("❌ [ACTION] Re-connection failed for thread: \(threadID): \(error.localizedDescription)")
-                    if error.localizedDescription.contains("Thread not found") {
-                        send(.handleOrphanedThread(threadID))
+                )
+            } else {
+                // Just ensure connection, don't reload messages
+                print("ℹ️ [ACTION] Messages already loaded, just ensuring connection")
+                return .run(priority: nil) { send in
+                    do {
+                        try await environment.realtime.ensureConnection()
+                        try await environment.realtime.connect(threadID) { message in
+                            Task { @MainActor in
+                                send(.receiveRealtimeMessage(message))
+                            }
+                        }
+                        await environment.sync.syncThread(threadID)
+                    } catch {
+                        print("❌ [ACTION] Connection failed: \(error.localizedDescription)")
                     }
                 }
             }
