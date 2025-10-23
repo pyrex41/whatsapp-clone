@@ -7,6 +7,10 @@ import Foundation
 
 enum AppAction {
     case onAppear
+    case checkAuthentication
+    case authenticationChecked(isAuthenticated: Bool)
+    case userAuthenticated
+    case loadUserAndThreads
     case threadsLoaded(Result<(user: User, threads: [Thread]), Error>)
     case threadSelected(Thread.ID)
     case setSearchQuery(String)

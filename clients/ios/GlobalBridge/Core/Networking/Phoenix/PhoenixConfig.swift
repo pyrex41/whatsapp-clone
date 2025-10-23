@@ -53,8 +53,24 @@ public struct PhoenixConfig: Sendable {
     )
     
     /// Current active configuration (change this to switch environments)
+    /// Checks BACKEND_ENV environment variable first:
+    /// - "local" or "dev" → localhost
+    /// - "production" or "prod" → Fly.io
+    /// Falls back to DEBUG build config if not set
     public static var current: PhoenixConfig {
-        return .production   // Production (wss://globalbridge-backend.fly.dev)
+        // Check environment variable first
+        if let backendEnv = ProcessInfo.processInfo.environment["BACKEND_ENV"] {
+            switch backendEnv.lowercased() {
+            case "local", "dev", "development":
+                return .development
+            case "production", "prod":
+                return .production
+            default:
+                print("⚠️ [PhoenixConfig] Unknown BACKEND_ENV value: \(backendEnv), using build default")
+            }
+        }
+        
+        // Fall back to build configuration
         #if DEBUG
         return .development  // Local development (ws://localhost:4000)
         #else

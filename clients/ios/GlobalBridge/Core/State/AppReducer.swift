@@ -9,24 +9,64 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
     switch action {
     case .onAppear:
         guard state.threads.hasLoaded == false else { return .none }
+        print("📱 [STARTUP] App appeared, checking authentication...")
+        return .run(priority: nil) { send in
+            send(.checkAuthentication)
+        }
+    
+    case .checkAuthentication:
+        print("🔐 [STARTUP] Checking if user is authenticated...")
+        return .run(priority: nil) { send in
+            let isAuthenticated = await AuthManager.shared.isAuthenticated
+            print("🔐 [STARTUP] Auth check result: \(isAuthenticated)")
+            send(.authenticationChecked(isAuthenticated: isAuthenticated))
+        }
+    
+    case let .authenticationChecked(isAuthenticated):
+        if isAuthenticated {
+            print("✅ [STARTUP] User is authenticated, loading data...")
+            return .run(priority: nil) { send in
+                send(.loadUserAndThreads)
+            }
+        } else {
+            print("🔐 [STARTUP] User not authenticated, triggering login...")
+            return .run(priority: nil) { send in
+                do {
+                    _ = try await AuthManager.shared.login()
+                    print("✅ [STARTUP] Login successful")
+                    send(.userAuthenticated)
+                } catch {
+                    print("❌ [STARTUP] Login failed: \(error.localizedDescription)")
+                    send(.threadsLoaded(.failure(error)))
+                }
+            }
+        }
+    
+    case .userAuthenticated:
+        print("✅ [STARTUP] User authenticated, loading data...")
+        return .run(priority: nil) { send in
+            send(.loadUserAndThreads)
+        }
+    
+    case .loadUserAndThreads:
         state.threads.isLoading = true
         state.threads.errorMessage = nil
-
-        // Connect to Phoenix FIRST, then load threads
+        
         return Command<AppAction>.run(priority: nil) { send in
             do {
-                // Step 1: Ensure Phoenix connection
-                print("🔌 [STARTUP] Ensuring Phoenix connection...")
+                // Step 1: Connect to Phoenix with authenticated token
+                print("🔌 [STARTUP] Connecting to Phoenix...")
                 try await environment.realtime.ensureConnection()
-                print("✅ [STARTUP] Phoenix connected, proceeding to load threads")
+                print("✅ [STARTUP] Phoenix connected")
                 
-                // Step 2: Load threads (which uses Phoenix for bootstrap if needed)
+                // Step 2: Load user and threads from backend
+                print("📥 [STARTUP] Loading user and threads...")
                 await environment.sync.initialSync()
                 await environment.sync.startMonitoring()
                 let result = try await environment.database.loadThreads()
                 send(.threadsLoaded(.success(result)))
             } catch {
-                print("❌ [STARTUP] Failed: \(error.localizedDescription)")
+                print("❌ [STARTUP] Failed to load data: \(error.localizedDescription)")
                 send(.threadsLoaded(.failure(error)))
             }
         }

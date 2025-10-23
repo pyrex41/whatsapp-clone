@@ -237,23 +237,13 @@ extension AppEnvironment {
 
         let realtime = RealtimeClient(
             ensureConnection: {
-                // Get Auth0 token
-                let token = await AuthManager.shared.getAccessToken()
-                
-                if token == nil {
-                    print("🔐 [REALTIME] No auth token, attempting Auth0 login...")
-                    _ = try await AuthManager.shared.login()
+                // Get Auth0 token (should already be authenticated at this point)
+                guard let authToken = await AuthManager.shared.getAccessToken() else {
+                    print("❌ [REALTIME] No auth token available")
+                    throw NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "Not authenticated"])
                 }
                 
-                let authToken = await AuthManager.shared.getAccessToken()
-                
-                // Verify we actually got a token after login
-                guard authToken != nil else {
-                    print("❌ [REALTIME] Login failed - no token received")
-                    throw NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "Authentication required"])
-                }
-                
-                print("🔌 [REALTIME] Connecting with Auth0 token...")
+                print("🔌 [REALTIME] Connecting to Phoenix with token...")
                 
                 // Retry connection up to 3 times with delay
                 var lastError: Error?
