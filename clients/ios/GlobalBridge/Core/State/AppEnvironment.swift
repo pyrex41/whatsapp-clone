@@ -20,6 +20,7 @@ actor GlobalBannerHandlerRegistry {
 struct DatabaseClient {
     var loadThreads: @Sendable () async throws -> (user: User, threads: [Thread])
     var createThread: @Sendable (_ title: String, _ creator: User) async throws -> Thread
+    var saveThread: @Sendable (_ thread: Thread) async throws -> Void
     var loadMessages: @Sendable (_ threadID: UUID) async throws -> [Message]
     var createMessage: @Sendable (_ threadID: UUID, _ content: String, _ author: User) async throws -> Message
     var storeMessage: @Sendable (_ message: Message) async throws -> Void
@@ -64,6 +65,9 @@ extension AppEnvironment {
             },
             createThread: { title, creator in
                 await store.createThread(title: title, creator: creator)
+            },
+            saveThread: { _ in
+                // No-op in preview
             },
             loadMessages: { threadID in
                 await store.loadMessages(threadID: threadID)
@@ -205,6 +209,12 @@ extension AppEnvironment {
                 print("✅ [CREATE_THREAD] Thread created locally with backend ID: \(thread.id)")
                 
                 return thread
+            },
+            saveThread: { thread in
+                _ = try await initializationTask.value
+                print("💾 [DB] Saving thread to local database: \(thread.id)")
+                try await databaseManager.createThreadLocally(thread)
+                print("✅ [DB] Thread saved locally")
             },
             loadMessages: { threadID in
                 _ = try await initializationTask.value

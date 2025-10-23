@@ -563,11 +563,20 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             state.chat.messages = []
             state.chat.isLoadingMessages = true
             
-            // Join channel and load messages
+            // IMPORTANT: Save thread to database before loading messages
+            // Otherwise fetchMessages will fail because thread doesn't exist locally
             let threadID = thread.id
             return .merge(
                 .run(priority: nil) { send in
-                    send(.loadMessages(threadID))
+                    do {
+                        print("💾 [DM] Saving thread to local database...")
+                        try await environment.database.saveThread(thread)
+                        print("✅ [DM] Thread saved locally")
+                        send(.loadMessages(threadID))
+                    } catch {
+                        print("❌ [DM] Failed to save thread: \(error)")
+                        send(.messagesLoaded(threadID, .failure(error)))
+                    }
                 },
                 .run(priority: nil) { send in
                     do {
@@ -634,11 +643,19 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             state.chat.messages = []
             state.chat.isLoadingMessages = true
             
-            // Join channel and load messages
+            // IMPORTANT: Save thread to database before loading messages
             let threadID = thread.id
             return .merge(
                 .run(priority: nil) { send in
-                    send(.loadMessages(threadID))
+                    do {
+                        print("💾 [GROUP] Saving thread to local database...")
+                        try await environment.database.saveThread(thread)
+                        print("✅ [GROUP] Thread saved locally")
+                        send(.loadMessages(threadID))
+                    } catch {
+                        print("❌ [GROUP] Failed to save thread: \(error)")
+                        send(.messagesLoaded(threadID, .failure(error)))
+                    }
                 },
                 .run(priority: nil) { send in
                     do {
