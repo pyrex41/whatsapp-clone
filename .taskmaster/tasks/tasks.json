@@ -6307,5 +6307,912 @@
       "updated": "2025-10-24T03:29:14.499Z",
       "description": "Tasks for review context"
     }
+  },
+  "ai-front": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Set up SwiftUI Project Structure",
+        "description": "Initialize the SwiftUI project with necessary folders, models, and basic views for the GlobalBridge Messenger app.",
+        "details": "Create a new SwiftUI project in Xcode. Set up folders for Models, Views, Services, and Managers. Define basic structs like Message, Thread, and User based on the PRD's message schema. Implement a root ContentView with navigation. Use SwiftUI's ObservableObject for state management. Ensure the project targets iOS 17.4+ for Apple Translation framework compatibility.",
+        "testStrategy": "Unit test the project build and run on simulator. Verify folder structure and basic view rendering with snapshot tests.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Project Folder Structure",
+            "description": "Set up the necessary folders in the SwiftUI project for organization, including Models, Views, Services, and Managers.",
+            "dependencies": [],
+            "details": "In Xcode, create a new SwiftUI project targeting iOS 17.4+. Organize the project by adding group folders for Models, Views, Services, and Managers to maintain a clean structure for the GlobalBridge Messenger app.",
+            "status": "pending",
+            "testStrategy": "Verify the folder structure exists and the project builds successfully on a simulator.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Define Basic Models and Structs",
+            "description": "Define essential structs like Message, Thread, and User based on the PRD's message schema.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create Swift files in the Models folder for Message, Thread, and User structs. Ensure they align with the PRD's schema, including properties for message content, thread participants, and user details. Use SwiftUI-compatible types.",
+            "status": "pending",
+            "testStrategy": "Unit test the structs for correct initialization and property access.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement Root ContentView with Navigation",
+            "description": "Implement the root ContentView with navigation and state management using ObservableObject.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a ContentView in the Views folder that serves as the root view. Integrate SwiftUI's ObservableObject for state management. Add basic navigation structure to support future views in the GlobalBridge Messenger app.",
+            "status": "pending",
+            "testStrategy": "Test basic view rendering and navigation flow with snapshot tests on a simulator.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 3,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break down the project setup into subtasks for creating folder structure, defining basic models and structs, and implementing the root ContentView with navigation.",
+        "updatedAt": "2025-10-24T17:30:55.358Z"
+      },
+      {
+        "id": 2,
+        "title": "Integrate Auth0 Authentication",
+        "description": "Implement Auth0 OAuth 2.0 authentication with JWT token management as specified in the PRD.",
+        "details": "Create AuthManager as an ObservableObject. Configure Auth0 with the provided domain, client ID, and audience. Implement login flow using Auth0 WebAuth, token storage in iOS Keychain, and automatic refresh 5 minutes before expiry. Handle session restoration on app launch. Use the makeAuthenticatedRequest pattern for API calls.",
+        "testStrategy": "Integration test the login flow, token refresh, and API request authentication. Mock Auth0 responses for unit tests.",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configure Auth0 SDK",
+            "description": "Set up the Auth0 SDK in the iOS project with the provided domain, client ID, and audience.",
+            "dependencies": [],
+            "details": "Install Auth0 SDK via CocoaPods or Swift Package Manager. Initialize Auth0 configuration in the app delegate or main app struct with the specified credentials. Ensure proper plist entries for Auth0 domain and client ID.",
+            "status": "pending",
+            "testStrategy": "Unit test configuration initialization and verify credentials are set correctly.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement Login Flow",
+            "description": "Develop the login process using Auth0 WebAuth to authenticate users and obtain tokens.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a login method in AuthManager that uses Auth0.WebAuth to initiate the OAuth flow. Handle success and failure callbacks, extracting access and refresh tokens. Integrate with SwiftUI views to trigger login on user action.",
+            "status": "pending",
+            "testStrategy": "Integration test the login flow with mocked Auth0 responses to ensure tokens are retrieved on success.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement Token Management and Storage",
+            "description": "Manage JWT tokens including storage in iOS Keychain and automatic refresh before expiry.",
+            "dependencies": [
+              2
+            ],
+            "details": "Store access and refresh tokens securely in the iOS Keychain using Keychain Services. Implement a timer or background task to refresh tokens 5 minutes before expiry by calling Auth0's refresh endpoint. Update AuthManager to provide current valid tokens.",
+            "status": "pending",
+            "testStrategy": "Unit test token storage and retrieval. Integration test automatic refresh with mocked time and Auth0 API.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Handle Session Restoration",
+            "description": "Restore user session on app launch by checking stored tokens and validating them.",
+            "dependencies": [
+              3
+            ],
+            "details": "On app launch, check Keychain for existing tokens. Validate tokens with Auth0 or by checking expiry. If valid, restore session; otherwise, prompt for login. Integrate with AuthManager's ObservableObject to update UI state accordingly.",
+            "status": "pending",
+            "testStrategy": "Integration test session restoration on app launch with valid and invalid tokens using mocks.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Divide into subtasks for configuring Auth0, implementing login flow, token management and storage, and session restoration.",
+        "updatedAt": "2025-10-24T17:30:57.974Z"
+      },
+      {
+        "id": 3,
+        "title": "Implement Phoenix Channel WebSocket Integration",
+        "description": "Set up Phoenix Channels for real-time messaging and presence tracking.",
+        "details": "Create PhoenixChannelManager as an actor. Implement connection to Phoenix server with auth token. Define channel joining for threads, event handlers for new_message, presence_state, etc. Implement message sending with client_message_id and client_created_at. Handle presence tracking with PresenceBadgeView.",
+        "testStrategy": "Unit test channel joining and event handling. Integration test real-time message sending and receiving using a test Phoenix server.",
+        "priority": "high",
+        "dependencies": [
+          "2"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create PhoenixChannelManager Actor",
+            "description": "Develop the PhoenixChannelManager as an actor to manage WebSocket connections and channel operations.",
+            "dependencies": [],
+            "details": "Implement PhoenixChannelManager as an actor using Swift's concurrency framework. Define actor properties for connection state, channels, and event handlers. Ensure thread-safety for real-time operations.",
+            "status": "pending",
+            "testStrategy": "Unit test actor initialization and basic state management.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement WebSocket Connection and Authentication",
+            "description": "Set up the WebSocket connection to the Phoenix server with authentication using an auth token.",
+            "dependencies": [
+              1
+            ],
+            "details": "In PhoenixChannelManager, implement connection logic using URLSessionWebSocketTask or similar. Include authentication by sending the auth token during connection establishment. Handle reconnection on failures.",
+            "status": "pending",
+            "testStrategy": "Unit test connection establishment and authentication flow. Integration test with a mock server.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Handle Channel Joining and Events",
+            "description": "Define channel joining for threads and implement event handlers for new_message, presence_state, etc.",
+            "dependencies": [
+              2
+            ],
+            "details": "Implement methods to join specific channels (e.g., for threads). Set up event handlers to process incoming messages like new_message and presence_state. Parse JSON payloads and update internal state accordingly.",
+            "status": "pending",
+            "testStrategy": "Unit test channel joining and event parsing. Integration test event handling with simulated WebSocket messages.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implement Message Sending",
+            "description": "Add functionality to send messages with client_message_id and client_created_at.",
+            "dependencies": [
+              3
+            ],
+            "details": "Create a method in PhoenixChannelManager to send messages to channels, including generating client_message_id and client_created_at timestamps. Ensure messages are sent asynchronously and handle acknowledgments.",
+            "status": "pending",
+            "testStrategy": "Unit test message composition and sending. Integration test message delivery and receipt using a test Phoenix server.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Handle Presence Tracking UI",
+            "description": "Integrate presence tracking with PresenceBadgeView for real-time UI updates.",
+            "dependencies": [
+              4
+            ],
+            "details": "Update PresenceBadgeView based on presence_state events from channels. Implement UI logic to display online/offline status for users in threads. Ensure SwiftUI views update reactively on presence changes.",
+            "status": "pending",
+            "testStrategy": "UI test presence badge display and updates. Integration test real-time presence changes with WebSocket events.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Split into subtasks for creating the actor-based manager, implementing WebSocket connection and authentication, handling channel events, message sending, and presence tracking UI.",
+        "updatedAt": "2025-10-24T17:31:00.032Z"
+      },
+      {
+        "id": 4,
+        "title": "Set up CDC Offline Sync",
+        "description": "Implement Change Data Capture (CDC) for offline-first architecture with SQLite database.",
+        "details": "Create CDCManager and DatabaseManager. Set up SQLite tables for cdc_logs and messages. Implement pullChanges and pushChanges methods for bidirectional sync. Use last-write-wins conflict resolution. Schedule periodic sync every 30 seconds when active.",
+        "testStrategy": "Unit test sync logic with mock data. Integration test offline message storage and sync on reconnection.",
+        "priority": "high",
+        "dependencies": [
+          "3"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up SQLite Database Schema",
+            "description": "Create the necessary SQLite tables for cdc_logs and messages to support CDC functionality.",
+            "dependencies": [],
+            "details": "Define and create SQLite tables including cdc_logs for tracking changes and messages for storing data. Ensure proper indexing for efficient queries.",
+            "status": "pending",
+            "testStrategy": "Unit test table creation and schema validation using SQLite in-memory database.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement DatabaseManager",
+            "description": "Develop the DatabaseManager class to handle SQLite database operations and connections.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create DatabaseManager with methods for opening/closing database connections, executing queries, and managing transactions for offline storage.",
+            "status": "pending",
+            "testStrategy": "Unit test database connection, query execution, and transaction handling with mock SQLite setup.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Create CDCManager",
+            "description": "Build the CDCManager class to orchestrate change data capture and synchronization logic.",
+            "dependencies": [
+              2
+            ],
+            "details": "Implement CDCManager with initialization, integrating with DatabaseManager for managing CDC logs and preparing for sync operations.",
+            "status": "pending",
+            "testStrategy": "Unit test CDCManager initialization and basic integration with DatabaseManager.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implement pullChanges Method",
+            "description": "Develop the pullChanges method for fetching changes from the server and applying them locally.",
+            "dependencies": [
+              3
+            ],
+            "details": "Implement bidirectional sync pull logic to retrieve changes, store in cdc_logs, and update local messages table with conflict resolution.",
+            "status": "pending",
+            "testStrategy": "Unit test pull logic with mock server responses and verify local data updates.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Implement pushChanges Method",
+            "description": "Develop the pushChanges method for sending local changes to the server.",
+            "dependencies": [
+              3
+            ],
+            "details": "Implement bidirectional sync push logic to collect local changes from cdc_logs, send to server, and handle acknowledgments.",
+            "status": "pending",
+            "testStrategy": "Unit test push logic with mock server interactions and verify change transmission.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 6,
+            "title": "Implement Periodic Scheduling and Conflict Resolution",
+            "description": "Set up periodic sync scheduling and last-write-wins conflict resolution.",
+            "dependencies": [
+              4,
+              5
+            ],
+            "details": "Schedule sync every 30 seconds when active using timers or schedulers. Implement last-write-wins resolution for conflicts during pull/push operations.",
+            "status": "pending",
+            "testStrategy": "Integration test periodic scheduling and conflict resolution with simulated offline/online scenarios.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 8,
+        "recommendedSubtasks": 6,
+        "expansionPrompt": "Break into subtasks for setting up SQLite database schema, implementing pull and push sync methods, conflict resolution, periodic scheduling, and offline storage logic.",
+        "updatedAt": "2025-10-24T17:31:02.862Z"
+      },
+      {
+        "id": 5,
+        "title": "Implement Feature Flags System",
+        "description": "Create a tier-based feature access system with backend integration, fetching features from /api/v1/features on every app launch.",
+        "status": "pending",
+        "dependencies": [
+          2
+        ],
+        "priority": "medium",
+        "details": "Update existing FeatureFlags.swift to include network sync for fetching features from /api/v1/features on every app launch. Maintain tier-based access (free/pro/enterprise) but retrieve limits from the server. Add local cache for offline fallback. Implement fetchFeatures to retrieve from backend. Create UI components like FeatureBadgeView and UsageQuotaView. Handle tier limits for translations and threads.",
+        "testStrategy": "Unit test feature checks and network sync. Integration test feature fetching on app launch, caching for offline fallback, and UI display based on tier.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Update FeatureFlags Enum for Network Sync",
+            "description": "Modify the existing FeatureFlags enum in FeatureFlags.swift to integrate network sync for fetching features from the backend.",
+            "dependencies": [],
+            "details": "Update the FeatureFlags enum to support fetching from /api/v1/features on app launch, while preserving the basic tier system (free/pro/enterprise). Ensure the enum remains extensible and integrates with server-retrieved limits.",
+            "status": "pending",
+            "testStrategy": "Unit test the enum values, network sync integration, and any associated properties."
+          },
+          {
+            "id": 2,
+            "title": "Implement Backend Feature Fetching with Cache",
+            "description": "Develop the fetchFeatures function to retrieve feature availability from /api/v1/features on every app launch, with local cache for offline fallback.",
+            "dependencies": [],
+            "details": "Implement the fetchFeatures method that makes API calls to /api/v1/features on app launch to get enabled features and limits based on user tier. Handle authentication, error cases, and implement local caching for offline fallback. Maintain tier-based access.",
+            "status": "pending",
+            "testStrategy": "Integration test the API calls on app launch, verify correct feature retrieval and limits from mock backend responses, and test offline cache fallback."
+          },
+          {
+            "id": 3,
+            "title": "Create UI Components for Badges and Quotas",
+            "description": "Build FeatureBadgeView and UsageQuotaView components to display feature access and limits in the UI.",
+            "dependencies": [],
+            "details": "Create SwiftUI components: FeatureBadgeView to show feature availability badges, and UsageQuotaView to display usage limits for translations and threads. Integrate these with the updated feature flags system to dynamically show based on tier, server-retrieved limits, and current usage.",
+            "status": "pending",
+            "testStrategy": "UI test the components for correct display and interaction, including edge cases for limits and offline scenarios."
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Develop AI Service Protocol and Implementation",
+        "description": "Create AIServiceProtocol and implement methods for translation, summarization, search, and task extraction.",
+        "details": "Define protocols for translate, summarizeThread, searchSemantic, extractTasks. Implement AIService class with HTTP requests to backend API. Handle rate limiting and caching with TranslationCache. Use authenticated requests with JWT tokens.",
+        "testStrategy": "Unit test each AI method with mock responses. Integration test API calls and error handling.",
+        "priority": "medium",
+        "dependencies": [
+          "2",
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define AIServiceProtocol",
+            "description": "Define protocols for translate, summarizeThread, searchSemantic, and extractTasks methods.",
+            "dependencies": [],
+            "details": "Create a protocol named AIServiceProtocol that outlines the required methods for AI services including translation, thread summarization, semantic search, and task extraction. Ensure the protocol is designed for asynchronous operations and error handling.",
+            "status": "pending",
+            "testStrategy": "Unit test the protocol definitions to ensure they compile correctly and match expected signatures.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement AIService Class with HTTP Requests",
+            "description": "Implement the AIService class that conforms to AIServiceProtocol and handles HTTP requests to the backend API.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create the AIService class with methods that make HTTP requests to the backend API endpoints for translation, summarization, search, and task extraction. Use URLSession for networking, handle JSON encoding/decoding, and implement proper error handling for API failures.",
+            "status": "pending",
+            "testStrategy": "Unit test each method with mock HTTP responses. Integration test actual API calls in a test environment.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Add Rate Limiting and Caching",
+            "description": "Implement rate limiting and caching mechanisms for the AIService, including TranslationCache.",
+            "dependencies": [
+              2
+            ],
+            "details": "Integrate rate limiting to prevent excessive API calls and implement caching using TranslationCache to store and retrieve results. Ensure cache invalidation and respect API rate limits by queuing requests or delaying them as needed.",
+            "status": "pending",
+            "testStrategy": "Unit test caching logic and rate limiting behavior. Integration test with simulated API load to verify limits are enforced.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Handle Authentication for AI Service",
+            "description": "Implement authenticated requests using JWT tokens for the AIService API calls.",
+            "dependencies": [
+              2,
+              2
+            ],
+            "details": "Modify the AIService class to include JWT token authentication in HTTP headers for all requests. Integrate with the AuthManager from Task 2 to retrieve and refresh tokens automatically. Ensure secure token handling and handle authentication errors gracefully.",
+            "status": "pending",
+            "testStrategy": "Integration test authenticated API calls with mock tokens. Unit test token attachment and error handling for expired tokens.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Split into subtasks for defining protocols, implementing the AIService class with HTTP requests, adding rate limiting and caching, and handling authentication."
+      },
+      {
+        "id": 7,
+        "title": "Implement Apple Translation Framework Integration",
+        "description": "Integrate Apple's on-device Translation framework for offline translation.",
+        "details": "Create AppleTranslationService class. Check language availability and implement translate and translateBatch methods. Use TranslationSession for on-device processing. Integrate with SwiftUI using translationPresentation modifier.",
+        "testStrategy": "Unit test translation availability and results. UI test the translation UI overlay.",
+        "priority": "medium",
+        "dependencies": [
+          "6"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create AppleTranslationService Class",
+            "description": "Develop the foundational AppleTranslationService class to encapsulate Apple's Translation framework functionality.",
+            "dependencies": [],
+            "details": "Initialize the class with necessary imports and setup for TranslationSession. Ensure it conforms to a protocol for translation services, including error handling and session management.",
+            "status": "pending",
+            "testStrategy": "Unit test class initialization and basic session setup.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement Language Availability Check and Translation Methods",
+            "description": "Add methods to check supported languages and perform single and batch translations using TranslationSession.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement checkLanguageAvailability to verify if source and target languages are supported. Create translate method for single text and translateBatch for multiple texts, utilizing on-device processing with proper error handling and result formatting.",
+            "status": "pending",
+            "testStrategy": "Unit test language availability checks and translation results with mock inputs.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Integrate with SwiftUI Translation Presentation Modifier",
+            "description": "Apply the translationPresentation modifier in SwiftUI views to enable on-device translation overlays.",
+            "dependencies": [
+              2
+            ],
+            "details": "Modify relevant SwiftUI views to include the translationPresentation modifier, ensuring it integrates seamlessly with the AppleTranslationService. Handle UI state for showing translation overlays and user interactions.",
+            "status": "pending",
+            "testStrategy": "UI test the translation overlay display and interactions in SwiftUI views.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break into subtasks for creating the service class, checking language availability, implementing translation methods, and integrating with SwiftUI modifiers."
+      },
+      {
+        "id": 8,
+        "title": "Create Backend AI Translation Service",
+        "description": "Implement cloud-based translation using the backend AI API.",
+        "details": "Create BackendTranslationService class. Make POST requests to /api/v1/ai/translate with text, target_language, and source_language. Parse TranslationResult responses. Handle cultural notes if provided.",
+        "testStrategy": "Unit test request formation and response parsing. Integration test with backend API.",
+        "priority": "medium",
+        "dependencies": [
+          "6"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement BackendTranslationService Class and API Request Logic",
+            "description": "Create the BackendTranslationService class with methods to handle POST requests to the /api/v1/ai/translate endpoint, including preparing the request body with text, target_language, and source_language parameters.",
+            "dependencies": [],
+            "details": "In the Services folder, define a new class BackendTranslationService as an ObservableObject or actor. Implement a method like translate(text: String, sourceLanguage: String, targetLanguage: String) async throws -> TranslationResult. Use URLSession to make the POST request, setting appropriate headers and JSON body. Ensure error handling for network issues.",
+            "status": "pending",
+            "testStrategy": "Unit test request formation, including JSON body creation and URL construction. Mock URLSession for integration testing.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement Response Parsing and Cultural Notes Handling",
+            "description": "Add logic to parse the TranslationResult responses from the API, including extracting translated text and handling any cultural notes provided in the response.",
+            "dependencies": [
+              1
+            ],
+            "details": "Extend the BackendTranslationService class to parse the JSON response into a TranslationResult struct or model. Define the struct with properties for translatedText, culturalNotes (optional), and any other fields. Implement error handling for invalid responses. If cultural notes are present, prepare them for display or logging.",
+            "status": "pending",
+            "testStrategy": "Unit test response parsing with mock JSON data, verifying correct extraction of fields and handling of optional cultural notes. Integration test with actual API responses.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Divide into subtasks for implementing the service class with API requests and response parsing."
+      },
+      {
+        "id": 9,
+        "title": "Build Unified Translation Service with Feature Flags",
+        "description": "Combine Apple and Backend translation services with provider switching via feature flags.",
+        "details": "Create TranslationService class with translate method that selects provider based on FeatureFlags. Implement hybrid mode for comparison. Log metrics for analysis. Handle offline strategy preferring Apple when offline.",
+        "testStrategy": "Unit test provider selection logic. Integration test hybrid mode and logging.",
+        "priority": "medium",
+        "dependencies": [
+          "7",
+          "8",
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Unified TranslationService Class",
+            "description": "Develop the core TranslationService class that acts as a facade for both Apple and Backend translation services, integrating with the FeatureFlags system.",
+            "dependencies": [
+              7,
+              8,
+              5
+            ],
+            "details": "Implement the TranslationService class with a translate method that accepts text, source language, and target language. Ensure it initializes with FeatureFlags to determine provider selection. Include error handling for unsupported languages and offline scenarios.",
+            "status": "pending",
+            "testStrategy": "Unit test the class initialization and basic translate method calls with mocked dependencies.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement Provider Selection Logic",
+            "description": "Add logic within TranslationService to select the appropriate translation provider based on FeatureFlags, including offline strategy preferring Apple.",
+            "dependencies": [
+              1,
+              5
+            ],
+            "details": "Modify the translate method to check FeatureFlags for provider preferences (e.g., backend, apple, or hybrid). Implement offline detection and default to Apple when offline. Handle cases where features are disabled or unavailable.",
+            "status": "pending",
+            "testStrategy": "Unit test the selection logic with various FeatureFlags configurations and mock offline states.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Handle Hybrid Mode for Comparison",
+            "description": "Implement hybrid mode that uses both providers and compares results for analysis, logging discrepancies.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "In hybrid mode, call both Apple and Backend services simultaneously, collect results, and return the best or combined output. Log comparison metrics like accuracy, speed, and differences for future improvements.",
+            "status": "pending",
+            "testStrategy": "Integration test hybrid mode by mocking both services and verifying result comparison and logging.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Add Metrics Logging for Analysis",
+            "description": "Integrate logging of translation metrics such as response times, success rates, and provider usage for performance analysis.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Use a logging framework to record metrics after each translation call, including provider used, time taken, and any errors. Ensure logs are structured for easy analysis, possibly sending to a backend endpoint for aggregation.",
+            "status": "pending",
+            "testStrategy": "Unit test logging functionality and integration test to verify metrics are captured and sent correctly.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Split into subtasks for creating the unified service, implementing provider selection logic, handling hybrid mode, and adding metrics logging."
+      },
+      {
+        "id": 10,
+        "title": "Design Message Bubble UI with Translation",
+        "description": "Implement MessageBubbleView with support for different content types and translation overlay.",
+        "details": "Create MessageBubbleView struct with text, image, video, audio, file views. Add context menu for translate action. Implement TranslationOverlay for displaying translations. Handle reply previews and message metadata.",
+        "testStrategy": "UI test message rendering and context menu actions. Snapshot test different message types.",
+        "priority": "medium",
+        "dependencies": [
+          "9"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create MessageBubbleView Struct for Different Content Types",
+            "description": "Implement the MessageBubbleView struct to support rendering text, image, video, audio, and file content types within the message bubble.",
+            "dependencies": [],
+            "details": "Define MessageBubbleView as a SwiftUI View struct that conditionally renders different subviews based on the message content type. Include TextView for plain text, ImageView for images, VideoPlayer for videos, AudioPlayer for audio files, and FileIconView for attachments. Ensure each view handles loading states and error cases appropriately.",
+            "status": "pending",
+            "testStrategy": "Snapshot test rendering of each content type to verify visual correctness.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Add Context Menu for Translate Action",
+            "description": "Integrate a context menu into MessageBubbleView that provides a translate action for user interaction.",
+            "dependencies": [
+              1
+            ],
+            "details": "Attach a contextMenu modifier to the MessageBubbleView. Include a 'Translate' button that triggers the translation process. Handle menu presentation and ensure it works across different content types, especially text-based messages. Integrate with the translation service to initiate translation on selection.",
+            "status": "pending",
+            "testStrategy": "UI test context menu appearance and translate action triggering.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement TranslationOverlay for Displaying Translations",
+            "description": "Create and integrate TranslationOverlay to show translated text over the original message content.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Build TranslationOverlay as a SwiftUI View that overlays translated text on top of the message bubble. Position it appropriately to cover or highlight the original text. Handle visibility toggling based on translation availability and user actions. Ensure it supports different languages and displays cultural notes if provided by the translation service.",
+            "status": "pending",
+            "testStrategy": "UI test overlay display and interaction, snapshot test overlay states.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Handle Reply Previews and Message Metadata",
+            "description": "Add support for displaying reply previews and message metadata within the MessageBubbleView.",
+            "dependencies": [
+              1
+            ],
+            "details": "Extend MessageBubbleView to include reply preview sections showing quoted messages and metadata like timestamps, sender info, and read receipts. Implement conditional rendering for replies and ensure metadata is fetched and displayed correctly. Handle layout adjustments to accommodate previews without disrupting the main content.",
+            "status": "pending",
+            "testStrategy": "UI test metadata display and reply preview rendering, snapshot test various metadata combinations.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Break into subtasks for creating the bubble view for different content types, adding context menus, implementing translation overlay, and handling metadata."
+      },
+      {
+        "id": 11,
+        "title": "Implement Translation Comparison UI",
+        "description": "Enhance existing MessageCellView.swift with AI features: translation overlay, cultural notes display, translate context menu action, loading states.",
+        "status": "pending",
+        "dependencies": [
+          9
+        ],
+        "priority": "low",
+        "details": "Basic message display already works - just add AI capabilities on top. Integrate translation overlay for displaying translated text, cultural notes for contextual information, translate action in context menu, and proper loading states during AI processing.",
+        "testStrategy": "UI tests for overlay display, notes rendering, context menu actions, and loading indicators. Unit tests for AI feature integrations and state management.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Translation Overlay",
+            "description": "Add translation overlay functionality to MessageCellView for displaying translated versions of messages.",
+            "dependencies": [],
+            "details": "Modify MessageCellView.swift to include an overlay that shows translated text when triggered. Ensure the overlay is toggleable and integrates seamlessly with the existing message display without disrupting basic functionality.",
+            "status": "pending",
+            "testStrategy": "UI tests for overlay visibility, toggle behavior, and text accuracy."
+          },
+          {
+            "id": 2,
+            "title": "Add Cultural Notes Display",
+            "description": "Implement display of cultural notes within MessageCellView to provide contextual information for translations.",
+            "dependencies": [],
+            "details": "Enhance MessageCellView to fetch and display cultural notes related to the message content. Position the notes appropriately in the UI, perhaps as expandable sections or tooltips, ensuring they enhance understanding without cluttering the interface.",
+            "status": "pending",
+            "testStrategy": "UI tests for notes display, expansion/collapse, and content accuracy."
+          },
+          {
+            "id": 3,
+            "title": "Integrate Translate Context Menu Action",
+            "description": "Add a translate action to the context menu in MessageCellView for user-initiated translations.",
+            "dependencies": [],
+            "details": "Update the context menu in MessageCellView to include a 'Translate' option. Handle the action to trigger translation overlay or display, ensuring it works with the existing menu system and provides feedback on selection.",
+            "status": "pending",
+            "testStrategy": "UI tests for context menu appearance, action triggering, and integration with translation features."
+          },
+          {
+            "id": 4,
+            "title": "Manage Loading States for AI Features",
+            "description": "Implement loading states in MessageCellView during AI processing for translations and notes.",
+            "dependencies": [],
+            "details": "Add loading indicators (e.g., spinners or placeholders) to MessageCellView when fetching translations or cultural notes. Ensure states are managed asynchronously and provide user feedback during wait times, integrating with the AI service calls.",
+            "status": "pending",
+            "testStrategy": "UI tests for loading indicators display and dismissal. Unit tests for state management during async operations."
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Add Rate Limiting and Error Handling",
+        "description": "Implement simple auto-retry for rate limiting on 429 errors and basic error handling for AI services.",
+        "status": "pending",
+        "dependencies": [
+          "6"
+        ],
+        "priority": "medium",
+        "details": "Add retry logic to AIService to automatically retry requests on 429 status after waiting for the X-RateLimit-Reset time. Define a basic AIError enum for common errors like rateLimitExceeded and offline. No UI banners needed.",
+        "testStrategy": "Unit test retry logic and error handling. Integration test rate limit retry scenarios.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add Auto-Retry Logic for Rate Limiting in AIService",
+            "description": "Implement automatic retry mechanism in AIService for 429 responses, waiting for X-RateLimit-Reset header time before retrying.",
+            "dependencies": [],
+            "details": "Modify AIService to detect 429 status codes, parse X-RateLimit-Reset header, and schedule a retry after the specified time. Ensure thread-safety and limit retry attempts to avoid infinite loops.",
+            "status": "pending",
+            "testStrategy": "Unit test retry scheduling and header parsing with mock responses."
+          },
+          {
+            "id": 2,
+            "title": "Define Basic AIError Enum",
+            "description": "Create a simplified AIError enum for key error types in AI services, focusing on rate limiting and offline states.",
+            "dependencies": [
+              1
+            ],
+            "details": "Define AIError as an enum with cases like rateLimitExceeded and offline. Include associated values for retry times or messages. Ensure it conforms to Error protocol for Swift error handling.",
+            "status": "pending",
+            "testStrategy": "Unit test enum creation and error message generation for different cases."
+          },
+          {
+            "id": 3,
+            "title": "Integrate Error Handling in AIService",
+            "description": "Update AIService to handle and map API errors to AIError instances, incorporating the retry logic for rate limiting.",
+            "dependencies": [
+              2
+            ],
+            "details": "Modify AIService to catch API errors and map them to AIError. Integrate the auto-retry for rate limiting without UI interventions. Ensure errors are logged appropriately.",
+            "status": "pending",
+            "testStrategy": "Integration test error mapping and retry behavior with mock services."
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "title": "Integrate Thread Summarization UI",
+        "description": "Add UI for AI-powered thread summaries.",
+        "details": "Create a summary view that calls AIService.summarizeThread. Display summary in thread header. Handle loading states and errors. Integrate with feature flags for tier access.",
+        "testStrategy": "UI test summary display and loading. Integration test with AI service.",
+        "priority": "low",
+        "dependencies": [
+          "6",
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Thread Summary View Component",
+            "description": "Develop a SwiftUI view component for displaying AI-powered thread summaries in the thread header, including placeholders for loading and error states.",
+            "dependencies": [],
+            "details": "Implement a SummaryView struct that conforms to View protocol. Include a Text view for the summary content, a ProgressView for loading state, and an error message display. Ensure the view is designed to fit within the thread header layout and supports dynamic content updates.",
+            "status": "pending",
+            "testStrategy": "UI test the summary view display, loading states, and error handling using SwiftUI previews and XCTest.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Integrate AI Service and Feature Flags for Thread Summarization",
+            "description": "Add logic to call AIService.summarizeThread, handle responses, and check feature flags for tier-based access before displaying the summary.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the thread view controller or view model, integrate a call to AIService.summarizeThread upon thread load or user request. Implement feature flag checks using the FeatureFlags system to enable/disable summarization based on user tier. Handle asynchronous loading, success, and error states by updating the SummaryView accordingly. Ensure proper error handling for API failures and feature access denials.",
+            "status": "pending",
+            "testStrategy": "Integration test the AI service call, feature flag checks, and UI updates using mocked services and unit tests.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Break into subtasks for creating the summary view and integrating with AI service and feature flags."
+      },
+      {
+        "id": 14,
+        "title": "Implement Semantic Search Interface",
+        "description": "Build UI for multilingual semantic search with cross-language highlighting.",
+        "details": "Create search view with input field and results list. Call AIService.searchSemantic with query, threadId, etc. Highlight matches in results. Support recency bias and translation options.",
+        "testStrategy": "UI test search input and results. Integration test search API calls.",
+        "priority": "low",
+        "dependencies": [
+          "6",
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Build Search View UI",
+            "description": "Create the basic UI components for the semantic search interface, including an input field for queries and a results list to display search outcomes.",
+            "dependencies": [],
+            "details": "Implement a SwiftUI view with a TextField for user input and a List or ScrollView for displaying search results. Ensure the view integrates with the AIService.searchSemantic API call, passing parameters like query and threadId. Style the components for a clean, user-friendly interface.",
+            "status": "pending",
+            "testStrategy": "UI tests to verify input field functionality and results list rendering.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement Results Highlighting",
+            "description": "Add functionality to highlight matching terms in the search results, supporting cross-language highlighting for multilingual content.",
+            "dependencies": [
+              1
+            ],
+            "details": "Modify the results display to parse and highlight keywords or phrases that match the search query. Use attributed strings or custom views to apply highlighting. Ensure it works across different languages by leveraging appropriate text processing libraries or frameworks.",
+            "status": "pending",
+            "testStrategy": "UI tests to check highlighting accuracy and integration tests for API response handling.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Add Search Options",
+            "description": "Incorporate options for recency bias and translation support into the search interface.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add UI controls such as toggles or dropdowns for enabling recency bias (prioritizing recent results) and translation options (e.g., translating results to the user's language). Integrate these options into the AIService.searchSemantic call and update the results display accordingly.",
+            "status": "pending",
+            "testStrategy": "UI tests for option toggles and integration tests to verify search API calls with options applied.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Divide into subtasks for building the search view, implementing results highlighting, and adding search options."
+      },
+      {
+        "id": 15,
+        "title": "Develop Task Extraction UI",
+        "description": "Implement interface for extracting tasks and decisions from threads.",
+        "details": "Create task extraction view that calls AIService.extractTasks. Display extracted tasks with assignee, deadline, priority. Allow marking tasks complete. Integrate with feature flags.",
+        "testStrategy": "UI test task display and completion. Integration test extraction API.",
+        "priority": "low",
+        "dependencies": [
+          "6",
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Task Extraction View",
+            "description": "Develop the initial UI view for task extraction that integrates with AIService.extractTasks and includes feature flag checks.",
+            "dependencies": [],
+            "details": "Implement a SwiftUI view that triggers task extraction from threads using the AIService. Ensure it checks feature flags for access control and handles loading states during API calls.",
+            "status": "pending",
+            "testStrategy": "UI tests for view rendering and feature flag integration.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Display Extracted Tasks",
+            "description": "Add functionality to display the extracted tasks with details like assignee, deadline, and priority in the UI.",
+            "dependencies": [
+              1
+            ],
+            "details": "Modify the extraction view to render a list of tasks fetched from the API, showing relevant attributes. Use SwiftUI components for a clean, interactive display.",
+            "status": "pending",
+            "testStrategy": "UI tests for task list rendering and data accuracy.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Handle Task Completion Actions",
+            "description": "Implement the ability to mark tasks as complete and update their status accordingly.",
+            "dependencies": [
+              2
+            ],
+            "details": "Add interactive elements to the task display for marking tasks complete, which should update the local state and potentially sync with the backend if required. Ensure proper state management.",
+            "status": "pending",
+            "testStrategy": "Integration tests for completion actions and state updates.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Split into subtasks for creating the extraction view, displaying tasks, and handling completion actions."
+      },
+      {
+        "id": 16,
+        "title": "Implement Message Edit and Delete Functionality",
+        "description": "Add support for editing and deleting messages in the app, including real-time updates via Phoenix channels, UI enhancements for context menus and editing sheets, and database schema modifications for soft deletes and edit tracking.",
+        "details": "Update PhoenixChannelManager to handle 'edit_message' and 'delete_message' events by sending them to the appropriate channel, and listen for 'message_edited' and 'message_deleted' broadcast events to update the local message state. Modify the Message model to include 'isEdited' and 'isDeleted' boolean fields, ensuring 'isDeleted' implements soft deletes where messages are marked deleted but not removed from the database. Update the database schema in DatabaseManager to add these fields to the messages table, integrating with the existing CDC sync to propagate changes bidirectionally. Enhance MessageCellView to include an Edit/Delete context menu option, conditionally shown based on message ownership and feature flags. Create a new EditMessageView as a SwiftUI sheet that allows users to modify message text, validate input, and send the edit via PhoenixChannelManager. Ensure the UI handles loading states during edit/delete operations and updates the message display to reflect edited status (e.g., with a subtle 'edited' indicator). Integrate with the offline sync system to queue edits/deletes when offline and sync on reconnection. Consider edge cases like editing a message that's already deleted or handling conflicts in CDC. Use the existing AuthManager for user permissions and ensure edits preserve message metadata like timestamps.",
+        "testStrategy": "Unit test PhoenixChannelManager for sending edit_message and delete_message events, and for handling incoming message_edited and message_deleted broadcasts, verifying message model updates. Integration test with a test Phoenix server to simulate real-time edits and deletes, ensuring UI updates correctly. UI tests for MessageCellView context menu display and actions, EditMessageView sheet presentation, input validation, and message rendering with edited indicators. Database tests for schema updates, soft delete behavior, and CDC sync of edited/deleted messages. Test offline scenarios by queuing edits/deletes and verifying sync on reconnection. Mock Auth0 for permission checks and feature flags for conditional UI elements.",
+        "status": "pending",
+        "dependencies": [
+          3,
+          4
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Polish Read Receipts UI",
+        "description": "Enhance MessageCellView with checkmark indicators for sent, delivered, and read statuses using different icons, add a 'Who Read This?' context menu option, and create ReadReceiptDetailView to display who read the message and when.",
+        "details": "Update MessageCellView.swift to include visual indicators for message read receipts. Implement three distinct checkmark icons: a single checkmark for sent, double checkmarks for delivered, and blue double checkmarks for read. Position these indicators in the bottom-right corner of the message bubble, ensuring they are visible and unobtrusive. Add a new 'Who Read This?' option to the existing context menu in MessageCellView, which should trigger navigation to a new ReadReceiptDetailView. Create ReadReceiptDetailView as a SwiftUI view that fetches and displays a list of users who have read the message, including their names, avatars, and timestamps of when they read it. Integrate with Phoenix channels to receive real-time updates on read receipts; subscribe to the appropriate channel for the message thread and update the UI reactively. Handle cases where read receipts are not available (e.g., for older messages or group chats with privacy settings). Ensure the UI is responsive and accessible, with proper loading states while fetching receipt data. Consider edge cases like messages sent by the user themselves (show receipts for others) and messages in channels where receipts are disabled. Use Combine or SwiftUI's state management to bind receipt data to the views. No backend changes are needed as support is already in place.",
+        "testStrategy": "Conduct UI tests to verify checkmark indicators appear correctly for sent (single checkmark), delivered (double checkmarks), and read (blue double checkmarks) statuses in MessageCellView, using snapshot tests for different message states. Test the context menu integration by simulating taps on 'Who Read This?' and ensuring it navigates to ReadReceiptDetailView. In ReadReceiptDetailView, perform UI tests to check that the list of readers displays names, avatars, and timestamps accurately, with proper sorting (e.g., by read time). Use mock data for Phoenix channel subscriptions to test real-time updates, verifying that the UI refreshes when new receipts are received. Integration tests should cover fetching receipt data from the backend via channels, handling errors, and edge cases like no receipts or disabled features. Accessibility tests to ensure indicators and menu options are screen-reader friendly.",
+        "status": "pending",
+        "dependencies": [
+          10
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Implement User Channel WebSocket for App-Level Operations",
+        "description": "Implement WebSocket integration for user channel to handle contact management, thread creation, user search, and app bootstrap on launch, integrating with the existing PhoenixChannelManager to enable real-time contacts, new threads/DMs, cross-platform user search, and fast app initialization.",
+        "details": "Extend the PhoenixChannelManager to join a dedicated 'user' channel for app-level operations, handling events such as contact updates, thread creation, user search results, and bootstrap data (e.g., initial user state, contacts list). Implement event handlers for incoming broadcasts like 'contact_added', 'contact_removed', 'thread_created', 'user_search_results', and 'bootstrap_complete', updating local state accordingly. For UI integration, enhance ContactsView to display and manage contacts with real-time updates, including add/remove actions sent via the channel. Update NewThreadView to support creating new threads or DMs by sending 'create_thread' events with participants, and handle responses for thread ID assignment. Implement user search functionality with a search input that sends 'search_users' events and displays results in a list view, supporting cross-platform search with pagination if needed. For app bootstrap, on launch, join the user channel and request initial data via a 'bootstrap' event, populating local caches for contacts and user info to enable fast startup. Ensure integration with existing CDC offline sync (from Task 4) for persisting contact and thread data locally, and handle offline scenarios by queuing actions for when the channel reconnects. Reference docs/user-channel-explained.md for detailed event specifications, payload structures, and authentication requirements. Consider error handling for channel join failures, event timeouts, and rate limiting on search requests. Update any relevant models (e.g., User, Contact, Thread) to include fields for channel-sourced data, and ensure thread safety in PhoenixChannelManager as an actor.",
+        "testStrategy": "Unit test PhoenixChannelManager extensions for joining the user channel, sending events (e.g., 'create_thread', 'search_users', 'bootstrap'), and handling incoming broadcasts, verifying state updates in mock scenarios. Integration test with a test Phoenix server to simulate real-time contact management, thread creation, user search, and bootstrap, ensuring UI updates correctly (e.g., ContactsView refreshes on contact events, NewThreadView receives thread IDs). UI test ContactsView for displaying contacts, handling add/remove actions, and real-time updates; test NewThreadView for thread creation flow and error states; test user search interface for input, results display, and pagination. End-to-end test app launch bootstrap, verifying initial data load and channel join without blocking UI. Test offline scenarios by simulating network disconnections, ensuring actions are queued and replayed on reconnection, integrating with CDC sync tests.",
+        "status": "pending",
+        "dependencies": [
+          3
+        ],
+        "priority": "medium",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2025-10-24T17:31:02.865Z",
+      "taskCount": 15,
+      "completedCount": 4,
+      "tags": [
+        "ai-front"
+      ],
+      "created": "2025-10-24T17:31:20.728Z",
+      "description": "Tasks for ai-front context",
+      "updated": "2025-10-24T17:38:55.010Z"
+    }
   }
 }

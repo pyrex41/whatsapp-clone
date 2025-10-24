@@ -1,0 +1,133 @@
+{
+	"meta": {
+		"generatedAt": "2025-10-24T17:07:48.291Z",
+		"tasksAnalyzed": 15,
+		"totalTasks": 15,
+		"analysisCount": 15,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": false
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Set up SwiftUI Project Structure",
+			"complexityScore": 3,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down the project setup into subtasks for creating folder structure, defining basic models and structs, and implementing the root ContentView with navigation.",
+			"reasoning": "This is a foundational task with straightforward implementation in Xcode, involving basic folder organization and simple SwiftUI views. Low technical challenges, but requires careful alignment with PRD schemas. Testing is minimal, focusing on build and basic rendering."
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "Integrate Auth0 Authentication",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Divide into subtasks for configuring Auth0, implementing login flow, token management and storage, and session restoration.",
+			"reasoning": "Involves OAuth 2.0, JWT handling, and iOS Keychain integration, which introduces security and concurrency challenges. Dependencies on Task 1 add coordination effort. Testing requires mocking for integration scenarios."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Implement Phoenix Channel WebSocket Integration",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Split into subtasks for creating the actor-based manager, implementing WebSocket connection and authentication, handling channel events, message sending, and presence tracking UI.",
+			"reasoning": "Real-time WebSocket integration with Phoenix Channels is technically demanding, requiring actor concurrency, event handling, and real-time UI updates. High testing effort for integration with a test server. Depends on authentication."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Set up CDC Offline Sync",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break into subtasks for setting up SQLite database schema, implementing pull and push sync methods, conflict resolution, periodic scheduling, and offline storage logic.",
+			"reasoning": "Offline-first architecture with bidirectional sync and SQLite involves complex data management, conflict resolution, and scheduling. High effort for robust testing, including offline scenarios. Builds on WebSocket integration."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Implement Feature Flags System",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Divide into subtasks for defining the feature flags enum, implementing backend fetching, and creating UI components for badges and quotas.",
+			"reasoning": "Tier-based system with backend integration requires API calls and UI state management. Moderate challenges in handling limits and access control. Testing involves integration with backend."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "Develop AI Service Protocol and Implementation",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Split into subtasks for defining protocols, implementing the AIService class with HTTP requests, adding rate limiting and caching, and handling authentication.",
+			"reasoning": "Involves multiple AI methods (translation, summarization, etc.) with HTTP integration, caching, and error handling. Moderate complexity due to API dependencies and rate limiting. Requires thorough unit and integration testing."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Implement Apple Translation Framework Integration",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break into subtasks for creating the service class, checking language availability, implementing translation methods, and integrating with SwiftUI modifiers.",
+			"reasoning": "On-device translation using Apple's framework is relatively straightforward but requires handling availability checks and SwiftUI integration. Moderate effort with UI testing for overlays. Depends on AI service."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Create Backend AI Translation Service",
+			"complexityScore": 4,
+			"recommendedSubtasks": 2,
+			"expansionPrompt": "Divide into subtasks for implementing the service class with API requests and response parsing.",
+			"reasoning": "Cloud-based translation involves HTTP requests and parsing, with low complexity but dependency on backend API. Testing focuses on request/response handling."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Build Unified Translation Service with Feature Flags",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Split into subtasks for creating the unified service, implementing provider selection logic, handling hybrid mode, and adding metrics logging.",
+			"reasoning": "Combining multiple services with feature flags introduces logic for provider switching and offline handling. Moderate challenges in integration and testing hybrid scenarios."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Design Message Bubble UI with Translation",
+			"complexityScore": 5,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break into subtasks for creating the bubble view for different content types, adding context menus, implementing translation overlay, and handling metadata.",
+			"reasoning": "UI design for various message types with translation integration requires SwiftUI expertise. Moderate effort for snapshot testing and UI interactions."
+		},
+		{
+			"taskId": 11,
+			"taskTitle": "Implement Translation Comparison UI",
+			"complexityScore": 4,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Divide into subtasks for building the comparison view, integrating feedback service, and handling voting buttons.",
+			"reasoning": "Side-by-side UI for comparison is UI-focused with feedback integration. Low complexity but requires UI testing for interactions."
+		},
+		{
+			"taskId": 12,
+			"taskTitle": "Add Rate Limiting and Error Handling",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Split into subtasks for creating rate limit handler, defining error enums, and integrating banners for errors.",
+			"reasoning": "Enhances AI services with error handling and rate limiting, involving parsing and UI notifications. Moderate effort with testing for various error scenarios."
+		},
+		{
+			"taskId": 13,
+			"taskTitle": "Integrate Thread Summarization UI",
+			"complexityScore": 4,
+			"recommendedSubtasks": 2,
+			"expansionPrompt": "Break into subtasks for creating the summary view and integrating with AI service and feature flags.",
+			"reasoning": "UI integration for summarization is straightforward, with loading states and feature flag checks. Low complexity, focused on UI and integration testing."
+		},
+		{
+			"taskId": 14,
+			"taskTitle": "Implement Semantic Search Interface",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Divide into subtasks for building the search view, implementing results highlighting, and adding search options.",
+			"reasoning": "Multilingual search UI with highlighting requires API integration and UI polish. Moderate effort for testing search functionality."
+		},
+		{
+			"taskId": 15,
+			"taskTitle": "Develop Task Extraction UI",
+			"complexityScore": 4,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Split into subtasks for creating the extraction view, displaying tasks, and handling completion actions.",
+			"reasoning": "UI for task extraction with API calls and feature flags. Low complexity, emphasizing UI testing and integration."
+		}
+	]
+}
