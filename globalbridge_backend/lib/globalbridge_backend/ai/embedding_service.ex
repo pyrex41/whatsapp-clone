@@ -11,6 +11,7 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
 
   alias GlobalbridgeBackend.AI.VectorStore
   alias GlobalbridgeBackend.AI.Cache.EmbeddingCache
+  alias GlobalbridgeBackend.AI.Telemetry
   alias GlobalbridgeBackend.Repos.ThreadRepo
 
   require Logger
@@ -27,18 +28,36 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
     case EmbeddingCache.get(text, @embedding_model) do
       nil ->
         # Not in cache, generate new embedding
+        Telemetry.cache_miss(:embedding, text, %{model: @embedding_model})
+
+        start_time = System.monotonic_time(:millisecond)
+        Telemetry.embedding_start(@embedding_model, 1, %{text: text})
+
         case generate_embedding(text) do
           {:ok, embedding} ->
+            duration = System.monotonic_time(:millisecond) - start_time
+            tokens_used = estimate_tokens(text)
+
+            Telemetry.embedding_stop(@embedding_model, 1, tokens_used, duration, %{text: text})
+
             # Cache the result
             EmbeddingCache.put(text, embedding, @embedding_model)
             {:ok, embedding}
 
           error ->
+            duration = System.monotonic_time(:millisecond) - start_time
+
+            Telemetry.embedding_error(@embedding_model, :api_error, duration, %{
+              text: text,
+              error: error
+            })
+
             error
         end
 
       embedding ->
         # Found in cache
+        Telemetry.cache_hit(:embedding, text, %{model: @embedding_model})
         {:ok, embedding}
     end
   end
@@ -55,11 +74,30 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
         EmbeddingCache.exists?(text, @embedding_model)
       end)
 
+    # Record cache hits
+    Enum.each(cached, fn text ->
+      Telemetry.cache_hit(:embedding, text, %{model: @embedding_model})
+    end)
+
     # Generate embeddings for uncached texts
     uncached_results =
       if length(uncached) > 0 do
+        start_time = System.monotonic_time(:millisecond)
+        Telemetry.embedding_start(@embedding_model, length(uncached), %{batch: true})
+
         case generate_embeddings_batch(uncached) do
           {:ok, embeddings} ->
+            duration = System.monotonic_time(:millisecond) - start_time
+            total_tokens = Enum.reduce(uncached, 0, &(&2 + estimate_tokens(&1)))
+
+            Telemetry.embedding_stop(
+              @embedding_model,
+              length(uncached),
+              total_tokens,
+              duration,
+              %{batch: true}
+            )
+
             # Cache the new embeddings
             Enum.zip(uncached, embeddings)
             |> Enum.each(fn {text, embedding} ->
@@ -68,7 +106,14 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
 
             embeddings
 
-          {:error, _reason} ->
+          {:error, reason} ->
+            duration = System.monotonic_time(:millisecond) - start_time
+
+            Telemetry.embedding_error(@embedding_model, :batch_api_error, duration, %{
+              error: reason,
+              batch_size: length(uncached)
+            })
+
             # Return nil for failed texts
             List.duplicate(nil, length(uncached))
         end
@@ -196,5 +241,11 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
     for float <- embedding, into: <<>> do
       <<float::float-32-little>>
     end
+  end
+
+  defp estimate_tokens(text) when is_binary(text) do
+    # Rough estimation: ~4 characters per token for English text
+    # This is a simplified estimation - in production you'd use a proper tokenizer
+    max(1, div(String.length(text), 4))
   end
 end

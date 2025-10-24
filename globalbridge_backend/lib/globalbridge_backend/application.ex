@@ -31,7 +31,14 @@ defmodule GlobalbridgeBackend.Application do
       # Caching with Cachex
       {Cachex, name: :ai_cache},
       # AI Components Setup (runs after other supervisors are started)
-      {Task, fn -> GlobalbridgeBackend.AI.AgensSetup.start_components() end},
+      {Task,
+       fn ->
+         GlobalbridgeBackend.AI.AgensSetup.start_components()
+         GlobalbridgeBackend.AI.Telemetry.setup()
+       end},
+      # AI Cost Tracking and Budget Monitoring
+      GlobalbridgeBackend.AI.CostTracker,
+      GlobalbridgeBackend.AI.BudgetMonitor,
       # Start a worker by calling: GlobalbridgeBackend.Worker.start_link(arg)
       # {GlobalbridgeBackend.Worker, arg},
       # Start to serve requests, typically the last entry
