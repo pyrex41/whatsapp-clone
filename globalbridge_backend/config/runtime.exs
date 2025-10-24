@@ -174,6 +174,7 @@ end
 # Oban Background Job Configuration
 oban_config = [
   engine: Oban.Engines.Basic,
+  notifier: Oban.Notifiers.PG,  # Use PG notifier (polling-based, works with SQLite)
   queues: [
     default: 10,
     embeddings: 5,
