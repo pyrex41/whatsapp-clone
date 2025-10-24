@@ -25,6 +25,7 @@ defmodule GlobalbridgeBackendWeb.Router do
     plug(CORSPlug)
     plug(:put_api_security_headers)
     plug(:rate_limit_api)
+    plug(GlobalbridgeBackendWeb.Plugs.ThreadCache)
   end
 
   def rate_limit_api(conn, _opts) do
@@ -66,6 +67,10 @@ defmodule GlobalbridgeBackendWeb.Router do
 
   pipeline :auth do
     plug(GlobalbridgeBackend.Auth.Pipeline)
+  end
+
+  pipeline :ai_rate_limited do
+    plug(GlobalbridgeBackendWeb.Plugs.RateLimitAI)
   end
 
   # LiveView App
@@ -135,8 +140,10 @@ defmodule GlobalbridgeBackendWeb.Router do
 
     get("/threads", ThreadController, :index)
 
-    # AI endpoints
+    # AI endpoints with per-user rate limiting
     scope "/ai" do
+      pipe_through(:ai_rate_limited)
+
       post("/translate", AIController, :translate)
       post("/analyze_tone", AIController, :analyze_tone)
       post("/summarize_thread", AIController, :summarize_thread)

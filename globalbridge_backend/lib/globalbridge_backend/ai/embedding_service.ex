@@ -4,13 +4,13 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
 
   Features:
   - Generates 3072-dimensional embeddings
-  - Redis caching for deduplication
+  - Cachex caching for deduplication (1 hour TTL)
   - Async background processing via Oban
   - Batch processing for efficiency
   """
 
   alias GlobalbridgeBackend.AI.VectorStore
-  alias GlobalbridgeBackend.AI.Cache.EmbeddingCache
+  alias GlobalbridgeBackend.AI.Cache
   alias GlobalbridgeBackend.AI.CostOptimizer
   alias GlobalbridgeBackend.AI.CostTracker
   alias GlobalbridgeBackend.AI.Telemetry
@@ -33,7 +33,7 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
   Checks cache first, then calls OpenAI API if not cached.
   """
   def generate(text) when is_binary(text) do
-    case EmbeddingCache.get(text, @embedding_model) do
+    case Cache.get_embedding(text, @embedding_model) do
       nil ->
         # Not in cache, generate new embedding
         Telemetry.cache_miss(:embedding, text, %{model: @embedding_model})
@@ -52,7 +52,7 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
             CostTracker.log_cost(:embedding, @embedding_model, tokens_used, 0, %{text: text})
 
             # Cache the result
-            EmbeddingCache.put(text, embedding, @embedding_model)
+            Cache.put_embedding(text, embedding, @embedding_model)
             {:ok, embedding}
 
           error ->
@@ -82,8 +82,10 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
     # Use cost optimizer to deduplicate and optimize batch
     optimization_result = CostOptimizer.optimize_batch_queries(texts, :embedding)
 
-    IO.puts(
-      "Batch optimization: #{optimization_result.original_count} -> #{optimization_result.optimized_count} queries (#{optimization_result.savings_percentage}% savings)"
+    Logger.info("Batch optimization",
+      original_count: optimization_result.original_count,
+      optimized_count: optimization_result.optimized_count,
+      savings_percentage: optimization_result.savings_percentage
     )
 
     optimized_texts = optimization_result.optimized_queries
@@ -91,7 +93,7 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
     # Separate cached and uncached texts
     {cached, uncached} =
       Enum.split_with(optimized_texts, fn text ->
-        EmbeddingCache.exists?(text, @embedding_model)
+        Cache.embedding_exists?(text, @embedding_model)
       end)
 
     # Record cache hits
@@ -99,71 +101,28 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
       Telemetry.cache_hit(:embedding, text, %{model: @embedding_model})
     end)
 
-    # Generate embeddings for uncached texts
-    uncached_results =
-      if length(uncached) > 0 do
-        start_time = System.monotonic_time(:millisecond)
-
-        Telemetry.embedding_start(@embedding_model, length(uncached), %{
-          batch: true,
-          optimized: true
-        })
-
-        case generate_embeddings_batch(uncached) do
-          {:ok, embeddings} ->
-            duration = System.monotonic_time(:millisecond) - start_time
-            total_tokens = Enum.reduce(uncached, 0, &(&2 + estimate_tokens(&1)))
-
-            Telemetry.embedding_stop(
-              @embedding_model,
-              length(uncached),
-              total_tokens,
-              duration,
-              %{batch: true, optimized: true}
-            )
-
-            # Log cost for the batch embedding generation
-            CostTracker.log_cost(:embedding, @embedding_model, total_tokens, 0, %{
-              batch: true,
-              count: length(uncached)
-            })
-
-            # Cache the results
-            Enum.zip(uncached, embeddings)
-            |> Enum.each(fn {text, embedding} ->
-              EmbeddingCache.put(text, embedding, @embedding_model)
-            end)
-
-            embeddings
-
-          error ->
-            duration = System.monotonic_time(:millisecond) - start_time
-
-            Telemetry.embedding_error(@embedding_model, :batch_api_error, duration, %{
-              batch_size: length(uncached),
-              error: error
-            })
-
-            error
-        end
-      else
-        []
-      end
-
     # Get cached embeddings
     cached_embeddings =
       Enum.map(cached, fn text ->
-        EmbeddingCache.get(text, @embedding_model)
+        Cache.get_embedding(text, @embedding_model)
       end)
 
-    # Reconstruct full result set (map optimized results back to original queries)
-    all_embeddings =
-      reconstruct_batch_results(texts, optimized_texts, uncached_results, cached_embeddings)
+    # Generate embeddings for uncached texts with early error return
+    case generate_uncached_batch(uncached) do
+      {:ok, uncached_embeddings} ->
+        # Reconstruct full result set (map optimized results back to original queries)
+        all_embeddings =
+          reconstruct_batch_results(texts, cached, cached_embeddings, uncached, uncached_embeddings)
 
-    if length(all_embeddings) == length(texts) do
-      {:ok, all_embeddings}
-    else
-      {:error, :batch_reconstruction_failed}
+        if length(all_embeddings) == length(texts) do
+          {:ok, all_embeddings}
+        else
+          {:error, :batch_reconstruction_failed}
+        end
+
+      {:error, _reason} = error ->
+        # Return error immediately without corrupting data
+        error
     end
   end
 
@@ -253,6 +212,55 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
 
   # Private functions
 
+  defp generate_uncached_batch([]), do: {:ok, []}
+
+  defp generate_uncached_batch(uncached_texts) do
+    start_time = System.monotonic_time(:millisecond)
+
+    Telemetry.embedding_start(@embedding_model, length(uncached_texts), %{
+      batch: true,
+      optimized: true
+    })
+
+    case generate_embeddings_batch(uncached_texts) do
+      {:ok, embeddings} ->
+        duration = System.monotonic_time(:millisecond) - start_time
+        total_tokens = Enum.reduce(uncached_texts, 0, &(&2 + estimate_tokens(&1)))
+
+        Telemetry.embedding_stop(
+          @embedding_model,
+          length(uncached_texts),
+          total_tokens,
+          duration,
+          %{batch: true, optimized: true}
+        )
+
+        # Log cost for the batch embedding generation
+        CostTracker.log_cost(:embedding, @embedding_model, total_tokens, 0, %{
+          batch: true,
+          count: length(uncached_texts)
+        })
+
+        # Cache the results
+        Enum.zip(uncached_texts, embeddings)
+        |> Enum.each(fn {text, embedding} ->
+          Cache.put_embedding(text, embedding, @embedding_model)
+        end)
+
+        {:ok, embeddings}
+
+      {:error, reason} = error ->
+        duration = System.monotonic_time(:millisecond) - start_time
+
+        Telemetry.embedding_error(@embedding_model, :batch_api_error, duration, %{
+          batch_size: length(uncached_texts),
+          error: reason
+        })
+
+        error
+    end
+  end
+
   defp generate_embedding(text) do
     if @test_mode do
       # Return mock embedding for testing
@@ -340,28 +348,23 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
 
   defp reconstruct_batch_results(
          original_texts,
-         optimized_texts,
-         uncached_results,
-         cached_embeddings
+         cached_texts,
+         cached_embeddings,
+         uncached_texts,
+         uncached_embeddings
        ) do
-    # Create a mapping from optimized text to its result
-    optimized_to_result =
-      Enum.zip(optimized_texts, uncached_results ++ cached_embeddings) |> Map.new()
+    # Build separate maps for cached and uncached results
+    cached_map = Enum.zip(cached_texts, cached_embeddings) |> Map.new()
+    uncached_map = Enum.zip(uncached_texts, uncached_embeddings) |> Map.new()
 
-    # Map back to original texts (duplicates will use the same optimized result)
+    # Merge into single optimized_text -> embedding map
+    # O(n) complexity for map creation
+    optimized_to_embedding = Map.merge(cached_map, uncached_map)
+
+    # Reconstruct original order with O(1) map lookup per item = O(n) total
+    # This correctly handles duplicates in the original texts list
     Enum.map(original_texts, fn original_text ->
-      # Find the optimized version of this text
-      optimized_text =
-        Enum.find(optimized_texts, fn opt ->
-          # Simple similarity check - in production use better similarity matching
-          String.downcase(original_text) == String.downcase(opt)
-        end)
-
-      case optimized_text do
-        # Should not happen with proper optimization
-        nil -> nil
-        _ -> Map.get(optimized_to_result, optimized_text)
-      end
+      Map.get(optimized_to_embedding, original_text)
     end)
   end
 end

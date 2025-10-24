@@ -4,6 +4,14 @@ defmodule GlobalbridgeBackendWeb.FallbackController do
   """
   use GlobalbridgeBackendWeb, :controller
 
+  alias GlobalbridgeBackend.AI.UnauthorizedError
+
+  def call(conn, {:error, %UnauthorizedError{} = error}) do
+    conn
+    |> put_status(:forbidden)
+    |> json(%{error: error.message})
+  end
+
   def call(conn, {:error, :not_found}) do
     conn
     |> put_status(:not_found)

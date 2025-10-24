@@ -8,19 +8,20 @@ defmodule GlobalbridgeBackend.AI.Jobs.CleanupCacheJob do
 
   use Oban.Worker, queue: :ai_processing, max_attempts: 1
 
-  alias GlobalbridgeBackend.AI.Cache.{SearchCache, EmbeddingCache, TranslationCache}
+  alias GlobalbridgeBackend.AI.Cache
+  alias GlobalbridgeBackend.AI.Cache.TranslationCache
 
   @impl Oban.Worker
   def perform(_job) do
     # Best-effort cleanup; ignore errors
     try do
-      SearchCache.clear()
+      Cache.clear_search_results()
     rescue
       _ -> :ok
     end
 
     try do
-      EmbeddingCache.clear()
+      Cache.clear_embeddings()
     rescue
       _ -> :ok
     end

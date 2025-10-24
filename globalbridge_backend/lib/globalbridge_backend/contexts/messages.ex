@@ -10,6 +10,7 @@ defmodule GlobalbridgeBackend.Contexts.Messages do
   alias GlobalbridgeBackend.Repo
   alias GlobalbridgeBackend.Schemas.{Message, ReadReceipt, Thread}
   alias GlobalbridgeBackend.Repos.ThreadRepo
+  alias GlobalbridgeBackendWeb.Plugs.ThreadCache
 
   @doc """
   Lists messages in a thread with optional filtering.
@@ -59,9 +60,9 @@ defmodule GlobalbridgeBackend.Contexts.Messages do
     thread = get_thread_with_shard(thread_id)
     repo = ThreadRepo.get_repo(thread.database_shard_id)
 
-    Message
-    |> where([m], m.thread_id == ^thread_id)
-    |> repo.get!(message_id)
+    # Use get_by! to properly filter by both thread_id and message_id
+    # This ensures we don't return messages from other threads
+    repo.get_by!(Message, id: message_id, thread_id: thread_id)
   end
 
   @doc """
@@ -323,9 +324,18 @@ defmodule GlobalbridgeBackend.Contexts.Messages do
   # Private helper functions
 
   defp get_thread_with_shard(thread_id) do
-    case Repo.get(Thread, thread_id) do
-      nil -> raise Ecto.NoResultsError, queryable: Thread
-      thread -> thread
+    # Check cache first to prevent N+1 queries
+    case ThreadCache.get_cached_thread(thread_id) do
+      nil ->
+        # Cache miss - fetch from database and cache it
+        case Repo.get(Thread, thread_id) do
+          nil -> raise Ecto.NoResultsError, queryable: Thread
+          thread -> ThreadCache.cache_thread(thread)
+        end
+
+      cached_thread ->
+        # Cache hit - return cached thread
+        cached_thread
     end
   end
 

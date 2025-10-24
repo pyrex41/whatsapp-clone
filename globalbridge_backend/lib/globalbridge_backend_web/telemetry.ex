@@ -52,6 +52,16 @@ defmodule GlobalbridgeBackendWeb.Telemetry do
         unit: {:native, :millisecond}
       ),
 
+      # AI Rate Limiting Metrics
+      counter("globalbridge_backend.ai.rate_limit.exceeded.count",
+        tags: [:user_id, :endpoint],
+        description: "Number of times AI rate limits were exceeded"
+      ),
+      last_value("globalbridge_backend.ai.rate_limit.exceeded.timestamp",
+        tags: [:user_id, :endpoint],
+        description: "Timestamp of last rate limit exceeded event"
+      ),
+
       # VM Metrics
       summary("vm.memory.total", unit: {:byte, :kilobyte}),
       summary("vm.total_run_queue_lengths.total"),

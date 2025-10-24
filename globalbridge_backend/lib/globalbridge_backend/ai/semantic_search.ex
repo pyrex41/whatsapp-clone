@@ -12,8 +12,7 @@ defmodule GlobalbridgeBackend.AI.SemanticSearch do
 
   alias GlobalbridgeBackend.AI.EmbeddingService
   alias GlobalbridgeBackend.AI.RAGRetriever
-  alias GlobalbridgeBackend.AI.Cache.EmbeddingCache
-  alias GlobalbridgeBackend.AI.Cache.SearchCache
+  alias GlobalbridgeBackend.AI.Cache
   alias GlobalbridgeBackend.AI.Agents.LanguageDetectionAgent
   alias GlobalbridgeBackend.AI.Agents.TranslatorAgent
   alias Agens.Agent
@@ -36,7 +35,7 @@ defmodule GlobalbridgeBackend.AI.SemanticSearch do
     Logger.debug("Performing semantic search for thread #{thread_id}: #{query}")
 
     # Check cache first
-    cached_results = SearchCache.get_search_results(thread_id, query, opts)
+    cached_results = Cache.get_search_result(thread_id, query, opts)
 
     if cached_results do
       Logger.debug("Returning cached search results for thread #{thread_id}")
@@ -62,7 +61,7 @@ defmodule GlobalbridgeBackend.AI.SemanticSearch do
             {:ok, results} ->
               Logger.debug("Found #{length(results)} semantic search results")
               # Cache the results
-              SearchCache.put_search_results(thread_id, query, results, opts)
+              Cache.put_search_result(thread_id, query, results, opts)
               {:ok, results}
 
             error ->
@@ -118,14 +117,14 @@ defmodule GlobalbridgeBackend.AI.SemanticSearch do
   Useful for determining if embedding generation can be skipped.
   """
   def query_cached?(query) do
-    EmbeddingCache.exists?(query, EmbeddingService.embedding_model())
+    Cache.embedding_exists?(query, EmbeddingService.embedding_model())
   end
 
   @doc """
   Gets cached embedding for a query if it exists.
   """
   def get_cached_query_embedding(query) do
-    EmbeddingCache.get(query, EmbeddingService.embedding_model())
+    Cache.get_embedding(query, EmbeddingService.embedding_model())
   end
 
   @doc """

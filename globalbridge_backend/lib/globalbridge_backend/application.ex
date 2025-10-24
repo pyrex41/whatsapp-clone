@@ -40,15 +40,24 @@ defmodule GlobalbridgeBackend.Application do
         [
           # Caching with Cachex
           {Cachex, name: :ai_cache},
+          # Initialize unified cache layer (ETS table)
+          Supervisor.child_spec({Task, fn -> GlobalbridgeBackend.AI.Cache.init() end},
+            id: :ai_cache_init_task
+          ),
           # AI Components Setup (runs after other supervisors are started)
-          {Task,
-           fn ->
-             GlobalbridgeBackend.AI.AgensSetup.start_components()
-             GlobalbridgeBackend.AI.Telemetry.setup()
-           end},
+          Supervisor.child_spec(
+            {Task,
+             fn ->
+               GlobalbridgeBackend.AI.AgensSetup.start_components()
+               GlobalbridgeBackend.AI.Telemetry.setup()
+             end},
+            id: :ai_components_setup_task
+          ),
           # AI Cost Tracking and Budget Monitoring
           GlobalbridgeBackend.AI.CostTracker,
           GlobalbridgeBackend.AI.BudgetMonitor,
+          # AI Rate Limit Monitoring
+          GlobalbridgeBackend.Monitoring.RateLimitMonitor,
           # Start a worker by calling: GlobalbridgeBackend.Worker.start_link(arg)
           # {GlobalbridgeBackend.Worker, arg},
           # Start to serve requests, typically the last entry
@@ -83,17 +92,10 @@ defmodule GlobalbridgeBackend.Application do
 
       path ->
         # Validate path to prevent directory traversal
-        expanded_path = Path.expand(path)
-
-        # Check if path looks suspicious (contains ..)
-        if String.contains?(path, "..") do
-          raise """
-          Invalid SQLITE_VEC_PATH: path contains '..' which may indicate directory traversal.
-          Provided path: #{path}
-          """
-        end
+        validate_vec_path!(path)
 
         # Verify file exists
+        expanded_path = Path.expand(path)
         if File.exists?(expanded_path) do
           Logger.info("sqlite-vec extension found at #{expanded_path}")
         else
@@ -104,6 +106,49 @@ defmodule GlobalbridgeBackend.Application do
           Please ensure the vec0 shared library is installed and the path is correct.
           """
         end
+    end
+  end
+
+  defp validate_vec_path!(path) do
+    # Check if path contains directory traversal patterns
+    if String.contains?(path, "..") do
+      raise """
+      Invalid SQLITE_VEC_PATH: path contains '..' which may indicate directory traversal.
+      Provided path: #{path}
+      """
+    end
+
+    # Validate filename matches expected vec0 library pattern
+    filename = Path.basename(path)
+    unless Regex.match?(~r/^vec0\.(so|dylib|dll)$/i, filename) do
+      raise """
+      Invalid SQLITE_VEC_PATH: filename must be vec0.so, vec0.dylib, or vec0.dll
+      Provided path: #{path}
+      Filename: #{filename}
+      """
+    end
+
+    # Ensure expanded path is within expected system library directories
+    expanded_path = Path.expand(path)
+    allowed_prefixes = [
+      "/opt/homebrew/lib",
+      "/usr/local/lib",
+      "/usr/lib",
+      "C:/Program Files/sqlite-vec",
+      "C:/sqlite-vec"
+    ]
+
+    is_in_allowed_dir = Enum.any?(allowed_prefixes, fn prefix ->
+      String.starts_with?(expanded_path, prefix)
+    end)
+
+    unless is_in_allowed_dir do
+      raise """
+      Invalid SQLITE_VEC_PATH: path must be in an allowed system library directory.
+      Provided path: #{path}
+      Expanded path: #{expanded_path}
+      Allowed directories: #{Enum.join(allowed_prefixes, ", ")}
+      """
     end
   end
 end

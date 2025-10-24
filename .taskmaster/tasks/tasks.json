@@ -5000,7 +5000,7 @@
   "ai-backend": {
     "tasks": [
       {
-        "id": "1",
+        "id": 1,
         "title": "Set up Agens Multi-Agent Framework and Dependencies",
         "description": "Install and configure Agens v0.1.3 for multi-agent orchestration, along with OpenAI, Anthropic, SQLite vec extension, Oban for background jobs, and Cachex for caching.",
         "status": "done",
@@ -5046,7 +5046,7 @@
         "updatedAt": "2025-10-23T23:28:20.962Z"
       },
       {
-        "id": "2",
+        "id": 2,
         "title": "Create Database Schema for Vector Storage",
         "description": "Design and implement per-thread SQLite databases with messages table enhanced for embeddings and vec0 virtual table for vector operations.",
         "details": "Add embedding BLOB column to messages table. Create vec0 virtual table for cosine similarity search. Implement database migrations. Pseudo-code: defmodule Messaging.Repo.Migrations.AddEmbeddings do def change do alter table(:messages) do add :embedding, :binary add :embedding_model, :string end create virtual_table(:message_embeddings, :vec0, [:message_id, :embedding]) end end",
@@ -5087,7 +5087,7 @@
         "expansionPrompt": "Expand into subtasks for designing the schema with embedding columns, creating virtual tables, and implementing migrations."
       },
       {
-        "id": "3",
+        "id": 3,
         "title": "Implement Embedding Service",
         "description": "Build EmbeddingService to generate embeddings using OpenAI text-embedding-3-large, with caching and async background processing.",
         "details": "Use OpenAI API to generate 3072-dimension embeddings. Implement caching in Redis by content hash. Create Oban job for async embedding generation. Pseudo-code: defmodule Messaging.AI.EmbeddingService do def generate(content) do case Cache.get(hash(content)) do nil -> api_call = OpenAI.embed(content); Cache.put(hash, api_call); api_call cached -> cached end end end",
@@ -5135,7 +5135,7 @@
         "expansionPrompt": "Divide into subtasks for API integration with OpenAI, implementing caching logic, and setting up async Oban jobs."
       },
       {
-        "id": "4",
+        "id": 4,
         "title": "Set up Caching Infrastructure",
         "description": "Configure Cachex for translation cache (7-day TTL), embedding cache (permanent), and feature flags.",
         "status": "done",
@@ -5174,7 +5174,7 @@
         "expansionPrompt": "Split into subtasks for configuring Redis connections and implementing cache modules for translations and embeddings."
       },
       {
-        "id": "5",
+        "id": 5,
         "title": "Implement Translation Job with Agens",
         "description": "Create TranslationJob (Agens.Job) with TranslatorAgent and CulturalContextTool for real-time translation with cultural context, focusing on OpenAI integration.",
         "status": "done",
@@ -5241,7 +5241,7 @@
         "updatedAt": "2025-10-23T23:33:48.912Z"
       },
       {
-        "id": "6",
+        "id": 6,
         "title": "Build RAG Retriever and Vector Store",
         "description": "Implement Retriever for semantic search with cosine similarity, recency bias, and ContextBuilder for LLM input.",
         "details": "Query vec0 virtual table for top-k results, apply recency boost, format context chronologically. Pseudo-code: defmodule Messaging.AI.Retriever do def retrieve(thread_id, query) do embeddings = VectorStore.search(thread_id, embed(query)); apply_recency_bias(embeddings); end end",
@@ -5299,7 +5299,7 @@
         "updatedAt": "2025-10-23T23:37:02.356Z"
       },
       {
-        "id": "7",
+        "id": 7,
         "title": "Create Summarization Job with RAG",
         "description": "Build SummarizationJob (Agens.Job) using RAGRetrieverAgent and SummarizerAgent for thread summarization.",
         "details": "Retrieve important messages via RAG, build context, generate structured summary with decisions, action items, etc. Use Claude Haiku for cost optimization. Pseudo-code: defmodule Messaging.AI.SummarizationJob do use Agens.Job def steps do [RAGRetrieverAgent, SummarizerAgent] end end",
@@ -5369,7 +5369,7 @@
         "updatedAt": "2025-10-24T00:36:22.492Z"
       },
       {
-        "id": "8",
+        "id": 8,
         "title": "Implement Semantic Search API",
         "description": "Develop semantic search functionality across languages using RAG, with optional translation of results.",
         "details": "Combine EmbeddingService and Retriever, support multilingual queries. Pseudo-code: defmodule Messaging.AI.SemanticSearch do def search(thread_id, query) do results = Retriever.retrieve(thread_id, query); translate_if_needed(results); end end",
@@ -5411,7 +5411,7 @@
         "updatedAt": "2025-10-24T00:31:02.125Z"
       },
       {
-        "id": "9",
+        "id": 9,
         "title": "Add Task Extraction Job",
         "description": "Implement TaskExtractionJob with TaskExtractionTool for extracting tasks, deadlines, and decisions using function calling.",
         "details": "Use RAG to find relevant messages, apply function calling for structured output. Pseudo-code: defmodule Messaging.AI.TaskExtractionJob do use Agens.Job def steps do [TaskExtractionTool] end end",
@@ -5467,7 +5467,7 @@
         "updatedAt": "2025-10-24T00:41:35.237Z"
       },
       {
-        "id": "10",
+        "id": 10,
         "title": "Develop API Controllers and Endpoints",
         "description": "Create Phoenix controllers for AI features: translate, analyze_tone, summarize_thread, search_semantic, extract_tasks.",
         "details": "Implement rate limiting, feature flags, and error handling. Pseudo-code: defmodule MessagingWeb.AIController do def translate(conn, params) do # check tier, call TranslationJob, return JSON end end",
@@ -5543,7 +5543,7 @@
         "updatedAt": "2025-10-24T00:45:05.214Z"
       },
       {
-        "id": "11",
+        "id": 11,
         "title": "Set up Background Jobs and Monitoring",
         "description": "Configure Oban for batch embedding jobs, cost tracking, and monitoring with Prometheus metrics.",
         "details": "Implement CostTracker, BudgetMonitor, and telemetry for latency, costs, cache hits. Pseudo-code: defmodule Messaging.AI.BatchEmbedJob do use Oban.Worker def perform(%{thread_id: thread_id}) do # batch generate embeddings end end",
@@ -5602,7 +5602,7 @@
         "updatedAt": "2025-10-24T01:35:33.105Z"
       },
       {
-        "id": "12",
+        "id": 12,
         "title": "Comprehensive Testing and Optimization",
         "description": "Write unit, integration, and multilingual tests; optimize performance for latency targets and cost efficiency.",
         "details": "Add tests for RAG pipeline, multi-language search, and load testing. Profile and optimize vector searches, caching. Pseudo-code: # Tests as described in PRD section 10.",
@@ -5809,7 +5809,503 @@
       "completedCount": 12,
       "tags": [
         "ai-backend"
-      ]
+      ],
+      "created": "2025-10-24T13:18:28.835Z",
+      "description": "Tasks for ai-backend context"
+    }
+  },
+  "review": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Implement Thread Authorization Enforcement",
+        "description": "Add thread-level authorization checks to all AI endpoints to prevent unauthorized access.",
+        "details": "Create a new module `GlobalbridgeBackend.AI.Authorization` with `ensure_thread_access!/2` function that verifies user access using `ParticipantCache`. Update `ai_controller.ex` to include authorization checks in each action, returning HTTP 403 if access is denied. Log unauthorized attempts. Reuse existing `ParticipantCache` for checks.",
+        "testStrategy": "Unit tests for authorization success and failure cases. Integration tests to verify HTTP 403 responses and logging. Performance tests to ensure <5ms impact.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Authorization Module",
+            "description": "Develop the new module GlobalbridgeBackend.AI.Authorization with the ensure_thread_access!/2 function to verify user access using ParticipantCache.",
+            "dependencies": [],
+            "details": "Implement the module in the appropriate directory, define the function to check access via ParticipantCache, handle exceptions for unauthorized access, and ensure it integrates seamlessly with existing code.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 2,
+            "title": "Update AI Controller with Authorization Checks",
+            "description": "Modify ai_controller.ex to incorporate authorization checks in each action, returning HTTP 403 for denied access and logging attempts.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add calls to ensure_thread_access!/2 in all relevant actions of the controller, configure proper error responses, implement logging for unauthorized attempts, and ensure no performance degradation.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 3,
+            "title": "Implement Comprehensive Tests for Authorization",
+            "description": "Create unit, integration, and performance tests to validate the authorization module and controller updates.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Write unit tests for success and failure cases in the authorization module, integration tests for HTTP 403 responses and logging, and performance tests to ensure impact is under 5ms, using the existing test framework.",
+            "status": "pending",
+            "testStrategy": "Unit tests for authorization logic, integration tests for endpoint responses, performance tests for latency."
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Implement AI Endpoint Rate Limiting",
+        "description": "Add per-user, per-endpoint rate limiting to prevent DoS and cost explosion.",
+        "details": "Use Hammer library for rate limiting. Define rate limits per endpoint (e.g., 10/min for summarize_thread). Create a new pipeline `:ai_rate_limited` in router.ex with `rate_limit_ai/2` plug. Configure limits via environment variables. Admin users bypass limits.",
+        "testStrategy": "Unit tests for rate limit enforcement. Integration tests for HTTP 429 responses with Retry-After header. Load tests to verify limits under high traffic.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Integrate Hammer Library",
+            "description": "Add the Hammer library to the project dependencies for rate limiting functionality.",
+            "dependencies": [],
+            "details": "Update mix.exs to include Hammer as a dependency, run mix deps.get to install it, and ensure it's properly configured in the application supervision tree if needed.",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify Hammer is loaded and basic rate limiting functions work."
+          },
+          {
+            "id": 2,
+            "title": "Define Rate Limits per Endpoint",
+            "description": "Specify rate limits for each AI endpoint, such as 10 requests per minute for summarize_thread.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a configuration module or map that defines limits per endpoint, using Hammer's scale and limit parameters, and ensure it's accessible for the plug to use.",
+            "status": "pending",
+            "testStrategy": "Unit tests to validate limit definitions and ensure they match expected values."
+          },
+          {
+            "id": 3,
+            "title": "Create AI Rate Limited Pipeline and Plug",
+            "description": "Implement the :ai_rate_limited pipeline in router.ex with the rate_limit_ai/2 plug, including logic to bypass limits for admin users.",
+            "dependencies": [
+              2
+            ],
+            "details": "Add the pipeline to router.ex, define the rate_limit_ai/2 plug function that checks user roles and applies rate limiting using Hammer, returning 429 responses when limits are exceeded.",
+            "status": "pending",
+            "testStrategy": "Integration tests to verify pipeline application and HTTP 429 responses with Retry-After headers."
+          },
+          {
+            "id": 4,
+            "title": "Configure Environment Variables and Test Rate Limiting",
+            "description": "Set up environment variables for rate limit configurations and conduct comprehensive testing.",
+            "dependencies": [
+              3
+            ],
+            "details": "Define environment variables for each endpoint's limits, update config files to read them, and implement load tests to verify behavior under high traffic, ensuring admin bypass works.",
+            "status": "pending",
+            "testStrategy": "Load tests to simulate high traffic and confirm limits are enforced without performance degradation."
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Fix Batch Embedding Reconstruction",
+        "description": "Correct alignment bugs and error handling in EmbeddingService.generate_batch/1 to prevent data corruption.",
+        "details": "Update `generate_batch/1` to use Map for O(n) lookups in reconstruction. Ensure fail-fast on API errors. Separate cached and uncached embeddings properly. Add validation for completeness. Cache results after generation.",
+        "testStrategy": "Unit tests for alignment and error handling. Integration tests with real API calls. Load tests with 100+ texts to verify no corruption.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Update generate_batch function for Map lookups and error handling",
+            "description": "Modify EmbeddingService.generate_batch/1 to use Map for O(n) lookups during reconstruction, ensure fail-fast behavior on API errors, and properly separate cached and uncached embeddings.",
+            "dependencies": [],
+            "details": "Refactor the reconstruction logic to utilize Elixir Maps for efficient lookups instead of lists. Implement immediate error handling that stops processing on API failures to prevent data corruption. Clearly distinguish between cached and uncached embeddings in the batch processing flow.",
+            "status": "pending",
+            "testStrategy": "Unit tests for alignment and error handling."
+          },
+          {
+            "id": 2,
+            "title": "Add validation and caching to generate_batch",
+            "description": "Incorporate validation for completeness of embeddings and implement caching of results after generation in EmbeddingService.generate_batch/1.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add checks to ensure all embeddings are complete and valid before returning results. Integrate caching mechanism to store generated embeddings post-processing, ensuring they are saved for future use while avoiding duplicates.",
+            "status": "pending",
+            "testStrategy": "Unit tests for validation and caching functionality."
+          },
+          {
+            "id": 3,
+            "title": "Conduct unit, integration, and load tests for generate_batch",
+            "description": "Perform comprehensive testing including unit tests for alignment and error handling, integration tests with real API calls, and load tests with 100+ texts to verify no data corruption.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Execute unit tests to cover edge cases in alignment and error scenarios. Run integration tests simulating real API interactions. Conduct load tests with large batches to ensure performance and integrity under stress, confirming fail-fast and proper separation of embeddings.",
+            "status": "pending",
+            "testStrategy": "Integration tests with real API calls and load tests with 100+ texts."
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Implement Cost Tracking Persistence",
+        "description": "Persist AI API costs to ETS for queryable storage and enable cost analysis.",
+        "details": "Create ETS table `:ai_costs` in `cost_tracker.ex`. Update `insert_cost_record/1` to store costs with timestamp keys. Add `handle_call/3` for querying stats by period and service. Support cost alerting and reports.",
+        "testStrategy": "Unit tests for cost insertion and querying. Integration tests for stats accuracy. Performance tests for <10ms query times.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create ETS Table and Implement Insertion and Query Logic",
+            "description": "Set up the ETS table `:ai_costs` in `cost_tracker.ex`, update `insert_cost_record/1` to store costs with timestamp keys, and add `handle_call/3` for querying stats by period and service to support cost alerting and reports.",
+            "dependencies": [],
+            "details": "In `cost_tracker.ex`, create a named ETS table `:ai_costs` with appropriate options for ordered_set to handle timestamp keys. Modify `insert_cost_record/1` to insert records with timestamps as keys. Implement `handle_call/3` callbacks for querying statistics by period and service, ensuring efficient lookups and aggregation for cost analysis.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 2,
+            "title": "Implement Unit, Integration, and Performance Tests",
+            "description": "Develop comprehensive tests to validate cost insertion, querying accuracy, and performance requirements for the cost tracking persistence feature.",
+            "dependencies": [
+              1
+            ],
+            "details": "Write unit tests for `insert_cost_record/1` and query functions to ensure correct data insertion and retrieval. Create integration tests to verify stats accuracy across different periods and services. Implement performance tests to confirm query times are under 10ms, using tools like Benchee for benchmarking.",
+            "status": "pending",
+            "testStrategy": "Unit tests for insertion and querying; integration tests for stats accuracy; performance tests for <10ms query times."
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Simplify Caching Architecture",
+        "description": "Consolidate caching to two layers: Cachex for application-level and ETS for process-level, removing Redis and persistent_term.",
+        "details": "Create unified `GlobalbridgeBackend.AI.Cache` module using Cachex. Migrate EmbeddingService, SemanticSearch, and ThreadRepo to use it. Set appropriate TTLs (1 hour for embeddings, 15 min for search). Remove Redis dependencies if not used for pub/sub.",
+        "testStrategy": "Unit tests for cache operations. Integration tests for cache behavior under load. Performance benchmarks to ensure no regression.",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Unified Cache Module",
+            "description": "Develop a new unified `GlobalbridgeBackend.AI.Cache` module using Cachex for application-level caching, integrating ETS for process-level caching, and set appropriate TTLs (1 hour for embeddings, 15 minutes for search).",
+            "dependencies": [],
+            "details": "Implement the module with functions for get, put, and delete operations. Configure Cachex with the specified TTLs. Ensure it handles both application and process-level caching without Redis or persistent_term. Include error handling and logging.",
+            "status": "pending",
+            "testStrategy": "Unit tests for cache operations including TTL expiration."
+          },
+          {
+            "id": 2,
+            "title": "Migrate EmbeddingService to Unified Cache",
+            "description": "Update EmbeddingService to use the new `GlobalbridgeBackend.AI.Cache` module instead of existing caching mechanisms.",
+            "dependencies": [
+              1
+            ],
+            "details": "Replace all caching calls in EmbeddingService with the unified cache module. Ensure embeddings are cached with 1-hour TTL. Update any related functions to integrate seamlessly with the new cache layer.",
+            "status": "pending",
+            "testStrategy": "Unit tests for EmbeddingService cache interactions and integration tests for embedding retrieval."
+          },
+          {
+            "id": 3,
+            "title": "Migrate SemanticSearch to Unified Cache",
+            "description": "Update SemanticSearch to use the new `GlobalbridgeBackend.AI.Cache` module instead of existing caching mechanisms.",
+            "dependencies": [
+              1
+            ],
+            "details": "Replace all caching calls in SemanticSearch with the unified cache module. Ensure search results are cached with 15-minute TTL. Update any related functions to integrate seamlessly with the new cache layer.",
+            "status": "pending",
+            "testStrategy": "Unit tests for SemanticSearch cache interactions and integration tests for search result retrieval."
+          },
+          {
+            "id": 4,
+            "title": "Migrate ThreadRepo to Unified Cache",
+            "description": "Update ThreadRepo to use the new `GlobalbridgeBackend.AI.Cache` module instead of existing caching mechanisms.",
+            "dependencies": [
+              1
+            ],
+            "details": "Replace all caching calls in ThreadRepo with the unified cache module. Set appropriate TTLs based on usage (e.g., 15 minutes for thread data). Update any related functions to integrate seamlessly with the new cache layer.",
+            "status": "pending",
+            "testStrategy": "Unit tests for ThreadRepo cache interactions and integration tests for thread data retrieval."
+          },
+          {
+            "id": 5,
+            "title": "Remove Old Dependencies and Perform Benchmarks",
+            "description": "Remove Redis and persistent_term dependencies if not used for pub/sub, and conduct performance benchmarks to ensure no regressions.",
+            "dependencies": [
+              2,
+              3,
+              4
+            ],
+            "details": "Audit and remove any unused Redis or persistent_term code. Run benchmarks comparing old vs. new caching performance under load. Ensure the system compiles without warnings and passes all tests.",
+            "status": "pending",
+            "testStrategy": "Performance benchmarks for cache operations under load. Integration tests to verify no regressions in overall system behavior."
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Fix Code Quality Issues",
+        "description": "Remove duplicate functions, unused variables, and replace IO.puts with Logger to eliminate compilation warnings.",
+        "details": "Remove duplicate `logout/2` in auth_controller.ex, duplicate `handle_call/3` in cost_tracker.ex, and unused `token` in guardian.ex. Replace IO.puts with Logger.info in embedding_service.ex. Ensure Credo passes with zero issues.",
+        "testStrategy": "Compile-time checks for zero warnings. Unit tests to verify no regressions. Code review to confirm duplicates removed.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Remove duplicate logout/2 function in auth_controller.ex",
+            "description": "Identify and remove the duplicate logout/2 function in the auth_controller.ex file to eliminate compilation warnings.",
+            "dependencies": [],
+            "details": "Locate the two instances of logout/2 in auth_controller.ex, compare them for functionality, and delete the redundant one while ensuring the remaining one is correct.",
+            "status": "pending",
+            "testStrategy": "Compile the code and verify no warnings related to duplicate functions."
+          },
+          {
+            "id": 2,
+            "title": "Remove duplicate handle_call/3 function in cost_tracker.ex",
+            "description": "Identify and remove the duplicate handle_call/3 function in the cost_tracker.ex file to eliminate compilation warnings.",
+            "dependencies": [],
+            "details": "Locate the two instances of handle_call/3 in cost_tracker.ex, compare them for functionality, and delete the redundant one while ensuring the remaining one is correct.",
+            "status": "pending",
+            "testStrategy": "Compile the code and verify no warnings related to duplicate functions."
+          },
+          {
+            "id": 3,
+            "title": "Remove unused token variable in guardian.ex",
+            "description": "Identify and remove the unused token variable in the guardian.ex file to eliminate compilation warnings.",
+            "dependencies": [],
+            "details": "Search for the unused token variable in guardian.ex, confirm it is not referenced elsewhere, and remove it from the code.",
+            "status": "pending",
+            "testStrategy": "Compile the code and verify no warnings related to unused variables."
+          },
+          {
+            "id": 4,
+            "title": "Replace IO.puts with Logger.info in embedding_service.ex",
+            "description": "Replace all instances of IO.puts with Logger.info in the embedding_service.ex file to eliminate compilation warnings.",
+            "dependencies": [],
+            "details": "Find all occurrences of IO.puts in embedding_service.ex, replace them with Logger.info, and ensure Logger is properly imported if needed.",
+            "status": "pending",
+            "testStrategy": "Compile the code and verify no warnings related to IO.puts usage."
+          },
+          {
+            "id": 5,
+            "title": "Run Credo and ensure zero issues",
+            "description": "Execute Credo on the codebase to check for code quality issues and ensure it passes with zero issues.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "After making the above changes, run the Credo tool on the entire project and address any remaining issues to achieve zero Credo violations.",
+            "status": "pending",
+            "testStrategy": "Run Credo command and confirm output shows zero issues; perform code review to validate."
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Add Input Validation to AI Endpoints",
+        "description": "Validate text length, thread_id format, and numeric parameters on all AI endpoints.",
+        "details": "Create `GlobalbridgeBackendWeb.Validators.AIValidator` module with functions for validating text (max 10,000 chars), thread_id (UUID), limit (1-50), and max_length (1-1,000). Apply validations in ai_controller.ex actions, returning HTTP 400 with error messages.",
+        "testStrategy": "Unit tests for validation success and failure cases. Integration tests for HTTP 400 responses. Edge case tests for boundary values.",
+        "priority": "low",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create AIValidator Module with Validation Functions",
+            "description": "Develop the GlobalbridgeBackendWeb.Validators.AIValidator module containing specific functions to validate text length (max 10,000 chars), thread_id (UUID format), limit (1-50), and max_length (1-1,000).",
+            "dependencies": [],
+            "details": "Implement individual validation functions in the module, such as validate_text/1, validate_thread_id/1, validate_limit/1, and validate_max_length/1. Each function should return {:ok, value} on success or {:error, message} on failure. Ensure the module is properly structured and documented for reuse.",
+            "status": "pending",
+            "testStrategy": "Unit tests for each validation function covering success and failure cases, including edge boundaries like max text length and invalid UUID formats."
+          },
+          {
+            "id": 2,
+            "title": "Apply Validations in AI Controller Actions",
+            "description": "Integrate the AIValidator functions into all relevant actions in ai_controller.ex to validate incoming parameters, returning HTTP 400 responses with appropriate error messages on validation failures.",
+            "dependencies": [
+              1
+            ],
+            "details": "Update each action in ai_controller.ex (e.g., summarize_thread, generate_response) to call the appropriate validation functions before processing. Handle validation errors by rendering JSON error responses with HTTP 400 status. Ensure all endpoints are covered as per the parent task requirements.",
+            "status": "pending",
+            "testStrategy": "Integration tests to verify HTTP 400 responses are returned for invalid inputs, and that valid requests proceed normally. Include edge case tests for boundary values."
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Implement Additional Security Improvements",
+        "description": "Address path traversal, SQL injection, and error leakage vulnerabilities.",
+        "details": "Sanitize shard_id in `database_path/1` to prevent path traversal. Validate SQLITE_VEC_PATH strictly. Use cryptographically secure random for temp table names. Sanitize error responses to avoid detail leakage. Ensure SQL queries are safe via Ecto fragments.",
+        "testStrategy": "Security tests for path traversal attempts and SQL injection. Unit tests for error sanitization. Penetration testing for unauthorized access vectors.",
+        "priority": "low",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Sanitize Inputs to Prevent Path Traversal and SQL Injection",
+            "description": "Implement input sanitization for shard_id in database_path/1 and ensure SQL queries are safe using Ecto fragments to mitigate path traversal and SQL injection vulnerabilities.",
+            "dependencies": [],
+            "details": "Modify the database_path/1 function to validate and sanitize the shard_id parameter, ensuring it only contains allowed characters and paths. Additionally, review and update all SQL queries to use Ecto fragments for parameterized queries, preventing injection attacks. Validate SQLITE_VEC_PATH strictly to avoid unauthorized access.",
+            "status": "pending",
+            "testStrategy": "Unit tests for input validation and SQL query safety, including edge cases for malicious inputs."
+          },
+          {
+            "id": 2,
+            "title": "Secure Random Generation and Error Responses",
+            "description": "Enhance security by using cryptographically secure random for temp table names and sanitize error responses to prevent information leakage.",
+            "dependencies": [],
+            "details": "Replace any non-secure random generation with cryptographically secure methods for generating temporary table names. Update error handling in controllers and services to sanitize responses, removing sensitive details like stack traces or internal paths, and return generic error messages instead.",
+            "status": "pending",
+            "testStrategy": "Unit tests for random generation security and error response sanitization, ensuring no sensitive data is leaked."
+          },
+          {
+            "id": 3,
+            "title": "Conduct Security Tests for Vulnerabilities",
+            "description": "Perform comprehensive security testing to verify fixes for path traversal, SQL injection, and error leakage.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Develop and run security tests including attempts at path traversal and SQL injection to confirm they are blocked. Conduct penetration testing for unauthorized access vectors and unit tests for error sanitization. Ensure all tests pass before marking the parent task complete.",
+            "status": "pending",
+            "testStrategy": "Automated security tests for injection attempts, penetration testing simulations, and validation of error handling under various failure scenarios."
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Apply Performance Optimizations",
+        "description": "Fix N+1 queries and inefficient lookups in messages context.",
+        "details": "Add `GlobalbridgeBackendWeb.Plugs.ThreadCache` plug to cache threads per request. Update `get_thread_with_shard/1` to use process dictionary. Fix `get_message!/2` to use `get_by!` with both id and thread_id filters.",
+        "testStrategy": "Performance benchmarks before and after. Unit tests for caching behavior. Integration tests to verify no N+1 queries.",
+        "priority": "low",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add Thread Cache Plug",
+            "description": "Implement the GlobalbridgeBackendWeb.Plugs.ThreadCache plug to cache threads per request and update get_thread_with_shard/1 to utilize the process dictionary for efficient thread retrieval.",
+            "dependencies": [],
+            "details": "Create the ThreadCache plug module in the Plugs directory, ensuring it caches threads in the process dictionary. Modify get_thread_with_shard/1 to check the process dictionary first before querying the database, reducing redundant lookups.",
+            "status": "pending",
+            "testStrategy": "Unit tests for caching behavior and process dictionary usage."
+          },
+          {
+            "id": 2,
+            "title": "Optimize Database Queries in Messages Context",
+            "description": "Fix N+1 queries and inefficient lookups by updating get_message!/2 to use get_by! with both id and thread_id filters for better performance.",
+            "dependencies": [],
+            "details": "Refactor the get_message!/2 function in the messages context to apply filters on both id and thread_id simultaneously using get_by!, preventing multiple database hits and optimizing query efficiency.",
+            "status": "pending",
+            "testStrategy": "Integration tests to verify elimination of N+1 queries and performance benchmarks."
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Conduct Comprehensive Testing and Validation",
+        "description": "Run unit, integration, performance, and security tests to validate all implemented changes.",
+        "details": "Execute full test suite including new tests for authorization, rate limiting, embedding fixes, cost tracking, caching, validation, security, and performance. Perform load testing, security scanning, and benchmarking. Ensure all acceptance criteria are met.",
+        "testStrategy": "Automated test suite execution. Manual security testing. Performance monitoring during staging deployment. Validate against success metrics in PRD.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Run Unit Tests for All Implemented Changes",
+            "description": "Execute unit tests covering authorization, rate limiting, embedding fixes, cost tracking, caching, validation, security, and performance improvements.",
+            "dependencies": [],
+            "details": "Run the full unit test suite using the project's testing framework, ensuring all new and existing unit tests pass for modules like EmbeddingService, AIValidator, ThreadCache, and security fixes. Include tests for edge cases and error handling.",
+            "status": "pending",
+            "testStrategy": "Automated unit test execution with coverage reporting to verify individual components."
+          },
+          {
+            "id": 2,
+            "title": "Execute Integration Tests",
+            "description": "Perform integration tests to validate interactions between components, including API calls, database operations, and caching mechanisms.",
+            "dependencies": [],
+            "details": "Run integration tests that simulate real-world scenarios, such as batch embedding generation with API interactions, input validation on endpoints, and performance optimizations in message retrieval. Ensure proper error handling and data integrity.",
+            "status": "pending",
+            "testStrategy": "Automated integration test suite with mock services for external APIs and database isolation."
+          },
+          {
+            "id": 3,
+            "title": "Conduct Performance Benchmarks",
+            "description": "Benchmark performance improvements, including query optimizations, caching, and embedding generation efficiency.",
+            "dependencies": [],
+            "details": "Use benchmarking tools to measure before-and-after performance for N+1 query fixes, thread caching, and batch embedding reconstruction. Compare metrics like response times and resource usage against predefined thresholds.",
+            "status": "pending",
+            "testStrategy": "Automated performance benchmarks during staging deployment with monitoring tools."
+          },
+          {
+            "id": 4,
+            "title": "Perform Security Scans",
+            "description": "Run security tests to check for vulnerabilities like path traversal, SQL injection, and error leakage.",
+            "dependencies": [],
+            "details": "Execute security scanning tools and manual tests on endpoints, database paths, and error responses. Validate sanitization in shard_id handling, SQL query safety, and secure random generation for temp tables.",
+            "status": "pending",
+            "testStrategy": "Automated security scanning tools combined with manual penetration testing for unauthorized access."
+          },
+          {
+            "id": 5,
+            "title": "Execute Load Testing",
+            "description": "Simulate high-load scenarios to test system stability, rate limiting, and performance under stress.",
+            "dependencies": [],
+            "details": "Perform load testing with tools to simulate concurrent users, large batch embeddings (100+ texts), and heavy API usage. Monitor for bottlenecks in caching, validation, and security measures.",
+            "status": "pending",
+            "testStrategy": "Load testing scripts with metrics collection for throughput, latency, and error rates."
+          },
+          {
+            "id": 6,
+            "title": "Validate Against Acceptance Criteria for Dependent Tasks",
+            "description": "Review and validate that all acceptance criteria from tasks 1 through 9 are met through testing results.",
+            "dependencies": [],
+            "details": "Cross-reference test results with the acceptance criteria outlined in the Product Requirements Document (PRD) for each dependent task, including embedding fixes, input validation, performance optimizations, and security improvements. Document any gaps and ensure comprehensive coverage.",
+            "status": "pending",
+            "testStrategy": "Manual review of test outputs and success metrics validation against PRD criteria."
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-10-24T03:29:14.499Z",
+      "updated": "2025-10-24T03:29:14.499Z",
+      "description": "Tasks for review context"
     }
   }
 }

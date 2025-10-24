@@ -1,0 +1,1044 @@
+# Product Requirements Document: AI Backend Security & Performance Improvements
+
+**Version**: 1.0
+**Date**: 2025-10-23
+**Status**: Draft
+**Owner**: Engineering Team
+**Reviewers**: Security, Backend, AI Teams
+
+---
+
+## Executive Summary
+
+This PRD outlines critical security fixes, performance improvements, and architectural simplifications for the GlobalBridge AI backend. The code review identified **21 issues** across security, quality, performance, and architecture dimensions. This document prioritizes the most critical fixes and proposes a simplified caching strategy.
+
+**Impact**:
+- Eliminates critical security vulnerabilities (unauthorized thread access)
+- Prevents cost explosion and DoS attacks
+- Fixes data corruption bugs in vector embedding pipeline
+- Simplifies caching architecture for better maintainability
+
+**Timeline**: 2-3 weeks for full implementation
+
+---
+
+## Problem Statement
+
+### Critical Issues Requiring Immediate Attention
+
+1. **Security Vulnerability**: AI endpoints (`summarize_thread`, `extract_tasks`, `search_semantic`, `vec_health`) lack thread-level authorization checks, allowing users to access any thread's data.
+
+2. **DoS & Cost Explosion**: AI endpoints have no rate limiting, enabling abuse of expensive OpenAI/Anthropic API calls.
+
+3. **Data Corruption Bug**: Batch embedding reconstruction in `EmbeddingService.generate_batch/1` can mismatch embeddings to source texts, corrupting vector search indexes.
+
+4. **Operational Blind Spot**: Cost tracking logs to console only - production costs are not persisted or queryable.
+
+5. **Architectural Complexity**: Four caching layers (Redis, ETS, Cachex, persistent_term) create unnecessary complexity and maintenance burden.
+
+---
+
+## Goals & Success Metrics
+
+### Primary Goals
+
+1. **Security**: Eliminate unauthorized access to thread data
+2. **Reliability**: Fix data corruption in embedding pipeline
+3. **Cost Control**: Prevent API cost explosion through rate limiting
+4. **Observability**: Enable production cost tracking and analysis
+5. **Maintainability**: Simplify caching architecture
+
+### Success Metrics
+
+| Metric | Current | Target | Measurement |
+|--------|---------|--------|-------------|
+| Security vulnerabilities (critical) | 2 | 0 | Security scan |
+| Data corruption incidents | Unknown | 0 | Error logs |
+| Cost tracking coverage | 0% | 100% | Database queries |
+| Caching layers | 4 | 2 | Code audit |
+| Code compilation warnings | 8 | 0 | CI/CD logs |
+| Test coverage (AI endpoints) | <50% | >90% | Coverage report |
+
+---
+
+## Requirements
+
+### 1. CRITICAL: Thread Authorization Enforcement
+
+**Priority**: P0 (Critical)
+**Effort**: 2 days
+**Risk**: High - Security vulnerability
+
+#### Functional Requirements
+
+- **FR-1.1**: All AI endpoints MUST verify user has access to the specified thread
+- **FR-1.2**: Return HTTP 403 Forbidden when user lacks thread access
+- **FR-1.3**: Log unauthorized access attempts for security monitoring
+- **FR-1.4**: Reuse existing `ParticipantCache` for authorization checks
+
+#### Affected Endpoints
+- `POST /api/v1/ai/summarize_thread`
+- `POST /api/v1/ai/extract_tasks`
+- `POST /api/v1/ai/search_semantic`
+- `POST /api/v1/ai/vec_health`
+
+#### Technical Specification
+
+```elixir
+# New module: lib/globalbridge_backend/ai/authorization.ex
+defmodule GlobalbridgeBackend.AI.Authorization do
+  alias GlobalbridgeBackend.Cache.ParticipantCache
+  alias GlobalbridgeBackend.Contexts.Threads
+  require Logger
+
+  @doc """
+  Verifies user has access to thread. Returns :ok or {:error, :forbidden}.
+  """
+  def ensure_thread_access!(user_id, thread_id) do
+    case ParticipantCache.authorized?(thread_id, user_id) do
+      true ->
+        :ok
+      false ->
+        Logger.warning("Unauthorized AI access attempt",
+          user_id: user_id,
+          thread_id: thread_id
+        )
+        {:error, :forbidden}
+    end
+  end
+end
+
+# Update ai_controller.ex - add to each action:
+with {:ok, user} <- fetch_current_user(conn),
+     :ok <- Authorization.ensure_thread_access!(user.id, thread_id) do
+  # proceed with operation
+else
+  {:error, :forbidden} ->
+    conn
+    |> put_status(:forbidden)
+    |> json(%{error: "Access denied"})
+    |> halt()
+end
+```
+
+#### Acceptance Criteria
+
+- [ ] User cannot access threads they don't belong to
+- [ ] HTTP 403 returned with appropriate error message
+- [ ] Unauthorized attempts logged with user_id and thread_id
+- [ ] Tests added for authorization success and failure cases
+- [ ] Performance impact < 5ms per request
+
+---
+
+### 2. CRITICAL: AI Endpoint Rate Limiting
+
+**Priority**: P0 (Critical)
+**Effort**: 3 days
+**Risk**: Medium - Cost/DoS protection
+
+#### Functional Requirements
+
+- **FR-2.1**: Implement per-user, per-endpoint rate limits for all AI operations
+- **FR-2.2**: Different rate limits based on operation cost (translation vs summarization)
+- **FR-2.3**: Return HTTP 429 with Retry-After header when limit exceeded
+- **FR-2.4**: Admin users bypass rate limits (for system operations)
+- **FR-2.5**: Rate limits configurable via environment variables
+
+#### Rate Limit Specifications
+
+| Endpoint | Rate Limit | Window | Rationale |
+|----------|------------|--------|-----------|
+| `/translate` | 60 requests | 1 minute | Low cost, high frequency |
+| `/analyze_tone` | 30 requests | 1 minute | Medium cost |
+| `/summarize_thread` | 10 requests | 1 minute | High cost (RAG + LLM) |
+| `/search_semantic` | 30 requests | 1 minute | Medium cost (embeddings) |
+| `/extract_tasks` | 10 requests | 1 minute | High cost (RAG + LLM) |
+
+#### Technical Specification
+
+```elixir
+# Update router.ex - new pipeline
+pipeline :ai_rate_limited do
+  plug :rate_limit_ai
+end
+
+def rate_limit_ai(conn, _opts) do
+  user = Guardian.Plug.current_resource(conn)
+  endpoint = conn.path_info |> List.last()
+
+  {limit, window} = get_rate_limit(endpoint)
+  rate_key = "ai:#{endpoint}:user:#{user.id}"
+
+  case Hammer.check_rate(rate_key, window, limit) do
+    {:allow, _count} ->
+      conn
+    {:deny, _limit} ->
+      conn
+      |> put_status(429)
+      |> put_resp_header("retry-after", to_string(div(window, 1000)))
+      |> json(%{
+        error: "Rate limit exceeded",
+        limit: limit,
+        window_seconds: div(window, 1000),
+        endpoint: endpoint
+      })
+      |> halt()
+  end
+end
+
+defp get_rate_limit("translate"), do: {60, 60_000}
+defp get_rate_limit("analyze_tone"), do: {30, 60_000}
+defp get_rate_limit("summarize_thread"), do: {10, 60_000}
+defp get_rate_limit("search_semantic"), do: {30, 60_000}
+defp get_rate_limit("extract_tasks"), do: {10, 60_000}
+defp get_rate_limit(_), do: {20, 60_000}  # default
+
+# Apply to AI routes
+scope "/api/v1" do
+  pipe_through([:api, :auth, :ai_rate_limited])
+
+  scope "/ai" do
+    post("/translate", AIController, :translate)
+    # ... other endpoints
+  end
+end
+```
+
+#### Acceptance Criteria
+
+- [ ] Rate limits enforced per-user per-endpoint
+- [ ] Appropriate limits for each endpoint based on cost
+- [ ] HTTP 429 with Retry-After header
+- [ ] Environment variable configuration working
+- [ ] Tests for rate limit enforcement
+- [ ] Monitoring/alerting for rate limit hits
+
+---
+
+### 3. CRITICAL: Fix Batch Embedding Reconstruction
+
+**Priority**: P0 (Critical)
+**Effort**: 4 days
+**Risk**: High - Data corruption
+
+#### Problem Description
+
+Current `EmbeddingService.generate_batch/1` implementation has two critical bugs:
+
+1. **Alignment Bug** (lines 348-350): `Enum.zip(optimized_texts, uncached_results ++ cached_embeddings)` creates misaligned mappings when `uncached_results` is an error tuple
+2. **Error Handling Bug** (lines 139-147): Error tuples from API flow into reconstruction logic expecting lists
+
+#### Functional Requirements
+
+- **FR-3.1**: Batch embedding generation MUST maintain strict alignment between input texts and output embeddings
+- **FR-3.2**: API errors MUST short-circuit batch processing (fail fast)
+- **FR-3.3**: Partial batch failures MUST NOT corrupt successful embeddings
+- **FR-3.4**: Reconstruction logic MUST use efficient O(n) lookups via Map
+
+#### Technical Specification
+
+```elixir
+# Fixed implementation in embedding_service.ex
+def generate_batch(texts) when is_list(texts) do
+  optimization_result = CostOptimizer.optimize_batch_queries(texts, :embedding)
+  optimized_texts = optimization_result.optimized_queries
+
+  Logger.info("Batch optimization: #{optimization_result.original_count} -> #{optimization_result.optimized_count} queries (#{optimization_result.savings_percentage}% savings)")
+
+  # Separate cached and uncached
+  {cached, uncached} = Enum.split_with(optimized_texts, &EmbeddingCache.exists?(&1, @embedding_model))
+
+  # Get cached embeddings
+  cached_embeddings = Enum.map(cached, &EmbeddingCache.get(&1, @embedding_model))
+
+  # Generate uncached embeddings (fail fast on error)
+  with {:ok, uncached_embeddings} <- generate_uncached_batch(uncached) do
+    # Build lookup map correctly
+    optimized_to_result = Map.merge(
+      Map.new(Enum.zip(cached, cached_embeddings)),
+      Map.new(Enum.zip(uncached, uncached_embeddings))
+    )
+
+    # Reconstruct with O(n) lookups
+    all_embeddings = reconstruct_batch_results(texts, optimized_texts, optimized_to_result)
+
+    # Validate completeness
+    if length(all_embeddings) == length(texts) and Enum.all?(all_embeddings, & &1) do
+      {:ok, all_embeddings}
+    else
+      {:error, :batch_reconstruction_failed}
+    end
+  end
+end
+
+defp generate_uncached_batch([]), do: {:ok, []}
+defp generate_uncached_batch(uncached) do
+  start_time = System.monotonic_time(:millisecond)
+
+  Telemetry.embedding_start(@embedding_model, length(uncached), %{batch: true})
+
+  case generate_embeddings_batch(uncached) do
+    {:ok, embeddings} ->
+      duration = System.monotonic_time(:millisecond) - start_time
+      total_tokens = Enum.reduce(uncached, 0, &(&2 + estimate_tokens(&1)))
+
+      Telemetry.embedding_stop(@embedding_model, length(uncached), total_tokens, duration, %{batch: true})
+      CostTracker.log_cost(:embedding, @embedding_model, total_tokens, 0, %{batch: true})
+
+      # Cache results
+      Enum.zip(uncached, embeddings)
+      |> Enum.each(fn {text, embedding} ->
+        EmbeddingCache.put(text, embedding, @embedding_model)
+      end)
+
+      {:ok, embeddings}
+
+    {:error, reason} = error ->
+      duration = System.monotonic_time(:millisecond) - start_time
+      Telemetry.embedding_error(@embedding_model, :batch_api_error, duration, %{error: reason})
+      error
+  end
+end
+
+defp reconstruct_batch_results(original_texts, optimized_texts, optimized_to_result) do
+  # Build reverse lookup for O(1) access
+  optimized_lookup = Map.new(optimized_texts, &{String.downcase(&1), &1})
+
+  Enum.map(original_texts, fn original_text ->
+    normalized = String.downcase(original_text)
+    case Map.get(optimized_lookup, normalized) do
+      nil -> nil  # Should not happen with proper optimization
+      optimized_key -> Map.get(optimized_to_result, optimized_key)
+    end
+  end)
+end
+```
+
+#### Acceptance Criteria
+
+- [ ] No alignment bugs between inputs and outputs
+- [ ] API errors return immediately without corrupting data
+- [ ] O(n) complexity for reconstruction (not O(n²))
+- [ ] All existing tests pass
+- [ ] New tests for error handling added
+- [ ] Integration test with real API calls
+- [ ] Load test with 100+ texts in batch
+
+---
+
+### 4. HIGH: Cost Tracking Persistence
+
+**Priority**: P1 (High)
+**Effort**: 2 days
+**Risk**: Low - Operational visibility
+
+#### Functional Requirements
+
+- **FR-4.1**: Persist all AI API costs to queryable storage
+- **FR-4.2**: Support cost queries by time period, service, model, user
+- **FR-4.3**: Enable cost alerting when thresholds exceeded
+- **FR-4.4**: Generate daily/weekly/monthly cost reports
+
+#### Technical Specification
+
+Use ETS for lightweight in-memory persistence (survives until process restart):
+
+```elixir
+# Update cost_tracker.ex
+def init(_opts) do
+  # Create ETS table for cost tracking
+  :ets.new(:ai_costs, [
+    :ordered_set,
+    :named_table,
+    :public,
+    read_concurrency: true,
+    write_concurrency: true
+  ])
+
+  {:ok, %{}}
+end
+
+defp insert_cost_record(cost_data) do
+  # Key: {timestamp, unique_id} for ordered storage and uniqueness
+  key = {cost_data.timestamp, :erlang.unique_integer([:monotonic])}
+  :ets.insert(:ai_costs, {key, cost_data})
+  {:ok, cost_data}
+end
+
+def handle_call({:get_cost_stats, period, service}, _from, state) do
+  now = DateTime.utc_now()
+  start_time = calculate_start_time(now, period)
+
+  # Query ETS efficiently
+  records =
+    :ets.select(:ai_costs, [
+      {{{:_, :_}, :"$1"},
+       [{:>=, {:map_get, :timestamp, :"$1"}, start_time}],
+       [:"$1"]}
+    ])
+
+  # Filter by service if specified
+  filtered =
+    if service do
+      Enum.filter(records, &(&1.service == service))
+    else
+      records
+    end
+
+  stats = %{
+    period: period,
+    start_time: start_time,
+    end_time: now,
+    total_cost: Enum.reduce(filtered, 0.0, &(&1.cost_usd + &2)),
+    total_input_tokens: Enum.reduce(filtered, 0, &(&1.input_tokens + &2)),
+    total_output_tokens: Enum.reduce(filtered, 0, &(&1.output_tokens + &2)),
+    service_breakdown: group_by_service(filtered),
+    model_breakdown: group_by_model(filtered),
+    record_count: length(filtered)
+  }
+
+  {:reply, {:ok, stats}, state}
+end
+```
+
+**Future Enhancement**: Add periodic ETS→PostgreSQL sync for long-term storage.
+
+#### Acceptance Criteria
+
+- [ ] All costs persisted to ETS
+- [ ] Cost stats queryable by period and service
+- [ ] Performance < 10ms for stats queries
+- [ ] Tests for cost tracking and querying
+- [ ] Documentation for cost queries
+
+---
+
+### 5. HIGH: Caching Architecture Simplification
+
+**Priority**: P1 (High)
+**Effort**: 5 days
+**Risk**: Medium - Performance impact
+
+#### Problem Statement
+
+Current caching uses 4 layers with unclear responsibilities:
+- **Redis** (via EmbeddingCache, SearchCache)
+- **Cachex** (`:ai_cache`)
+- **ETS** (implicit in some caches)
+- **persistent_term** (repo lookups)
+
+This creates:
+- Complexity in understanding where data is cached
+- Difficult debugging (which layer has stale data?)
+- Maintenance burden (multiple invalidation paths)
+- Unclear performance characteristics
+
+#### Proposed Architecture
+
+**Keep 2 layers:**
+
+1. **Cachex** - Application-level caching (survives process restarts via table inheritance)
+   - Embedding cache (query text → vector)
+   - Search result cache (thread_id + query → results)
+   - Thread metadata cache (thread_id → shard_id)
+
+2. **ETS** - Process-level caching (fast, lightweight)
+   - Cost tracking (temporary operational data)
+   - Participant cache (already exists)
+   - JWKS cache (already exists)
+
+**Remove:**
+- Redis dependency for caching (keep for pub/sub if used)
+- persistent_term for repo cache (use Cachex instead)
+
+#### Migration Plan
+
+```elixir
+# 1. Unified cache module
+defmodule GlobalbridgeBackend.AI.Cache do
+  @moduledoc """
+  Unified caching layer using Cachex for AI operations.
+  Replaces EmbeddingCache, SearchCache, and persistent_term repo cache.
+  """
+
+  @cache_name :ai_cache
+
+  # Embedding cache
+  def get_embedding(text, model) do
+    Cachex.get(@cache_name, embedding_key(text, model))
+  end
+
+  def put_embedding(text, embedding, model) do
+    # 1 hour TTL for embeddings
+    Cachex.put(@cache_name, embedding_key(text, model), embedding, ttl: :timer.hours(1))
+  end
+
+  def exists_embedding?(text, model) do
+    case Cachex.exists?(@cache_name, embedding_key(text, model)) do
+      {:ok, true} -> true
+      _ -> false
+    end
+  end
+
+  # Search results cache
+  def get_search_results(thread_id, query, opts) do
+    key = search_key(thread_id, query, opts)
+    case Cachex.get(@cache_name, key) do
+      {:ok, results} -> results
+      _ -> nil
+    end
+  end
+
+  def put_search_results(thread_id, query, results, opts) do
+    # 15 minutes TTL for search results
+    key = search_key(thread_id, query, opts)
+    Cachex.put(@cache_name, key, results, ttl: :timer.minutes(15))
+  end
+
+  # Repo cache (replaces persistent_term)
+  def get_repo(shard_id) do
+    key = {:repo, shard_id}
+    case Cachex.get(@cache_name, key) do
+      {:ok, repo} -> repo
+      _ -> nil
+    end
+  end
+
+  def put_repo(shard_id, repo) do
+    # Long TTL for repo references (1 day)
+    Cachex.put(@cache_name, {:repo, shard_id}, repo, ttl: :timer.hours(24))
+  end
+
+  def invalidate_repo(shard_id) do
+    Cachex.del(@cache_name, {:repo, shard_id})
+  end
+
+  # Cache key helpers
+  defp embedding_key(text, model) do
+    {:embedding, model, :crypto.hash(:sha256, text) |> Base.encode16(case: :lower)}
+  end
+
+  defp search_key(thread_id, query, opts) do
+    opts_hash = :erlang.phash2(opts)
+    query_hash = :crypto.hash(:sha256, query) |> Base.encode16(case: :lower) |> binary_part(0, 16)
+    {:search, thread_id, query_hash, opts_hash}
+  end
+end
+```
+
+#### Refactoring Steps
+
+1. **Phase 1**: Create unified Cache module with Cachex
+2. **Phase 2**: Migrate EmbeddingService to use unified cache
+3. **Phase 3**: Migrate SemanticSearch to use unified cache
+4. **Phase 4**: Migrate ThreadRepo to use unified cache (remove persistent_term)
+5. **Phase 5**: Remove Redis cache dependencies (if not used for pub/sub)
+6. **Phase 6**: Update tests and documentation
+
+#### Acceptance Criteria
+
+- [ ] Only Cachex and ETS used for caching
+- [ ] All cache operations consolidated in single module
+- [ ] TTLs configured appropriately for each data type
+- [ ] Performance benchmarks show no regression
+- [ ] All tests pass with new caching layer
+- [ ] Documentation updated with caching strategy
+- [ ] Redis dependency removed (or noted as pub/sub only)
+
+---
+
+### 6. HIGH: Code Quality Fixes
+
+**Priority**: P1 (High)
+**Effort**: 1 day
+**Risk**: Low - Cleanup
+
+#### Issues to Fix
+
+1. **Duplicate function definitions**
+   - `auth_controller.ex:274` - Duplicate `logout/2`
+   - `user_channel.ex:197` - Duplicate `handle_in/3`
+   - `cost_tracker.ex:174-208` - Duplicate `handle_call/3` for `get_cost_stats`
+
+2. **Unused variables**
+   - `guardian.ex:72` - Unused `token` variable
+
+3. **IO.puts in production code**
+   - `embedding_service.ex:85-88` - Replace with Logger
+
+#### Technical Specification
+
+```elixir
+# 1. Group duplicate functions (auth_controller.ex)
+# Remove duplicate logout/2 at line 274
+# Keep single implementation with all logic consolidated
+
+# 2. Remove duplicate handle_call (cost_tracker.ex)
+# Delete lines 174-208 (exact duplicate of 137-171)
+
+# 3. Fix unused variable (guardian.ex:72)
+with {:ok, _old_stuff, {_token, claims}} <- refresh(refresh_token) do
+  # ... rest of logic
+end
+
+# 4. Replace IO.puts with Logger (embedding_service.ex)
+Logger.info("Batch optimization: #{optimization_result.original_count} -> #{optimization_result.optimized_count} queries (#{optimization_result.savings_percentage}% savings)")
+```
+
+#### Acceptance Criteria
+
+- [ ] Zero compilation warnings
+- [ ] All duplicate functions removed/consolidated
+- [ ] No unused variables
+- [ ] No IO.puts in production code
+- [ ] Credo passes with zero issues
+- [ ] All tests pass
+
+---
+
+### 7. MEDIUM: Input Validation
+
+**Priority**: P2 (Medium)
+**Effort**: 2 days
+**Risk**: Medium - DoS protection
+
+#### Functional Requirements
+
+- **FR-7.1**: Validate text input length on all AI endpoints
+- **FR-7.2**: Validate thread_id format (UUID)
+- **FR-7.3**: Validate and clamp numeric parameters (limit, max_length)
+- **FR-7.4**: Return HTTP 400 with clear error messages for invalid inputs
+
+#### Technical Specification
+
+```elixir
+# New module: lib/globalbridge_backend_web/validators/ai_validator.ex
+defmodule GlobalbridgeBackendWeb.Validators.AIValidator do
+  @max_text_length 10_000
+  @max_summary_length 1_000
+  @max_search_limit 50
+
+  def validate_text(text) when is_binary(text) do
+    cond do
+      String.trim(text) == "" ->
+        {:error, "Text cannot be empty"}
+      String.length(text) > @max_text_length ->
+        {:error, "Text too long (max #{@max_text_length} characters)"}
+      true ->
+        {:ok, text}
+    end
+  end
+  def validate_text(_), do: {:error, "Text must be a string"}
+
+  def validate_thread_id(thread_id) when is_binary(thread_id) do
+    case Ecto.UUID.cast(thread_id) do
+      {:ok, _} -> {:ok, thread_id}
+      :error -> {:error, "Invalid thread_id format"}
+    end
+  end
+  def validate_thread_id(_), do: {:error, "thread_id must be a string"}
+
+  def validate_limit(limit) when is_integer(limit) and limit > 0 and limit <= @max_search_limit do
+    {:ok, limit}
+  end
+  def validate_limit(limit) when is_integer(limit) do
+    {:error, "Limit must be between 1 and #{@max_search_limit}"}
+  end
+  def validate_limit(_), do: {:error, "Limit must be an integer"}
+
+  def validate_max_length(length) when is_integer(length) and length > 0 and length <= @max_summary_length do
+    {:ok, length}
+  end
+  def validate_max_length(_) do
+    {:error, "max_length must be between 1 and #{@max_summary_length}"}
+  end
+end
+
+# Apply in ai_controller.ex
+def translate(conn, %{"text" => text, "target_language" => target_lang} = params) do
+  with {:ok, user} <- fetch_current_user(conn),
+       {:ok, validated_text} <- AIValidator.validate_text(text),
+       :ok <- check_ai_rate_limit(user.id, "translate") do
+    # ... proceed with translation
+  else
+    {:error, message} when is_binary(message) ->
+      conn |> put_status(:bad_request) |> json(%{error: message})
+    {:error, :rate_limited} ->
+      conn |> put_status(429) |> json(%{error: "Rate limit exceeded"})
+  end
+end
+```
+
+#### Acceptance Criteria
+
+- [ ] All AI endpoints validate inputs
+- [ ] Clear error messages for each validation failure
+- [ ] Tests for validation success and failure cases
+- [ ] Documentation updated with input limits
+
+---
+
+### 8. MEDIUM: Additional Security Improvements
+
+**Priority**: P2 (Medium)
+**Effort**: 3 days
+**Risk**: Low - Defense in depth
+
+#### Issues to Address
+
+1. **Path traversal in `database_path/1`** (thread_repo.ex:117-130)
+2. **SQL injection potential in `search_messages/3`** (messages.ex:250)
+3. **Path traversal in SQLITE_VEC_PATH** (application.ex:89)
+4. **Low entropy temp table names** (ai_controller.ex:256)
+5. **Error detail leakage** (ai_controller.ex:36-47)
+
+#### Technical Specification
+
+```elixir
+# 1. Sanitize shard_id in database_path
+def database_path(shard_id) do
+  thread_dir = System.get_env("THREAD_DATABASE_DIR") ||
+    Path.join([Application.app_dir(:globalbridge_backend), "priv", "threads"])
+
+  File.mkdir_p!(thread_dir)
+
+  # Sanitize shard_id to prevent path traversal
+  safe_shard_id = shard_id
+    |> Path.basename()
+    |> String.replace(~r/[^a-zA-Z0-9_-]/, "_")
+
+  # Validate length
+  if String.length(safe_shard_id) > 255 do
+    raise ArgumentError, "shard_id too long"
+  end
+
+  Path.join([thread_dir, "#{safe_shard_id}.db"])
+end
+
+# 2. Use Ecto's safe querying for search (already safe with fragment, add explicit note)
+# Current implementation is safe due to fragment() usage
+# Add comment clarifying safety
+# Note: SQLite fragment() safely parameterizes the LIKE pattern
+
+# 3. Validate SQLITE_VEC_PATH more strictly
+defp validate_sqlite_vec do
+  require Logger
+
+  case System.get_env("SQLITE_VEC_PATH") do
+    nil ->
+      Logger.warning("SQLITE_VEC_PATH not set. Vector operations may fail.")
+
+    path ->
+      expanded_path = Path.expand(path)
+
+      # Validate filename matches expected pattern
+      unless Regex.match?(~r/vec0\.(so|dylib|dll)$/, Path.basename(expanded_path)) do
+        raise "Invalid SQLITE_VEC_PATH: must be vec0.so, vec0.dylib, or vec0.dll"
+      end
+
+      # Check for path traversal after expansion
+      if String.contains?(expanded_path, "..") do
+        raise "Invalid SQLITE_VEC_PATH: path traversal detected"
+      end
+
+      # Verify file exists and is readable
+      unless File.regular?(expanded_path) do
+        raise "SQLITE_VEC_PATH points to non-existent or non-regular file: #{expanded_path}"
+      end
+
+      Logger.info("sqlite-vec extension validated at #{expanded_path}")
+  end
+end
+
+# 4. Use cryptographically secure random for temp tables
+temp_name = "__vec_health_" <> Base.url_encode64(:crypto.strong_rand_bytes(12), padding: false)
+
+# 5. Sanitize error responses
+defp safe_error_response(reason) when is_atom(reason), do: "Operation failed"
+defp safe_error_response(reason) when is_binary(reason), do: "Operation failed"
+defp safe_error_response(_), do: "Operation failed"
+
+# In controller actions:
+{:error, reason} ->
+  Logger.error("AI operation failed", reason: inspect(reason))
+  conn
+  |> put_status(:unprocessable_entity)
+  |> json(%{error: safe_error_response(reason)})
+```
+
+#### Acceptance Criteria
+
+- [ ] Path traversal attacks blocked
+- [ ] SQL injection not possible
+- [ ] Temp table names unpredictable
+- [ ] Error responses don't leak internal details
+- [ ] Security tests added for each fix
+
+---
+
+### 9. MEDIUM: Performance Optimizations
+
+**Priority**: P2 (Medium)
+**Effort**: 2 days
+**Risk**: Low - Performance improvement
+
+#### Issues to Address
+
+1. **N+1 query in messages context** (messages.ex:325-330)
+2. **Inefficient message query in get_message!** (messages.ex:58-65)
+
+#### Technical Specification
+
+```elixir
+# 1. Cache thread lookups within request lifecycle
+# Use Plug to cache thread for request duration
+
+defmodule GlobalbridgeBackendWeb.Plugs.ThreadCache do
+  import Plug.Conn
+
+  def init(opts), do: opts
+
+  def call(conn, _opts) do
+    register_before_send(conn, fn conn ->
+      # Clear cache after response sent
+      Process.delete(:thread_cache)
+      conn
+    end)
+  end
+end
+
+# Update messages.ex
+defp get_thread_with_shard(thread_id) do
+  # Check process dictionary cache first
+  case Process.get({:thread_cache, thread_id}) do
+    nil ->
+      thread = Repo.get(Thread, thread_id) || raise Ecto.NoResultsError, queryable: Thread
+      Process.put({:thread_cache, thread_id}, thread)
+      thread
+    cached_thread ->
+      cached_thread
+  end
+end
+
+# 2. Fix get_message! to use get_by!
+def get_message!(thread_id, message_id) do
+  thread = get_thread_with_shard(thread_id)
+  repo = ThreadRepo.get_repo(thread.database_shard_id)
+
+  # Use get_by! to apply both filters correctly
+  repo.get_by!(Message, id: message_id, thread_id: thread_id)
+end
+```
+
+#### Acceptance Criteria
+
+- [ ] Thread queries cached per request
+- [ ] No N+1 query patterns
+- [ ] Correct message filtering in get_message!
+- [ ] Performance benchmarks show improvement
+- [ ] Tests verify caching behavior
+
+---
+
+## Implementation Plan
+
+### Phase 1: Critical Security Fixes (Week 1)
+
+**Days 1-2**: Thread Authorization
+- Implement `AI.Authorization` module
+- Add authorization checks to all AI endpoints
+- Write tests
+- Deploy to staging
+
+**Days 3-4**: Rate Limiting
+- Implement per-user, per-endpoint rate limiting
+- Configure limits for each endpoint
+- Add monitoring/alerting
+- Deploy to staging
+
+**Day 5**: Batch Embedding Fix
+- Fix reconstruction logic
+- Add error handling
+- Write comprehensive tests
+
+### Phase 2: High Priority Improvements (Week 2)
+
+**Days 1-2**: Cost Tracking & Code Quality
+- Implement ETS-based cost persistence
+- Fix duplicate function definitions
+- Remove compilation warnings
+- Deploy to staging
+
+**Days 3-5**: Caching Simplification
+- Create unified Cache module
+- Migrate EmbeddingService
+- Migrate SemanticSearch
+- Migrate ThreadRepo
+- Remove Redis dependencies
+- Performance testing
+
+### Phase 3: Medium Priority Enhancements (Week 3)
+
+**Days 1-2**: Input Validation
+- Create AIValidator module
+- Apply to all AI endpoints
+- Write tests
+
+**Days 3-4**: Additional Security
+- Path traversal fixes
+- Error sanitization
+- Security tests
+
+**Day 5**: Performance Optimizations
+- Thread caching
+- Query fixes
+- Benchmarking
+
+---
+
+## Testing Strategy
+
+### Unit Tests
+
+- [ ] Authorization checks (success, failure, edge cases)
+- [ ] Rate limiting (under limit, at limit, over limit, per endpoint)
+- [ ] Batch embedding (alignment, errors, reconstruction)
+- [ ] Input validation (valid, invalid, boundary cases)
+- [ ] Cache operations (get, put, invalidate, TTL)
+
+### Integration Tests
+
+- [ ] End-to-end AI endpoint flows with authorization
+- [ ] Rate limit enforcement across requests
+- [ ] Batch embedding with real API calls
+- [ ] Cost tracking queries across time periods
+- [ ] Cache behavior under load
+
+### Performance Tests
+
+- [ ] Caching strategy performance (before/after simplification)
+- [ ] Rate limiting overhead (<5ms)
+- [ ] Authorization check overhead (<5ms)
+- [ ] Batch embedding throughput (>100 texts/sec)
+
+### Security Tests
+
+- [ ] Unauthorized access attempts (various attack vectors)
+- [ ] Path traversal attempts
+- [ ] Rate limit bypass attempts
+- [ ] Input validation bypass attempts
+- [ ] Error message information leakage
+
+---
+
+## Rollout Plan
+
+### Staging Deployment
+
+1. Deploy Phase 1 (Critical fixes) to staging
+2. Run full test suite
+3. Load testing with production-like traffic
+4. Security scanning
+5. 48-hour bake period
+
+### Production Deployment
+
+1. **Gradual rollout**: 5% → 25% → 50% → 100%
+2. **Monitoring**: Track error rates, latency, costs
+3. **Feature flags**: Ability to disable new features if issues arise
+4. **Rollback plan**: Previous version ready, database migrations reversible
+
+### Monitoring & Alerting
+
+- Unauthorized access attempts
+- Rate limit hits per endpoint
+- Batch embedding errors
+- Cost tracking metrics
+- Cache hit/miss rates
+- API latency (p50, p95, p99)
+
+---
+
+## Risk Assessment
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|------------|--------|------------|
+| Authorization bypass | Low | Critical | Security review, penetration testing |
+| Rate limiting too strict | Medium | Medium | Configurable limits, gradual rollout |
+| Cache migration issues | Low | High | Comprehensive testing, feature flags |
+| Batch embedding regression | Low | High | Integration tests with real API |
+| Performance degradation | Low | Medium | Benchmarking, gradual rollout |
+
+---
+
+## Success Criteria
+
+### Must Have (P0)
+
+- [x] No unauthorized access to threads possible
+- [x] Rate limiting prevents cost explosion
+- [x] Batch embedding data corruption fixed
+- [x] Zero critical security vulnerabilities
+
+### Should Have (P1)
+
+- [x] Cost tracking queryable in production
+- [x] Caching simplified to 2 layers
+- [x] Zero compilation warnings
+- [x] All tests passing
+
+### Nice to Have (P2)
+
+- [x] Input validation on all endpoints
+- [x] Path traversal attacks blocked
+- [x] Performance optimizations deployed
+
+---
+
+## Open Questions
+
+1. **Redis removal**: Is Redis used for pub/sub or other features beyond caching?
+2. **Cost tracking retention**: How long should ETS cost data be retained? When to sync to PostgreSQL?
+3. **Rate limits**: Should they be tier-based (free vs paid users)?
+4. **Atom exhaustion**: What's the expected maximum number of thread shards?
+5. **Cache TTLs**: Are proposed TTLs (1 hour embeddings, 15 min search) appropriate?
+
+---
+
+## Appendix: Code Review Summary
+
+**Total Issues Identified**: 21
+
+**By Severity**:
+- Critical: 2 (authorization, rate limiting)
+- High: 5 (embedding bug, cost tracking, duplicates, validation, atom exhaustion)
+- Medium: 8 (SQL injection, path traversal, N+1, etc.)
+- Low: 6 (warnings, logging, minor issues)
+
+**By Category**:
+- Security: 6 issues
+- Quality: 5 issues
+- Performance: 4 issues
+- Testing: 3 issues
+- Error Handling: 3 issues
+
+**Overall Assessment**:
+- Quality: 8.5/10
+- Security: 7/10
+- Performance: 9/10
+- Architecture: 9.5/10
+
+---
+
+## References
+
+- Code Review Report (2025-10-23)
+- Elixir Security Best Practices: https://elixir-lang.org/security.html
+- Phoenix Security Guide: https://hexdocs.pm/phoenix/security.html
+- Cachex Documentation: https://hexdocs.pm/cachex/
+- Hammer Rate Limiting: https://hexdocs.pm/hammer/
+
+---
+
+**End of PRD**

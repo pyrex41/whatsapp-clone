@@ -1,7 +1,10 @@
 defmodule GlobalbridgeBackendWeb.AIController do
   use GlobalbridgeBackendWeb, :controller
 
+  require Logger
+
   alias GlobalbridgeBackend.Auth.Guardian
+  alias GlobalbridgeBackend.AI.Authorization
   alias GlobalbridgeBackend.AI.Jobs.TranslationJob
   alias GlobalbridgeBackend.AI.SemanticSearch
   alias GlobalbridgeBackend.AI.Jobs.SummarizationJob
@@ -9,6 +12,7 @@ defmodule GlobalbridgeBackendWeb.AIController do
   alias GlobalbridgeBackend.Repos.ThreadRepo
   alias GlobalbridgeBackend.Schemas.Thread
   alias GlobalbridgeBackend.Repo
+  alias GlobalbridgeBackendWeb.Validators.AIValidator
   alias Agens.Job
 
   action_fallback(GlobalbridgeBackendWeb.FallbackController)
@@ -18,45 +22,52 @@ defmodule GlobalbridgeBackendWeb.AIController do
 
   POST /api/ai/translate
   Body: {"text": "Hello world", "target_language": "es", "source_language": "en"}
+
+  ## Input Validation
+    - text: String, max 10,000 characters (required)
+    - target_language: Valid language code (required)
+    - source_language: Valid language code (optional, defaults to "auto")
   """
-  def translate(conn, %{"text" => text, "target_language" => target_lang} = params) do
+  def translate(conn, params) do
     user = conn.assigns[:current_user] || Guardian.Plug.current_resource(conn)
 
-    # Check rate limits and feature flags (placeholder for now)
-    # TODO: Implement rate limiting based on user tier
-    # TODO: Check feature flags for translation access
+    with {:ok, text} <- AIValidator.validate_text(params["text"]),
+         {:ok, target_lang} <- validate_required_language(params["target_language"]),
+         {:ok, source_lang} <- validate_source_language(params["source_language"]) do
+      # Check rate limits and feature flags (placeholder for now)
+      # TODO: Implement rate limiting based on user tier
+      # TODO: Check feature flags for translation access
 
-    source_lang = Map.get(params, "source_language", "auto")
+      # Prepare job input
+      job_input = %{
+        text: text,
+        target_language: target_lang,
+        source_language: source_lang,
+        user_id: user.id
+      }
 
-    # Prepare job input
-    job_input = %{
-      text: text,
-      target_language: target_lang,
-      source_language: source_lang,
-      user_id: user.id
-    }
+      # Execute translation job
+      case Job.run(TranslationJob.job_config(), job_input) do
+        {:ok, result} ->
+          json(conn, %{
+            success: true,
+            translation: result,
+            source_language: source_lang,
+            target_language: target_lang
+          })
 
-    # Execute translation job
-    case Job.run(TranslationJob.job_config(), job_input) do
-      {:ok, result} ->
-        json(conn, %{
-          success: true,
-          translation: result,
-          source_language: source_lang,
-          target_language: target_lang
-        })
-
-      {:error, reason} ->
+        {:error, reason} ->
+          safe_error_response(conn, :unprocessable_entity, "Translation failed", reason)
+      end
+    else
+      {:error, message} ->
         conn
-        |> put_status(:unprocessable_entity)
-        |> json(%{error: "Translation failed", details: reason})
+        |> put_status(:bad_request)
+        |> json(%{error: message})
     end
-  end
-
-  def translate(conn, _params) do
-    conn
-    |> put_status(:bad_request)
-    |> json(%{error: "Missing required parameters: text and target_language"})
+  rescue
+    exception ->
+      safe_error_response(conn, :internal_server_error, "An error occurred during translation", exception)
   end
 
   @doc """
@@ -64,36 +75,40 @@ defmodule GlobalbridgeBackendWeb.AIController do
 
   POST /api/ai/analyze_tone
   Body: {"text": "This is great!", "language": "en"}
+
+  ## Input Validation
+    - text: String, max 10,000 characters (required)
+    - language: Valid language code (optional, defaults to "en")
   """
-  def analyze_tone(conn, %{"text" => text} = params) do
+  def analyze_tone(conn, params) do
     _user = conn.assigns[:current_user] || Guardian.Plug.current_resource(conn)
 
-    # Check rate limits and feature flags (placeholder)
-    # TODO: Implement rate limiting
-    # TODO: Check feature flags
+    with {:ok, text} <- AIValidator.validate_text(params["text"]),
+         {:ok, language} <- AIValidator.validate_optional_language(params["language"]) do
+      # Check rate limits and feature flags (placeholder)
+      # TODO: Implement rate limiting
+      # TODO: Check feature flags
 
-    language = Map.get(params, "language", "en")
+      # For now, return a placeholder response
+      # TODO: Implement actual tone analysis job
+      tone_analysis = %{
+        tone: "positive",
+        confidence: 0.85,
+        emotions: ["joy", "enthusiasm"],
+        language: language
+      }
 
-    # For now, return a placeholder response
-    # TODO: Implement actual tone analysis job
-    tone_analysis = %{
-      tone: "positive",
-      confidence: 0.85,
-      emotions: ["joy", "enthusiasm"],
-      language: language
-    }
-
-    json(conn, %{
-      success: true,
-      analysis: tone_analysis,
-      text: text
-    })
-  end
-
-  def analyze_tone(conn, _params) do
-    conn
-    |> put_status(:bad_request)
-    |> json(%{error: "Missing required parameter: text"})
+      json(conn, %{
+        success: true,
+        analysis: tone_analysis,
+        text: text
+      })
+    else
+      {:error, message} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: message})
+    end
   end
 
   @doc """
@@ -101,47 +116,57 @@ defmodule GlobalbridgeBackendWeb.AIController do
 
   POST /api/ai/summarize_thread
   Body: {"thread_id": "uuid", "max_length": 200}
+
+  ## Input Validation
+    - thread_id: Valid UUID (required)
+    - max_length: Integer between 1 and 1,000 (optional, defaults to 200)
   """
-  def summarize_thread(conn, %{"thread_id" => thread_id} = params) do
+  def summarize_thread(conn, params) do
     user = conn.assigns[:current_user] || Guardian.Plug.current_resource(conn)
 
-    # Check rate limits and feature flags (placeholder)
-    # TODO: Implement rate limiting
-    # TODO: Check feature flags
-    # TODO: Verify user has access to the thread
+    with {:ok, thread_id} <- AIValidator.validate_thread_id(params["thread_id"]),
+         {:ok, max_length} <- AIValidator.validate_with_default(params["max_length"], &AIValidator.validate_max_length/1, 200),
+         :ok <- verify_thread_access(user.id, thread_id) do
+      # Check rate limits and feature flags (placeholder)
+      # TODO: Implement rate limiting
+      # TODO: Check feature flags
 
-    max_length = Map.get(params, "max_length", 200)
+      # Prepare job input (placeholder for future use)
+      _job_input = %{
+        thread_id: thread_id,
+        max_length: max_length,
+        user_id: user.id
+      }
 
-    # Prepare job input (placeholder for future use)
-    _job_input = %{
-      thread_id: thread_id,
-      max_length: max_length,
-      user_id: user.id
-    }
+      # Execute summarization job
+      case SummarizationJob.summarize_thread(thread_id, "comprehensive summary",
+             max_length: max_length
+           ) do
+        {:ok, result} ->
+          json(conn, %{
+            success: true,
+            summary: result,
+            thread_id: thread_id,
+            max_length: max_length
+          })
 
-    # Execute summarization job
-    case SummarizationJob.summarize_thread(thread_id, "comprehensive summary",
-           max_length: max_length
-         ) do
-      {:ok, result} ->
-        json(conn, %{
-          success: true,
-          summary: result,
-          thread_id: thread_id,
-          max_length: max_length
-        })
-
-      {:error, reason} ->
+        {:error, reason} ->
+          safe_error_response(conn, :unprocessable_entity, "Summarization failed", reason)
+      end
+    else
+      {:error, message} when is_binary(message) ->
         conn
-        |> put_status(:unprocessable_entity)
-        |> json(%{error: "Summarization failed", details: reason})
-    end
-  end
+        |> put_status(:bad_request)
+        |> json(%{error: message})
 
-  def summarize_thread(conn, _params) do
-    conn
-    |> put_status(:bad_request)
-    |> json(%{error: "Missing required parameter: thread_id"})
+      {:error, :unauthorized} ->
+        conn
+        |> put_status(:forbidden)
+        |> json(%{error: "Access denied to this thread"})
+    end
+  rescue
+    exception ->
+      safe_error_response(conn, :internal_server_error, "An error occurred during summarization", exception)
   end
 
   @doc """
@@ -149,56 +174,70 @@ defmodule GlobalbridgeBackendWeb.AIController do
 
   POST /api/ai/search_semantic
   Body: {"query": "project deadline", "thread_id": "uuid", "limit": 10, "translate": true}
+
+  ## Input Validation
+    - query: Search query string, max 1,000 characters (required)
+    - thread_id: Valid UUID (optional)
+    - limit: Integer between 1 and 50 (optional, defaults to 10)
+    - recency_bias: Boolean (optional, defaults to true)
+    - translate: Boolean (optional, defaults to false)
   """
-  def search_semantic(conn, %{"query" => query} = params) do
-    _user = conn.assigns[:current_user] || Guardian.Plug.current_resource(conn)
+  def search_semantic(conn, params) do
+    user = conn.assigns[:current_user] || Guardian.Plug.current_resource(conn)
 
-    # Check rate limits and feature flags (placeholder)
-    # TODO: Implement rate limiting
-    # TODO: Check feature flags
+    with {:ok, query} <- AIValidator.validate_query(params["query"]),
+         {:ok, thread_id} <- AIValidator.validate_optional_thread_id(params["thread_id"]),
+         {:ok, limit} <- AIValidator.validate_with_default(params["limit"], &AIValidator.validate_limit/1, 10),
+         {:ok, recency_bias} <- AIValidator.validate_optional_boolean(params["recency_bias"], true),
+         {:ok, translate} <- AIValidator.validate_optional_boolean(params["translate"], false),
+         :ok <- verify_optional_thread_access(user.id, thread_id) do
+      # Check rate limits and feature flags (placeholder)
+      # TODO: Implement rate limiting
+      # TODO: Check feature flags
 
-    thread_id = Map.get(params, "thread_id")
-    limit = Map.get(params, "limit", 10)
-    use_recency_bias = Map.get(params, "recency_bias", true)
-    translate = Map.get(params, "translate", false)
+      search_opts = [
+        limit: limit,
+        recency_bias: recency_bias,
+        recency_weight: 0.3
+      ]
 
-    search_opts = [
-      limit: limit,
-      recency_bias: use_recency_bias,
-      recency_weight: 0.3
-    ]
+      # Perform semantic search
+      case SemanticSearch.search(thread_id, query, search_opts) do
+        {:ok, results} ->
+          # Optionally translate results if requested
+          processed_results =
+            if translate do
+              # TODO: Implement translation of search results
+              results
+            else
+              results
+            end
 
-    # Perform semantic search
-    case SemanticSearch.search(thread_id, query, search_opts) do
-      {:ok, results} ->
-        # Optionally translate results if requested
-        processed_results =
-          if translate do
-            # TODO: Implement translation of search results
-            results
-          else
-            results
-          end
+          json(conn, %{
+            success: true,
+            query: query,
+            results: processed_results,
+            total_results: length(processed_results),
+            thread_id: thread_id
+          })
 
-        json(conn, %{
-          success: true,
-          query: query,
-          results: processed_results,
-          total_results: length(processed_results),
-          thread_id: thread_id
-        })
-
-      {:error, reason} ->
+        {:error, reason} ->
+          safe_error_response(conn, :unprocessable_entity, "Search failed", reason)
+      end
+    else
+      {:error, message} when is_binary(message) ->
         conn
-        |> put_status(:unprocessable_entity)
-        |> json(%{error: "Search failed", details: reason})
-    end
-  end
+        |> put_status(:bad_request)
+        |> json(%{error: message})
 
-  def search_semantic(conn, _params) do
-    conn
-    |> put_status(:bad_request)
-    |> json(%{error: "Missing required parameter: query"})
+      {:error, :unauthorized} ->
+        conn
+        |> put_status(:forbidden)
+        |> json(%{error: "Access denied to this thread"})
+    end
+  rescue
+    exception ->
+      safe_error_response(conn, :internal_server_error, "An error occurred during search", exception)
   end
 
   @doc """
@@ -206,38 +245,48 @@ defmodule GlobalbridgeBackendWeb.AIController do
 
   POST /api/ai/extract_tasks
   Body: {"thread_id": "uuid", "query": "tasks, deadlines, decisions"}
+
+  ## Input Validation
+    - thread_id: Valid UUID (required)
+    - query: Search query string, max 1,000 characters (optional, defaults to standard query)
   """
-  def extract_tasks(conn, %{"thread_id" => thread_id} = params) do
-    _user = conn.assigns[:current_user] || Guardian.Plug.current_resource(conn)
+  def extract_tasks(conn, params) do
+    user = conn.assigns[:current_user] || Guardian.Plug.current_resource(conn)
 
-    # Check rate limits and feature flags (placeholder)
-    # TODO: Implement rate limiting
-    # TODO: Check feature flags
-    # TODO: Verify user has access to the thread
+    with {:ok, thread_id} <- AIValidator.validate_thread_id(params["thread_id"]),
+         {:ok, query} <- validate_optional_query(params["query"]),
+         :ok <- verify_thread_access(user.id, thread_id) do
+      # Check rate limits and feature flags (placeholder)
+      # TODO: Implement rate limiting
+      # TODO: Check feature flags
 
-    query = Map.get(params, "query", "tasks, deadlines, decisions, commitments")
+      # Extract tasks using RAG-based approach
+      case TaskExtractionTool.extract_from_thread(thread_id, query) do
+        {:ok, extraction_result} ->
+          json(conn, %{
+            success: true,
+            extraction: extraction_result,
+            thread_id: thread_id,
+            query: query
+          })
 
-    # Extract tasks using RAG-based approach
-    case TaskExtractionTool.extract_from_thread(thread_id, query) do
-      {:ok, extraction_result} ->
-        json(conn, %{
-          success: true,
-          extraction: extraction_result,
-          thread_id: thread_id,
-          query: query
-        })
-
-      {:error, reason} ->
+        {:error, reason} ->
+          safe_error_response(conn, :unprocessable_entity, "Task extraction failed", reason)
+      end
+    else
+      {:error, message} when is_binary(message) ->
         conn
-        |> put_status(:unprocessable_entity)
-        |> json(%{error: "Task extraction failed", details: reason})
-    end
-  end
+        |> put_status(:bad_request)
+        |> json(%{error: message})
 
-  def extract_tasks(conn, _params) do
-    conn
-    |> put_status(:bad_request)
-    |> json(%{error: "Missing required parameter: thread_id"})
+      {:error, :unauthorized} ->
+        conn
+        |> put_status(:forbidden)
+        |> json(%{error: "Access denied to this thread"})
+    end
+  rescue
+    exception ->
+      safe_error_response(conn, :internal_server_error, "An error occurred during task extraction", exception)
   end
 
   @doc """
@@ -245,15 +294,38 @@ defmodule GlobalbridgeBackendWeb.AIController do
 
   POST /api/ai/vec_health
   Body: {"thread_id": "uuid"}
-  """
-  def vec_health(conn, %{"thread_id" => thread_id}) do
-    _user = conn.assigns[:current_user] || Guardian.Plug.current_resource(conn)
 
+  ## Input Validation
+    - thread_id: Valid UUID (required)
+  """
+  def vec_health(conn, params) do
+    user = conn.assigns[:current_user] || Guardian.Plug.current_resource(conn)
+
+    with {:ok, thread_id} <- AIValidator.validate_thread_id(params["thread_id"]),
+         :ok <- verify_thread_access(user.id, thread_id) do
+      perform_vec_health_check(conn, thread_id)
+    else
+      {:error, message} when is_binary(message) ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: message})
+
+      {:error, :unauthorized} ->
+        conn
+        |> put_status(:forbidden)
+        |> json(%{error: "Access denied to this thread"})
+    end
+  end
+
+  # Private helper to perform the actual health check
+  defp perform_vec_health_check(conn, thread_id) do
     shard_id = resolve_shard_id(thread_id)
     repo = ThreadRepo.get_repo(shard_id)
 
     # 1) Verify vec0 module is usable by creating and dropping a temp virtual table
-    temp_name = "__vec_health_" <> Integer.to_string(:rand.uniform(1_000_000))
+    # Use cryptographically secure random bytes for unpredictable table name
+    temp_suffix = Base.url_encode64(:crypto.strong_rand_bytes(12), padding: false)
+    temp_name = "vec_health_#{temp_suffix}"
     create_sql = "CREATE VIRTUAL TABLE temp.#{temp_name} USING vec0(embedding float[4])"
     drop_sql = "DROP TABLE IF EXISTS temp.#{temp_name}"
 
@@ -292,18 +364,53 @@ defmodule GlobalbridgeBackendWeb.AIController do
       embeddings_table_exists: table_exists,
       embeddings_count: count
     })
+  rescue
+    exception ->
+      safe_error_response(conn, :internal_server_error, "An error occurred during health check", exception)
   end
 
-  def vec_health(conn, _params) do
-    conn
-    |> put_status(:bad_request)
-    |> json(%{error: "Missing required parameter: thread_id"})
-  end
+  # Private helper functions
 
   defp resolve_shard_id(thread_id) do
     case Repo.get(Thread, thread_id) do
       %Thread{database_shard_id: shard_id} when is_binary(shard_id) and shard_id != "" -> shard_id
       _ -> thread_id
     end
+  end
+
+  defp verify_thread_access(user_id, thread_id) do
+    try do
+      Authorization.ensure_thread_access!(user_id, thread_id)
+      :ok
+    rescue
+      _ -> {:error, :unauthorized}
+    end
+  end
+
+  defp verify_optional_thread_access(_user_id, nil), do: :ok
+  defp verify_optional_thread_access(user_id, thread_id), do: verify_thread_access(user_id, thread_id)
+
+  defp validate_required_language(nil), do: {:error, "Target language is required"}
+  defp validate_required_language(lang), do: AIValidator.validate_language(lang)
+
+  defp validate_source_language(nil), do: {:ok, "auto"}
+  defp validate_source_language("auto"), do: {:ok, "auto"}
+  defp validate_source_language(lang), do: AIValidator.validate_language(lang)
+
+  defp validate_optional_query(nil), do: {:ok, "tasks, deadlines, decisions, commitments"}
+  defp validate_optional_query(query), do: AIValidator.validate_query(query)
+
+  # Security helper: sanitize error responses to prevent information leakage
+  defp safe_error_response(conn, status, user_message, error_details) do
+    # Log the detailed error for debugging
+    Logger.error("AI endpoint error: #{user_message}",
+      error: inspect(error_details),
+      status: status
+    )
+
+    # Return sanitized error to client (no internal details)
+    conn
+    |> put_status(status)
+    |> json(%{error: user_message})
   end
 end

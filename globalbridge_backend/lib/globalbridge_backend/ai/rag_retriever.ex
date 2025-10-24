@@ -11,7 +11,7 @@ defmodule GlobalbridgeBackend.AI.RAGRetriever do
 
   alias GlobalbridgeBackend.AI.VectorStore
   alias GlobalbridgeBackend.AI.EmbeddingService
-  alias GlobalbridgeBackend.AI.Cache.SearchCache
+  alias GlobalbridgeBackend.AI.Cache
   alias GlobalbridgeBackend.Repos.ThreadRepo
 
   require Logger
@@ -25,7 +25,7 @@ defmodule GlobalbridgeBackend.AI.RAGRetriever do
     limit = Keyword.get(opts, :limit, 10)
 
     # Check vector search cache first
-    cached_vector_results = SearchCache.get_vector_results(thread_id, embedding, limit)
+    cached_vector_results = Cache.get_vector_result(thread_id, embedding, limit)
 
     vector_results =
       if cached_vector_results do
@@ -36,7 +36,7 @@ defmodule GlobalbridgeBackend.AI.RAGRetriever do
         case VectorStore.search(thread_id, embedding, limit: limit) do
           {:ok, results} ->
             # Cache the vector results
-            SearchCache.put_vector_results(thread_id, embedding, results, limit)
+            Cache.put_vector_result(thread_id, embedding, results, limit)
             results
 
           {:error, error} ->
@@ -61,7 +61,7 @@ defmodule GlobalbridgeBackend.AI.RAGRetriever do
   Returns a list of message results with embeddings, content, and metadata.
   """
   def search(thread_id, query_text, opts \\ []) do
-    limit = Keyword.get(opts, :limit, 10)
+    _limit = Keyword.get(opts, :limit, 10)
 
     # Generate embedding for the query
     case EmbeddingService.generate(query_text) do

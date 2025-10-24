@@ -69,7 +69,7 @@ defmodule GlobalbridgeBackend.Auth.Guardian do
   Verify and refresh tokens.
   """
   def refresh_tokens(refresh_token) do
-    with {:ok, _old_stuff, {token, claims}} <- refresh(refresh_token),
+    with {:ok, _old_stuff, {_token, claims}} <- refresh(refresh_token),
          {:ok, user} <- resource_from_claims(claims) do
       generate_tokens(user)
     end

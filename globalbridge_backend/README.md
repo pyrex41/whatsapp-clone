@@ -46,9 +46,6 @@ export OPENAI_API_KEY=your_api_key_here
 # Anthropic API key (for Claude models)
 export ANTHROPIC_API_KEY=your_api_key_here
 
-# Redis URL (for caching)
-export REDIS_URL=redis://localhost:6379
-
 # Database configuration
 export DATABASE_URL=postgresql://user:pass@localhost/globalbridge_dev
 ```
@@ -84,6 +81,22 @@ This backend uses a **per-thread repository architecture**:
 - **Semantic Search**: Vector-based message search
 - **Task Extraction**: Automatic task detection from conversations
 - **Cost Tracking**: Budget monitoring and alerts
+- **Input Validation**: Comprehensive validation to prevent DoS attacks
+
+### Caching Architecture
+
+The application uses a **unified 2-layer caching system**:
+
+- **Cachex**: Application-level caching for embeddings (1h TTL) and search results (15m TTL)
+- **ETS**: Process-level caching for thread repository connections (24h TTL)
+
+See [docs/CACHING_ARCHITECTURE.md](docs/CACHING_ARCHITECTURE.md) for detailed documentation.
+
+**Key Points:**
+- No Redis dependency required for caching
+- All cache operations via unified `GlobalbridgeBackend.AI.Cache` module
+- Automatic TTL management per data type
+- Comprehensive test coverage
 
 ## Development
 
@@ -141,6 +154,73 @@ Ready to run in production? Please check:
 - [ ] Set up monitoring and alerting
 - [ ] Configure AI budget limits
 - [ ] Test vector operations in production environment
+
+## API Documentation
+
+### AI Endpoints
+
+All AI endpoints include comprehensive input validation to prevent DoS attacks and ensure data quality.
+
+#### POST /api/ai/translate
+Translates text to a target language.
+
+**Input Validation:**
+- `text`: String, max 10,000 characters (required)
+- `target_language`: Valid language code - en, es, fr, de, it, pt, ja, zh, ko, ru, ar, hi (required)
+- `source_language`: Valid language code or "auto" (optional, defaults to "auto")
+
+#### POST /api/ai/analyze_tone
+Analyzes the tone of given text.
+
+**Input Validation:**
+- `text`: String, max 10,000 characters (required)
+- `language`: Valid language code (optional, defaults to "en")
+
+#### POST /api/ai/summarize_thread
+Summarizes a message thread using RAG.
+
+**Input Validation:**
+- `thread_id`: Valid UUID (required)
+- `max_length`: Integer between 1 and 1,000 (optional, defaults to 200)
+
+#### POST /api/ai/search_semantic
+Performs semantic search across messages.
+
+**Input Validation:**
+- `query`: String, max 1,000 characters (required)
+- `thread_id`: Valid UUID (optional)
+- `limit`: Integer between 1 and 50 (optional, defaults to 10)
+- `recency_bias`: Boolean (optional, defaults to true)
+- `translate`: Boolean (optional, defaults to false)
+
+#### POST /api/ai/extract_tasks
+Extracts actionable tasks from a thread.
+
+**Input Validation:**
+- `thread_id`: Valid UUID (required)
+- `query`: String, max 1,000 characters (optional)
+
+#### POST /api/ai/vec_health
+Checks vector extension health for a thread.
+
+**Input Validation:**
+- `thread_id`: Valid UUID (required)
+
+### Error Responses
+
+All validation failures return **400 Bad Request** with clear error messages:
+```json
+{
+  "error": "Text must not exceed 10,000 characters"
+}
+```
+
+Authorization failures return **403 Forbidden**:
+```json
+{
+  "error": "Access denied to this thread"
+}
+```
 
 ## Documentation
 

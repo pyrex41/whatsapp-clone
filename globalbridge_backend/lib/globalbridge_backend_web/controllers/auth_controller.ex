@@ -267,16 +267,6 @@ defmodule GlobalbridgeBackendWeb.AuthController do
     |> json(%{error: "Unsupported OAuth provider: #{provider}"})
   end
 
-  @doc """
-  GET /auth/logout
-  Logout user and redirect to login page.
-  """
-  def logout(conn, _params) do
-    conn
-    |> clear_session()
-    |> redirect(to: "/")
-  end
-
   # Private helper functions
 
   defp generate_state do

@@ -62,6 +62,17 @@ import_config "auth0.exs"
 config :hammer,
   backend: {Hammer.Backend.ETS, [expiry_ms: 60_000 * 60 * 4, cleanup_interval_ms: 60_000 * 10]}
 
+# AI endpoint rate limits (requests per minute per user)
+# Can be overridden with environment variables:
+# AI_RATE_LIMIT_TRANSLATE, AI_RATE_LIMIT_ANALYZE_TONE, etc.
+config :globalbridge_backend, :ai_rate_limits,
+  translate: 60,
+  analyze_tone: 30,
+  summarize_thread: 10,
+  search_semantic: 30,
+  extract_tasks: 10,
+  vec_health: 60
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

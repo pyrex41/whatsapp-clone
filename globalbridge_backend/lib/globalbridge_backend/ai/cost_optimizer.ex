@@ -9,8 +9,7 @@ defmodule GlobalbridgeBackend.AI.CostOptimizer do
   - Model selection based on cost/performance tradeoffs
   """
 
-  alias GlobalbridgeBackend.AI.Cache.EmbeddingCache
-  alias GlobalbridgeBackend.AI.Cache.SearchCache
+  alias GlobalbridgeBackend.AI.Cache
 
   @doc """
   Determines if a query should be processed based on cost optimization rules.
@@ -106,36 +105,34 @@ defmodule GlobalbridgeBackend.AI.CostOptimizer do
   Gets cost optimization statistics.
   """
   def get_cost_stats do
-    embedding_cache_stats = EmbeddingCache.stats()
-    search_cache_stats = SearchCache.stats()
+    cache_stats = Cache.stats()
 
     %{
-      embedding_cache: embedding_cache_stats,
-      search_cache: search_cache_stats,
-      total_cache_entries:
-        (embedding_cache_stats[:entries] || 0) + (search_cache_stats[:entries] || 0),
-      estimated_savings: estimate_cache_savings(embedding_cache_stats, search_cache_stats)
+      cache_stats: cache_stats,
+      total_cache_entries: cache_stats[:cachex][:size] || 0,
+      ets_repos: cache_stats[:ets_repos] || 0,
+      estimated_savings: estimate_cache_savings(cache_stats)
     }
   end
 
   # Private functions
 
   defp has_exact_cache_hit?(query, :embedding) do
-    EmbeddingCache.exists?(query)
+    Cache.embedding_exists?(query, "text-embedding-3-large")
   end
 
   defp has_exact_cache_hit?(query, :search) do
-    SearchCache.get_search_results("any_thread", query, []) != nil
+    Cache.get_search_result("any_thread", query, []) != nil
   end
 
   defp has_exact_cache_hit?(_query, _operation), do: false
 
   defp get_cached_result(query, :embedding) do
-    EmbeddingCache.get(query)
+    Cache.get_embedding(query, "text-embedding-3-large")
   end
 
   defp get_cached_result(query, :search) do
-    SearchCache.get_search_results("any_thread", query, [])
+    Cache.get_search_result("any_thread", query, [])
   end
 
   defp get_cached_result(_query, _operation), do: nil
@@ -184,16 +181,12 @@ defmodule GlobalbridgeBackend.AI.CostOptimizer do
     end
   end
 
-  defp estimate_cache_savings(embedding_stats, search_stats) do
-    embedding_hits = embedding_stats[:hits] || 0
-    search_hits = search_stats[:hits] || 0
+  defp estimate_cache_savings(cache_stats) do
+    # Get hit count from cachex stats
+    hits = get_in(cache_stats, [:cachex, :hits]) || 0
 
-    # Estimate $0.0001 per embedding API call saved
-    embedding_savings = embedding_hits * 0.0001
-
-    # Estimate $0.001 per search API call saved (rough estimate)
-    search_savings = search_hits * 0.001
-
-    embedding_savings + search_savings
+    # Estimate $0.0001 per embedding API call saved (rough estimate)
+    # Assumes most cache hits are for embeddings
+    hits * 0.0001
   end
 end

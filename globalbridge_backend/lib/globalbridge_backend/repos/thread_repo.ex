@@ -2,20 +2,13 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
   @moduledoc """
   Dynamic repository manager for per-thread databases.
   Handles creation and retrieval of database connections for thread shards.
+
+  Uses unified Cache module (Cachex) for repository caching with 24 hour TTL.
   """
 
   require Logger
 
-  # Cache for started repos to avoid repeated lookups
-  @repo_cache :globalbridge_backend_repo_cache
-
-  # Private functions
-
-  defp cache_repo(shard_id, repo_module) do
-    cache = :persistent_term.get(@repo_cache, %{})
-    updated_cache = Map.put(cache, shard_id, repo_module)
-    :persistent_term.put(@repo_cache, updated_cache)
-  end
+  alias GlobalbridgeBackend.AI.Cache
 
   @doc """
   Gets or creates a repository for a specific thread shard.
@@ -32,24 +25,24 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
     repo_module = repo_module_name(shard_id)
 
     # Check cache first for faster lookups
-    case :persistent_term.get(@repo_cache, %{}) do
-      %{^shard_id => cached_repo} ->
-        cached_repo
-
-      _ ->
+    case Cache.get_repo(shard_id) do
+      nil ->
         # Check active repos list via application env
         active_repos = list_active_repos()
 
         if repo_module in active_repos do
           # Cache the result for faster future lookups
-          cache_repo(shard_id, repo_module)
+          Cache.put_repo(shard_id, repo_module)
           repo_module
         else
           # Start the repo and add to active list
           {:ok, _} = start_repo(shard_id)
-          cache_repo(shard_id, repo_module)
+          Cache.put_repo(shard_id, repo_module)
           repo_module
         end
+
+      cached_repo ->
+        cached_repo
     end
   end
 
@@ -99,6 +92,9 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
   def stop_repo(shard_id) do
     repo_module = repo_module_name(shard_id)
 
+    # Remove from cache
+    Cache.uncache_repo(shard_id)
+
     # Remove from active repos list
     active_repos = list_active_repos()
     updated_repos = List.delete(active_repos, repo_module)
@@ -113,8 +109,12 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
 
   @doc """
   Returns the database file path for a thread shard.
+  Sanitizes shard_id to prevent path traversal attacks.
   """
   def database_path(shard_id) do
+    # Sanitize shard_id to prevent path traversal
+    sanitized_id = sanitize_shard_id(shard_id)
+
     thread_dir =
       System.get_env("THREAD_DATABASE_DIR") ||
         Path.join([
@@ -126,7 +126,31 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
     # Ensure the directory exists
     File.mkdir_p!(thread_dir)
 
-    Path.join([thread_dir, "#{shard_id}.db"])
+    Path.join([thread_dir, "#{sanitized_id}.db"])
+  end
+
+  @doc """
+  Sanitizes a shard_id to prevent path traversal attacks.
+  Only allows alphanumeric characters, hyphens, and underscores.
+  Rejects any path-like input containing slashes or dots.
+  """
+  def sanitize_shard_id(shard_id) when is_binary(shard_id) do
+    # First check if the input contains path separators or traversal patterns
+    # This prevents any path-like input from being accepted
+    if String.contains?(shard_id, ["/", "\\", ".."]) do
+      raise ArgumentError, "Invalid shard_id: must not contain path separators or traversal patterns"
+    end
+
+    # Validate the shard_id contains only safe characters
+    unless String.match?(shard_id, ~r/^[a-zA-Z0-9_-]+$/) do
+      raise ArgumentError, "Invalid shard_id: must contain only alphanumeric characters, hyphens, and underscores"
+    end
+
+    shard_id
+  end
+
+  def sanitize_shard_id(_) do
+    raise ArgumentError, "shard_id must be a string"
   end
 
   @doc """
@@ -237,18 +261,6 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
     end
 
     String.to_atom(module_name)
-  end
-
-  defp ensure_threads_directory do
-    threads_dir =
-      System.get_env("THREAD_DATABASE_DIR") ||
-        Path.join([
-          Application.app_dir(:globalbridge_backend),
-          "priv",
-          "threads"
-        ])
-
-    File.mkdir_p!(threads_dir)
   end
 
   defp run_thread_migrations(repo) do

@@ -57,24 +57,119 @@ defmodule GlobalbridgeBackend.AI.EmbeddingServiceTest do
       assert {:ok, embeddings} = EmbeddingService.generate_batch(texts)
       assert length(embeddings) == 3
       assert Enum.all?(embeddings, &is_list/1)
+      assert Enum.all?(embeddings, &(length(&1) == 3072))
     end
 
     test "handles mixed cached and uncached texts" do
       # Pre-cache one text
-      EmbeddingService.generate("cached")
+      {:ok, cached_embedding} = EmbeddingService.generate("cached")
 
       texts = ["cached", "uncached1", "uncached2"]
 
       assert {:ok, embeddings} = EmbeddingService.generate_batch(texts)
       assert length(embeddings) == 3
+      # First embedding should match the cached one
+      assert hd(embeddings) == cached_embedding
     end
 
-    test "returns nil for failed embeddings in batch" do
-      # This would test error handling in batch mode
-      texts = ["valid", "also_valid"]
+    test "handles all cached texts" do
+      # Pre-cache all texts
+      texts = ["text1", "text2", "text3"]
+      Enum.each(texts, &EmbeddingService.generate/1)
 
       assert {:ok, embeddings} = EmbeddingService.generate_batch(texts)
-      assert length(embeddings) == 2
+      assert length(embeddings) == 3
+      assert Enum.all?(embeddings, &is_list/1)
+    end
+
+    test "handles all uncached texts" do
+      # Clear cache
+      EmbeddingCache.clear()
+
+      texts = ["new1", "new2", "new3"]
+
+      assert {:ok, embeddings} = EmbeddingService.generate_batch(texts)
+      assert length(embeddings) == 3
+      assert Enum.all?(embeddings, &is_list/1)
+    end
+
+    test "handles duplicate texts correctly" do
+      texts = ["hello", "world", "hello", "test", "world"]
+
+      assert {:ok, embeddings} = EmbeddingService.generate_batch(texts)
+      assert length(embeddings) == 5
+
+      # Duplicates should have the same embedding
+      assert Enum.at(embeddings, 0) == Enum.at(embeddings, 2)
+      assert Enum.at(embeddings, 1) == Enum.at(embeddings, 4)
+    end
+
+    test "handles duplicate texts with some cached" do
+      # Pre-cache one text
+      {:ok, cached_embedding} = EmbeddingService.generate("cached")
+
+      texts = ["cached", "new", "cached", "another", "new"]
+
+      assert {:ok, embeddings} = EmbeddingService.generate_batch(texts)
+      assert length(embeddings) == 5
+
+      # All "cached" instances should match
+      assert Enum.at(embeddings, 0) == cached_embedding
+      assert Enum.at(embeddings, 2) == cached_embedding
+
+      # All "new" instances should match each other
+      assert Enum.at(embeddings, 1) == Enum.at(embeddings, 4)
+    end
+
+    test "handles empty batch" do
+      assert {:ok, []} = EmbeddingService.generate_batch([])
+    end
+
+    test "handles single text batch" do
+      assert {:ok, [embedding]} = EmbeddingService.generate_batch(["single"])
+      assert is_list(embedding)
+      assert length(embedding) == 3072
+    end
+
+    test "preserves order of results" do
+      texts = ["first", "second", "third"]
+
+      assert {:ok, embeddings} = EmbeddingService.generate_batch(texts)
+
+      # Generate individually to compare
+      {:ok, first_individual} = EmbeddingService.generate("first")
+      {:ok, second_individual} = EmbeddingService.generate("second")
+      {:ok, third_individual} = EmbeddingService.generate("third")
+
+      assert Enum.at(embeddings, 0) == first_individual
+      assert Enum.at(embeddings, 1) == second_individual
+      assert Enum.at(embeddings, 2) == third_individual
+    end
+
+    test "handles large batches efficiently" do
+      # Generate 50 unique texts
+      texts = for i <- 1..50, do: "text_#{i}"
+
+      assert {:ok, embeddings} = EmbeddingService.generate_batch(texts)
+      assert length(embeddings) == 50
+      assert Enum.all?(embeddings, &is_list/1)
+    end
+
+    test "handles large batches with many duplicates" do
+      # 100 texts but only 10 unique
+      texts =
+        for _ <- 1..10 do
+          for i <- 1..10, do: "unique_#{i}"
+        end
+        |> List.flatten()
+
+      assert {:ok, embeddings} = EmbeddingService.generate_batch(texts)
+      assert length(embeddings) == 100
+
+      # Verify duplicates have same embeddings
+      first_batch = Enum.take(embeddings, 10)
+      second_batch = Enum.slice(embeddings, 10, 10)
+      assert first_batch == second_batch
     end
   end
 
