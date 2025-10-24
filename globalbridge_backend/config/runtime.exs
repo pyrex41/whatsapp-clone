@@ -175,6 +175,7 @@ end
 oban_config = [
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.PG,  # Use PG notifier (polling-based, works with SQLite)
+  peer: false,  # Disable peer coordination (not needed for single-node SQLite setup)
   prefix: false,  # SQLite doesn't support table prefixes
   queues: [
     default: 10,
