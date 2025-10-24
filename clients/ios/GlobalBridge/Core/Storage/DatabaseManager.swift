@@ -249,6 +249,9 @@ final class DatabaseManager {
             .path
 
         do {
+            // Check if database file already exists
+            let dbExists = fileManager.fileExists(atPath: threadDbPath)
+
             let connection = try Connection(threadDbPath)
             connection.busyTimeout = 5.0
 
@@ -256,10 +259,15 @@ final class DatabaseManager {
             try connection.execute("PRAGMA journal_mode=WAL")
             try connection.execute("PRAGMA foreign_keys=ON")
 
-            // Create per-thread tables
-            try await createThreadTables(in: connection)
+            // Only create tables and migrations if database is new
+            if !dbExists {
+                print("🆕 [THREAD_DB] Creating new thread database for shard: \(shardId)")
+                try await createThreadTables(in: connection)
+                print("✅ Thread database created for shard: \(shardId)")
+            } else {
+                print("♻️ [THREAD_DB] Reusing existing thread database for shard: \(shardId)")
+            }
 
-            print("✅ Thread database created for shard: \(shardId)")
             return connection
         } catch {
             throw DatabaseError.shardingFailed("Failed to create thread database: \(error.localizedDescription)")
