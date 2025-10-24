@@ -705,15 +705,20 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         }
     
     case let .fetchHistoricalMessages(threadID):
+        print("🎯 [FETCH] fetchHistoricalMessages called for thread: \(threadID)")
+        print("   Current thread: \(state.chat.currentThread?.id.uuidString ?? "nil")")
+        print("   Messages empty: \(state.chat.messages.isEmpty)")
+        print("   Needs fetch flag: \(state.chat.needsHistoricalFetch)")
+        
         // Only fetch if we actually need it (empty messages and flag set)
         guard state.chat.currentThread?.id == threadID,
               state.chat.messages.isEmpty,
               state.chat.needsHistoricalFetch else {
-            print("ℹ️ [FETCH] Skipping historical fetch - not needed for thread: \(threadID)")
+            print("⚠️ [FETCH] Skipping historical fetch - conditions not met")
             return .none
         }
         
-        print("📥 [FETCH] Fetching historical messages from backend for thread: \(threadID)")
+        print("📥 [FETCH] ✅ All conditions met, fetching historical messages from backend...")
         state.chat.needsHistoricalFetch = false  // Clear flag
         
         // Get participant IDs to populate user cache
