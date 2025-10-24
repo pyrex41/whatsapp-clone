@@ -216,28 +216,34 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     thread_id = socket.assigns.thread_id
     limit = payload["limit"] || 50
     before_timestamp = payload["before"]
-    
-    Logger.debug("📥 [FETCH] Fetching messages: thread=#{thread_id}, limit=#{limit}, before=#{inspect(before_timestamp)}")
-    
+
+    Logger.debug(
+      "📥 [FETCH] Fetching messages: thread=#{thread_id}, limit=#{limit}, before=#{inspect(before_timestamp)}"
+    )
+
     filters = [limit: limit]
     filters = if before_timestamp, do: [{:before, before_timestamp} | filters], else: filters
-    
+
     messages = Messages.list_messages(thread_id, filters)
-    
-    formatted_messages = Enum.map(messages, fn msg ->
-      %{
-        id: msg.id,
-        thread_id: msg.thread_id,
-        sender_id: msg.sender_id,
-        content: msg.content,
-        content_type: msg.content_type || "text",
-        created_at: msg.inserted_at,
-        reply_to_id: msg.reply_to_id,
-        media_url: msg.media_url
-      }
-    end)
-    
-    Logger.info("✅ [FETCH] Returning #{length(formatted_messages)} messages for thread #{thread_id}")
+
+    formatted_messages =
+      Enum.map(messages, fn msg ->
+        %{
+          id: msg.id,
+          thread_id: msg.thread_id,
+          sender_id: msg.sender_id,
+          content: msg.content,
+          content_type: msg.content_type || "text",
+          created_at: msg.inserted_at,
+          reply_to_id: msg.reply_to_id,
+          media_url: msg.media_url
+        }
+      end)
+
+    Logger.info(
+      "✅ [FETCH] Returning #{length(formatted_messages)} messages for thread #{thread_id}"
+    )
+
     {:reply, {:ok, %{messages: formatted_messages}}, socket}
   end
 

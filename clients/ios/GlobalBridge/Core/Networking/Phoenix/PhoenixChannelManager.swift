@@ -1014,25 +1014,32 @@ public actor PhoenixChannelManager {
         
         return try await withCheckedThrowingContinuation { continuation in
             channel.push("fetch_messages", payload: payload)
-                .receive("ok") { response in
-                    guard let messages = response.payload["messages"] as? [[String: Any]] else {
+                .receive("ok") { [weak self] response in
+                    guard let self else {
                         continuation.resume(returning: [])
                         return
                     }
                     
-                    print("✅ [FETCH_MESSAGES] Received \(messages.count) messages")
-                    
-                    var phoenixMessages: [PhoenixMessage] = []
-                    for msgPayload in messages {
-                        do {
-                            let phoenixMsg = try self.parsePhoenixMessage(from: msgPayload)
-                            phoenixMessages.append(phoenixMsg)
-                        } catch {
-                            print("⚠️ [FETCH_MESSAGES] Failed to parse message: \(error)")
+                    Task.detached {
+                        guard let messages = response.payload["messages"] as? [[String: Any]] else {
+                            continuation.resume(returning: [])
+                            return
                         }
+                        
+                        print("✅ [FETCH_MESSAGES] Received \(messages.count) messages")
+                        
+                        var phoenixMessages: [PhoenixMessage] = []
+                        for msgPayload in messages {
+                            do {
+                                let phoenixMsg = try self.parsePhoenixMessage(from: msgPayload)
+                                phoenixMessages.append(phoenixMsg)
+                            } catch {
+                                print("⚠️ [FETCH_MESSAGES] Failed to parse message: \(error)")
+                            }
+                        }
+                        
+                        continuation.resume(returning: phoenixMessages)
                     }
-                    
-                    continuation.resume(returning: phoenixMessages)
                 }
                 .receive("error") { message in
                     print("❌ [FETCH_MESSAGES] Error: \(message.payload)")
