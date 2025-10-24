@@ -140,6 +140,32 @@ defmodule GlobalbridgeBackendWeb.Router do
 
     get("/threads", ThreadController, :index)
 
+    # Bridge management
+    resources("/bridges", BridgeController, except: [:new, :edit]) do
+      patch("/session", BridgeController, :update_session)
+      patch("/toggle", BridgeController, :toggle_active)
+    end
+
+    get("/bridges/stats", BridgeController, :stats)
+
+    # Telegram-specific bridge endpoints
+    post("/bridges/telegram", BridgeController, :create_telegram_bridge)
+    get("/bridges/:thread_id/telegram", BridgeController, :get_telegram_bridge_for_thread)
+
+    # Telegram webhooks
+    scope "/telegram" do
+      post("/webhook/:bridge_id", TelegramWebhookController, :webhook)
+      post("/webhook/:bridge_id/setup", TelegramWebhookController, :setup_webhook)
+      delete("/webhook/:bridge_id", TelegramWebhookController, :disable_webhook)
+    end
+
+    # Public webhook endpoints (no auth required)
+    scope "/webhooks", GlobalbridgeBackendWeb do
+      scope "/telegram" do
+        post("/:bridge_id", TelegramWebhookController, :webhook)
+      end
+    end
+
     # AI endpoints with per-user rate limiting
     scope "/ai" do
       pipe_through(:ai_rate_limited)

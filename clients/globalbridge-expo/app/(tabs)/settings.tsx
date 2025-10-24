@@ -1,9 +1,11 @@
 import { useCallback } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { useSession, useSessionActions } from '~/hooks/use-session';
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const { logout, toggleBiometrics, setPin } = useSessionActions();
   const preferences = useSession((state) => state.preferences);
   const biometricsSupported = useSession((state) => state.biometricsSupported);
@@ -78,21 +80,32 @@ export default function SettingsScreen() {
           <Text style={styles.label}>{pinConfigured ? 'Update PIN' : 'Create PIN'}</Text>
           <Text style={styles.value}>{pinConfigured ? 'Configured' : 'Not set'}</Text>
         </Pressable>
-      </View>
+       </View>
 
-      <View style={styles.section}>
-        <Pressable
-          style={({ pressed }) => [styles.dangerButton, pressed && styles.dangerButtonPressed]}
-          onPress={() => {
-            Alert.alert('Sign out', 'Are you sure you want to sign out?', [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'Sign out', style: 'destructive', onPress: logout },
-            ]);
-          }}
-        >
-          <Text style={styles.dangerLabel}>Sign out</Text>
-        </Pressable>
-      </View>
+       <View style={styles.section}>
+         <Text style={styles.sectionTitle}>Messaging</Text>
+         <Pressable
+           style={({ pressed }) => [styles.linkRow, pressed && styles.linkRowPressed]}
+           onPress={() => router.push('/(tabs)/bridge-setup')}
+         >
+           <Text style={styles.label}>Bridge Setup</Text>
+           <Text style={styles.value}>Configure external services</Text>
+         </Pressable>
+       </View>
+
+       <View style={styles.section}>
+         <Pressable
+           style={({ pressed }) => [styles.dangerButton, pressed && styles.dangerButtonPressed]}
+           onPress={() => {
+             Alert.alert('Sign out', 'Are you sure you want to sign out?', [
+               { text: 'Cancel', style: 'cancel' },
+               { text: 'Sign out', style: 'destructive', onPress: logout },
+             ]);
+           }}
+         >
+           <Text style={styles.dangerLabel}>Sign out</Text>
+         </Pressable>
+       </View>
     </ScrollView>
   );
 }

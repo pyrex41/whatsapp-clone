@@ -1,10 +1,11 @@
 defmodule GlobalbridgeBackend.Contexts.Messaging do
   @moduledoc """
-  The Messaging context provides business logic for threads and messages.
-  Handles both thread metadata (in users.db) and per-thread message sharding (in threads/{thread_id}.db).
+  The Messaging context provides business logic for threads, messages, and bridges.
+  Handles both thread metadata (in users.db), per-thread message sharding (in threads/{thread_id}.db),
+  and bridge configurations (in bridges.db).
   """
 
-  alias GlobalbridgeBackend.Contexts.{Threads, Messages}
+  alias GlobalbridgeBackend.Contexts.{Threads, Messages, Bridges}
 
   @doc """
   Delegates to Threads context.
@@ -41,4 +42,20 @@ defmodule GlobalbridgeBackend.Contexts.Messaging do
   defdelegate search_messages(thread_id, query, filters \\ []), to: Messages
   defdelegate get_thread_messages_after(thread_id, timestamp, limit \\ 50), to: Messages
   defdelegate get_thread_messages_before(thread_id, timestamp, limit \\ 50), to: Messages
+
+  @doc """
+  Delegates to Bridges context.
+  """
+  defdelegate list_bridges(filters \\ []), to: Bridges
+  defdelegate get_bridge!(id), to: Bridges
+  defdelegate get_bridge(id), to: Bridges
+  defdelegate get_bridge_by_user_and_type(user_id, bridge_type), to: Bridges
+  defdelegate create_bridge(attrs), to: Bridges
+  defdelegate update_bridge_session(bridge, attrs), to: Bridges
+  defdelegate toggle_bridge_active(bridge, attrs), to: Bridges
+  defdelegate update_bridge(bridge, attrs), to: Bridges
+  defdelegate delete_bridge(bridge), to: Bridges
+  defdelegate list_user_bridges(user_id, filters \\ []), to: Bridges
+  defdelegate list_active_user_bridges(user_id), to: Bridges
+  defdelegate count_bridges_by_status(user_id), to: Bridges
 end

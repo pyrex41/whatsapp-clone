@@ -58,6 +58,9 @@ defmodule GlobalbridgeBackend.Application do
           GlobalbridgeBackend.AI.BudgetMonitor,
           # AI Rate Limit Monitoring
           GlobalbridgeBackend.Monitoring.RateLimitMonitor,
+          # Bridge Registry and Supervisor for managing bridge processes
+          GlobalbridgeBackend.Bridges.Registry,
+          GlobalbridgeBackend.Bridges.Supervisor,
           # Start a worker by calling: GlobalbridgeBackend.Worker.start_link(arg)
           # {GlobalbridgeBackend.Worker, arg},
           # Start to serve requests, typically the last entry
@@ -96,6 +99,7 @@ defmodule GlobalbridgeBackend.Application do
 
         # Verify file exists
         expanded_path = Path.expand(path)
+
         if File.exists?(expanded_path) do
           Logger.info("sqlite-vec extension found at #{expanded_path}")
         else
@@ -120,6 +124,7 @@ defmodule GlobalbridgeBackend.Application do
 
     # Validate filename matches expected vec0 library pattern
     filename = Path.basename(path)
+
     unless Regex.match?(~r/^vec0\.(so|dylib|dll)$/i, filename) do
       raise """
       Invalid SQLITE_VEC_PATH: filename must be vec0.so, vec0.dylib, or vec0.dll
@@ -130,6 +135,7 @@ defmodule GlobalbridgeBackend.Application do
 
     # Ensure expanded path is within expected system library directories
     expanded_path = Path.expand(path)
+
     allowed_prefixes = [
       "/opt/homebrew/lib",
       "/usr/local/lib",
@@ -138,9 +144,10 @@ defmodule GlobalbridgeBackend.Application do
       "C:/sqlite-vec"
     ]
 
-    is_in_allowed_dir = Enum.any?(allowed_prefixes, fn prefix ->
-      String.starts_with?(expanded_path, prefix)
-    end)
+    is_in_allowed_dir =
+      Enum.any?(allowed_prefixes, fn prefix ->
+        String.starts_with?(expanded_path, prefix)
+      end)
 
     unless is_in_allowed_dir do
       raise """

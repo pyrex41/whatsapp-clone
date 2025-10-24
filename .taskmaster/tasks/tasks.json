@@ -241,65 +241,6 @@
       "description": "Tasks for slack context"
     }
   },
-  "telegram": {
-    "tasks": [
-      {
-        "id": 1,
-        "title": "Set up Telegram bot and API integration",
-        "description": "Create Telegram bot via BotFather and configure API access.",
-        "details": "Get bot token. Set up webhook/polling endpoints.",
-        "testStrategy": "Test bot creation and basic API calls.",
-        "priority": "medium",
-        "dependencies": [],
-        "status": "deferred",
-        "subtasks": [],
-        "tags": [
-          "Telegram"
-        ],
-        "updatedAt": "2025-10-20T22:01:12.028Z"
-      },
-      {
-        "id": 2,
-        "title": "Implement Telegram bridge GenServer",
-        "description": "Create Bridge.TelegramServer for message sync.",
-        "details": "Handle updates, forward messages. Support media.",
-        "testStrategy": "Unit tests for GenServer. Mock Telegram API.",
-        "priority": "medium",
-        "dependencies": [
-          "1"
-        ],
-        "status": "deferred",
-        "subtasks": [],
-        "tags": [
-          "Telegram"
-        ],
-        "updatedAt": "2025-10-20T22:01:16.602Z"
-      },
-      {
-        "id": 3,
-        "title": "Build Telegram bridge setup UI",
-        "description": "Create views for connecting Telegram groups.",
-        "details": "Implement `TelegramAuthView` with invite link. Show status.",
-        "testStrategy": "UI tests for setup. Integration tests.",
-        "priority": "medium",
-        "dependencies": [
-          "1",
-          "2"
-        ],
-        "status": "deferred",
-        "subtasks": [],
-        "tags": [
-          "Telegram"
-        ],
-        "updatedAt": "2025-10-20T22:01:24.414Z"
-      }
-    ],
-    "metadata": {
-      "created": "2025-10-20T23:05:05.260Z",
-      "updated": "2025-10-20T23:05:05.260Z",
-      "description": "Tasks for telegram context"
-    }
-  },
   "mvp": {
     "tasks": [
       {
@@ -7254,6 +7195,577 @@
       ],
       "created": "2025-10-24T19:25:21.112Z",
       "description": "Tasks for ai-front context"
+    }
+  },
+  "telegram": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Implement Database Schema and Migrations",
+        "description": "Create and apply database migrations for bridge configurations, message mappings, and user mappings as specified in the PRD.",
+        "details": "Add columns to the bridges table (telegram_chat_id, telegram_webhook_url, etc.) and create new tables (bridge_messages, telegram_users). Use Ecto migrations to ensure schema changes are applied correctly. Include proper indexes for performance.",
+        "testStrategy": "Run migrations in test environment and verify table structures. Use ExUnit to test migration scripts for correctness.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Database Schema Changes",
+            "description": "Analyze the PRD requirements to design schema modifications including adding columns to the bridges table and creating new tables for bridge_messages and telegram_users, ensuring data integrity and performance.",
+            "dependencies": [],
+            "details": "Review PRD specifications for bridge configurations, message mappings, and user mappings. Plan additions like telegram_chat_id and telegram_webhook_url to bridges table, and define schemas for bridge_messages and telegram_users tables with appropriate data types, relationships, and indexes for optimal performance.",
+            "status": "pending",
+            "testStrategy": "Review schema design against PRD requirements and simulate queries for performance.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Write, Apply, and Verify Ecto Migrations",
+            "description": "Implement Ecto migrations to apply the designed schema changes, run them in the database, and verify correctness through testing.",
+            "dependencies": [
+              1
+            ],
+            "details": "Write Ecto migration files to add columns to bridges table and create bridge_messages and telegram_users tables with proper indexes. Apply migrations in development and test environments. Use ExUnit to test migration scripts for correctness, ensuring no data loss and proper rollback capabilities.",
+            "status": "pending",
+            "testStrategy": "Run migrations in test environment, verify table structures with database queries, and execute ExUnit tests to confirm migration integrity and performance.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Break this task into subtasks for designing the schema changes, writing and applying Ecto migrations, and verifying migrations with tests.",
+        "updatedAt": "2025-10-24T20:40:16.446Z"
+      },
+      {
+        "id": "2",
+        "title": "Build Bridge Registry and Supervisor",
+        "description": "Implement the Bridge Registry GenServer to manage active bridge processes and provide lifecycle management.",
+        "details": "Create GlobalbridgeBackend.Bridges.Registry module with functions to start, stop, and lookup bridge processes. Set up a supervisor to monitor bridge GenServers. Integrate with application startup to load existing bridges.",
+        "testStrategy": "Unit tests for registry operations (start/stop/lookup). Integration tests to verify supervisor restarts failed processes.",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Bridge Registry GenServer",
+            "description": "Create the GlobalbridgeBackend.Bridges.Registry module as a GenServer to manage active bridge processes, including functions for starting, stopping, and looking up bridge processes.",
+            "dependencies": [],
+            "details": "Implement the GenServer with an ETS table or similar for storing process mappings. Define public API functions like start_bridge/1, stop_bridge/1, and lookup_bridge/1. Ensure thread-safety and handle process failures gracefully.\n<info added on 2025-10-24T20:41:34.060Z>\nImplemented Bridge Registry GenServer with ETS-based process tracking, lifecycle management functions (start/stop/lookup/restart), and automatic loading of existing bridges on startup. Registry handles process monitoring and cleanup on failures.\n</info added on 2025-10-24T20:41:34.060Z>",
+            "status": "pending",
+            "testStrategy": "Unit tests for registry operations including start, stop, and lookup functions, with mocks for process management.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Set Up Supervisor for Bridge Lifecycle Management",
+            "description": "Configure a supervisor to monitor and manage the lifecycle of bridge GenServers, ensuring automatic restarts on failures.",
+            "dependencies": [
+              1
+            ],
+            "details": "Use Elixir's Supervisor module to set up a dynamic supervisor or simple_one_for_one strategy for bridge processes. Integrate it with the registry to start supervised bridge GenServers. Handle restart strategies and limits to prevent cascading failures.\n<info added on 2025-10-24T20:41:43.210Z>\nImplemented Bridge Supervisor with dynamic child management using :one_for_one strategy. Supervisor provides start_bridge/1, stop_bridge/1, and stop_bridge_by_id/1 functions, along with monitoring functions for listing and counting active bridge processes.\n</info added on 2025-10-24T20:41:43.210Z>",
+            "status": "in-progress",
+            "testStrategy": "Integration tests to verify supervisor restarts failed bridge processes and maintains registry consistency.",
+            "parentId": "undefined",
+            "updatedAt": "2025-10-24T20:41:36.974Z"
+          },
+          {
+            "id": 3,
+            "title": "Integrate Bridge Registry and Supervisor with Application Startup",
+            "description": "Modify the application startup process to initialize the registry and supervisor, and load existing bridges from the database.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Update the application.ex file or relevant startup module to start the registry GenServer and supervisor as part of the supervision tree. Implement logic to query the database for existing bridges and start them under the supervisor during app boot.\n<info added on 2025-10-24T20:41:54.397Z>\nIntegrated Bridge Registry and Supervisor into application.ex supervision tree. Registry starts first and loads existing active bridges on startup, while Supervisor manages dynamic bridge process lifecycles with proper restart strategies.\n</info added on 2025-10-24T20:41:54.397Z>",
+            "status": "in-progress",
+            "testStrategy": "Integration tests to ensure bridges are loaded on startup and the registry is populated correctly.",
+            "parentId": "undefined",
+            "updatedAt": "2025-10-24T20:41:47.671Z"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Divide into subtasks for implementing the Registry GenServer, setting up the supervisor for lifecycle management, and integrating with application startup.",
+        "updatedAt": "2025-10-24T20:42:02.172Z"
+      },
+      {
+        "id": "3",
+        "title": "Develop Telegram GenServer for Message Sync",
+        "description": "Implement the TelegramServer GenServer to handle polling, webhooks, and message synchronization.",
+        "details": "Create the GenServer with polling mechanism, webhook fallback, rate limiting, and error recovery. Include health checks and offset tracking. Use Req for HTTP calls to Telegram API.",
+        "testStrategy": "Mock Telegram API responses in unit tests. Test polling, webhook processing, and failure recovery scenarios.",
+        "priority": "medium",
+        "dependencies": [
+          "1",
+          "2"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Polling Mechanism for Telegram GenServer",
+            "description": "Develop the core polling functionality in the TelegramServer GenServer to periodically fetch updates from the Telegram API using Req for HTTP calls.",
+            "dependencies": [],
+            "details": "Initialize the GenServer with a polling loop that sends GET requests to the Telegram API's getUpdates endpoint at regular intervals, handling the response to extract new messages and update the offset for the next poll. Ensure the polling is non-blocking and respects API rate limits.\n<info added on 2025-10-24T20:43:36.082Z>\nImplemented Telegram Server GenServer with polling mechanism using 2-second intervals, message processing pipeline, and integration with Telegram API module. Server handles bot token management, update offset tracking, and automatic reconnection.\n</info added on 2025-10-24T20:43:36.082Z>",
+            "status": "done",
+            "testStrategy": "Unit tests with mocked Telegram API responses to verify polling behavior, offset updates, and message extraction.",
+            "parentId": "undefined",
+            "updatedAt": "2025-10-24T21:02:40.727Z"
+          },
+          {
+            "id": 2,
+            "title": "Implement Webhook Fallback Mechanism",
+            "description": "Add webhook fallback functionality to the TelegramServer GenServer as an alternative to polling for receiving real-time updates.",
+            "dependencies": [
+              1
+            ],
+            "details": "Configure the GenServer to set up a webhook URL with the Telegram API when polling is not active or fails. Implement logic to switch between polling and webhook modes based on configuration or errors, ensuring seamless message synchronization.\n<info added on 2025-10-24T21:03:55.764Z>\nImplemented webhook fallback mechanism with enable_webhook/3, disable_webhook/1 functions, webhook update processing via handle_cast, and TelegramWebhookController for handling incoming webhook requests with secret token validation. Added webhook routes to router and integrated with polling fallback.\n</info added on 2025-10-24T21:03:55.764Z>",
+            "status": "in-progress",
+            "testStrategy": "Unit tests to simulate webhook setup and processing, including mode switching scenarios with mocked API calls.",
+            "parentId": "undefined",
+            "updatedAt": "2025-10-24T21:02:44.861Z"
+          },
+          {
+            "id": 3,
+            "title": "Add Rate Limiting and Error Recovery",
+            "description": "Incorporate rate limiting to prevent API abuse and implement robust error recovery mechanisms in the TelegramServer GenServer.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Implement rate limiting using a token bucket or similar algorithm to control the frequency of API calls. Add error handling for network failures, API errors, and timeouts, with exponential backoff for retries. Ensure the GenServer can recover from failures without losing message continuity.\n<info added on 2025-10-24T21:04:57.482Z>\nImplemented rate limiting with token bucket algorithm (30 requests/second), exponential backoff for failed requests, and circuit breaker pattern with closed/half-open/open states. Added consecutive error tracking and backoff timing calculations for improved error recovery.\n</info added on 2025-10-24T21:04:57.482Z>",
+            "status": "in-progress",
+            "testStrategy": "Unit tests for rate limiting logic and error recovery, including mocked failure scenarios to verify backoff and retry mechanisms.",
+            "parentId": "undefined",
+            "updatedAt": "2025-10-24T21:03:59.362Z"
+          },
+          {
+            "id": 4,
+            "title": "Incorporate Health Checks and Offset Tracking",
+            "description": "Add health checks and persistent offset tracking to the TelegramServer GenServer for monitoring and reliable message synchronization.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Implement health check functions to monitor the GenServer's status, API connectivity, and polling/webhook activity. Track and persist the update offset in a database or ETS table to avoid missing messages on restarts. Include logging for health metrics and offset changes.\n<info added on 2025-10-24T21:05:57.156Z>\nEnhanced health checks to include bot token validity monitoring. Ensure automatic offset persistence to database. Add offset recovery from saved session data on server initialization.\n</info added on 2025-10-24T21:05:57.156Z>",
+            "status": "in-progress",
+            "testStrategy": "Unit tests for health check functions and offset persistence, with integration tests to verify behavior across GenServer restarts.",
+            "parentId": "undefined",
+            "updatedAt": "2025-10-24T21:05:06.938Z"
+          }
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Split into subtasks for building the polling mechanism, implementing webhook fallback, adding rate limiting and error recovery, and incorporating health checks and offset tracking.",
+        "updatedAt": "2025-10-24T21:06:00.905Z"
+      },
+      {
+        "id": "4",
+        "title": "Create Message Router and Format Conversion",
+        "description": "Build the Message Router to convert between Telegram and GlobalBridge message formats, handle user mapping, and manage deduplication.",
+        "details": "Implement functions to process incoming messages, map Telegram users to GlobalBridge users, create GlobalBridge messages, and broadcast via Phoenix channels. Handle media attachments as placeholders.",
+        "testStrategy": "Unit tests for message conversion logic. Integration tests to verify message creation and broadcasting.",
+        "priority": "medium",
+        "dependencies": [
+          "1",
+          "3"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Develop Message Format Conversion Logic",
+            "description": "Create functions to convert incoming Telegram messages to GlobalBridge format and vice versa, including handling text content, timestamps, and media attachments as placeholders.",
+            "dependencies": [
+              1,
+              3
+            ],
+            "details": "Implement conversion modules in Elixir using pattern matching to transform message structures. Ensure proper handling of edge cases like missing fields or unsupported media types. Integrate with existing message processing pipelines.\n<info added on 2025-10-24T21:07:30.842Z>\nImplemented MessageRouter with route_incoming_message/2 and route_outgoing_message/2 functions, message format conversion between Telegram and GlobalBridge formats, attachment handling, and integration with UserMapper for user mapping. Updated Telegram Server to use MessageRouter for message forwarding.\n</info added on 2025-10-24T21:07:30.842Z>",
+            "status": "in-progress",
+            "testStrategy": "Unit tests for conversion functions using ExUnit to verify accurate transformation of sample messages.",
+            "parentId": "undefined",
+            "updatedAt": "2025-10-24T21:06:15.985Z"
+          },
+          {
+            "id": 2,
+            "title": "Implement User Mapping and Deduplication",
+            "description": "Build logic to map Telegram users to GlobalBridge users and manage deduplication to avoid processing duplicate messages in the system.",
+            "dependencies": [
+              1,
+              3
+            ],
+            "details": "Use database queries to retrieve and store user mappings in the telegram_users table. Implement deduplication checks based on message IDs or content hashes. Handle user creation if mappings do not exist, ensuring data consistency.\n<info added on 2025-10-24T21:08:24.822Z>\nEnhanced UserMapper with user deduplication logic, similarity-based user matching, and unique username generation. Added message deduplication to MessageRouter with external message ID tracking and cache-based duplicate prevention.\n</info added on 2025-10-24T21:08:24.822Z>",
+            "status": "in-progress",
+            "testStrategy": "Unit tests for mapping functions and integration tests to simulate duplicate message scenarios.",
+            "parentId": "undefined",
+            "updatedAt": "2025-10-24T21:07:34.671Z"
+          },
+          {
+            "id": 3,
+            "title": "Set Up Broadcasting via Phoenix Channels",
+            "description": "Configure the system to broadcast converted GlobalBridge messages through Phoenix channels to connected clients in real-time.",
+            "dependencies": [
+              1,
+              3
+            ],
+            "details": "Integrate with Phoenix.PubSub to publish messages to appropriate channels based on bridge IDs. Ensure secure broadcasting with authentication checks. Handle channel subscriptions and message delivery for multiple clients.\n<info added on 2025-10-24T21:09:11.657Z>\nImplemented Phoenix Channels broadcasting in MessageRouter using Phoenix.PubSub.broadcast/3 to send messages to thread channels. Added broadcast_message_to_channels/2 function that formats messages for channel broadcasting with bridge source marking.\n</info added on 2025-10-24T21:09:11.657Z>",
+            "status": "in-progress",
+            "testStrategy": "Integration tests using Phoenix.ChannelTest to verify message broadcasting and reception.",
+            "parentId": "undefined",
+            "updatedAt": "2025-10-24T21:08:29.467Z"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Separate into subtasks for message format conversion logic, user mapping and deduplication, and broadcasting via Phoenix channels.",
+        "updatedAt": "2025-10-24T21:09:15.723Z"
+      },
+      {
+        "id": "5",
+        "title": "Implement API Endpoints for Bridge Management",
+        "description": "Create REST API endpoints for creating, retrieving, and deleting Telegram bridges.",
+        "details": "Add routes in router.ex for POST /api/v1/bridges/telegram, GET /api/v1/bridges/{thread_id}/telegram, DELETE /api/v1/bridges/{id}. Implement BridgeController with authentication and authorization checks.",
+        "testStrategy": "API integration tests using ConnCase to verify CRUD operations, authentication, and error responses.",
+        "priority": "medium",
+        "dependencies": [
+          "2",
+          "4"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add API Routes for Bridge Management",
+            "description": "Add the required REST API routes to the router.ex file for creating, retrieving, and deleting Telegram bridges.",
+            "dependencies": [],
+            "details": "In the router.ex file, add the following routes: POST /api/v1/bridges/telegram for creating a bridge, GET /api/v1/bridges/{thread_id}/telegram for retrieving a bridge by thread ID, and DELETE /api/v1/bridges/{id} for deleting a bridge by ID. Ensure each route is properly scoped and points to the appropriate actions in the BridgeController.\n<info added on 2025-10-24T21:09:58.867Z>\nAdded specific Telegram bridge API routes: POST /api/v1/bridges/telegram for creating Telegram bridges and GET /api/v1/bridges/{thread_id}/telegram for retrieving user's Telegram bridge. Enhanced router with Telegram-specific endpoints alongside existing generic bridge routes.\n</info added on 2025-10-24T21:09:58.867Z>",
+            "status": "in-progress",
+            "testStrategy": "Verify that the routes are correctly added by checking the router configuration and ensuring endpoints are accessible via HTTP requests.",
+            "parentId": "undefined",
+            "updatedAt": "2025-10-24T21:09:33.625Z"
+          },
+          {
+            "id": 2,
+            "title": "Implement BridgeController with CRUD Operations",
+            "description": "Develop the BridgeController module to handle create, retrieve, and delete operations for Telegram bridges.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create the BridgeController module with actions for create (handling POST requests to create new bridges), show (handling GET requests to retrieve bridge details by thread ID), and delete (handling DELETE requests to remove bridges by ID). Implement JSON response handling, error responses for invalid requests, and integration with the bridge registry for data persistence and retrieval.\n<info added on 2025-10-24T21:10:22.353Z>\nBridgeController already implements comprehensive CRUD operations: index/0 for listing user bridges, show/1 for retrieving specific bridges with ownership validation, create/1 for bridge creation, update/1 for bridge updates, update_session/1 for session management, toggle_active/1 for activation control, and delete/1 for bridge removal. All operations include proper authentication and authorization checks.\n</info added on 2025-10-24T21:10:22.353Z>",
+            "status": "in-progress",
+            "testStrategy": "Use ExUnit to write unit tests for each controller action, mocking dependencies to verify correct behavior, response formats, and error handling.",
+            "parentId": "undefined",
+            "updatedAt": "2025-10-24T21:10:03.492Z"
+          },
+          {
+            "id": 3,
+            "title": "Integrate Authentication and Authorization Checks",
+            "description": "Add authentication and authorization mechanisms to the bridge management API endpoints.",
+            "dependencies": [
+              2
+            ],
+            "details": "Implement authentication checks (e.g., via JWT tokens or session-based auth) and authorization logic (e.g., ensuring users have permissions to manage specific bridges) in the BridgeController or as plugs in the router. This includes validating user credentials, checking roles or ownership, and returning appropriate error responses for unauthorized access attempts.\n<info added on 2025-10-24T21:10:42.176Z>\nAuthentication and authorization are fully implemented across all BridgeController functions using Guardian for JWT token validation and explicit ownership checks (bridge.user_id == user.id) for all bridge-specific operations. Each endpoint verifies user authentication and ensures users can only access/modify their own bridges.\n</info added on 2025-10-24T21:10:42.176Z>",
+            "status": "in-progress",
+            "testStrategy": "Conduct integration tests using ConnCase to simulate authenticated and unauthorized requests, verifying that protected endpoints reject invalid access and allow valid operations.",
+            "parentId": "undefined",
+            "updatedAt": "2025-10-24T21:10:27.223Z"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break down into subtasks for adding routes in router.ex, implementing the BridgeController with CRUD operations, and integrating authentication and authorization.",
+        "updatedAt": "2025-10-24T21:10:46.753Z"
+      },
+      {
+        "id": "6",
+        "title": "Develop Webhook Controller",
+        "description": "Implement the WebhookController to receive and process Telegram webhook updates.",
+        "details": "Create endpoint POST /api/webhooks/telegram/{bridge_id} to handle incoming webhooks. Route updates to appropriate bridge GenServers. Add optional signature verification.",
+        "testStrategy": "Unit tests for webhook payload processing. Integration tests to simulate webhook calls and verify message routing.",
+        "priority": "medium",
+        "dependencies": [
+          "3",
+          "4"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Webhook Endpoint",
+            "description": "Implement the POST /api/webhooks/telegram/{bridge_id} endpoint in the WebhookController to receive incoming Telegram webhook updates.",
+            "dependencies": [],
+            "details": "Set up the Phoenix controller action to handle POST requests at the specified route. Include basic request handling, parameter extraction for bridge_id, and initial response setup. Ensure the endpoint is properly configured in the router.\n<info added on 2025-10-24T21:19:56.427Z>\nAdded public webhook endpoint POST /api/webhooks/telegram/{bridge_id} for receiving Telegram webhook updates without authentication requirements. Maintained existing authenticated endpoints under /api/v1/telegram/ for setup and management operations.\n</info added on 2025-10-24T21:19:56.427Z>",
+            "status": "in-progress",
+            "testStrategy": "Unit tests for endpoint routing and basic request handling using Phoenix test helpers.",
+            "parentId": "undefined",
+            "updatedAt": "2025-10-24T21:19:08.560Z"
+          },
+          {
+            "id": 2,
+            "title": "Implement Payload Processing and Routing",
+            "description": "Process incoming webhook payloads, perform optional signature verification, and route updates to the appropriate bridge GenServers.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add logic to parse the webhook payload, verify the signature if provided (using Telegram's secret token), and forward the update to the corresponding bridge GenServer via the registry. Handle errors gracefully and ensure real-time processing.\n<info added on 2025-10-24T21:21:35.670Z>\nEnhanced webhook payload processing with comprehensive authentication including secret token verification and signature validation framework. Implemented verify_webhook_auth/2 function that supports both Telegram secret tokens and extensible signature verification for future webhook providers.\n</info added on 2025-10-24T21:21:35.670Z>",
+            "status": "in-progress",
+            "testStrategy": "Integration tests simulating webhook calls with mock payloads, verifying signature verification and message routing to GenServers.",
+            "parentId": "undefined",
+            "updatedAt": "2025-10-24T21:20:22.905Z"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Divide into subtasks for creating the webhook endpoint and implementing payload processing with routing to bridge GenServers.",
+        "updatedAt": "2025-10-24T21:22:22.708Z"
+      },
+      {
+        "id": "7",
+        "title": "Build iOS Bridge Setup UI",
+        "description": "Create iOS views and view models for setting up Telegram bridges.",
+        "details": "Implement BridgeSetupView, BridgeSetupViewModel, and related models (Bridge, CreateBridgeRequest). Integrate with existing thread settings to allow bridge creation.",
+        "testStrategy": "UI unit tests for view models. XCUITests for the setup flow, including form validation and success/error states.",
+        "priority": "medium",
+        "dependencies": [
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design and Implement BridgeSetupView",
+            "description": "Create the BridgeSetupView UI component for iOS, including form fields for bridge configuration such as Telegram chat ID and webhook URL.",
+            "dependencies": [],
+            "details": "Design the user interface using SwiftUI or UIKit, ensuring it matches the app's design system. Implement form validation for inputs like chat ID and URL. Include buttons for creating and canceling the bridge setup.",
+            "status": "pending",
+            "testStrategy": "UI unit tests for form validation and button interactions.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement BridgeSetupViewModel",
+            "description": "Develop the BridgeSetupViewModel to handle business logic for bridge setup, including data binding and API calls.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create the view model class with properties for form data, validation logic, and methods to submit the CreateBridgeRequest. Integrate with existing network layers to handle bridge creation responses, including success and error handling.",
+            "status": "pending",
+            "testStrategy": "Unit tests for view model logic, including validation and API integration.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Create Related Models and Integrate with Thread Settings",
+            "description": "Define Bridge and CreateBridgeRequest models, and integrate bridge creation into thread settings.",
+            "dependencies": [
+              2
+            ],
+            "details": "Implement the Bridge and CreateBridgeRequest structs or classes with necessary properties. Update ThreadSettingsView to include navigation to BridgeSetupView, allowing users to initiate bridge setup from thread settings. Ensure proper data flow between views.",
+            "status": "pending",
+            "testStrategy": "Integration tests for model serialization and UI navigation flow.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Split into subtasks for designing and implementing BridgeSetupView and ViewModel, creating related models, and integrating with thread settings."
+      },
+      {
+        "id": "8",
+        "title": "Integrate Bridge Status and Message Attribution in iOS",
+        "description": "Add bridge status indicators and message source attribution to iOS UI.",
+        "details": "Extend PhoenixChannelManager for bridge monitoring. Update ThreadView, MessageBubble, and ThreadSettingsView to display bridge status and 'via Telegram' labels.",
+        "testStrategy": "UI tests for status indicators. Integration tests to verify status updates and message display.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Extend PhoenixChannelManager for Bridge Monitoring",
+            "description": "Modify PhoenixChannelManager to integrate bridge status monitoring, enabling real-time updates on bridge connectivity and health.",
+            "dependencies": [],
+            "details": "Implement methods in PhoenixChannelManager to subscribe to bridge status channels, handle incoming status updates, and broadcast changes to relevant iOS components. Ensure proper error handling and reconnection logic for reliable monitoring.",
+            "status": "pending",
+            "testStrategy": "Unit tests for channel subscription and status update handling, integration tests to verify real-time status broadcasts.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Update iOS UI Components for Bridge Status and Attribution",
+            "description": "Enhance ThreadView, MessageBubble, and ThreadSettingsView to display bridge status indicators and message source attribution labels like 'via Telegram'.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add UI elements in ThreadView for overall bridge status, modify MessageBubble to include attribution labels for bridged messages, and update ThreadSettingsView to show detailed bridge status. Use data from PhoenixChannelManager for dynamic updates.",
+            "status": "pending",
+            "testStrategy": "UI tests for indicator visibility and label accuracy, integration tests to ensure status updates reflect in the UI components.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Separate into subtasks for extending PhoenixChannelManager for monitoring and updating UI components like ThreadView and MessageBubble."
+      },
+      {
+        "id": "9",
+        "title": "Implement Comprehensive Testing Suite",
+        "description": "Develop unit, integration, and UI tests for backend and frontend components.",
+        "details": "Write ExUnit tests for GenServers, controllers, and contexts. Create Swift unit tests and XCUITests for iOS components. Include mock API clients and test data.",
+        "testStrategy": "Run full test suite with CI/CD. Verify test coverage meets requirements (e.g., >80%).",
+        "priority": "medium",
+        "dependencies": [
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Backend Unit Tests with ExUnit",
+            "description": "Develop unit tests for GenServers, controllers, and contexts using ExUnit to ensure individual components function correctly.",
+            "dependencies": [],
+            "details": "Write ExUnit test files for each GenServer, controller, and context module. Include tests for initialization, state changes, error handling, and edge cases. Use assertions to verify expected behavior and mock dependencies where necessary.",
+            "status": "pending",
+            "testStrategy": "Run unit tests locally with mix test and ensure they pass in isolation.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement Backend Integration Tests with ExUnit",
+            "description": "Create integration tests using ExUnit to verify interactions between backend components like GenServers and database operations.",
+            "dependencies": [
+              1
+            ],
+            "details": "Develop integration test suites that test full workflows, such as bridge creation, message syncing, and API endpoint interactions. Use test databases and fixtures to simulate real scenarios, ensuring components work together seamlessly.",
+            "status": "pending",
+            "testStrategy": "Execute integration tests with mix test --only integration and verify database state changes.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Create iOS Swift Unit Tests",
+            "description": "Develop unit tests for iOS components using Swift to test individual functions and classes.",
+            "dependencies": [],
+            "details": "Write Swift unit tests for view models, services, and utility classes in the iOS app. Cover logic for message handling, UI state management, and API interactions. Use XCTest framework and mock external dependencies.",
+            "status": "pending",
+            "testStrategy": "Run tests via Xcode's test runner and check for code coverage in unit test targets.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implement XCUITests for iOS UI",
+            "description": "Create UI tests using XCUITest to verify user interface interactions and workflows in the iOS app.",
+            "dependencies": [
+              3
+            ],
+            "details": "Develop XCUITest cases for key user flows like creating bridges, viewing messages, and settings. Simulate user interactions such as tapping buttons, entering text, and navigating screens. Ensure tests handle different device orientations and sizes.",
+            "status": "pending",
+            "testStrategy": "Execute XCUITests on simulators and devices, verifying UI elements and app behavior.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Set Up Mock API Clients and Configure CI/CD for Test Coverage",
+            "description": "Configure mock API clients for testing and set up CI/CD pipelines to run the full test suite with coverage verification.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Implement mock clients for Telegram API and backend services using libraries like Mox for Elixir and OHHTTPStubs for iOS. Configure CI/CD tools (e.g., GitHub Actions) to run all tests, generate coverage reports, and ensure >80% coverage. Integrate test data seeding.",
+            "status": "pending",
+            "testStrategy": "Automate test runs in CI/CD, monitor coverage metrics, and fail builds if thresholds are not met.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 8,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Break into subtasks for writing backend ExUnit tests (unit and integration), creating iOS Swift unit tests and XCUITests, setting up mock API clients, and configuring CI/CD for coverage verification."
+      },
+      {
+        "id": "10",
+        "title": "Set Up Deployment, Monitoring, and Operations",
+        "description": "Configure environment variables, monitoring metrics, health checks, and deployment pipeline.",
+        "details": "Add telemetry for bridge metrics, implement health checks, set up feature flags, and prepare for gradual rollout. Ensure SSL for webhooks and rate limiting.",
+        "testStrategy": "Deploy to staging environment and verify monitoring dashboards. Load tests for performance under concurrent bridges.",
+        "priority": "medium",
+        "dependencies": [
+          "9"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configure Environment Variables and Telemetry",
+            "description": "Set up necessary environment variables for the application and integrate telemetry to track bridge metrics for monitoring purposes.",
+            "dependencies": [],
+            "details": "Configure environment variables in the deployment environment, such as database connections, API keys, and webhook URLs. Implement telemetry using tools like Prometheus or similar to collect and expose bridge-related metrics, ensuring they are properly logged and accessible for dashboards.",
+            "status": "pending",
+            "testStrategy": "Verify environment variables are loaded correctly and telemetry data is being collected in a test environment.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement Health Checks and Feature Flags",
+            "description": "Develop health check endpoints for the system and implement feature flags to control gradual rollout of new features.",
+            "dependencies": [],
+            "details": "Create health check routes in the API that verify the status of database connections, GenServers, and external services. Set up feature flags using a library like FunWithFlags to enable or disable features like bridge creation, allowing for controlled deployment and rollback.",
+            "status": "pending",
+            "testStrategy": "Test health check endpoints manually and via automated scripts to ensure they return correct status codes. Validate feature flags toggle behavior in staging.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Set Up Deployment Pipeline",
+            "description": "Establish a deployment pipeline for automated builds, tests, and releases, including SSL configuration for webhooks and rate limiting.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Configure CI/CD tools (e.g., GitHub Actions or Jenkins) to automate the build and deployment process. Ensure SSL certificates are applied to webhook endpoints for secure communication. Implement rate limiting on API endpoints to prevent abuse, using middleware or external services like Cloudflare.",
+            "status": "pending",
+            "testStrategy": "Deploy to staging environment and verify that the pipeline executes successfully, SSL is enforced, and rate limiting works as expected under simulated traffic.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Perform Load Testing",
+            "description": "Execute load tests to validate system performance and scalability under concurrent bridge operations.",
+            "dependencies": [
+              3
+            ],
+            "details": "Use tools like Apache JMeter or k6 to simulate high loads of concurrent bridge creations, message mappings, and API calls. Monitor system resources, response times, and error rates during tests. Adjust configurations based on results to ensure the system handles peak loads without degradation.",
+            "status": "pending",
+            "testStrategy": "Run load tests in the staging environment, targeting concurrent bridges as specified, and verify that performance metrics meet predefined thresholds (e.g., response time < 500ms).",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Divide into subtasks for configuring environment variables and telemetry, implementing health checks and feature flags, setting up the deployment pipeline, and performing load testing."
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2025-10-24T21:22:22.711Z",
+      "taskCount": 10,
+      "completedCount": 6,
+      "tags": [
+        "telegram"
+      ]
     }
   }
 }
