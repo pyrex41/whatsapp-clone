@@ -272,6 +272,18 @@ final class DatabaseManager {
 
             print("✅ Thread database created for shard: \(shardId)")
             print("🔧 [THREAD_DB] About to return connection")
+
+            // Validate connection before returning
+            print("🔧 [THREAD_DB] Validating connection before return...")
+            do {
+                try connection.execute("SELECT 1")
+                print("🔧 [THREAD_DB] Connection validation successful")
+            } catch {
+                print("🔧 [THREAD_DB] Connection validation failed: \(error)")
+                throw DatabaseError.connectionFailed("Thread database connection invalid: \(error.localizedDescription)")
+            }
+
+            print("🔧 [THREAD_DB] Returning connection now")
             return connection
         } catch {
             throw DatabaseError.shardingFailed("Failed to create thread database: \(error.localizedDescription)")
