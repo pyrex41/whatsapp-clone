@@ -606,13 +606,18 @@ final class DatabaseManager {
         try await clearAllThreads()
         
         // 4. Insert backend threads into local database
-        for threadData in bootstrap.threads {
+        print("🔄 [BOOTSTRAP] Processing \(bootstrap.threads.count) threads from backend")
+        for (index, threadData) in bootstrap.threads.enumerated() {
+            print("🔄 [BOOTSTRAP] Processing thread \(index + 1)/\(bootstrap.threads.count): \(threadData.id)")
+
             // Safely parse thread data from bootstrap
             guard let id = UUID(uuidString: threadData.id),
                   let threadType = Thread.ThreadType(rawValue: threadData.threadType) else {
                 print("⚠️ [BOOTSTRAP] Skipping invalid thread data: id=\(threadData.id), type=\(threadData.threadType)")
                 continue
             }
+
+            print("🔄 [BOOTSTRAP] Parsed thread data successfully - creating Thread object")
 
             let thread = Thread(
                 id: id,
@@ -627,10 +632,15 @@ final class DatabaseManager {
                 createdAt: threadData.createdAt,
                 updatedAt: threadData.updatedAt
             )
-            
+
+            print("🔄 [BOOTSTRAP] Created Thread object: \(thread.id) - calling createThreadLocally")
+
             // Create thread locally (without calling backend)
             try await createThreadLocally(thread)
+
+            print("🔄 [BOOTSTRAP] Successfully processed thread \(thread.id)")
         }
+        print("🔄 [BOOTSTRAP] Finished processing all threads")
         
         let threads = try await fetchThreads()
         print("✅ Synced \(bootstrap.threads.count) threads and user from backend")
@@ -660,13 +670,13 @@ final class DatabaseManager {
             threadUpdatedAt <- thread.updatedAt
         )
 
-        print("🔧 [CREATE_THREAD] About to insert into main DB")
+        print("🔧 [CREATE_THREAD] About to run insert - values: id=\(thread.id.uuidString), type=\(thread.threadType.rawValue), shard=\(thread.databaseShardId)")
         try db.run(insert)
         print("🔧 [CREATE_THREAD] Inserted into main DB successfully")
 
-        print("🔧 [CREATE_THREAD] About to get thread database")
-        _ = try await getThreadDatabase(shardId: thread.databaseShardId)
-        print("🔧 [CREATE_THREAD] Got thread database successfully")
+        print("🔧 [CREATE_THREAD] About to get thread database for shard: \(thread.databaseShardId)")
+        let threadDb = try await getThreadDatabase(shardId: thread.databaseShardId)
+        print("🔧 [CREATE_THREAD] Got thread database successfully - connection exists: \(threadDb != nil)")
     }
 
     /// Clear all threads from database
