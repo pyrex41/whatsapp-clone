@@ -20,6 +20,7 @@ enum DatabaseError: Error, LocalizedError {
     case migrationFailed(String)
     case shardingFailed(String)
     case transactionFailed(String)
+    case encodingFailed(String)
 
     var errorDescription: String? {
         switch self {
@@ -45,6 +46,8 @@ enum DatabaseError: Error, LocalizedError {
             return "Database sharding failed: \(message)"
         case .transactionFailed(let message):
             return "Transaction failed: \(message)"
+        case .encodingFailed(let message):
+            return "Data encoding failed: \(message)"
         }
     }
 }

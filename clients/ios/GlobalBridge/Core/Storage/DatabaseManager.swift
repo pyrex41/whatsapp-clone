@@ -600,9 +600,16 @@ final class DatabaseManager {
         
         // 4. Insert backend threads into local database
         for threadData in bootstrap.threads {
+            // Safely parse thread data from bootstrap
+            guard let id = UUID(uuidString: threadData.id),
+                  let threadType = Thread.ThreadType(rawValue: threadData.threadType) else {
+                print("⚠️ [BOOTSTRAP] Skipping invalid thread data: id=\(threadData.id), type=\(threadData.threadType)")
+                continue
+            }
+
             let thread = Thread(
-                id: UUID(uuidString: threadData.id)!,
-                threadType: Thread.ThreadType(rawValue: threadData.threadType)!,
+                id: id,
+                threadType: threadType,
                 title: threadData.title,
                 avatarUrl: nil,
                 lastMessageAt: threadData.lastMessageAt,
@@ -882,7 +889,9 @@ final class DatabaseManager {
                 .flatMap { String(data: $0, encoding: .utf8) }
 
             let newDataJson = try JSONEncoder().encode(newData)
-            let newDataStr = String(data: newDataJson, encoding: .utf8)!
+            guard let newDataStr = String(data: newDataJson, encoding: .utf8) else {
+                throw DatabaseError.encodingFailed("Failed to encode CDC new data as UTF-8")
+            }
 
             let changedFields = oldData != nil ? Array(newData.keys.filter { newData[$0] != oldData?[$0] }) : nil
             let changedFieldsJson = changedFields.flatMap { try? JSONEncoder().encode($0) }
@@ -931,10 +940,11 @@ final class DatabaseManager {
                 }
 
                 let newDataStr = row[cdcNewData]
-                let newData = try JSONDecoder().decode(
-                    [String: String].self,
-                    from: newDataStr.data(using: .utf8)!
-                )
+                guard let newDataJson = newDataStr.data(using: .utf8) else {
+                    print("⚠️ [CDC] Skipping log with invalid UTF-8 data")
+                    continue
+                }
+                let newData = try JSONDecoder().decode([String: String].self, from: newDataJson)
 
                 var changedFields: [String]? = nil
                 if let fieldsStr = row[cdcChangedFields],
