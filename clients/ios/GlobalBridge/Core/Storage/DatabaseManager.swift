@@ -266,8 +266,8 @@ final class DatabaseManager {
                 print("✅ Thread database created for shard: \(shardId)")
             } else {
                 print("♻️ [THREAD_DB] Reusing existing thread database for shard: \(shardId)")
-                // Normalize any legacy TEXT timestamps to REAL Apple-reference seconds
-                try normalizeCDCDates(in: connection)
+                // Lightweight migration for legacy CDC date formats and NULLs
+                try migrateCDCDatesIfNeeded(in: connection)
             }
 
             return connection
@@ -302,6 +302,117 @@ final class DatabaseManager {
         }
         do { try connection.execute(normalizeCreatedAt) } catch {
             print("ℹ️ [CDC] Normalize created_at skipped: \(error)")
+        }
+    }
+
+    /// Backfill NULL CDC dates using available counterparts or current time
+    private func backfillNullCDCDates(in connection: Connection) throws {
+        // If timestamp is NULL, try to use created_at (REAL) else set to now
+        let backfillTimestampFromCreatedAt = """
+        UPDATE cdc_logs
+        SET timestamp = COALESCE(timestamp,
+            CASE WHEN typeof(created_at) = 'real' THEN created_at ELSE NULL END,
+            (strftime('%s','now') - 978307200.0)
+        )
+        """
+        // If created_at is NULL, try to use timestamp (REAL) else set to now
+        let backfillCreatedAtFromTimestamp = """
+        UPDATE cdc_logs
+        SET created_at = COALESCE(created_at,
+            CASE WHEN typeof(timestamp) = 'real' THEN timestamp ELSE NULL END,
+            (strftime('%s','now') - 978307200.0)
+        )
+        """
+        do { try connection.execute(backfillTimestampFromCreatedAt) } catch {
+            print("ℹ️ [CDC] Backfill timestamp skipped: \(error)")
+        }
+        do { try connection.execute(backfillCreatedAtFromTimestamp) } catch {
+            print("ℹ️ [CDC] Backfill created_at skipped: \(error)")
+        }
+    }
+
+    /// Migrate CDC date columns: normalize text → real where possible, backfill NULLs, and convert ISO8601 text → real
+    private func migrateCDCDatesIfNeeded(in connection: Connection) throws {
+        // 1) SQL-side normalization where SQLite can parse
+        try normalizeCDCDates(in: connection)
+        // 2) Backfill obvious NULLs from twin columns or now
+        try backfillNullCDCDates(in: connection)
+
+        // 3) Swift-side pass: convert ISO8601/TEXT values to REAL seconds
+        // Only iterate over a reasonable batch to keep it lightweight
+        let idCol = Expression<String>("id")
+        let table = cdcLogsTable
+        // Select potentially problematic rows
+        let rows = try connection.prepare(table.limit(500))
+        let fmtWithFraction = ISO8601DateFormatter()
+        fmtWithFraction.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let fmt = ISO8601DateFormatter()
+        fmt.formatOptions = [.withInternetDateTime]
+
+        for row in rows {
+            guard let logId = try? row.get(idCol) else { continue }
+
+            func parseAnyDate(_ column: String) -> (date: Date?, needsFix: Bool) {
+                // Try REAL
+                if let val: Double = try? row.get(Expression<Double>(column)) {
+                    return (Date(timeIntervalSinceReferenceDate: val), false)
+                }
+                // Try TEXT numeric
+                if let valStr: String = try? row.get(Expression<String>(column)), let d = Double(valStr) {
+                    return (Date(timeIntervalSinceReferenceDate: d), true)
+                }
+                // Try ISO8601
+                if let isoStr: String = try? row.get(Expression<String>(column)) {
+                    if let d = fmtWithFraction.date(from: isoStr) { return (d, true) }
+                    if let d = fmt.date(from: isoStr) { return (d, true) }
+                }
+                // NULL or unparseable
+                return (nil, true)
+            }
+
+            let ts = parseAnyDate("timestamp")
+            let ca = parseAnyDate("created_at")
+
+            var timestampToWrite: Date?
+            var createdAtToWrite: Date?
+            var needsUpdate = false
+
+            // Resolve timestamp
+            if let d = ts.date {
+                timestampToWrite = d
+            } else if let d = ca.date {
+                timestampToWrite = d
+                needsUpdate = true
+            } else {
+                timestampToWrite = Date()
+                needsUpdate = true
+            }
+
+            // Resolve created_at
+            if let d = ca.date {
+                createdAtToWrite = d
+            } else if let d = ts.date {
+                createdAtToWrite = d
+                needsUpdate = true
+            } else if let d = timestampToWrite {
+                createdAtToWrite = d
+                needsUpdate = true
+            }
+
+            // Also update if the values were TEXT numeric/ISO that we can rewrite as REAL
+            if ts.needsFix || ca.needsFix { needsUpdate = true }
+
+            if needsUpdate, let tsFinal = timestampToWrite, let caFinal = createdAtToWrite {
+                let rowFilter = table.filter(cdcId == logId)
+                do {
+                    try connection.run(rowFilter.update(
+                        cdcTimestamp <- tsFinal,
+                        cdcCreatedAt <- caFinal
+                    ))
+                } catch {
+                    print("ℹ️ [CDC] Row migration failed for id=\(logId): \(error)")
+                }
+            }
         }
     }
 
@@ -561,20 +672,16 @@ final class DatabaseManager {
 
     /// Fetch all threads
     func fetchThreads() async throws -> [Thread] {
-        print("📋 [FETCH_THREADS] Starting")
+        // Fetch all threads (reduced logging)
         try await ensureMainConnection()
         guard let db = mainConnection else {
             throw DatabaseError.connectionFailed("Main connection not available")
         }
 
-        print("📋 [FETCH_THREADS] Got main DB connection")
-
         do {
             var threads: [Thread] = []
-            print("📋 [FETCH_THREADS] About to prepare query")
 
             for row in try db.prepare(threadsTable.order(threadLastMessageAt.desc)) {
-                print("📋 [FETCH_THREADS] Processing row")
                 // Safely parse thread data
                 guard let idStr = try? row.get(threadId),
                       let id = UUID(uuidString: idStr),
@@ -600,10 +707,9 @@ final class DatabaseManager {
                     updatedAt: updatedAt
                 )
                 threads.append(thread)
-                print("📋 [FETCH_THREADS] Successfully created thread: \(thread.id)")
             }
 
-            print("📋 [FETCH_THREADS] Returning \(threads.count) threads")
+            print("📋 [FETCH_THREADS] Fetched \(threads.count) threads")
             return threads
         } catch {
             throw DatabaseError.queryFailed("Threads: \(error.localizedDescription)")
@@ -684,13 +790,11 @@ final class DatabaseManager {
 
     /// Create thread locally only (used during sync)
     func createThreadLocally(_ thread: Thread) async throws {
-        print("🔧 [CREATE_THREAD] Starting for thread: \(thread.id)")
+        // Create thread locally (reduced logging)
         try await ensureMainConnection()
         guard let db = mainConnection else {
             throw DatabaseError.connectionFailed("Main connection not available")
         }
-
-        print("🔧 [CREATE_THREAD] Got main DB connection")
 
         let insert = threadsTable.insert(
             threadId <- thread.id.uuidString,
@@ -705,29 +809,20 @@ final class DatabaseManager {
             threadUpdatedAt <- thread.updatedAt
         )
 
-        print("🔧 [CREATE_THREAD] About to run insert - values: id=\(thread.id.uuidString), type=\(thread.threadType.rawValue), shard=\(thread.databaseShardId)")
         try db.run(insert)
-        print("🔧 [CREATE_THREAD] Inserted into main DB successfully")
-
-        print("🔧 [CREATE_THREAD] About to get thread database for shard: \(thread.databaseShardId)")
-        print("🔧 [CREATE_THREAD] Calling getThreadDatabase...")
+        // Ensure shard DB exists
         let threadDb = try await getThreadDatabase(shardId: thread.databaseShardId)
-        print("🔧 [CREATE_THREAD] getThreadDatabase returned successfully")
-        print("🔧 [CREATE_THREAD] Got thread database - connection exists: \(threadDb != nil)")
+        print("🔧 [CREATE_THREAD] Inserted thread and ensured shard DB (exists=\(threadDb != nil))")
     }
 
     /// Clear all threads from database
     private func clearAllThreads() async throws {
-        print("🗑️ [CLEAR] Starting to clear all threads")
         try await ensureMainConnection()
         guard let db = mainConnection else {
             throw DatabaseError.connectionFailed("Main connection not available")
         }
-        print("🗑️ [CLEAR] Got main DB connection")
-
-        print("🗑️ [CLEAR] About to delete all threads")
         try db.run(threadsTable.delete())
-        print("🗑️ Cleared all local threads")
+        print("🗑️ [CLEAR] Cleared all local threads")
     }
 
     /// Update a thread

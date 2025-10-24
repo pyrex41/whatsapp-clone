@@ -50,7 +50,9 @@ final class CDCManager {
         }
 
         // Fetch ONLY changes since last sync (delta sync)
-        print("🔄 [CDC] Pulling deltas since: \(since!)")
+        if let s = since {
+            print("🔄 [CDC] Pulling deltas since: \(s)")
+        }
         let serverLogs = try await phoenixManager.pullCDCLogs(
             threadId: threadId.uuidString,
             since: since

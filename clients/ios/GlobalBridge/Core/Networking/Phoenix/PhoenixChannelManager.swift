@@ -227,8 +227,8 @@ public actor PhoenixChannelManager {
         return try await withCheckedThrowingContinuation { continuation in
             channel.push("bootstrap", payload: [:])
                 .receive("ok") { response in
-                    let payload = response.payload
-                    print("✅ [BOOTSTRAP] Received response: \(payload)")
+                    // Reduce payload logging noise for bootstrap
+                    print("✅ [BOOTSTRAP] Response received")
                     
                     do {
                         let data = try JSONSerialization.data(withJSONObject: payload)
