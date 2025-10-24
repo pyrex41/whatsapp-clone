@@ -540,17 +540,29 @@ final class DatabaseManager {
             var threads: [Thread] = []
 
             for row in try db.prepare(threadsTable.order(threadLastMessageAt.desc)) {
+                // Safely parse thread data
+                guard let idStr = try? row.get(threadId),
+                      let id = UUID(uuidString: idStr),
+                      let typeStr = try? row.get(threadType),
+                      let type = Thread.ThreadType(rawValue: typeStr),
+                      let shardId = try? row.get(threadDatabaseShardId),
+                      let createdAt = try? row.get(threadCreatedAt),
+                      let updatedAt = try? row.get(threadUpdatedAt) else {
+                    print("⚠️ [DB] Skipping invalid thread row")
+                    continue
+                }
+                
                 let thread = Thread(
-                    id: UUID(uuidString: row[threadId])!,
-                    threadType: Thread.ThreadType(rawValue: row[threadType])!,
-                    title: row[threadTitle],
-                    avatarUrl: row[threadAvatarUrl],
-                    lastMessageAt: row[threadLastMessageAt],
-                    isArchived: row[threadIsArchived],
-                    isMuted: row[threadIsMuted],
-                    databaseShardId: row[threadDatabaseShardId],
-                    createdAt: row[threadCreatedAt],
-                    updatedAt: row[threadUpdatedAt]
+                    id: id,
+                    threadType: type,
+                    title: try? row.get(threadTitle),
+                    avatarUrl: try? row.get(threadAvatarUrl),
+                    lastMessageAt: try? row.get(threadLastMessageAt),
+                    isArchived: (try? row.get(threadIsArchived)) ?? false,
+                    isMuted: (try? row.get(threadIsMuted)) ?? false,
+                    databaseShardId: shardId,
+                    createdAt: createdAt,
+                    updatedAt: updatedAt
                 )
                 threads.append(thread)
             }
@@ -1044,21 +1056,28 @@ final class DatabaseManager {
 
         let query = threadsTable.filter(threadId == id.uuidString)
 
-        guard let row = try db.pluck(query) else {
+        guard let row = try db.pluck(query),
+              let idStr = try? row.get(threadId),
+              let id = UUID(uuidString: idStr),
+              let typeStr = try? row.get(threadType),
+              let threadType = Thread.ThreadType(rawValue: typeStr),
+              let shardId = try? row.get(threadDatabaseShardId),
+              let createdAt = try? row.get(threadCreatedAt),
+              let updatedAt = try? row.get(threadUpdatedAt) else {
             return nil
         }
 
         return Thread(
-            id: UUID(uuidString: row[threadId])!,
-            threadType: Thread.ThreadType(rawValue: row[threadType])!,
-            title: row[threadTitle],
-            avatarUrl: row[threadAvatarUrl],
-            lastMessageAt: row[threadLastMessageAt],
-            isArchived: row[threadIsArchived],
-            isMuted: row[threadIsMuted],
-            databaseShardId: row[threadDatabaseShardId],
-            createdAt: row[threadCreatedAt],
-            updatedAt: row[threadUpdatedAt]
+            id: id,
+            threadType: threadType,
+            title: try? row.get(threadTitle),
+            avatarUrl: try? row.get(threadAvatarUrl),
+            lastMessageAt: try? row.get(threadLastMessageAt),
+            isArchived: (try? row.get(threadIsArchived)) ?? false,
+            isMuted: (try? row.get(threadIsMuted)) ?? false,
+            databaseShardId: shardId,
+            createdAt: createdAt,
+            updatedAt: updatedAt
         )
     }
 
