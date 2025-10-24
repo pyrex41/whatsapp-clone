@@ -40,4 +40,7 @@ enum AppAction {
     case directMessageCreated(Result<Thread, Error>)
     case createGroupThread(title: String, participantIds: [String])
     case groupThreadCreated(Result<Thread, Error>)
+    
+    // Historical message fetch
+    case fetchHistoricalMessages(Thread.ID)
 }

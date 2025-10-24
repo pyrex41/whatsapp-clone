@@ -135,6 +135,11 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             } else {
                 // Just ensure connection, don't reload messages
                 print("ℹ️ [ACTION] Messages already loaded, just ensuring connection")
+                let needsFetch = state.chat.needsHistoricalFetch  // Capture before async
+                if needsFetch {
+                    state.chat.needsHistoricalFetch = false  // Clear immediately
+                }
+                
                 return .run(priority: nil) { send in
                     do {
                         try await environment.realtime.ensureConnection()
@@ -144,6 +149,11 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                             }
                         }
                         await environment.sync.syncThread(threadID)
+                        
+                        // Fetch historical messages if needed
+                        if needsFetch {
+                            send(.fetchHistoricalMessages(threadID))
+                        }
                     } catch {
                         print("❌ [ACTION] Connection failed: \(error.localizedDescription)")
                     }
@@ -192,6 +202,9 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                     print("🔄 [ACTION] Syncing thread after successful channel join")
                     await environment.sync.syncThread(threadID)
                     print("✅ [ACTION] Sync complete for thread: \(threadID)")
+                    
+                    // Check if we need to fetch historical messages (after channel is joined!)
+                    send(.fetchHistoricalMessages(threadID))
                 } catch {
                     print("❌ [ACTION] realtime.connect failed for thread: \(threadID): \(error.localizedDescription)")
                     // Handle specific error case where thread doesn't exist on backend
@@ -272,31 +285,12 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         switch result {
         case let .success(messages):
             print("📊 [MESSAGES] Loaded \(messages.count) messages from local DB for thread: \(threadID)")
+            state.chat.messages = messages.sorted(by: { $0.createdAt < $1.createdAt })
+            
+            // Mark if we need to fetch from backend (will happen after channel joins)
             if messages.isEmpty {
-                // Local database is empty - fetch from backend
-                print("📥 [MESSAGES] Local DB empty, fetching from backend for thread: \(threadID)")
-                return .run(priority: nil) { send in
-                    do {
-                        let phoenixMessages = try await environment.realtime.fetchMessages(threadID, 100)
-                        print("✅ [MESSAGES] Fetched \(phoenixMessages.count) messages from backend")
-                        
-                        // Convert and store them locally
-                        for phoenixMsg in phoenixMessages {
-                            if let message = Message.fromPhoenix(phoenixMsg) {
-                                try? await environment.database.storeMessage(message)
-                                print("💾 [MESSAGES] Stored message: \(message.id)")
-                            }
-                        }
-                        
-                        // Reload from local DB to show in UI
-                        send(.loadMessages(threadID))
-                    } catch {
-                        print("⚠️ [MESSAGES] Backend fetch failed: \(error.localizedDescription)")
-                        // Error already logged - UI will show empty state
-                    }
-                }
-            } else {
-                state.chat.messages = messages.sorted(by: { $0.createdAt < $1.createdAt })
+                print("⚠️ [MESSAGES] Local DB empty - will fetch from backend after channel joins")
+                state.chat.needsHistoricalFetch = true
             }
         case let .failure(error):
             state.chat.messageError = error.localizedDescription
@@ -698,6 +692,39 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             print("❌ [GROUP] Creation failed: \(error.localizedDescription)")
             state.threads.errorMessage = "Failed to create group: \(error.localizedDescription)"
             return .none
+        }
+    
+    case let .fetchHistoricalMessages(threadID):
+        // Only fetch if we actually need it (empty messages and flag set)
+        guard state.chat.currentThread?.id == threadID,
+              state.chat.messages.isEmpty,
+              state.chat.needsHistoricalFetch else {
+            print("ℹ️ [FETCH] Skipping historical fetch - not needed for thread: \(threadID)")
+            return .none
+        }
+        
+        print("📥 [FETCH] Fetching historical messages from backend for thread: \(threadID)")
+        state.chat.needsHistoricalFetch = false  // Clear flag
+        
+        return .run(priority: nil) { send in
+            do {
+                let phoenixMessages = try await environment.realtime.fetchMessages(threadID, 100)
+                print("✅ [FETCH] Fetched \(phoenixMessages.count) messages from backend")
+                
+                // Store them locally
+                for phoenixMsg in phoenixMessages {
+                    if let message = Message.fromPhoenix(phoenixMsg) {
+                        try? await environment.database.storeMessage(message)
+                        print("💾 [FETCH] Stored message: \(message.id)")
+                    }
+                }
+                
+                // Reload from local DB to show in UI
+                print("🔄 [FETCH] Reloading messages from local DB...")
+                send(.loadMessages(threadID))
+            } catch {
+                print("⚠️ [FETCH] Backend fetch failed: \(error.localizedDescription)")
+            }
         }
     }
 }

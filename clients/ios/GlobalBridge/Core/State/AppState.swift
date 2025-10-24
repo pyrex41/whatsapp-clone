@@ -84,6 +84,7 @@ struct ChatState: Equatable {
     var messageError: String?
     var composer = MessageComposerState()
     var typingUsers: Set<String> = []
+    var needsHistoricalFetch: Bool = false  // Flag to fetch from backend after channel joins
 }
 
 struct MessageComposerState: Equatable {
