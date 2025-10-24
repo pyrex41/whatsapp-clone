@@ -20,6 +20,27 @@ struct ChatScreen: View {
                     ScrollViewReader { proxy in
                         ScrollView {
                             LazyVStack(spacing: 12) {
+                                // Load more button at top (for pagination)
+                                if chatState.hasMoreMessages && !chatState.messages.isEmpty {
+                                    Button {
+                                        store.send(.loadOlderMessages(thread.id))
+                                    } label: {
+                                        HStack {
+                                            if chatState.isLoadingOlderMessages {
+                                                ProgressView()
+                                                    .scaleEffect(0.8)
+                                            } else {
+                                                Image(systemName: "arrow.up.circle")
+                                            }
+                                            Text(chatState.isLoadingOlderMessages ? "Loading..." : "Load older messages")
+                                                .font(.caption)
+                                        }
+                                        .foregroundColor(.secondary)
+                                        .padding(.vertical, 8)
+                                    }
+                                    .disabled(chatState.isLoadingOlderMessages)
+                                }
+                                
                                 ForEach(chatState.messages, id: \.id) { message in
                                     let isOwn = message.senderId == store.state.user.id
                                     let _ = print("🔍 [OWNERSHIP] Message \(message.id) | senderId=\(message.senderId) | currentUserId=\(store.state.user.id) | isOwn=\(isOwn)")

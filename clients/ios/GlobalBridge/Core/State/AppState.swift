@@ -96,6 +96,8 @@ struct ChatState: Equatable {
     var currentThread: Thread?
     var messages: [Message] = []
     var isLoadingMessages: Bool = false
+    var isLoadingOlderMessages: Bool = false  // For pagination
+    var hasMoreMessages: Bool = true  // Whether there are older messages to load
     var messageError: String?
     var composer = MessageComposerState()
     var typingUsers: Set<String> = []

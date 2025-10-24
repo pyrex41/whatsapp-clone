@@ -21,6 +21,7 @@ enum AppAction {
 
     case loadMessages(Thread.ID)
     case messagesLoaded(Thread.ID, Result<[Message], Error>)
+    case loadOlderMessages(Thread.ID)  // For pagination
 
     case composerTextChanged(String)
     case sendMessage

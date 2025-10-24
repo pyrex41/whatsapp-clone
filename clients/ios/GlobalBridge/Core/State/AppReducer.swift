@@ -288,10 +288,17 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             return .none
         }
         state.chat.isLoadingMessages = false
+        state.chat.isLoadingOlderMessages = false
         switch result {
         case let .success(messages):
             print("📊 [MESSAGES] Loaded \(messages.count) messages from local DB for thread: \(threadID)")
             state.chat.messages = messages.sorted(by: { $0.createdAt < $1.createdAt })
+            
+            // Update hasMoreMessages flag (if less than page size, we've hit the end)
+            if messages.count < 50 {
+                state.chat.hasMoreMessages = false
+                print("📄 [MESSAGES] Reached end of history (loaded \(messages.count) < 50)")
+            }
             
             // Check if we have user info for message senders
             let senderIds = Set(messages.map { $0.senderId })
@@ -742,7 +749,8 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         
         return .run(priority: nil) { send in
             do {
-                let result = try await environment.realtime.fetchMessages(threadID, 100)
+                // Fetch most recent 50 messages (pagination for older messages)
+                let result = try await environment.realtime.fetchMessages(threadID, 50)
                 print("✅ [FETCH] Fetched \(result.messages.count) messages + \(result.users.count) users from backend")
                 
                 // Convert BasicUserInfo to CachedUserInfo and cache via action
@@ -793,5 +801,53 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             print("👤 [CACHE] Added user: \(userId) → \(userInfo.effectiveDisplayName)")
         }
         return .none
+    
+    case let .loadOlderMessages(threadID):
+        guard state.chat.currentThread?.id == threadID,
+              !state.chat.isLoadingOlderMessages,
+              state.chat.hasMoreMessages else {
+            print("ℹ️ [PAGINATION] Skipping - already loading or no more messages")
+            return .none
+        }
+        
+        print("📄 [PAGINATION] Loading older messages for thread: \(threadID)")
+        state.chat.isLoadingOlderMessages = true
+        
+        // Get the oldest message timestamp to fetch before it
+        let oldestTimestamp = state.chat.messages.first?.createdAt
+        
+        return .run(priority: nil) { send in
+            do {
+                // Fetch next 50 messages before oldest message
+                let result = try await environment.realtime.fetchMessages(threadID, 50)
+                print("✅ [PAGINATION] Fetched \(result.messages.count) older messages")
+                
+                // Cache any new users
+                let usersToCache = result.users.mapValues { userInfo in
+                    CachedUserInfo(
+                        id: userInfo.id,
+                        displayName: userInfo.displayName,
+                        username: userInfo.username,
+                        avatarUrl: userInfo.avatarUrl
+                    )
+                }
+                if !usersToCache.isEmpty {
+                    send(.cacheUsers(usersToCache))
+                }
+                
+                // Store new messages
+                for phoenixMsg in result.messages {
+                    if let message = Message.fromPhoenix(phoenixMsg) {
+                        try? await environment.database.storeMessage(message)
+                    }
+                }
+                
+                // Reload to include new older messages
+                send(.loadMessages(threadID))
+            } catch {
+                print("⚠️ [PAGINATION] Failed to load older messages: \(error.localizedDescription)")
+                // Error state will be cleared on next messagesLoaded
+            }
+        }
     }
 }
