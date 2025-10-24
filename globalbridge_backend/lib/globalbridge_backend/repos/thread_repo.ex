@@ -6,6 +6,17 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
 
   require Logger
 
+  # Cache for started repos to avoid repeated lookups
+  @repo_cache :globalbridge_backend_repo_cache
+
+  # Private functions
+
+  defp cache_repo(shard_id, repo_module) do
+    cache = :persistent_term.get(@repo_cache, %{})
+    updated_cache = Map.put(cache, shard_id, repo_module)
+    :persistent_term.put(@repo_cache, updated_cache)
+  end
+
   @doc """
   Gets or creates a repository for a specific thread shard.
 
@@ -20,15 +31,25 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
   def get_repo(shard_id) do
     repo_module = repo_module_name(shard_id)
 
-    # Check if repo is already started
-    active_repos = list_active_repos()
+    # Check cache first for faster lookups
+    case :persistent_term.get(@repo_cache, %{}) do
+      %{^shard_id => cached_repo} ->
+        cached_repo
 
-    if repo_module in active_repos do
-      repo_module
-    else
-      # Start the repo and add to active list
-      {:ok, _} = start_repo(shard_id)
-      repo_module
+      _ ->
+        # Check active repos list
+        active_repos = :persistent_term.get(@active_repos, [])
+
+        if repo_module in active_repos do
+          # Cache the result for faster future lookups
+          cache_repo(shard_id, repo_module)
+          repo_module
+        else
+          # Start the repo and add to active list
+          {:ok, _} = start_repo(shard_id)
+          cache_repo(shard_id, repo_module)
+          repo_module
+        end
     end
   end
 

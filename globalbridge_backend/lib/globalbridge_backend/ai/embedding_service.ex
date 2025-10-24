@@ -11,6 +11,8 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
 
   alias GlobalbridgeBackend.AI.VectorStore
   alias GlobalbridgeBackend.AI.Cache.EmbeddingCache
+  alias GlobalbridgeBackend.AI.CostOptimizer
+  alias GlobalbridgeBackend.AI.CostTracker
   alias GlobalbridgeBackend.AI.Telemetry
   alias GlobalbridgeBackend.Repos.ThreadRepo
 
@@ -18,6 +20,12 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
 
   @embedding_model System.get_env("OPENAI_EMBEDDING_MODEL") || "text-embedding-3-large"
   @dimensions 3072
+  @test_mode Application.compile_env(:globalbridge_backend, :test_mode, false)
+
+  # Test mode flag for bypassing API calls
+  def test_mode? do
+    @test_mode
+  end
 
   @doc """
   Generates an embedding for the given text.
@@ -39,6 +47,9 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
             tokens_used = estimate_tokens(text)
 
             Telemetry.embedding_stop(@embedding_model, 1, tokens_used, duration, %{text: text})
+
+            # Log cost for the embedding generation
+            CostTracker.log_cost(:embedding, @embedding_model, tokens_used, 0, %{text: text})
 
             # Cache the result
             EmbeddingCache.put(text, embedding, @embedding_model)
@@ -68,9 +79,18 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
   More efficient than calling generate/1 multiple times.
   """
   def generate_batch(texts) when is_list(texts) do
+    # Use cost optimizer to deduplicate and optimize batch
+    optimization_result = CostOptimizer.optimize_batch_queries(texts, :embedding)
+
+    IO.puts(
+      "Batch optimization: #{optimization_result.original_count} -> #{optimization_result.optimized_count} queries (#{optimization_result.savings_percentage}% savings)"
+    )
+
+    optimized_texts = optimization_result.optimized_queries
+
     # Separate cached and uncached texts
     {cached, uncached} =
-      Enum.split_with(texts, fn text ->
+      Enum.split_with(optimized_texts, fn text ->
         EmbeddingCache.exists?(text, @embedding_model)
       end)
 
@@ -83,7 +103,11 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
     uncached_results =
       if length(uncached) > 0 do
         start_time = System.monotonic_time(:millisecond)
-        Telemetry.embedding_start(@embedding_model, length(uncached), %{batch: true})
+
+        Telemetry.embedding_start(@embedding_model, length(uncached), %{
+          batch: true,
+          optimized: true
+        })
 
         case generate_embeddings_batch(uncached) do
           {:ok, embeddings} ->
@@ -95,10 +119,16 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
               length(uncached),
               total_tokens,
               duration,
-              %{batch: true}
+              %{batch: true, optimized: true}
             )
 
-            # Cache the new embeddings
+            # Log cost for the batch embedding generation
+            CostTracker.log_cost(:embedding, @embedding_model, total_tokens, 0, %{
+              batch: true,
+              count: length(uncached)
+            })
+
+            # Cache the results
             Enum.zip(uncached, embeddings)
             |> Enum.each(fn {text, embedding} ->
               EmbeddingCache.put(text, embedding, @embedding_model)
@@ -106,28 +136,35 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
 
             embeddings
 
-          {:error, reason} ->
+          error ->
             duration = System.monotonic_time(:millisecond) - start_time
 
             Telemetry.embedding_error(@embedding_model, :batch_api_error, duration, %{
-              error: reason,
-              batch_size: length(uncached)
+              batch_size: length(uncached),
+              error: error
             })
 
-            # Return nil for failed texts
-            List.duplicate(nil, length(uncached))
+            error
         end
       else
         []
       end
 
-    # Build final result list
+    # Get cached embeddings
     cached_embeddings =
       Enum.map(cached, fn text ->
         EmbeddingCache.get(text, @embedding_model)
       end)
 
-    {:ok, cached_embeddings ++ uncached_results}
+    # Reconstruct full result set (map optimized results back to original queries)
+    all_embeddings =
+      reconstruct_batch_results(texts, optimized_texts, uncached_results, cached_embeddings)
+
+    if length(all_embeddings) == length(texts) do
+      {:ok, all_embeddings}
+    else
+      {:error, :batch_reconstruction_failed}
+    end
   end
 
   @doc """
@@ -175,64 +212,94 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
     @embedding_model
   end
 
+  @doc """
+  Estimates the number of tokens in the given text.
+
+  This is a rough estimation used for cost tracking and telemetry.
+  """
+  def estimate_tokens(text) when is_binary(text) do
+    # Rough estimation: ~4 characters per token for English text
+    # This is a simplified estimation - in production you'd use a proper tokenizer
+    max(1, div(String.length(text), 4))
+  end
+
   # Private functions
 
   defp generate_embedding(text) do
-    Logger.debug("Generating embedding for text using model: #{@embedding_model}")
+    if @test_mode do
+      # Return mock embedding for testing
+      mock_embedding = for _ <- 1..@dimensions, do: :rand.uniform() - 0.5
+      {:ok, mock_embedding}
+    else
+      Logger.debug("Generating embedding for text using model: #{@embedding_model}")
 
-    # Call OpenAI API
-    case OpenAI.embeddings(
-           model: @embedding_model,
-           input: text,
-           dimensions: @dimensions
-         ) do
-      {:ok, response} ->
-        Logger.debug("OpenAI embeddings API call successful")
+      # Call OpenAI API
+      case OpenAI.embeddings(
+             model: @embedding_model,
+             input: text,
+             dimensions: @dimensions
+           ) do
+        {:ok, response} ->
+          Logger.debug("OpenAI embeddings API call successful")
 
-        # Extract the embedding from the response
-        case response do
-          %{"data" => [%{"embedding" => embedding}]} ->
-            {:ok, embedding}
+          # Extract the embedding from the response
+          case response do
+            %{"data" => [%{"embedding" => embedding}]} ->
+              {:ok, embedding}
 
-          _ ->
-            Logger.error("Invalid OpenAI embeddings response format: #{inspect(response)}")
-            {:error, :invalid_response}
-        end
+            _ ->
+              Logger.error("Invalid OpenAI embeddings response format: #{inspect(response)}")
+              {:error, :invalid_response}
+          end
 
-      {:error, reason} ->
-        Logger.error("OpenAI embeddings API call failed: #{inspect(reason)}")
-        {:error, reason}
+        {:error, reason} ->
+          Logger.error("OpenAI embeddings API call failed: #{inspect(reason)}")
+          {:error, reason}
+      end
     end
   end
 
   defp generate_embeddings_batch(texts) do
-    Logger.debug(
-      "Generating batch embeddings for #{length(texts)} texts using model: #{@embedding_model}"
-    )
-
-    # Call OpenAI API with batch input
-    case OpenAI.embeddings(
-           model: @embedding_model,
-           input: texts,
-           dimensions: @dimensions
-         ) do
-      {:ok, response} ->
-        Logger.debug("OpenAI batch embeddings API call successful")
-
-        # Extract embeddings from batch response
-        case response do
-          %{"data" => data} ->
-            embeddings = Enum.map(data, & &1["embedding"])
-            {:ok, embeddings}
-
-          _ ->
-            Logger.error("Invalid OpenAI batch embeddings response format: #{inspect(response)}")
-            {:error, :invalid_response}
+    if @test_mode do
+      # Return mock embeddings for testing
+      mock_embeddings =
+        for _ <- texts do
+          for _ <- 1..@dimensions, do: :rand.uniform() - 0.5
         end
 
-      {:error, reason} ->
-        Logger.error("OpenAI batch embeddings API call failed: #{inspect(reason)}")
-        {:error, reason}
+      {:ok, mock_embeddings}
+    else
+      Logger.debug(
+        "Generating batch embeddings for #{length(texts)} texts using model: #{@embedding_model}"
+      )
+
+      # Call OpenAI API with batch input
+      case OpenAI.embeddings(
+             model: @embedding_model,
+             input: texts,
+             dimensions: @dimensions
+           ) do
+        {:ok, response} ->
+          Logger.debug("OpenAI batch embeddings API call successful")
+
+          # Extract embeddings from batch response
+          case response do
+            %{"data" => data} ->
+              embeddings = Enum.map(data, & &1["embedding"])
+              {:ok, embeddings}
+
+            _ ->
+              Logger.error(
+                "Invalid OpenAI batch embeddings response format: #{inspect(response)}"
+              )
+
+              {:error, :invalid_response}
+          end
+
+        {:error, reason} ->
+          Logger.error("OpenAI batch embeddings API call failed: #{inspect(reason)}")
+          {:error, reason}
+      end
     end
   end
 
@@ -243,9 +310,30 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
     end
   end
 
-  defp estimate_tokens(text) when is_binary(text) do
-    # Rough estimation: ~4 characters per token for English text
-    # This is a simplified estimation - in production you'd use a proper tokenizer
-    max(1, div(String.length(text), 4))
+  defp reconstruct_batch_results(
+         original_texts,
+         optimized_texts,
+         uncached_results,
+         cached_embeddings
+       ) do
+    # Create a mapping from optimized text to its result
+    optimized_to_result =
+      Enum.zip(optimized_texts, uncached_results ++ cached_embeddings) |> Map.new()
+
+    # Map back to original texts (duplicates will use the same optimized result)
+    Enum.map(original_texts, fn original_text ->
+      # Find the optimized version of this text
+      optimized_text =
+        Enum.find(optimized_texts, fn opt ->
+          # Simple similarity check - in production use better similarity matching
+          String.downcase(original_text) == String.downcase(opt)
+        end)
+
+      case optimized_text do
+        # Should not happen with proper optimization
+        nil -> nil
+        _ -> Map.get(optimized_to_result, optimized_text)
+      end
+    end)
   end
 end

@@ -172,20 +172,30 @@ if config_env() in [:dev, :prod] do
 end
 
 # Oban Background Job Configuration
-config :globalbridge_backend, Oban,
+oban_config = [
   engine: Oban.Engines.Basic,
   queues: [
     default: 10,
     embeddings: 5,
     ai_processing: 3
   ],
-  repo: GlobalbridgeBackend.Repo,
-  plugins: [
-    {Oban.Plugins.Cron,
-     crontab: [
-       {"0 * * * *", GlobalbridgeBackend.AI.Jobs.CleanupCacheJob}
-     ]}
-  ]
+  repo: GlobalbridgeBackend.Repo
+]
+
+# Add cron jobs only for dev and prod environments
+oban_config =
+  if config_env() in [:dev, :prod] do
+    Keyword.put(oban_config, :plugins, [
+      {Oban.Plugins.Cron,
+       crontab: [
+         {"0 * * * *", GlobalbridgeBackend.AI.Jobs.CleanupCacheJob}
+       ]}
+    ])
+  else
+    oban_config
+  end
+
+config :globalbridge_backend, Oban, oban_config
 
 # Auth0 Configuration (for all environments that use Auth0)
 if config_env() in [:dev, :prod] do

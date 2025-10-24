@@ -13,6 +13,7 @@ defmodule GlobalbridgeBackend.AI.SemanticSearch do
   alias GlobalbridgeBackend.AI.EmbeddingService
   alias GlobalbridgeBackend.AI.RAGRetriever
   alias GlobalbridgeBackend.AI.Cache.EmbeddingCache
+  alias GlobalbridgeBackend.AI.Cache.SearchCache
   alias GlobalbridgeBackend.AI.Agents.LanguageDetectionAgent
   alias GlobalbridgeBackend.AI.Agents.TranslatorAgent
   alias Agens.Agent
@@ -32,33 +33,43 @@ defmodule GlobalbridgeBackend.AI.SemanticSearch do
 
     Logger.debug("Performing semantic search for thread #{thread_id}: #{query}")
 
-    # Generate embedding for the query (with caching)
-    case EmbeddingService.generate(query) do
-      {:ok, query_embedding} ->
-        # Perform search based on options
-        search_result =
-          if use_recency_bias do
-            RAGRetriever.search_with_recency_bias(thread_id, query_embedding,
-              limit: limit,
-              recency_weight: recency_weight
-            )
-          else
-            RAGRetriever.search(thread_id, query_embedding, limit: limit)
+    # Check cache first
+    cached_results = SearchCache.get_search_results(thread_id, query, opts)
+
+    if cached_results do
+      Logger.debug("Returning cached search results for thread #{thread_id}")
+      {:ok, cached_results}
+    else
+      # Generate embedding for the query (with caching)
+      case EmbeddingService.generate(query) do
+        {:ok, query_embedding} ->
+          # Perform search based on options
+          search_result =
+            if use_recency_bias do
+              RAGRetriever.search_with_recency_bias(thread_id, query_embedding,
+                limit: limit,
+                recency_weight: recency_weight
+              )
+            else
+              RAGRetriever.search_by_embedding(thread_id, query_embedding, limit: limit)
+            end
+
+          case search_result do
+            {:ok, results} ->
+              Logger.debug("Found #{length(results)} semantic search results")
+              # Cache the results
+              SearchCache.put_search_results(thread_id, query, results, opts)
+              {:ok, results}
+
+            error ->
+              Logger.error("Semantic search failed: #{inspect(error)}")
+              error
           end
 
-        case search_result do
-          {:ok, results} ->
-            Logger.debug("Found #{length(results)} semantic search results")
-            {:ok, results}
-
-          error ->
-            Logger.error("Semantic search failed: #{inspect(error)}")
-            error
-        end
-
-      {:error, error} ->
-        Logger.error("Failed to generate query embedding: #{inspect(error)}")
-        {:error, error}
+        {:error, error} ->
+          Logger.error("Failed to generate query embedding: #{inspect(error)}")
+          {:error, error}
+      end
     end
   end
 

@@ -11,31 +11,62 @@ defmodule GlobalbridgeBackend.AI.RAGRetriever do
 
   alias GlobalbridgeBackend.AI.VectorStore
   alias GlobalbridgeBackend.AI.EmbeddingService
+  alias GlobalbridgeBackend.AI.Cache.SearchCache
   alias GlobalbridgeBackend.Repos.ThreadRepo
 
   require Logger
 
   @doc """
-  Performs semantic search for messages in a thread.
+  Performs semantic search for messages in a thread using a pre-computed embedding.
 
   Returns a list of message results with embeddings, content, and metadata.
   """
-  def search(thread_id, query, opts \\ []) do
+  def search_by_embedding(thread_id, embedding, opts \\ []) do
     limit = Keyword.get(opts, :limit, 10)
 
-    # Generate embedding for the query
-    case EmbeddingService.generate(query) do
-      {:ok, query_embedding} ->
-        # Perform vector search
-        case VectorStore.search(thread_id, query_embedding, limit: limit) do
-          {:ok, vector_results} ->
-            # Enrich results with message content and metadata
-            enrich_search_results(thread_id, vector_results)
+    # Check vector search cache first
+    cached_vector_results = SearchCache.get_vector_results(thread_id, embedding, limit)
+
+    vector_results =
+      if cached_vector_results do
+        Logger.debug("Using cached vector search results for thread #{thread_id}")
+        cached_vector_results
+      else
+        # Perform vector search with the provided embedding
+        case VectorStore.search(thread_id, embedding, limit: limit) do
+          {:ok, results} ->
+            # Cache the vector results
+            SearchCache.put_vector_results(thread_id, embedding, results, limit)
+            results
 
           {:error, error} ->
             Logger.error("Vector search failed: #{inspect(error)}")
             {:error, error}
         end
+      end
+
+    # If we got an error from cache or search, return it
+    if match?({:error, _}, vector_results) do
+      vector_results
+    else
+      # Enrich results with message content and metadata
+      enrich_search_results(thread_id, vector_results)
+    end
+  end
+
+  @doc """
+  Performs semantic search for messages in a thread.
+
+  Generates an embedding for the text query and searches for similar messages.
+  Returns a list of message results with embeddings, content, and metadata.
+  """
+  def search(thread_id, query_text, opts \\ []) do
+    limit = Keyword.get(opts, :limit, 10)
+
+    # Generate embedding for the query
+    case EmbeddingService.generate(query_text) do
+      {:ok, query_embedding} ->
+        search_by_embedding(thread_id, query_embedding, opts)
 
       {:error, error} ->
         Logger.error("Failed to generate query embedding: #{inspect(error)}")
@@ -48,12 +79,12 @@ defmodule GlobalbridgeBackend.AI.RAGRetriever do
 
   Recent messages are boosted in the results based on their age.
   """
-  def search_with_recency_bias(thread_id, query, opts \\ []) do
+  def search_with_recency_bias(thread_id, embedding, opts \\ []) do
     limit = Keyword.get(opts, :limit, 10)
     recency_weight = Keyword.get(opts, :recency_weight, 0.3)
 
     # Get more results for filtering
-    case search(thread_id, query, limit: limit * 2) do
+    case search_by_embedding(thread_id, embedding, limit: limit * 2) do
       {:ok, results} ->
         # Apply recency bias and re-rank
         biased_results = apply_recency_bias(results, recency_weight)

@@ -53,6 +53,10 @@ defmodule GlobalbridgeBackend.Chat do
         |> case do
           {:ok, message} ->
             CDCLogger.log_message_insert(thread, message, user_id: message.sender_id)
+
+            # Enqueue embedding generation job for the new message
+            enqueue_embedding_job(thread_id, message.id)
+
             {:ok, message}
 
           error ->
@@ -251,6 +255,17 @@ defmodule GlobalbridgeBackend.Chat do
           nil -> {:ok, nil}
           message_id -> {:ok, message_id}
         end
+    end
+  end
+
+  @doc """
+  Enqueue an embedding generation job for a new message.
+  """
+  def enqueue_embedding_job(thread_id, message_id) do
+    if Mix.env() != :test do
+      %{thread_id: thread_id, message_id: message_id}
+      |> GlobalbridgeBackend.AI.Jobs.GenerateEmbeddingJob.new()
+      |> Oban.insert()
     end
   end
 

@@ -1,133 +1,29 @@
 {
 	"meta": {
-		"generatedAt": "2025-10-22T14:36:04.047Z",
-		"tasksAnalyzed": 15,
-		"totalTasks": 15,
-		"analysisCount": 15,
+		"generatedAt": "2025-10-23T21:37:05.199Z",
+		"tasksAnalyzed": 2,
+		"totalTasks": 16,
+		"analysisCount": 2,
 		"thresholdScore": 5,
 		"projectName": "Taskmaster",
 		"usedResearch": false
 	},
 	"complexityAnalysis": [
 		{
-			"taskId": 1,
-			"taskTitle": "Implement NotificationConfig to read environment variable",
-			"complexityScore": 2,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "This task involves creating a simple class to read an environment variable and define an enum with a static property, which is straightforward with minimal technical challenges. Testing is basic unit tests, and there are no dependencies, making it low effort."
-		},
-		{
-			"taskId": 2,
-			"taskTitle": "Define BannerItem data model",
-			"complexityScore": 1,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Defining a struct with standard properties and optional Codable conformance is a basic data modeling task with no complex logic or dependencies, requiring only simple unit tests."
-		},
-		{
-			"taskId": 3,
-			"taskTitle": "Implement InAppBannerCenter for queue management",
-			"complexityScore": 7,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Break down the implementation into subtasks: 1) Set up the singleton or observable object structure and basic queue, 2) Implement coalescing logic and timers for auto-dismiss, 3) Add public APIs and integrate with Combine/SwiftUI for state management.",
-			"reasoning": "This task requires managing a queue with coalescing, timers, and lifecycle handling using Combine or SwiftUI, which introduces concurrency and state management challenges. Dependencies on task 2 and extensive testing (unit and integration) increase effort."
-		},
-		{
-			"taskId": 4,
-			"taskTitle": "Create InAppBannerView for visual presentation",
-			"complexityScore": 6,
-			"recommendedSubtasks": 2,
-			"expansionPrompt": "Break down into subtasks: 1) Implement the basic SwiftUI layout with avatar, title, subtitle, and gestures, 2) Add animations, theming support, and haptic feedback integration.",
-			"reasoning": "Building a SwiftUI view with gestures, animations, themes, and accessibility requires UI design skills and handling multiple states, with dependencies on tasks 2 and 3. Testing includes UI snapshots and interactions, adding to the complexity."
-		},
-		{
-			"taskId": 5,
-			"taskTitle": "Develop InAppBannerContainer for root overlay",
-			"complexityScore": 4,
-			"recommendedSubtasks": 1,
-			"expansionPrompt": "Break down into subtasks: 1) Create the overlay view and connect to InAppBannerCenter, 2) Implement positioning logic to avoid bars and handle multiple banners.",
-			"reasoning": "This involves creating a SwiftUI overlay with positioning and state connection, dependent on tasks 3 and 4. It's moderately complex due to UI integration and testing across screens."
-		},
-		{
-			"taskId": 6,
-			"taskTitle": "Integrate event mapping from Phoenix/WebSocket",
-			"complexityScore": 6,
-			"recommendedSubtasks": 2,
-			"expansionPrompt": "Break down into subtasks: 1) Set up event mapping from WebSocket messages to NotificationEvent, 2) Implement filtering logic based on settings and call InAppBannerCenter.present.",
-			"reasoning": "Integrating with WebSocket, filtering, and triggering presentations involves real-time handling and dependencies on tasks 1 and 3. Integration testing with mocks increases effort."
-		},
-		{
-			"taskId": 7,
-			"taskTitle": "Implement navigation on banner tap",
-			"complexityScore": 5,
-			"recommendedSubtasks": 1,
-			"expansionPrompt": "Break down into subtasks: 1) Handle tap gesture and routing to thread view, 2) Ensure deep-link navigation and state updates like marking as seen.",
-			"reasoning": "Navigation with routing mechanisms and deep links, dependent on tasks 4 and 5, requires integration with app navigation systems. Testing includes integration tests for routing."
-		},
-		{
-			"taskId": 8,
-			"taskTitle": "Add analytics logging for banner events",
-			"complexityScore": 3,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Adding logging in existing classes using an analytics framework is straightforward, with low effort and dependencies on tasks 3 and 4. Testing is unit-based with dashboard verification."
-		},
-		{
-			"taskId": 9,
-			"taskTitle": "Support theming and localization",
-			"complexityScore": 4,
-			"recommendedSubtasks": 1,
-			"expansionPrompt": "Break down into subtasks: 1) Add theming support for light/dark modes, 2) Implement localization keys and validate RTL layout.",
-			"reasoning": "Extending the view for themes and localization involves SwiftUI modifiers and string keys, dependent on task 4. UI snapshot tests add moderate effort."
-		},
-		{
-			"taskId": 10,
-			"taskTitle": "Implement accessibility features",
-			"complexityScore": 5,
-			"recommendedSubtasks": 1,
-			"expansionPrompt": "Break down into subtasks: 1) Add VoiceOver announcements and dynamic type support, 2) Ensure sufficient contrast and hit targets.",
-			"reasoning": "Implementing accessibility in SwiftUI requires specific modifiers and testing with XCUITest and VoiceOver, dependent on task 4. It adds UI and testing complexity."
-		},
-		{
-			"taskId": 11,
-			"taskTitle": "Handle app lifecycle and suppression",
-			"complexityScore": 5,
-			"recommendedSubtasks": 1,
-			"expansionPrompt": "Break down into subtasks: 1) Listen to lifecycle notifications and implement suppression logic, 2) Test suppression during activities like video calls.",
-			"reasoning": "Managing app state and suppression involves notifications and conditional logic, dependent on tasks 3 and 5. Integration testing for state changes increases effort."
-		},
-		{
-			"taskId": 12,
-			"taskTitle": "Add haptic feedback",
-			"complexityScore": 3,
-			"recommendedSubtasks": 0,
-			"expansionPrompt": "",
-			"reasoning": "Using feedback generators with VoiceOver checks is simple, dependent on task 4. UI tests for haptics are straightforward."
-		},
-		{
-			"taskId": 13,
-			"taskTitle": "Implement error handling and performance optimizations",
-			"complexityScore": 6,
-			"recommendedSubtasks": 2,
-			"expansionPrompt": "Break down into subtasks: 1) Add error logging without crashes in InAppBannerCenter and views, 2) Implement performance optimizations like text pre-measurement and queue limits.",
-			"reasoning": "Error handling and performance tuning across multiple components, dependent on tasks 3,4,5, require careful implementation and testing for frame budgets and errors."
-		},
-		{
-			"taskId": 14,
-			"taskTitle": "Add developer setting toggle",
-			"complexityScore": 4,
-			"recommendedSubtasks": 1,
-			"expansionPrompt": "Break down into subtasks: 1) Create a debug menu view for toggling modes, 2) Integrate with UserDefaults and runtime switching.",
-			"reasoning": "Adding a debug UI toggle with persistence, dependent on task 1, involves basic UI and settings management. UI tests are moderate."
-		},
-		{
 			"taskId": 15,
 			"taskTitle": "Conduct end-to-end testing and validation",
 			"complexityScore": 8,
 			"recommendedSubtasks": 4,
-			"expansionPrompt": "Break down into subtasks: 1) Run unit and UI tests for all components, 2) Perform integration tests for flows, 3) Conduct end-to-end tests with mocked events, 4) Validate against acceptance criteria including performance and analytics.",
-			"reasoning": "Comprehensive testing across all previous tasks, including unit, UI, integration, and e2e, with dependencies on all tasks, makes this highly complex due to coordination and validation effort."
+			"expansionPrompt": "Break down the end-to-end testing task into subtasks covering unit/UI tests, integration tests, end-to-end tests with mocks, and validation against acceptance criteria including performance and analytics.",
+			"reasoning": "This task involves comprehensive testing across multiple levels (unit, UI, integration, e2e) with dependencies on all prior tasks, requiring significant effort in setup, mocking, and validation. Technical challenges include simulating full user flows, performance checks (e.g., 300ms banner appearance), and ensuring no regressions. It already has 4 subtasks defined, which align with the recommended breakdown for manageable execution."
+		},
+		{
+			"taskId": 16,
+			"taskTitle": "iOS System Push (APNs) Integration",
+			"complexityScore": 9,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Break down the APNs integration into subtasks based on the implementation steps: 1) App startup and gating, 2) Token handling and backend POST, 3) Notification categories, 4) Foreground presentation behavior, 5) Tap routing, 6) Badge sync, 7) Error handling and privacy, 8) Simulator push validation.",
+			"reasoning": "This task encompasses multiple complex components including APNs registration, token management, backend integration, notification handling, routing, and security/privacy measures, all gated by configuration modes. Implementation effort is high due to iOS-specific APIs, error handling, retries, and testing in simulator. Technical challenges include ensuring compliance with user permissions, handling edge cases like malformed payloads, and integrating with existing app navigation. No subtasks are defined yet, so recommending 8 aligns with the detailed implementation outline for thorough expansion."
 		}
 	]
 }

@@ -73,24 +73,31 @@ defmodule GlobalbridgeBackend.AI.Tools.TaskExtractionTool do
     limit = Keyword.get(opts, :limit, 20)
     recency_weight = Keyword.get(opts, :recency_weight, 0.3)
 
-    # Use RAG to retrieve relevant messages
-    case RAGRetriever.search_with_recency_bias(thread_id, query,
-           limit: limit,
-           recency_weight: recency_weight
-         ) do
-      {:ok, search_results} ->
-        if Enum.empty?(search_results) do
-          {:ok, empty_extraction_result()}
-        else
-          # Build context from retrieved messages
-          context = RAGRetriever.build_context(search_results, max_length: 8000)
+    # Generate embedding for the query
+    case GlobalbridgeBackend.AI.EmbeddingService.generate(query) do
+      {:ok, query_embedding} ->
+        # Use RAG to retrieve relevant messages
+        case RAGRetriever.search_with_recency_bias(thread_id, query_embedding,
+               limit: limit,
+               recency_weight: recency_weight
+             ) do
+          {:ok, search_results} ->
+            if Enum.empty?(search_results) do
+              {:ok, empty_extraction_result()}
+            else
+              # Build context from retrieved messages
+              context = RAGRetriever.build_context(search_results, max_length: 8000)
 
-          # Extract tasks from the context
-          extract_from_context(context, search_results)
+              # Extract tasks from the context
+              extract_from_context(context, search_results)
+            end
+
+          {:error, reason} ->
+            {:error, "RAG retrieval failed: #{inspect(reason)}"}
         end
 
       {:error, reason} ->
-        {:error, "RAG retrieval failed: #{inspect(reason)}"}
+        {:error, "Failed to generate query embedding: #{inspect(reason)}"}
     end
   end
 
