@@ -192,8 +192,12 @@ extension AppEnvironment {
                 print("✅ [CREATE_THREAD] Backend created thread: \(threadData.id)")
                 
                 // 2. Convert to local Thread model and create locally
+                guard let parsedId = UUID(uuidString: threadData.id) else {
+                    print("❌ [CREATE_THREAD] Invalid thread UUID from backend: \(threadData.id)")
+                    throw NSError(domain: "ThreadCreation", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid thread id"])
+                }
                 let thread = Thread(
-                    id: UUID(uuidString: threadData.id)!,
+                    id: parsedId,
                     threadType: Thread.ThreadType(rawValue: threadData.threadType) ?? .group,
                     title: threadData.title,
                     avatarUrl: nil,

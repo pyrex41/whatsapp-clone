@@ -278,11 +278,31 @@ final class DatabaseManager {
 
     /// Normalize legacy CDC timestamp storage formats to REAL seconds since Apple reference date
     private func normalizeCDCDates(in connection: Connection) throws {
-        // Convert TEXT timestamps (e.g., from datetime('now')) to REAL Apple-reference seconds
-        let normalizeTimestamp = "UPDATE cdc_logs SET timestamp = CASE WHEN typeof(timestamp) = 'text' THEN (strftime('%s', timestamp) - 978307200.0) ELSE timestamp END;"
-        let normalizeCreatedAt = "UPDATE cdc_logs SET created_at = CASE WHEN typeof(created_at) = 'text' THEN (strftime('%s', created_at) - 978307200.0) ELSE created_at END;"
-        try connection.execute(normalizeTimestamp)
-        try connection.execute(normalizeCreatedAt)
+        // Convert only when strftime can parse the string; otherwise keep original value
+        // This prevents setting NULLs when legacy values are ISO8601 with Z or unexpected formats
+        let normalizeTimestamp = """
+        UPDATE cdc_logs
+        SET timestamp = CASE
+            WHEN typeof(timestamp) = 'text' AND strftime('%s', timestamp) IS NOT NULL
+                THEN (strftime('%s', timestamp) - 978307200.0)
+            ELSE timestamp
+        END
+        """
+        let normalizeCreatedAt = """
+        UPDATE cdc_logs
+        SET created_at = CASE
+            WHEN typeof(created_at) = 'text' AND strftime('%s', created_at) IS NOT NULL
+                THEN (strftime('%s', created_at) - 978307200.0)
+            ELSE created_at
+        END
+        """
+        do { try connection.execute(normalizeTimestamp) } catch {
+            // Table or columns might not exist yet on legacy shards; ignore
+            print("ℹ️ [CDC] Normalize timestamp skipped: \(error)")
+        }
+        do { try connection.execute(normalizeCreatedAt) } catch {
+            print("ℹ️ [CDC] Normalize created_at skipped: \(error)")
+        }
     }
 
     private func createThreadTables(in connection: Connection) async throws {
@@ -1008,10 +1028,36 @@ final class DatabaseManager {
                       let recordIdStr = try? row.get(cdcRecordId),
                       let recordId = UUID(uuidString: recordIdStr),
                       let operationStr = try? row.get(cdcOperation),
-                      let operation = CDCLog.CDCOperation(rawValue: operationStr),
-                      let timestamp = try? row.get(cdcTimestamp),
-                      let createdAt = try? row.get(cdcCreatedAt) else {
-                    print("⚠️ [CDC] Skipping invalid CDC log row")
+                      let operation = CDCLog.CDCOperation(rawValue: operationStr) else {
+                    print("⚠️ [CDC] Skipping invalid CDC log row (id/table/op/record)")
+                    continue
+                }
+
+                // Robust date decoding across REAL/TEXT legacy values
+                func parseDate(columnName: String) -> Date? {
+                    // Try REAL (Apple reference seconds)
+                    if let seconds: Double = try? row.get(Expression<Double>(columnName)) {
+                        return Date(timeIntervalSinceReferenceDate: seconds)
+                    }
+                    // Try TEXT numeric seconds (as string)
+                    if let secondsStr: String = try? row.get(Expression<String>(columnName)),
+                       let seconds = Double(secondsStr) {
+                        return Date(timeIntervalSinceReferenceDate: seconds)
+                    }
+                    // Try ISO8601 string
+                    if let isoStr: String = try? row.get(Expression<String>(columnName)) {
+                        let fmt = ISO8601DateFormatter()
+                        fmt.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                        if let d = fmt.date(from: isoStr) { return d }
+                        fmt.formatOptions = [.withInternetDateTime]
+                        if let d = fmt.date(from: isoStr) { return d }
+                    }
+                    return nil
+                }
+
+                guard let timestamp = parseDate(columnName: "timestamp"),
+                      let createdAt = parseDate(columnName: "created_at") else {
+                    print("⚠️ [CDC] Skipping CDC log with invalid dates (id=\(logId))")
                     continue
                 }
 

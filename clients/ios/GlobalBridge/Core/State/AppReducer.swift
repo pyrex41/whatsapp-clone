@@ -575,8 +575,12 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 print("✅ [DM] Backend created DM: \(threadData.id)")
                 
                 // Convert ThreadData to Thread
+                guard let parsedId = UUID(uuidString: threadData.id) else {
+                    print("❌ [DM] Invalid thread UUID from backend: \(threadData.id)")
+                    throw NSError(domain: "ThreadCreation", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid thread id"])
+                }
                 let thread = Thread(
-                    id: UUID(uuidString: threadData.id)!,
+                    id: parsedId,
                     threadType: Thread.ThreadType(rawValue: threadData.threadType) ?? .direct,
                     title: threadData.title,
                     avatarUrl: nil,
@@ -656,8 +660,12 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 print("✅ [GROUP] Backend created group: \(threadData.id)")
                 
                 // Convert ThreadData to Thread
+                guard let parsedGroupId = UUID(uuidString: threadData.id) else {
+                    print("❌ [GROUP] Invalid thread UUID from backend: \(threadData.id)")
+                    throw NSError(domain: "ThreadCreation", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid thread id"])
+                }
                 let thread = Thread(
-                    id: UUID(uuidString: threadData.id)!,
+                    id: parsedGroupId,
                     threadType: Thread.ThreadType(rawValue: threadData.threadType) ?? .group,
                     title: threadData.title,
                     avatarUrl: nil,
