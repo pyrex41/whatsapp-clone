@@ -10,10 +10,16 @@ defmodule GlobalbridgeBackend.AI.Jobs.GenerateEmbeddingJob do
 
   alias GlobalbridgeBackend.AI.EmbeddingService
   alias GlobalbridgeBackend.Repos.ThreadRepo
+  alias GlobalbridgeBackend.{Repo}
+  alias GlobalbridgeBackend.Schemas.Thread
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: %{"message_id" => message_id, "thread_id" => thread_id}}) do
-    repo = ThreadRepo.get_repo(thread_id)
+  def perform(%Oban.Job{args: args}) do
+    message_id = args["message_id"]
+    thread_id = args["thread_id"]
+    shard_id = args["shard_id"] || get_shard_id(thread_id)
+
+    repo = ThreadRepo.get_repo(shard_id)
 
     # Get the message content
     case get_message_content(repo, message_id) do
@@ -21,8 +27,8 @@ defmodule GlobalbridgeBackend.AI.Jobs.GenerateEmbeddingJob do
         # Generate embedding
         case EmbeddingService.generate(content) do
           {:ok, embedding} ->
-            # Store the embedding
-            EmbeddingService.store_embedding(thread_id, message_id, embedding)
+            # Store the embedding using the shard id
+            EmbeddingService.store_embedding_in_shard(shard_id, message_id, embedding)
             :ok
 
           {:error, reason} ->
@@ -65,6 +71,14 @@ defmodule GlobalbridgeBackend.AI.Jobs.GenerateEmbeddingJob do
 
       {:error, reason} ->
         {:error, reason}
+    end
+  end
+
+  defp get_shard_id(nil), do: nil
+  defp get_shard_id(thread_id) do
+    case Repo.get(Thread, thread_id) do
+      %Thread{database_shard_id: shard_id} -> shard_id
+      _ -> thread_id
     end
   end
 end

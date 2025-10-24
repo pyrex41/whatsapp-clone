@@ -173,11 +173,39 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
   This is called after generating an embedding for a message.
   """
   def store_embedding(thread_id, message_id, embedding) do
-    # Store in vector database
+    # Backwards-compatible: treat thread_id as repo key
     VectorStore.insert(thread_id, message_id, embedding)
 
-    # Update the message record with embedding metadata
     repo = ThreadRepo.get_repo(thread_id)
+
+    sql = """
+    UPDATE messages
+    SET embedding = ?, embedding_model = ?, embedding_generated_at = ?
+    WHERE id = ?
+    """
+
+    embedding_binary = embedding_to_binary(embedding)
+    timestamp = DateTime.utc_now() |> DateTime.to_unix(:millisecond)
+
+    Ecto.Adapters.SQL.query!(repo, sql, [
+      embedding_binary,
+      @embedding_model,
+      timestamp,
+      message_id
+    ])
+
+    :ok
+  end
+
+  @doc """
+  Stores an embedding using an explicit shard (repo key).
+  """
+  def store_embedding_in_shard(shard_id, message_id, embedding) do
+    # Store in vector database keyed by shard
+    VectorStore.insert(shard_id, message_id, embedding)
+
+    # Update the message record with embedding metadata
+    repo = ThreadRepo.get_repo(shard_id)
 
     sql = """
     UPDATE messages

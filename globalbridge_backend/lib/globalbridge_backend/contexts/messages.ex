@@ -119,6 +119,13 @@ defmodule GlobalbridgeBackend.Contexts.Messages do
       {:ok, message} ->
         # Update thread's last_message_at
         update_thread_timestamp(thread)
+
+        # Enqueue embedding generation for this message (align with Chat path)
+        GlobalbridgeBackend.Chat.enqueue_embedding_job(
+          thread.database_shard_id,
+          thread_id,
+          message.id
+        )
         {:ok, message}
 
       error ->

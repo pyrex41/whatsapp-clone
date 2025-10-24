@@ -142,6 +142,7 @@ defmodule GlobalbridgeBackendWeb.Router do
       post("/summarize_thread", AIController, :summarize_thread)
       post("/search_semantic", AIController, :search_semantic)
       post("/extract_tasks", AIController, :extract_tasks)
+      post("/vec_health", AIController, :vec_health)
     end
 
     # Protected API routes will go here

@@ -17,6 +17,8 @@ defmodule GlobalbridgeBackend.AI.SemanticSearch do
   alias GlobalbridgeBackend.AI.Agents.LanguageDetectionAgent
   alias GlobalbridgeBackend.AI.Agents.TranslatorAgent
   alias Agens.Agent
+  alias GlobalbridgeBackend.{Repo}
+  alias GlobalbridgeBackend.Schemas.Thread
 
   require Logger
 
@@ -44,14 +46,16 @@ defmodule GlobalbridgeBackend.AI.SemanticSearch do
       case EmbeddingService.generate(query) do
         {:ok, query_embedding} ->
           # Perform search based on options
+          shard_id = resolve_shard_id(thread_id)
+
           search_result =
             if use_recency_bias do
-              RAGRetriever.search_with_recency_bias(thread_id, query_embedding,
+              RAGRetriever.search_with_recency_bias(shard_id, query_embedding,
                 limit: limit,
                 recency_weight: recency_weight
               )
             else
-              RAGRetriever.search_by_embedding(thread_id, query_embedding, limit: limit)
+              RAGRetriever.search_by_embedding(shard_id, query_embedding, limit: limit)
             end
 
           case search_result do
@@ -221,10 +225,11 @@ defmodule GlobalbridgeBackend.AI.SemanticSearch do
     alias GlobalbridgeBackend.Repos.ThreadRepo
 
     # Get embedding count from vector store
-    total_embeddings = VectorStore.count_embeddings(thread_id)
+    shard_id = resolve_shard_id(thread_id)
+    total_embeddings = VectorStore.count_embeddings(shard_id)
 
     # Get message count from thread database
-    repo = ThreadRepo.get_repo(thread_id)
+    repo = ThreadRepo.get_repo(shard_id)
     message_count_query = "SELECT COUNT(*) FROM messages WHERE is_deleted = 0"
 
     searchable_messages =
@@ -312,6 +317,14 @@ defmodule GlobalbridgeBackend.AI.SemanticSearch do
 
       {:error, reason} ->
         {:error, reason}
+    end
+  end
+
+  defp resolve_shard_id(nil), do: nil
+  defp resolve_shard_id(thread_id) do
+    case Repo.get(Thread, thread_id) do
+      %Thread{database_shard_id: shard_id} -> shard_id
+      _ -> thread_id
     end
   end
 end

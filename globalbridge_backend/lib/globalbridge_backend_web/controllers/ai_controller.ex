@@ -6,6 +6,9 @@ defmodule GlobalbridgeBackendWeb.AIController do
   alias GlobalbridgeBackend.AI.SemanticSearch
   alias GlobalbridgeBackend.AI.Jobs.SummarizationJob
   alias GlobalbridgeBackend.AI.Tools.TaskExtractionTool
+  alias GlobalbridgeBackend.Repos.ThreadRepo
+  alias GlobalbridgeBackend.Schemas.Thread
+  alias GlobalbridgeBackend.Repo
   alias Agens.Job
 
   action_fallback(GlobalbridgeBackendWeb.FallbackController)
@@ -235,5 +238,72 @@ defmodule GlobalbridgeBackendWeb.AIController do
     conn
     |> put_status(:bad_request)
     |> json(%{error: "Missing required parameter: thread_id"})
+  end
+
+  @doc """
+  Checks sqlite-vec availability and vector table health for a thread's shard database.
+
+  POST /api/ai/vec_health
+  Body: {"thread_id": "uuid"}
+  """
+  def vec_health(conn, %{"thread_id" => thread_id}) do
+    _user = conn.assigns[:current_user] || Guardian.Plug.current_resource(conn)
+
+    shard_id = resolve_shard_id(thread_id)
+    repo = ThreadRepo.get_repo(shard_id)
+
+    # 1) Verify vec0 module is usable by creating and dropping a temp virtual table
+    temp_name = "__vec_health_" <> Integer.to_string(:rand.uniform(1_000_000))
+    create_sql = "CREATE VIRTUAL TABLE temp.#{temp_name} USING vec0(embedding float[4])"
+    drop_sql = "DROP TABLE IF EXISTS temp.#{temp_name}"
+
+    vec_ok =
+      case Ecto.Adapters.SQL.query(repo, create_sql, []) do
+        {:ok, _} ->
+          _ = Ecto.Adapters.SQL.query(repo, drop_sql, [])
+          true
+
+        {:error, _} ->
+          false
+      end
+
+    # 2) Check message_embeddings table existence and row count
+    table_exists =
+      case Ecto.Adapters.SQL.query(repo, "SELECT name FROM sqlite_schema WHERE name = 'message_embeddings'", []) do
+        {:ok, %{rows: rows}} -> length(rows) > 0
+        _ -> false
+      end
+
+    count =
+      if table_exists do
+        case Ecto.Adapters.SQL.query(repo, "SELECT COUNT(*) FROM message_embeddings", []) do
+          {:ok, %{rows: [[c]]}} -> c
+          _ -> 0
+        end
+      else
+        0
+      end
+
+    json(conn, %{
+      success: true,
+      thread_id: thread_id,
+      shard_id: shard_id,
+      vec_extension_available: vec_ok,
+      embeddings_table_exists: table_exists,
+      embeddings_count: count
+    })
+  end
+
+  def vec_health(conn, _params) do
+    conn
+    |> put_status(:bad_request)
+    |> json(%{error: "Missing required parameter: thread_id"})
+  end
+
+  defp resolve_shard_id(thread_id) do
+    case Repo.get(Thread, thread_id) do
+      %Thread{database_shard_id: shard_id} when is_binary(shard_id) and shard_id != "" -> shard_id
+      _ -> thread_id
+    end
   end
 end

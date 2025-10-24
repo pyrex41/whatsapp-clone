@@ -15,6 +15,8 @@ defmodule GlobalbridgeBackend.AI.Tools.TaskExtractionTool do
   @behaviour Agens.Tool
 
   alias GlobalbridgeBackend.AI.RAGRetriever
+  alias GlobalbridgeBackend.{Repo}
+  alias GlobalbridgeBackend.Schemas.Thread
 
   @type task_item :: %{
           id: String.t(),
@@ -77,7 +79,8 @@ defmodule GlobalbridgeBackend.AI.Tools.TaskExtractionTool do
     case GlobalbridgeBackend.AI.EmbeddingService.generate(query) do
       {:ok, query_embedding} ->
         # Use RAG to retrieve relevant messages
-        case RAGRetriever.search_with_recency_bias(thread_id, query_embedding,
+        shard_id = resolve_shard_id(thread_id)
+        case RAGRetriever.search_with_recency_bias(shard_id, query_embedding,
                limit: limit,
                recency_weight: recency_weight
              ) do
@@ -582,6 +585,14 @@ defmodule GlobalbridgeBackend.AI.Tools.TaskExtractionTool do
           {:ok, datetime, _offset} -> DateTime.compare(datetime, DateTime.utc_now()) == :lt
           _ -> false
         end
+    end
+  end
+
+  defp resolve_shard_id(nil), do: nil
+  defp resolve_shard_id(thread_id) do
+    case Repo.get(Thread, thread_id) do
+      %Thread{database_shard_id: shard_id} -> shard_id
+      _ -> thread_id
     end
   end
 end

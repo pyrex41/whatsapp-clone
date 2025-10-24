@@ -7,6 +7,9 @@ defmodule GlobalbridgeBackend.Application do
 
   @impl true
   def start(_type, _args) do
+    # Validate sqlite-vec extension before starting
+    validate_sqlite_vec()
+
     # Background job processing with Oban (not in test)
     children =
       [
@@ -64,5 +67,43 @@ defmodule GlobalbridgeBackend.Application do
   def config_change(changed, _new, removed) do
     GlobalbridgeBackendWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  # Private functions
+
+  defp validate_sqlite_vec do
+    require Logger
+
+    case System.get_env("SQLITE_VEC_PATH") do
+      nil ->
+        Logger.warning(
+          "SQLITE_VEC_PATH not set. Vector operations may fail. " <>
+            "Set this environment variable to the path of your vec0 shared library."
+        )
+
+      path ->
+        # Validate path to prevent directory traversal
+        expanded_path = Path.expand(path)
+
+        # Check if path looks suspicious (contains ..)
+        if String.contains?(path, "..") do
+          raise """
+          Invalid SQLITE_VEC_PATH: path contains '..' which may indicate directory traversal.
+          Provided path: #{path}
+          """
+        end
+
+        # Verify file exists
+        if File.exists?(expanded_path) do
+          Logger.info("sqlite-vec extension found at #{expanded_path}")
+        else
+          raise """
+          SQLITE_VEC_PATH points to non-existent file.
+          Provided path: #{path}
+          Expanded path: #{expanded_path}
+          Please ensure the vec0 shared library is installed and the path is correct.
+          """
+        end
+    end
   end
 end

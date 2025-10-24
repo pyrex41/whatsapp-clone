@@ -10,12 +10,17 @@ defmodule GlobalbridgeBackend.AI.Jobs.BatchEmbedJob do
 
   alias GlobalbridgeBackend.AI.EmbeddingService
   alias GlobalbridgeBackend.Repos.ThreadRepo
+  alias GlobalbridgeBackend.{Repo}
+  alias GlobalbridgeBackend.Schemas.Thread
 
   @batch_size 10
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: %{"thread_id" => thread_id}}) do
-    repo = ThreadRepo.get_repo(thread_id)
+  def perform(%Oban.Job{args: args}) do
+    thread_id = args["thread_id"]
+    shard_id = args["shard_id"] || get_shard_id(thread_id)
+
+    repo = ThreadRepo.get_repo(shard_id)
 
     # Get pending messages without embeddings
     case get_pending_messages(repo, @batch_size) do
@@ -35,13 +40,13 @@ defmodule GlobalbridgeBackend.AI.Jobs.BatchEmbedJob do
             Enum.zip(message_ids, embeddings)
             |> Enum.each(fn {message_id, embedding} ->
               if embedding do
-                EmbeddingService.store_embedding(thread_id, message_id, embedding)
+                EmbeddingService.store_embedding_in_shard(shard_id, message_id, embedding)
               end
             end)
 
             # If there are more pending messages, enqueue another batch job
             if length(pending_messages) == @batch_size do
-              enqueue_batch_job(thread_id)
+              enqueue_batch_job(thread_id, shard_id)
             end
 
             :ok
@@ -89,9 +94,17 @@ defmodule GlobalbridgeBackend.AI.Jobs.BatchEmbedJob do
     end
   end
 
-  defp enqueue_batch_job(thread_id) do
-    %{thread_id: thread_id}
+  defp enqueue_batch_job(thread_id, shard_id) do
+    %{thread_id: thread_id, shard_id: shard_id}
     |> GlobalbridgeBackend.AI.Jobs.BatchEmbedJob.new()
     |> Oban.insert()
+  end
+
+  defp get_shard_id(nil), do: nil
+  defp get_shard_id(thread_id) do
+    case Repo.get(Thread, thread_id) do
+      %Thread{database_shard_id: shard_id} -> shard_id
+      _ -> thread_id
+    end
   end
 end
