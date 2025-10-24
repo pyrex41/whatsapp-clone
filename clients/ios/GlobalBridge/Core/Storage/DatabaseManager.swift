@@ -18,7 +18,6 @@ final class DatabaseManager {
 
     // MARK: - Properties
     private var mainConnection: Connection?
-    private var threadConnections: [String: Connection] = [:]
     private let fileManager = FileManager.default
     private let databaseQueue = DispatchQueue(label: "com.globalbridge.database", qos: .userInitiated)
 
@@ -244,12 +243,7 @@ final class DatabaseManager {
 
     /// Get or create a per-thread database connection
     private func getThreadDatabase(shardId: String) async throws -> Connection {
-        // Check if connection already exists
-        if let existing = threadConnections[shardId] {
-            return existing
-        }
-
-        // Create new thread-specific database
+        // ALWAYS create a fresh connection - no caching due to Swift async issues
         let threadDbPath = databasesDirectory
             .appendingPathComponent("thread_\(shardId).db")
             .path
@@ -266,22 +260,6 @@ final class DatabaseManager {
             try await createThreadTables(in: connection)
 
             print("✅ Thread database created for shard: \(shardId)")
-            print("🔧 [THREAD_DB] About to return connection (no caching)")
-
-            // Force connection initialization and validate
-            print("🔧 [THREAD_DB] Forcing connection initialization...")
-            do {
-                // Multiple validation queries to ensure connection is fully initialized
-                try connection.execute("SELECT 1")
-                try connection.execute("PRAGMA table_info(messages)")
-                try connection.execute("SELECT COUNT(*) FROM messages")
-                print("🔧 [THREAD_DB] Connection fully validated")
-            } catch {
-                print("🔧 [THREAD_DB] Connection validation failed: \(error)")
-                throw DatabaseError.connectionFailed("Thread database connection invalid: \(error.localizedDescription)")
-            }
-
-            print("🔧 [THREAD_DB] Returning connection now (no caching)")
             return connection
         } catch {
             throw DatabaseError.shardingFailed("Failed to create thread database: \(error.localizedDescription)")
@@ -786,8 +764,6 @@ final class DatabaseManager {
             try db.run(threadRow.delete())
 
             // Clean up thread-specific database
-            threadConnections.removeValue(forKey: shardId)
-
             let threadDbPath = databasesDirectory
                 .appendingPathComponent("thread_\(shardId).db")
                 .path
@@ -1210,14 +1186,12 @@ final class DatabaseManager {
 
     /// Close all database connections
     func closeAllConnections() {
-        threadConnections.removeAll()
         mainConnection = nil
         print("✅ All database connections closed")
     }
 
     deinit {
         MainActor.assumeIsolated {
-            threadConnections.removeAll()
             mainConnection = nil
             print("✅ All database connections closed")
         }
