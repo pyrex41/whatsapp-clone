@@ -392,8 +392,8 @@ final class DatabaseManager {
                     'updated_at', NEW.updated_at
                 ),
                 NULL,
-                datetime('now'),
-                datetime('now'),
+                (strftime('%s','now') - 978307200),
+                (strftime('%s','now') - 978307200),
                 0
             );
         END;
@@ -438,8 +438,8 @@ final class DatabaseManager {
                     CASE WHEN OLD.status != NEW.status THEN 'status' END,
                     CASE WHEN OLD.message_type != NEW.message_type THEN 'message_type' END
                 ),
-                datetime('now'),
-                datetime('now'),
+                (strftime('%s','now') - 978307200),
+                (strftime('%s','now') - 978307200),
                 0
             );
         END;
@@ -471,8 +471,8 @@ final class DatabaseManager {
                 ),
                 json_object('id', OLD.id),
                 NULL,
-                datetime('now'),
-                datetime('now'),
+                (strftime('%s','now') - 978307200),
+                (strftime('%s','now') - 978307200),
                 0
             );
         END;
