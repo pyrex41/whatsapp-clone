@@ -616,6 +616,7 @@ final class DatabaseManager {
                 isArchived: threadData.isArchived,
                 isMuted: threadData.isMuted,
                 databaseShardId: threadData.databaseShardId,
+                participantIds: threadData.participantIds,
                 createdAt: threadData.createdAt,
                 updatedAt: threadData.updatedAt
             )
