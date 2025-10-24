@@ -42,8 +42,15 @@ final class CDCManager {
 
         // Get last sync timestamp for this thread
         let since = lastSyncTimestamp[threadId.uuidString]
+        
+        // OPTIMIZATION: Skip CDC pull on first sync (use fetch_messages instead for historical data)
+        if since == nil {
+            print("ℹ️ [CDC] First sync for thread - skipping CDC pull (use fetch_messages for history)")
+            return []  // Return empty - no CDC sync needed for initial load
+        }
 
-        // Fetch changes from server via Phoenix
+        // Fetch ONLY changes since last sync (delta sync)
+        print("🔄 [CDC] Pulling deltas since: \(since!)")
         let serverLogs = try await phoenixManager.pullCDCLogs(
             threadId: threadId.uuidString,
             since: since
