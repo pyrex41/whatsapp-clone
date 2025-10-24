@@ -75,10 +75,17 @@ struct Thread: Identifiable, Codable, Equatable {
         // For DMs, show the other participant's actual name
         if let participants = participantIds,
            let otherParticipant = participants.first(where: { $0 != currentUserId }) {
+            print("🔍 [DISPLAY_NAME] Looking up user: \(otherParticipant) in cache (size: \(userCache.count))")
+            
             // Look up from cache first
             if let cachedUser = userCache[otherParticipant] {
+                print("✅ [DISPLAY_NAME] Found in cache: \(cachedUser.effectiveDisplayName)")
                 return cachedUser.effectiveDisplayName
             }
+            
+            print("⚠️ [DISPLAY_NAME] Not in cache, using fallback")
+            print("   Cache keys: \(userCache.keys)")
+            
             // Fallback to ID prefix
             let prefix = otherParticipant.prefix(8)
             return "User \(prefix)"
