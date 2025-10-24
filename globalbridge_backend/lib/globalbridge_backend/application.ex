@@ -21,6 +21,17 @@ defmodule GlobalbridgeBackend.Application do
       GlobalbridgeBackend.Cache.ParticipantCache,
       # Task supervisor for async operations (message persistence, read receipts, notifications)
       {Task.Supervisor, name: GlobalbridgeBackend.TaskSupervisor},
+      # Dynamic supervisor for per-thread database repos
+      {DynamicSupervisor,
+       name: GlobalbridgeBackend.DynamicRepoSupervisor, strategy: :one_for_one},
+      # Agens Multi-Agent Framework Supervisor
+      Agens.Supervisor,
+      # Background job processing with Oban
+      {Oban, Application.fetch_env!(:globalbridge_backend, Oban)},
+      # Caching with Cachex
+      {Cachex, name: :ai_cache},
+      # AI Components Setup (runs after other supervisors are started)
+      {Task, fn -> GlobalbridgeBackend.AI.AgensSetup.start_components() end},
       # Start a worker by calling: GlobalbridgeBackend.Worker.start_link(arg)
       # {GlobalbridgeBackend.Worker, arg},
       # Start to serve requests, typically the last entry

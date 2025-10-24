@@ -59,7 +59,21 @@ defmodule GlobalbridgeBackend.MixProject do
       {:ueberauth, "~> 0.10"},
       {:ueberauth_auth0, "~> 2.0"},
       {:hammer, "~> 6.0"},
-      {:plug_attack, "~> 0.4"}
+      {:plug_attack, "~> 0.4"},
+
+      # AI & Multi-Agent Framework
+      {:agens, "~> 0.1.3"},
+      {:openai, "~> 0.5.0"},
+      {:httpoison, "~> 2.0"},
+
+      # SQLite with vector extension support (version managed by ecto_sqlite3)
+
+      # Background jobs
+      {:oban, "~> 2.15"},
+
+      # Caching
+      {:redix, "~> 1.2"},
+      {:cachex, "~> 3.6"}
     ]
   end
 

@@ -135,6 +135,15 @@ defmodule GlobalbridgeBackendWeb.Router do
 
     get("/threads", ThreadController, :index)
 
+    # AI endpoints
+    scope "/ai" do
+      post("/translate", AIController, :translate)
+      post("/analyze_tone", AIController, :analyze_tone)
+      post("/summarize_thread", AIController, :summarize_thread)
+      post("/search_semantic", AIController, :search_semantic)
+      post("/extract_tasks", AIController, :extract_tasks)
+    end
+
     # Protected API routes will go here
     # Example: resources for threads, messages, etc.
   end
