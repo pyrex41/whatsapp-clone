@@ -44,23 +44,9 @@ defmodule GlobalbridgeBackend.AI.CostOptimizer do
   Optimizes batch processing by grouping similar queries and removing duplicates.
   """
   def optimize_batch_queries(queries, operation \\ :embedding) do
-    # Remove exact duplicates
-    unique_queries = Enum.uniq(queries)
-
-    # Group by similarity (simple length-based grouping for now)
-    grouped_queries =
-      Enum.group_by(unique_queries, fn query ->
-        # Group by rough length
-        String.length(query) |> div(10)
-      end)
-
-    # For each group, keep only the most representative query
-    # This is a simple optimization - in production you'd use more sophisticated similarity
-    optimized_queries =
-      Enum.flat_map(grouped_queries, fn {_length_group, group_queries} ->
-        # Keep the first query from each group as representative
-        [List.first(group_queries)]
-      end)
+    # Only remove exact duplicates to preserve correctness.
+    # Heuristic similarity grouping can cause incorrect drops.
+    optimized_queries = Enum.uniq(queries)
 
     %{
       original_count: length(queries),

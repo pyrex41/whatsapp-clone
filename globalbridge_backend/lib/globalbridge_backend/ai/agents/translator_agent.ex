@@ -123,10 +123,14 @@ defmodule GlobalbridgeBackend.AI.Agents.TranslatorAgent do
         """
         # Call the serving (assumes :openai_serving is running; in prod, handle via supervision)
         case GenServer.call(:openai_serving, {:run, %Agens.Message{input: text, prompt: full_prompt}}) do
-          result when is_binary(result) ->
+          {:ok, result} when is_binary(result) ->
             parse_result(result)
+
           {:error, reason} ->
             {:error, "Translation failed: #{inspect(reason)}"}
+
+          unexpected ->
+            {:error, "Unexpected response from translation service: #{inspect(unexpected)}"}
         end
     end
   end

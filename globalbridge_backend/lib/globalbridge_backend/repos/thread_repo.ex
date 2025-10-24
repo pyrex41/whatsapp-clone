@@ -37,8 +37,8 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
         cached_repo
 
       _ ->
-        # Check active repos list
-        active_repos = :persistent_term.get(@active_repos, [])
+        # Check active repos list via application env
+        active_repos = list_active_repos()
 
         if repo_module in active_repos do
           # Cache the result for faster future lookups
@@ -293,6 +293,10 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
       deleted_at TEXT,
       edited_at TEXT,
       client_created_at TEXT,
+      -- Embedding metadata (to align with main Repo schema)
+      embedding BLOB,
+      embedding_model TEXT DEFAULT 'text-embedding-3-large',
+      embedding_generated_at INTEGER,
       inserted_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
