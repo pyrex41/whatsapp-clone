@@ -594,16 +594,21 @@ final class DatabaseManager {
     /// Sync threads from backend via Phoenix channel
     func syncThreadsFromBackend(phoenixManager: PhoenixChannelManager) async throws -> ([Thread], User) {
         print("📥 Syncing threads and user from backend...")
-        
+
         // 1. Fetch bootstrap data via Phoenix channel
+        print("📥 [SYNC] About to fetch bootstrap data")
         let bootstrap = try await phoenixManager.fetchBootstrap()
-        
+        print("📥 [SYNC] Bootstrap data fetched successfully")
+
         // 2. Convert UserData to User
+        print("📥 [SYNC] Converting user data")
         let user = User.from(bootstrap.user)
         print("👤 [SYNC] Received user from backend: \(user.id) - \(user.displayName)")
-        
+
         // 3. Clear existing local threads
+        print("📥 [SYNC] About to clear existing threads")
         try await clearAllThreads()
+        print("📥 [SYNC] Cleared existing threads successfully")
         
         // 4. Insert backend threads into local database
         print("🔄 [BOOTSTRAP] Processing \(bootstrap.threads.count) threads from backend")
@@ -681,11 +686,14 @@ final class DatabaseManager {
 
     /// Clear all threads from database
     private func clearAllThreads() async throws {
+        print("🗑️ [CLEAR] Starting to clear all threads")
         try await ensureMainConnection()
         guard let db = mainConnection else {
             throw DatabaseError.connectionFailed("Main connection not available")
         }
-        
+        print("🗑️ [CLEAR] Got main DB connection")
+
+        print("🗑️ [CLEAR] About to delete all threads")
         try db.run(threadsTable.delete())
         print("🗑️ Cleared all local threads")
     }
