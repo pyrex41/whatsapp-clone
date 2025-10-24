@@ -206,6 +206,7 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                     print("✅ [ACTION] Sync complete for thread: \(threadID)")
                     
                     // Check if we need to fetch historical messages (after channel is joined!)
+                    print("📥 [ACTION] Channel joined, calling fetchHistoricalMessages...")
                     send(.fetchHistoricalMessages(threadID))
                 } catch {
                     print("❌ [ACTION] realtime.connect failed for thread: \(threadID): \(error.localizedDescription)")
@@ -282,7 +283,10 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         }
 
     case let .messagesLoaded(threadID, result):
-        guard state.chat.currentThread?.id == threadID else { return .none }
+        guard state.chat.currentThread?.id == threadID else {
+            print("⚠️ [MESSAGES] Thread mismatch! Current: \(state.chat.currentThread?.id.uuidString ?? "nil"), Loaded for: \(threadID)")
+            return .none
+        }
         state.chat.isLoadingMessages = false
         switch result {
         case let .success(messages):
@@ -291,8 +295,10 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             
             // Mark if we need to fetch from backend (will happen after channel joins)
             if messages.isEmpty {
-                print("⚠️ [MESSAGES] Local DB empty - will fetch from backend after channel joins")
+                print("⚠️ [MESSAGES] Local DB empty - SETTING needsHistoricalFetch = true")
                 state.chat.needsHistoricalFetch = true
+            } else {
+                print("✅ [MESSAGES] Messages loaded, NOT setting fetch flag")
             }
         case let .failure(error):
             state.chat.messageError = error.localizedDescription
