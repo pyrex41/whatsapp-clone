@@ -803,26 +803,43 @@ final class DatabaseManager {
                 .limit(limit, offset: offset)
 
             for row in try db.prepare(query) {
+                // Safely parse required UUIDs
+                guard let messageIdStr = try? row.get(messageId),
+                      let id = UUID(uuidString: messageIdStr),
+                      let threadIdStr = try? row.get(messageThreadId),
+                      let threadIdParsed = UUID(uuidString: threadIdStr),
+                      let senderIdVal = try? row.get(messageSenderId),
+                      let contentVal = try? row.get(messageContent),
+                      let typeStr = try? row.get(messageType),
+                      let messageType = Message.MessageType(rawValue: typeStr),
+                      let statusStr = try? row.get(messageStatus),
+                      let status = Message.Status(rawValue: statusStr),
+                      let createdAtVal = try? row.get(messageCreatedAt),
+                      let updatedAtVal = try? row.get(messageUpdatedAt) else {
+                    print("⚠️ [DB] Skipping invalid message row")
+                    continue
+                }
+                
                 var metadata: [String: String]? = nil
-                if let metadataStr = row[messageMetadata],
+                if let metadataStr = try? row.get(messageMetadata),
                    let data = metadataStr.data(using: .utf8) {
                     metadata = try? JSONDecoder().decode([String: String].self, from: data)
                 }
 
                 let message = Message(
-                    id: UUID(uuidString: row[messageId])!,
-                    threadId: UUID(uuidString: row[messageThreadId])!,
-                    senderId: row[messageSenderId],  // Now a String, not UUID
-                    content: row[messageContent],
-                    messageType: Message.MessageType(rawValue: row[messageType])!,
-                    status: Message.Status(rawValue: row[messageStatus])!,
+                    id: id,
+                    threadId: threadIdParsed,
+                    senderId: senderIdVal,
+                    content: contentVal,
+                    messageType: messageType,
+                    status: status,
                     metadata: metadata,
-                    replyToId: row[messageReplyToId].flatMap { UUID(uuidString: $0) },
-                    editedAt: row[messageEditedAt],
-                    deletedAt: row[messageDeletedAt],
-                    createdAt: row[messageCreatedAt],
-                    updatedAt: row[messageUpdatedAt],
-                    clientMessageId: row[messageClientMessageId]  // Preserve for deduplication
+                    replyToId: (try? row.get(messageReplyToId)).flatMap { UUID(uuidString: $0) },
+                    editedAt: try? row.get(messageEditedAt),
+                    deletedAt: try? row.get(messageDeletedAt),
+                    createdAt: createdAtVal,
+                    updatedAt: updatedAtVal,
+                    clientMessageId: try? row.get(messageClientMessageId)
                 )
                 messages.append(message)
             }
