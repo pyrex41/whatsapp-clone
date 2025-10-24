@@ -11,6 +11,7 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
   use GlobalbridgeBackendWeb, :channel
 
   alias GlobalbridgeBackend.Chat
+  alias GlobalbridgeBackend.Contexts.Messages
   alias GlobalbridgeBackend.Notifications
   alias GlobalbridgeBackend.Sync
   alias GlobalbridgeBackend.Cache.ParticipantCache
@@ -221,7 +222,7 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     filters = [limit: limit]
     filters = if before_timestamp, do: [{:before, before_timestamp} | filters], else: filters
     
-    messages = Chat.list_messages(thread_id, filters)
+    messages = Messages.list_messages(thread_id, filters)
     
     formatted_messages = Enum.map(messages, fn msg ->
       %{
