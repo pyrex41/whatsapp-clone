@@ -754,11 +754,10 @@ final class DatabaseManager {
         do {
             // Fetch thread to get shard ID
             let threadRow = threadsTable.filter(threadId == id.uuidString)
-            guard let row = try db.pluck(threadRow) else {
+            guard let row = try db.pluck(threadRow),
+                  let shardId = try? row.get(threadDatabaseShardId) else {
                 throw DatabaseError.notFound("Thread: \(id)")
             }
-
-            let shardId = row[threadDatabaseShardId]
 
             // Delete thread record
             try db.run(threadRow.delete())
@@ -958,44 +957,61 @@ final class DatabaseManager {
                 .limit(limit)
 
             for row in try db.prepare(query) {
+                // Parse old_data safely
                 var oldData: [String: String]? = nil
-                if let oldDataStr = row[cdcOldData],
+                if let oldDataStr = try? row.get(cdcOldData),
                    let data = oldDataStr.data(using: .utf8) {
                     oldData = try? JSONDecoder().decode([String: String].self, from: data)
                 }
 
-                let newDataStr = row[cdcNewData]
-                guard let newDataJson = newDataStr.data(using: .utf8) else {
-                    print("⚠️ [CDC] Skipping log with invalid UTF-8 data")
+                // Parse new_data safely
+                guard let newDataStr = try? row.get(cdcNewData),
+                      let newDataJson = newDataStr.data(using: .utf8) else {
+                    print("⚠️ [CDC] Skipping log with invalid new_data")
                     continue
                 }
-                let newData = try JSONDecoder().decode([String: String].self, from: newDataJson)
 
+                guard let newData = try? JSONDecoder().decode([String: String].self, from: newDataJson) else {
+                    print("⚠️ [CDC] Skipping log with invalid JSON in new_data")
+                    continue
+                }
+
+                // Parse changed_fields safely
                 var changedFields: [String]? = nil
-                if let fieldsStr = row[cdcChangedFields],
+                if let fieldsStr = try? row.get(cdcChangedFields),
                    let data = fieldsStr.data(using: .utf8) {
                     changedFields = try? JSONDecoder().decode([String].self, from: data)
                 }
 
-                // Parse CDC log (id is String, not UUID - backend uses MD5 hashes)
-                guard let recordId = UUID(uuidString: row[cdcRecordId]),
-                      let operation = CDCLog.CDCOperation(rawValue: row[cdcOperation]) else {
-                    print("⚠️ [CDC] Skipping invalid CDC log: id=\(row[cdcId]), recordId=\(row[cdcRecordId]), operation=\(row[cdcOperation])")
+                // Parse CDC log safely (all force unwraps removed)
+                guard let logId = try? row.get(cdcId),
+                      let tableName = try? row.get(cdcTableName),
+                      let recordIdStr = try? row.get(cdcRecordId),
+                      let recordId = UUID(uuidString: recordIdStr),
+                      let operationStr = try? row.get(cdcOperation),
+                      let operation = CDCLog.CDCOperation(rawValue: operationStr),
+                      let timestamp = try? row.get(cdcTimestamp),
+                      let createdAt = try? row.get(cdcCreatedAt) else {
+                    print("⚠️ [CDC] Skipping invalid CDC log row")
                     continue
                 }
 
+                // Parse optional userId and deviceId safely
+                let userId = (try? row.get(cdcUserId))?.flatMap { UUID(uuidString: $0) }
+                let deviceId = (try? row.get(cdcDeviceId))?.flatMap { UUID(uuidString: $0) }
+
                 let log = CDCLog(
-                    id: row[cdcId],  // Use string directly, not UUID
-                    tableName: row[cdcTableName],
+                    id: logId,
+                    tableName: tableName,
                     recordId: recordId,
                     operation: operation,
                     oldData: oldData,
                     newData: newData,
                     changedFields: changedFields,
-                    userId: row[cdcUserId].flatMap { UUID(uuidString: $0) },
-                    deviceId: row[cdcDeviceId].flatMap { UUID(uuidString: $0) },
-                    timestamp: row[cdcTimestamp],
-                    createdAt: row[cdcCreatedAt]
+                    userId: userId,
+                    deviceId: deviceId,
+                    timestamp: timestamp,
+                    createdAt: createdAt
                 )
                 logs.append(log)
             }
