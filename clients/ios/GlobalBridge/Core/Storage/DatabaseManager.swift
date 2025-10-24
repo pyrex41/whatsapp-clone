@@ -531,15 +531,20 @@ final class DatabaseManager {
 
     /// Fetch all threads
     func fetchThreads() async throws -> [Thread] {
+        print("📋 [FETCH_THREADS] Starting")
         try await ensureMainConnection()
         guard let db = mainConnection else {
             throw DatabaseError.connectionFailed("Main connection not available")
         }
 
+        print("📋 [FETCH_THREADS] Got main DB connection")
+
         do {
             var threads: [Thread] = []
+            print("📋 [FETCH_THREADS] About to prepare query")
 
             for row in try db.prepare(threadsTable.order(threadLastMessageAt.desc)) {
+                print("📋 [FETCH_THREADS] Processing row")
                 // Safely parse thread data
                 guard let idStr = try? row.get(threadId),
                       let id = UUID(uuidString: idStr),
@@ -565,8 +570,10 @@ final class DatabaseManager {
                     updatedAt: updatedAt
                 )
                 threads.append(thread)
+                print("📋 [FETCH_THREADS] Successfully created thread: \(thread.id)")
             }
 
+            print("📋 [FETCH_THREADS] Returning \(threads.count) threads")
             return threads
         } catch {
             throw DatabaseError.queryFailed("Threads: \(error.localizedDescription)")
@@ -632,11 +639,14 @@ final class DatabaseManager {
 
     /// Create thread locally only (used during sync)
     func createThreadLocally(_ thread: Thread) async throws {
+        print("🔧 [CREATE_THREAD] Starting for thread: \(thread.id)")
         try await ensureMainConnection()
         guard let db = mainConnection else {
             throw DatabaseError.connectionFailed("Main connection not available")
         }
-        
+
+        print("🔧 [CREATE_THREAD] Got main DB connection")
+
         let insert = threadsTable.insert(
             threadId <- thread.id.uuidString,
             threadType <- thread.threadType.rawValue,
@@ -649,9 +659,14 @@ final class DatabaseManager {
             threadCreatedAt <- thread.createdAt,
             threadUpdatedAt <- thread.updatedAt
         )
-        
+
+        print("🔧 [CREATE_THREAD] About to insert into main DB")
         try db.run(insert)
+        print("🔧 [CREATE_THREAD] Inserted into main DB successfully")
+
+        print("🔧 [CREATE_THREAD] About to get thread database")
         _ = try await getThreadDatabase(shardId: thread.databaseShardId)
+        print("🔧 [CREATE_THREAD] Got thread database successfully")
     }
 
     /// Clear all threads from database
