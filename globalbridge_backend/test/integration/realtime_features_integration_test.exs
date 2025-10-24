@@ -13,29 +13,31 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
 
   alias GlobalbridgeBackendWeb.{UserSocket, Presence}
   alias GlobalbridgeBackend.{Repo, Chat}
-  alias GlobalbridgeBackend.Schemas.{Thread, ThreadParticipant, User, DeviceToken}
+  alias GlobalbridgeBackend.Schemas.{Thread, ThreadParticipant, User, Device}
 
   setup do
     # Create a realistic multi-user scenario
     users =
       Enum.map(1..4, fn i ->
-        Repo.insert!(%User{
-          id: Ecto.UUID.generate(),
-          username: "user#{i}",
-          email: "user#{i}@test.com",
-          phone: "+123456789#{i}",
-          is_online: false
-        })
+        Repo.insert!(
+          User.create_changeset(%User{}, %{
+            username: "user#{i}",
+            email: "user#{i}@test.com",
+            phone_number: "+123456789#{i}"
+          })
+        )
       end)
 
     [user1, user2, user3, user4] = users
 
-    # Register device tokens for push notifications
+    # Register devices for push notifications
     for user <- [user2, user3, user4] do
-      Repo.insert!(%DeviceToken{
+      Repo.insert!(%Device{
         user_id: user.id,
-        token: "APNS_TOKEN_#{user.id}",
+        device_id: "DEVICE_#{user.id}",
+        device_name: "iPhone #{user.username}",
         device_type: "ios",
+        push_token: "APNS_TOKEN_#{user.id}",
         is_active: true
       })
     end
@@ -67,6 +69,9 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
            user2: user2,
            user3: user3
          } do
+      # Bind user IDs for pattern matching
+      user1_id = user1.id
+      user2_id = user2.id
       # User1 connects (online)
       {:ok, socket1} = connect(UserSocket, %{"token" => "user:#{user1.id}"})
       {:ok, _, socket1} = subscribe_and_join(socket1, "thread:#{thread.id}", %{})
@@ -90,34 +95,34 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
       push(socket1, "typing", %{"is_typing" => true})
 
       # User2 receives typing indicator
-      assert_broadcast "user_typing", %{
-        user_id: ^user1.id,
+      assert_broadcast("user_typing", %{
+        user_id: ^user1_id,
         is_typing: true
-      }
+      })
 
       # User1 sends message
       ref = push(socket1, "new_message", %{"content" => "Hello everyone!"})
-      assert_reply ref, :ok, %{id: message_id}
+      assert_reply(ref, :ok, %{id: message_id})
 
       # User2 receives message broadcast
-      assert_broadcast "new_message", %{
+      assert_broadcast("new_message", %{
         id: ^message_id,
         content: "Hello everyone!",
-        sender_id: ^user1.id
-      }
+        sender_id: ^user1_id
+      })
 
       # User1 stops typing (implicitly after sending)
       push(socket1, "typing", %{"is_typing" => false})
-      assert_broadcast "user_typing", %{is_typing: false}
+      assert_broadcast("user_typing", %{is_typing: false})
 
       # User2 marks message as read
       push(socket2, "mark_read", %{"message_id" => message_id})
 
       # User1 receives read receipt
-      assert_broadcast "message_read", %{
-        user_id: ^user2.id,
+      assert_broadcast("message_read", %{
+        user_id: ^user2_id,
         message_id: ^message_id
-      }
+      })
 
       # Verify notification was triggered for offline user (User3)
       # This would be verified by checking notification service logs
@@ -132,6 +137,10 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
       user3: user3,
       user4: user4
     } do
+      # Bind user IDs for pattern matching
+      user1_id = user1.id
+      user2_id = user2.id
+      user4_id = user4.id
       # All users connect
       {:ok, socket1} = connect(UserSocket, %{"token" => "user:#{user1.id}"})
       {:ok, _, socket1} = subscribe_and_join(socket1, "thread:#{thread.id}", %{})
@@ -153,37 +162,37 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
       push(socket2, "typing", %{"is_typing" => true})
 
       # Should receive both typing indicators
-      assert_broadcast "user_typing", %{user_id: ^user1.id}
-      assert_broadcast "user_typing", %{user_id: ^user2.id}
+      assert_broadcast("user_typing", %{user_id: ^user1_id})
+      assert_broadcast("user_typing", %{user_id: ^user2_id})
 
       # User3 sends a message
       ref = push(socket3, "new_message", %{"content" => "Check this out!"})
-      assert_reply ref, :ok, %{id: message_id}
+      assert_reply(ref, :ok, %{id: message_id})
 
       # All users receive the message
-      assert_broadcast "new_message", %{id: ^message_id}
+      assert_broadcast("new_message", %{id: ^message_id})
 
       # User1 and User2 both mark as read
       push(socket1, "mark_read", %{"message_id" => message_id})
       push(socket2, "mark_read", %{"message_id" => message_id})
 
       # User3 receives both read receipts
-      assert_broadcast "message_read", %{user_id: ^user1.id}
-      assert_broadcast "message_read", %{user_id: ^user2.id}
+      assert_broadcast("message_read", %{user_id: ^user1_id})
+      assert_broadcast("message_read", %{user_id: ^user2_id})
 
       # User4 joins late
       {:ok, socket4} = connect(UserSocket, %{"token" => "user4:#{user4.id}"})
       {:ok, _, _socket4} = subscribe_and_join(socket4, "thread:#{thread.id}", %{})
 
       # Should receive presence_diff
-      assert_broadcast "presence_diff", %{joins: joins}
-      assert Map.has_key?(joins, user4.id)
+      assert_broadcast("presence_diff", %{joins: joins})
+      assert Map.has_key?(joins, user4_id)
 
       # User1 disconnects
       close(socket1)
 
       # Should receive presence_diff for leave
-      assert_broadcast "presence_diff", %{leaves: leaves}
+      assert_broadcast("presence_diff", %{leaves: leaves})
       assert Map.has_key?(leaves, user1.id)
     end
 
@@ -192,6 +201,9 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
       user1: user1,
       user2: user2
     } do
+      # Bind user IDs for pattern matching
+      user1_id = user1.id
+      user2_id = user2.id
       # User1 connects (online)
       {:ok, socket1} = connect(UserSocket, %{"token" => "user:#{user1.id}"})
       {:ok, _, socket1} = subscribe_and_join(socket1, "thread:#{thread.id}", %{})
@@ -200,7 +212,7 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
 
       # User1 sends message
       ref = push(socket1, "new_message", %{"content" => "Are you there?"})
-      assert_reply ref, :ok, %{id: message_id}
+      assert_reply(ref, :ok, %{id: message_id})
 
       # Wait for async notification processing
       :timer.sleep(200)
@@ -210,17 +222,17 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
       {:ok, _, socket2} = subscribe_and_join(socket2, "thread:#{thread.id}", %{})
 
       # User1 receives presence update
-      assert_broadcast "presence_diff", %{joins: joins}
-      assert Map.has_key?(joins, user2.id)
+      assert_broadcast("presence_diff", %{joins: joins})
+      assert Map.has_key?(joins, user2_id)
 
       # User2 marks message as read
       push(socket2, "mark_read", %{"message_id" => message_id})
 
       # User1 receives read receipt
-      assert_broadcast "message_read", %{
-        user_id: ^user2.id,
+      assert_broadcast("message_read", %{
+        user_id: ^user2_id,
         message_id: ^message_id
-      }
+      })
     end
   end
 
@@ -251,7 +263,7 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
 
           # Send message
           ref = push(socket, "new_message", %{"content" => "Message #{i}"})
-          assert_reply ref, :ok, %{id: message_id}, 100
+          assert_reply(ref, :ok, %{id: message_id}, 100)
 
           # Stop typing
           push(socket, "typing", %{"is_typing" => false})
@@ -311,7 +323,7 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
 
       # User1 starts typing
       push(socket1, "typing", %{"is_typing" => true})
-      assert_broadcast "user_typing", %{is_typing: true}
+      assert_broadcast("user_typing", %{is_typing: true})
 
       # Simulate message with invalid content that might fail
       # System should handle gracefully
@@ -319,7 +331,7 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
 
       # Typing should eventually stop even if message fails
       push(socket1, "typing", %{"is_typing" => false})
-      assert_broadcast "user_typing", %{is_typing: false}
+      assert_broadcast("user_typing", %{is_typing: false})
     end
 
     test "synchronizes state after reconnection", %{
@@ -332,7 +344,7 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
 
       # User1 sends message
       ref = push(socket1, "new_message", %{"content" => "Before disconnect"})
-      assert_reply ref, :ok, %{id: message_id1}
+      assert_reply(ref, :ok, %{id: message_id1})
 
       :timer.sleep(100)
 
@@ -346,7 +358,7 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
       {:ok, _, socket2} = subscribe_and_join(socket2, "thread:#{thread.id}", %{})
 
       ref = push(socket2, "new_message", %{"content" => "While you were gone"})
-      assert_reply ref, :ok, %{id: _message_id2}
+      assert_reply(ref, :ok, %{id: _message_id2})
 
       # User1 reconnects
       {:ok, socket1_new} = connect(UserSocket, %{"token" => "user:#{user1.id}"})
@@ -374,13 +386,13 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
 
       # User1 starts typing
       push(socket1, "typing", %{"is_typing" => true})
-      assert_broadcast "user_typing", %{is_typing: true}
+      assert_broadcast("user_typing", %{is_typing: true})
 
       # User1 disconnects abruptly
       close(socket1)
 
       # Should receive presence leave
-      assert_broadcast "presence_diff", %{leaves: leaves}
+      assert_broadcast("presence_diff", %{leaves: leaves})
       assert Map.has_key?(leaves, user1.id)
 
       # Typing state should be implicitly cleared
@@ -402,7 +414,7 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
       message_ids =
         Enum.map(1..3, fn i ->
           ref = push(socket1, "new_message", %{"content" => "Message #{i}"})
-          assert_reply ref, :ok, %{id: message_id}
+          assert_reply(ref, :ok, %{id: message_id})
           message_id
         end)
 
@@ -420,7 +432,7 @@ defmodule GlobalbridgeBackend.Integration.RealtimeFeaturesIntegrationTest do
 
       # User1 receives all read receipts
       Enum.each(message_ids, fn message_id ->
-        assert_broadcast "message_read", %{message_id: ^message_id}, 200
+        assert_broadcast("message_read", %{message_id: ^message_id}, 200)
       end)
     end
   end

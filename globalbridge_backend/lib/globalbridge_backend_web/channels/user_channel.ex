@@ -179,20 +179,8 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
     end
   end
 
-  # Handle incoming thread_created broadcasts
-  @impl true
-  def handle_out("thread_created", payload, socket) do
-    Logger.debug(
-      "📨 [USER_CHANNEL] Pushing thread_created event to user: #{socket.assigns.user_id}"
-    )
-
-    push(socket, "thread_created", payload)
-    {:noreply, socket}
-  end
-
   # Contact management handlers
 
-  @doc "Search for users by email to add as contact"
   @impl true
   def handle_in("search_users", %{"query" => query}, socket) do
     user_id = socket.assigns.user_id
@@ -214,7 +202,6 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
     {:reply, {:ok, %{users: filtered_results}}, socket}
   end
 
-  @doc "Search existing contacts"
   @impl true
   def handle_in("search_contacts", %{"query" => query}, socket) do
     user_id = socket.assigns.user_id
@@ -225,7 +212,6 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
     {:reply, {:ok, %{contacts: format_contacts(contacts)}}, socket}
   end
 
-  @doc "Get all contacts"
   @impl true
   def handle_in("get_contacts", _payload, socket) do
     user_id = socket.assigns.user_id
@@ -236,7 +222,6 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
     {:reply, {:ok, %{contacts: format_contacts(contacts)}}, socket}
   end
 
-  @doc "Sync contacts (get changes since timestamp)"
   @impl true
   def handle_in("sync_contacts", %{"since" => since_timestamp}, socket) do
     user_id = socket.assigns.user_id
@@ -248,7 +233,6 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
     {:reply, {:ok, %{contacts: format_contacts(contacts), synced_at: DateTime.utc_now()}}, socket}
   end
 
-  @doc "Add contact"
   @impl true
   def handle_in("add_contact", %{"contact_user_id" => contact_user_id} = payload, socket) do
     user_id = socket.assigns.user_id
@@ -266,7 +250,6 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
     end
   end
 
-  @doc "Remove contact"
   @impl true
   def handle_in("remove_contact", %{"contact_user_id" => contact_user_id}, socket) do
     user_id = socket.assigns.user_id
@@ -281,6 +264,17 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
         Logger.warning("⚠️  [USER_CHANNEL] Contact not found for removal")
         {:reply, {:error, %{reason: "Contact not found"}}, socket}
     end
+  end
+
+  # Handle incoming thread_created broadcasts
+  @impl true
+  def handle_out("thread_created", payload, socket) do
+    Logger.debug(
+      "📨 [USER_CHANNEL] Pushing thread_created event to user: #{socket.assigns.user_id}"
+    )
+
+    push(socket, "thread_created", payload)
+    {:noreply, socket}
   end
 
   # Private helper functions

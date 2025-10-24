@@ -110,7 +110,38 @@
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
-
+/* Begin PBXTargetDependency section */
+		1B81328F2EA70FB500583728 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1B81327A2EA70FB200583728 /* GlobalBridge */;
+			targetProxy = 1B8132922EA70FB500583728 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */		1B81328A2EA70FB500583728 /* GlobalBridgeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1B81328B2EA70FB500583728 /* Build configuration list for PBXNativeTarget "GlobalBridgeTests" */;
+			buildPhases = (
+				1B81328C2EA70FB500583728 /* Sources */,
+				1B81328D2EA70FB500583728 /* Frameworks */,
+				1B81328E2EA70FB500583728 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1B81328F2EA70FB500583728 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				1B8132902EA70FB500583728 /* Tests */,
+			);
+			name = GlobalBridgeTests;
+			packageProductDependencies = (
+				1B8132C02EA7137A00583728 /* SwiftPhoenixClient */,
+				1B8132C32EA7138E00583728 /* SQLite */,
+				1B40AF8D2EA83DEE0090F1F8 /* Auth0 */,
+			);
+			productName = GlobalBridgeTests;
+			productReference = 1B8132912EA70FB500583728 /* GlobalBridgeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* Begin PBXProject section */
 		1B8132732EA70FB200583728 /* Project object */ = {
 			isa = PBXProject;

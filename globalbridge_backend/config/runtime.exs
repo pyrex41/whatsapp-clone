@@ -119,6 +119,84 @@ if config_env() == :prod do
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
 
+# AI Configuration (OpenAI, Anthropic, etc.)
+if config_env() in [:dev, :prod] do
+  # OpenAI API Key for embeddings and LLM calls
+  openai_api_key = System.get_env("OPENAI_API_KEY")
+  anthropic_api_key = System.get_env("ANTHROPIC_API_KEY")
+
+  # Configure OpenAI
+  if openai_api_key do
+    openai_config = [
+      api_key: openai_api_key,
+      organization: System.get_env("OPENAI_ORGANIZATION"),
+      http_options: [recv_timeout: 30_000]
+    ]
+
+    # Add custom URL if provided
+    openai_url = System.get_env("OPENAI_URL")
+
+    if openai_url do
+      openai_config = Keyword.put(openai_config, :url, openai_url)
+    end
+
+    config :openai, openai_config
+  end
+
+  # Configure Anthropic (optional)
+  if anthropic_api_key do
+    config :anthropic,
+      api_key: anthropic_api_key
+  end
+
+  # Warn about missing AI API keys in development
+  if config_env() == :dev do
+    unless openai_api_key do
+      IO.warn("""
+      ⚠️  Missing OpenAI API key: OPENAI_API_KEY
+      AI features will not work without this key.
+      Get one from: https://platform.openai.com/api-keys
+      """)
+    end
+  end
+
+  # Require OpenAI API key in production
+  if config_env() == :prod do
+    unless openai_api_key do
+      raise """
+      environment variable OPENAI_API_KEY is required in production.
+      Get your API key from: https://platform.openai.com/api-keys
+      """
+    end
+  end
+end
+
+# Oban Background Job Configuration
+oban_config = [
+  engine: Oban.Engines.Basic,
+  queues: [
+    default: 10,
+    embeddings: 5,
+    ai_processing: 3
+  ],
+  repo: GlobalbridgeBackend.Repo
+]
+
+# Add cron jobs only for dev and prod environments
+oban_config =
+  if config_env() in [:dev, :prod] do
+    Keyword.put(oban_config, :plugins, [
+      {Oban.Plugins.Cron,
+       crontab: [
+         {"0 * * * *", GlobalbridgeBackend.AI.Jobs.CleanupCacheJob}
+       ]}
+    ])
+  else
+    oban_config
+  end
+
+config :globalbridge_backend, Oban, oban_config
+
 # Auth0 Configuration (for all environments that use Auth0)
 if config_env() in [:dev, :prod] do
   # Validate and configure Auth0 environment variables

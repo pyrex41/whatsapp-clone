@@ -53,6 +53,10 @@ defmodule GlobalbridgeBackend.Chat do
         |> case do
           {:ok, message} ->
             CDCLogger.log_message_insert(thread, message, user_id: message.sender_id)
+
+            # Enqueue embedding generation job for the new message (include shard id)
+            enqueue_embedding_job(thread.database_shard_id, thread_id, message.id)
+
             {:ok, message}
 
           error ->
@@ -254,12 +258,21 @@ defmodule GlobalbridgeBackend.Chat do
     end
   end
 
+  @doc """
+  Enqueue an embedding generation job for a new message.
+  """
+  def enqueue_embedding_job(shard_id, thread_id, message_id) do
+    if Mix.env() != :test do
+      %{shard_id: shard_id, thread_id: thread_id, message_id: message_id}
+      |> GlobalbridgeBackend.AI.Jobs.GenerateEmbeddingJob.new()
+      |> Oban.insert()
+    end
+  end
+
   # Private helpers
 
-  defp get_shard_repo(_shard_id) do
-    # For now, use the main Repo
-    # TODO: Implement actual per-thread database sharding
-    # This would return a dynamically configured Repo for the specific shard
-    Repo
+  defp get_shard_repo(shard_id) do
+    # Route to per-thread SQLite repository managed by ThreadRepo
+    GlobalbridgeBackend.Repos.ThreadRepo.get_repo(shard_id)
   end
 end
