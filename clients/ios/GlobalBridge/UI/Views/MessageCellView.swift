@@ -64,54 +64,38 @@ struct MessageCellView: View {
     }
 }
 
-/// Read receipt indicator showing message delivery status
+/// Legacy read receipt indicator - now using ReadReceiptIndicator from GlobalBridge
 struct ReadReceiptIndicatorView: View {
     let status: PhoenixMessage.MessageStatus
     let readCount: Int
     let totalParticipants: Int
+    let messageId: String?
+
+    init(status: PhoenixMessage.MessageStatus, readCount: Int, totalParticipants: Int, messageId: String? = nil) {
+        self.status = status
+        self.readCount = readCount
+        self.totalParticipants = totalParticipants
+        self.messageId = messageId
+    }
 
     var body: some View {
-        HStack(spacing: 2) {
-            Image(systemName: iconName)
-                .font(.caption2)
-                .foregroundColor(iconColor)
-
-            // Show read count for group chats
-            if totalParticipants > 2 && readCount > 0 {
-                Text("\(readCount)")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
-        }
+        // Use the new ReadReceiptIndicator component
+        ReadReceiptIndicator(
+            messageId: messageId ?? "",
+            status: convertStatus(status),
+            readCount: readCount,
+            totalParticipants: totalParticipants,
+            showDetailOnTap: messageId != nil
+        )
     }
 
-    private var iconName: String {
-        switch status {
-        case .sending:
-            return "clock"
-        case .sent:
-            return "checkmark"
-        case .delivered:
-            return "checkmark.circle"
-        case .read:
-            return "checkmark.circle.fill"
-        case .failed:
-            return "exclamationmark.circle"
-        }
-    }
-
-    private var iconColor: Color {
-        switch status {
-        case .sending:
-            return .secondary
-        case .sent:
-            return .secondary
-        case .delivered:
-            return .secondary
-        case .read:
-            return .blue
-        case .failed:
-            return .red
+    private func convertStatus(_ phoenixStatus: PhoenixMessage.MessageStatus) -> Message.MessageStatus {
+        switch phoenixStatus {
+        case .sending: return .pending
+        case .sent: return .sent
+        case .delivered: return .delivered
+        case .read: return .read
+        case .failed: return .failed
         }
     }
 }

@@ -6972,7 +6972,7 @@
         "id": "11",
         "title": "Implement Translation Comparison UI",
         "description": "Enhance existing MessageCellView.swift with AI features: translation overlay, cultural notes display, translate context menu action, loading states.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "9"
         ],
@@ -7023,13 +7023,14 @@
         ],
         "complexity": 4,
         "recommendedSubtasks": 3,
-        "expansionPrompt": "Divide into subtasks for building the comparison view, integrating feedback service, and handling voting buttons."
+        "expansionPrompt": "Divide into subtasks for building the comparison view, integrating feedback service, and handling voting buttons.",
+        "updatedAt": "2025-10-24T21:36:07.688Z"
       },
       {
         "id": "12",
         "title": "Add Rate Limiting and Error Handling",
         "description": "Implement simple auto-retry for rate limiting on 429 errors and basic error handling for AI services.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "6"
         ],
@@ -7074,7 +7075,8 @@
         ],
         "complexity": 5,
         "recommendedSubtasks": 3,
-        "expansionPrompt": "Split into subtasks for creating rate limit handler, defining error enums, and integrating banners for errors."
+        "expansionPrompt": "Split into subtasks for creating rate limit handler, defining error enums, and integrating banners for errors.",
+        "updatedAt": "2025-10-24T21:36:09.018Z"
       },
       {
         "id": "13",
@@ -7087,7 +7089,7 @@
           "6",
           "5"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -7114,7 +7116,8 @@
         ],
         "complexity": 4,
         "recommendedSubtasks": 2,
-        "expansionPrompt": "Break into subtasks for creating the summary view and integrating with AI service and feature flags."
+        "expansionPrompt": "Break into subtasks for creating the summary view and integrating with AI service and feature flags.",
+        "updatedAt": "2025-10-24T21:36:10.302Z"
       },
       {
         "id": "14",
@@ -7127,7 +7130,7 @@
           "6",
           "5"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -7166,7 +7169,8 @@
         ],
         "complexity": 5,
         "recommendedSubtasks": 3,
-        "expansionPrompt": "Divide into subtasks for building the search view, implementing results highlighting, and adding search options."
+        "expansionPrompt": "Divide into subtasks for building the search view, implementing results highlighting, and adding search options.",
+        "updatedAt": "2025-10-24T21:36:11.650Z"
       },
       {
         "id": "15",
@@ -7179,7 +7183,7 @@
           "6",
           "5"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -7218,7 +7222,8 @@
         ],
         "complexity": 4,
         "recommendedSubtasks": 3,
-        "expansionPrompt": "Split into subtasks for creating the extraction view, displaying tasks, and handling completion actions."
+        "expansionPrompt": "Split into subtasks for creating the extraction view, displaying tasks, and handling completion actions.",
+        "updatedAt": "2025-10-24T21:36:13.064Z"
       },
       {
         "id": "16",
@@ -7226,13 +7231,14 @@
         "description": "Add support for editing and deleting messages in the app, including real-time updates via Phoenix channels, UI enhancements for context menus and editing sheets, and database schema modifications for soft deletes and edit tracking.",
         "details": "Update PhoenixChannelManager to handle 'edit_message' and 'delete_message' events by sending them to the appropriate channel, and listen for 'message_edited' and 'message_deleted' broadcast events to update the local message state. Modify the Message model to include 'isEdited' and 'isDeleted' boolean fields, ensuring 'isDeleted' implements soft deletes where messages are marked deleted but not removed from the database. Update the database schema in DatabaseManager to add these fields to the messages table, integrating with the existing CDC sync to propagate changes bidirectionally. Enhance MessageCellView to include an Edit/Delete context menu option, conditionally shown based on message ownership and feature flags. Create a new EditMessageView as a SwiftUI sheet that allows users to modify message text, validate input, and send the edit via PhoenixChannelManager. Ensure the UI handles loading states during edit/delete operations and updates the message display to reflect edited status (e.g., with a subtle 'edited' indicator). Integrate with the offline sync system to queue edits/deletes when offline and sync on reconnection. Consider edge cases like editing a message that's already deleted or handling conflicts in CDC. Use the existing AuthManager for user permissions and ensure edits preserve message metadata like timestamps.",
         "testStrategy": "Unit test PhoenixChannelManager for sending edit_message and delete_message events, and for handling incoming message_edited and message_deleted broadcasts, verifying message model updates. Integration test with a test Phoenix server to simulate real-time edits and deletes, ensuring UI updates correctly. UI tests for MessageCellView context menu display and actions, EditMessageView sheet presentation, input validation, and message rendering with edited indicators. Database tests for schema updates, soft delete behavior, and CDC sync of edited/deleted messages. Test offline scenarios by queuing edits/deletes and verifying sync on reconnection. Mock Auth0 for permission checks and feature flags for conditional UI elements.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "3",
           "4"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-10-24T21:36:14.375Z"
       },
       {
         "id": "17",
@@ -7240,12 +7246,13 @@
         "description": "Enhance MessageCellView with checkmark indicators for sent, delivered, and read statuses using different icons, add a 'Who Read This?' context menu option, and create ReadReceiptDetailView to display who read the message and when.",
         "details": "Update MessageCellView.swift to include visual indicators for message read receipts. Implement three distinct checkmark icons: a single checkmark for sent, double checkmarks for delivered, and blue double checkmarks for read. Position these indicators in the bottom-right corner of the message bubble, ensuring they are visible and unobtrusive. Add a new 'Who Read This?' option to the existing context menu in MessageCellView, which should trigger navigation to a new ReadReceiptDetailView. Create ReadReceiptDetailView as a SwiftUI view that fetches and displays a list of users who have read the message, including their names, avatars, and timestamps of when they read it. Integrate with Phoenix channels to receive real-time updates on read receipts; subscribe to the appropriate channel for the message thread and update the UI reactively. Handle cases where read receipts are not available (e.g., for older messages or group chats with privacy settings). Ensure the UI is responsive and accessible, with proper loading states while fetching receipt data. Consider edge cases like messages sent by the user themselves (show receipts for others) and messages in channels where receipts are disabled. Use Combine or SwiftUI's state management to bind receipt data to the views. No backend changes are needed as support is already in place.",
         "testStrategy": "Conduct UI tests to verify checkmark indicators appear correctly for sent (single checkmark), delivered (double checkmarks), and read (blue double checkmarks) statuses in MessageCellView, using snapshot tests for different message states. Test the context menu integration by simulating taps on 'Who Read This?' and ensuring it navigates to ReadReceiptDetailView. In ReadReceiptDetailView, perform UI tests to check that the list of readers displays names, avatars, and timestamps accurately, with proper sorting (e.g., by read time). Use mock data for Phoenix channel subscriptions to test real-time updates, verifying that the UI refreshes when new receipts are received. Integration tests should cover fetching receipt data from the backend via channels, handling errors, and edge cases like no receipts or disabled features. Accessibility tests to ensure indicators and menu options are screen-reader friendly.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "10"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-10-24T21:36:15.762Z"
       },
       {
         "id": "18",
@@ -7253,19 +7260,20 @@
         "description": "Implement WebSocket integration for user channel to handle contact management, thread creation, user search, and app bootstrap on launch, integrating with the existing PhoenixChannelManager to enable real-time contacts, new threads/DMs, cross-platform user search, and fast app initialization.",
         "details": "Extend the PhoenixChannelManager to join a dedicated 'user' channel for app-level operations, handling events such as contact updates, thread creation, user search results, and bootstrap data (e.g., initial user state, contacts list). Implement event handlers for incoming broadcasts like 'contact_added', 'contact_removed', 'thread_created', 'user_search_results', and 'bootstrap_complete', updating local state accordingly. For UI integration, enhance ContactsView to display and manage contacts with real-time updates, including add/remove actions sent via the channel. Update NewThreadView to support creating new threads or DMs by sending 'create_thread' events with participants, and handle responses for thread ID assignment. Implement user search functionality with a search input that sends 'search_users' events and displays results in a list view, supporting cross-platform search with pagination if needed. For app bootstrap, on launch, join the user channel and request initial data via a 'bootstrap' event, populating local caches for contacts and user info to enable fast startup. Ensure integration with existing CDC offline sync (from Task 4) for persisting contact and thread data locally, and handle offline scenarios by queuing actions for when the channel reconnects. Reference docs/user-channel-explained.md for detailed event specifications, payload structures, and authentication requirements. Consider error handling for channel join failures, event timeouts, and rate limiting on search requests. Update any relevant models (e.g., User, Contact, Thread) to include fields for channel-sourced data, and ensure thread safety in PhoenixChannelManager as an actor.",
         "testStrategy": "Unit test PhoenixChannelManager extensions for joining the user channel, sending events (e.g., 'create_thread', 'search_users', 'bootstrap'), and handling incoming broadcasts, verifying state updates in mock scenarios. Integration test with a test Phoenix server to simulate real-time contact management, thread creation, user search, and bootstrap, ensuring UI updates correctly (e.g., ContactsView refreshes on contact events, NewThreadView receives thread IDs). UI test ContactsView for displaying contacts, handling add/remove actions, and real-time updates; test NewThreadView for thread creation flow and error states; test user search interface for input, results display, and pagination. End-to-end test app launch bootstrap, verifying initial data load and channel join without blocking UI. Test offline scenarios by simulating network disconnections, ensuring actions are queued and replayed on reconnection, integrating with CDC sync tests.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "3"
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2025-10-24T21:36:17.201Z"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-10-24T20:23:08.495Z",
+      "lastModified": "2025-10-24T21:36:17.203Z",
       "taskCount": 18,
-      "completedCount": 10,
+      "completedCount": 18,
       "tags": [
         "ai-front"
       ]

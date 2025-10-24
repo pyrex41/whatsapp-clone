@@ -233,10 +233,12 @@ struct MessageBubbleView: View {
 
             // Read receipt indicator (only for own messages)
             if isOwnMessage {
-                ReadReceiptIndicatorView(
+                ReadReceiptIndicator(
+                    messageId: message.id.uuidString,
                     status: message.status,
                     readCount: readCount,
-                    totalParticipants: totalParticipants
+                    totalParticipants: totalParticipants,
+                    showDetailOnTap: totalParticipants > 2
                 )
             }
         }
