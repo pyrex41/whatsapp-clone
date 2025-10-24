@@ -268,11 +268,14 @@ final class DatabaseManager {
             print("✅ Thread database created for shard: \(shardId)")
             print("🔧 [THREAD_DB] About to return connection (no caching)")
 
-            // Validate connection before returning
-            print("🔧 [THREAD_DB] Validating connection before return...")
+            // Force connection initialization and validate
+            print("🔧 [THREAD_DB] Forcing connection initialization...")
             do {
+                // Multiple validation queries to ensure connection is fully initialized
                 try connection.execute("SELECT 1")
-                print("🔧 [THREAD_DB] Connection validation successful")
+                try connection.execute("PRAGMA table_info(messages)")
+                try connection.execute("SELECT COUNT(*) FROM messages")
+                print("🔧 [THREAD_DB] Connection fully validated")
             } catch {
                 print("🔧 [THREAD_DB] Connection validation failed: \(error)")
                 throw DatabaseError.connectionFailed("Thread database connection invalid: \(error.localizedDescription)")
