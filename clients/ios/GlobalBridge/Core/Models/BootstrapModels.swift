@@ -196,4 +196,19 @@ nonisolated public struct UserSearchResponse: Codable, Sendable {
     }
 }
 
+/// Basic user info from fetch_messages response
+nonisolated public struct BasicUserInfo: Codable, Sendable {
+    public let id: String
+    public let username: String
+    public let displayName: String?
+    public let avatarUrl: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case username
+        case displayName = "display_name"
+        case avatarUrl = "avatar_url"
+    }
+}
+
 

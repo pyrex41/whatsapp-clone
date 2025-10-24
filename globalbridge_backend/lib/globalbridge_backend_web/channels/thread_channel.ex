@@ -226,6 +226,28 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
 
     messages = Messages.list_messages(thread_id, filters)
 
+    # Get unique sender IDs and fetch user info
+    sender_ids = messages |> Enum.map(& &1.sender_id) |> Enum.uniq()
+
+    users =
+      Enum.map(sender_ids, fn sender_id ->
+        case GlobalbridgeBackend.Repo.get(GlobalbridgeBackend.Schemas.User, sender_id) do
+          nil ->
+            nil
+
+          user ->
+            {sender_id,
+             %{
+               id: user.id,
+               username: user.username,
+               display_name: user.display_name,
+               avatar_url: user.avatar_url
+             }}
+        end
+      end)
+      |> Enum.reject(&is_nil/1)
+      |> Map.new()
+
     formatted_messages =
       Enum.map(messages, fn msg ->
         %{
@@ -241,10 +263,10 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
       end)
 
     Logger.info(
-      "✅ [FETCH] Returning #{length(formatted_messages)} messages for thread #{thread_id}"
+      "✅ [FETCH] Returning #{length(formatted_messages)} messages + #{map_size(users)} users for thread #{thread_id}"
     )
 
-    {:reply, {:ok, %{messages: formatted_messages}}, socket}
+    {:reply, {:ok, %{messages: formatted_messages, users: users}}, socket}
   end
 
   @impl true

@@ -999,8 +999,8 @@ public actor PhoenixChannelManager {
             }
     }
     
-    /// Fetch historical messages from backend
-    public func fetchMessages(conversationId: String, limit: Int = 50, before: Date? = nil) async throws -> [PhoenixMessage] {
+    /// Fetch historical messages from backend with user info
+    public func fetchMessages(conversationId: String, limit: Int = 50, before: Date? = nil) async throws -> (messages: [PhoenixMessage], users: [String: BasicUserInfo]) {
         guard let channel = channel(for: conversationId) else {
             throw PhoenixError.channelNotJoined
         }
@@ -1016,17 +1016,19 @@ public actor PhoenixChannelManager {
             channel.push("fetch_messages", payload: payload)
                 .receive("ok") { [weak self] response in
                     guard let self else {
-                        continuation.resume(returning: [])
+                        continuation.resume(returning: (messages: [], users: [:]))
                         return
                     }
                     
                     Task.detached {
                         guard let messages = response.payload["messages"] as? [[String: Any]] else {
-                            continuation.resume(returning: [])
+                            continuation.resume(returning: (messages: [], users: [:]))
                             return
                         }
                         
-                        print("✅ [FETCH_MESSAGES] Received \(messages.count) messages")
+                        let usersPayload = (response.payload["users"] as? [String: [String: Any]]) ?? [:]
+                        
+                        print("✅ [FETCH_MESSAGES] Received \(messages.count) messages + \(usersPayload.count) users")
                         
                         var phoenixMessages: [PhoenixMessage] = []
                         for msgPayload in messages {
@@ -1038,7 +1040,19 @@ public actor PhoenixChannelManager {
                             }
                         }
                         
-                        continuation.resume(returning: phoenixMessages)
+                        // Parse users
+                        var users: [String: BasicUserInfo] = [:]
+                        for (userId, userDict) in usersPayload {
+                            do {
+                                let data = try JSONSerialization.data(withJSONObject: userDict)
+                                let user = try JSONDecoder().decode(BasicUserInfo.self, from: data)
+                                users[userId] = user
+                            } catch {
+                                print("⚠️ [FETCH_MESSAGES] Failed to parse user \(userId): \(error)")
+                            }
+                        }
+                        
+                        continuation.resume(returning: (messages: phoenixMessages, users: users))
                     }
                 }
                 .receive("error") { message in

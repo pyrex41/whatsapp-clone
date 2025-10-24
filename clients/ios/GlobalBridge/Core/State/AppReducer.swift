@@ -61,8 +61,10 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             do {
                 // Step 1: Connect to Phoenix with authenticated token
                 print("🔌 [STARTUP] Connecting to Phoenix...")
+                send(.connectionStateChanged(.connecting))
                 try await environment.realtime.ensureConnection()
                 print("✅ [STARTUP] Phoenix connected")
+                send(.connectionStateChanged(.connected))
                 
                 // Step 2: Load user and threads from backend
                 print("📥 [STARTUP] Loading user and threads...")
@@ -714,13 +716,30 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         print("📥 [FETCH] Fetching historical messages from backend for thread: \(threadID)")
         state.chat.needsHistoricalFetch = false  // Clear flag
         
+        // Get participant IDs to populate user cache
+        let participantIds = state.chat.currentThread?.participantIds ?? []
+        
         return .run(priority: nil) { send in
             do {
-                let phoenixMessages = try await environment.realtime.fetchMessages(threadID, 100)
-                print("✅ [FETCH] Fetched \(phoenixMessages.count) messages from backend")
+                let result = try await environment.realtime.fetchMessages(threadID, 100)
+                print("✅ [FETCH] Fetched \(result.messages.count) messages + \(result.users.count) users from backend")
                 
-                // Store them locally
-                for phoenixMsg in phoenixMessages {
+                // Convert BasicUserInfo to CachedUserInfo and cache via action
+                let usersToCache = result.users.mapValues { userInfo in
+                    CachedUserInfo(
+                        id: userInfo.id,
+                        displayName: userInfo.displayName,
+                        username: userInfo.username,
+                        avatarUrl: userInfo.avatarUrl
+                    )
+                }
+                
+                if !usersToCache.isEmpty {
+                    send(.cacheUsers(usersToCache))
+                }
+                
+                // Store messages locally
+                for phoenixMsg in result.messages {
                     if let message = Message.fromPhoenix(phoenixMsg) {
                         try? await environment.database.storeMessage(message)
                         print("💾 [FETCH] Stored message: \(message.id)")
@@ -734,5 +753,16 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 print("⚠️ [FETCH] Backend fetch failed: \(error.localizedDescription)")
             }
         }
+    
+    case let .connectionStateChanged(newState):
+        state.connectionState = newState
+        return .none
+    
+    case let .cacheUsers(users):
+        for (userId, userInfo) in users {
+            state.userCache[userId] = userInfo
+            print("👤 [CACHE] Added user: \(userId) → \(userInfo.effectiveDisplayName)")
+        }
+        return .none
     }
 }

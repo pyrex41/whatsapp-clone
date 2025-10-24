@@ -43,4 +43,10 @@ enum AppAction {
     
     // Historical message fetch
     case fetchHistoricalMessages(Thread.ID)
+    
+    // Connection state
+    case connectionStateChanged(ConnectionState)
+    
+    // User cache
+    case cacheUsers([String: CachedUserInfo])
 }
