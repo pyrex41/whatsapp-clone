@@ -119,6 +119,8 @@ extension AppEnvironment {
         let initializationTask = Task { @MainActor in
             try await databaseManager.initialize()
             try await databaseManager.seedSampleDataIfNeeded()
+            // One-off CDC date repair across all shards
+            await databaseManager.performOneOffCDCDatesMigration()
         }
 
         let phoenixConfig = PhoenixConfig.current  // Auto-selects dev/prod based on build config

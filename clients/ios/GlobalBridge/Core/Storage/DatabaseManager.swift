@@ -169,6 +169,42 @@ final class DatabaseManager {
         }
     }
 
+    // MARK: - One-off maintenance
+
+    /// One-off CDC date migration over all existing thread shards. Safe to call multiple times.
+    func performOneOffCDCDatesMigration() async {
+        let flagKey = "CDCDateMigration_2025_10_done"
+        if UserDefaults.standard.bool(forKey: flagKey) {
+            return
+        }
+
+        let dirPath = databasesDirectory.path
+        guard let entries = try? fileManager.contentsOfDirectory(atPath: dirPath) else {
+            return
+        }
+
+        var processed = 0
+        var migrated = 0
+        for entry in entries where entry.hasPrefix("thread_") && entry.hasSuffix(".db") {
+            processed += 1
+            let fullPath = (dirPath as NSString).appendingPathComponent(entry)
+            do {
+                let conn = try Connection(fullPath)
+                conn.busyTimeout = 5.0
+                try? conn.execute("PRAGMA journal_mode=WAL")
+                try? conn.execute("PRAGMA foreign_keys=ON")
+                try migrateCDCDatesIfNeeded(in: conn)
+                migrated += 1
+            } catch {
+                // Skip this shard, continue with others
+                print("ℹ️ [CDC] Skipping shard at \(entry): \(error)")
+            }
+        }
+
+        print("🛠️ [CDC] One-off migration complete. Shards processed=\(processed), migrated=\(migrated)")
+        UserDefaults.standard.set(true, forKey: flagKey)
+    }
+
     private func createMainTables() async throws {
         try await ensureMainConnection()
         guard let db = mainConnection else {
