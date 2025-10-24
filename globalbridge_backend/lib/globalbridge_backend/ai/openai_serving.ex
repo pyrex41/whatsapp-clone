@@ -71,26 +71,4 @@ defmodule GlobalbridgeBackend.AI.OpenAIServing do
         {:error, reason}
     end
   end
-
-    case OpenAI.chat_completion(params) do
-      {:ok,
-       %{"choices" => [%{"message" => %{"content" => content, "tool_calls" => tool_calls}} | _]}}
-      when is_list(tool_calls) ->
-        Logger.debug("OpenAI API call successful with tool calls")
-        {:ok, %{content: content, tool_calls: tool_calls}}
-
-      {:ok, %{"choices" => [%{"message" => %{"content" => content}} | _]}} ->
-        Logger.debug("OpenAI API call successful")
-        {:ok, %{content: content, tool_calls: []}}
-
-      {:ok, response} ->
-        # Fallback for unexpected response format
-        Logger.warning("Unexpected OpenAI response format: #{inspect(response)}")
-        {:ok, %{content: inspect(response), tool_calls: []}}
-
-      {:error, reason} ->
-        Logger.error("OpenAI API call failed: #{inspect(reason)}")
-        {:error, reason}
-    end
-  end
 end

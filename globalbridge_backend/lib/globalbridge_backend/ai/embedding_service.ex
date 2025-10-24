@@ -123,6 +123,13 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
     VectorStore.get_embedding(thread_id, message_id)
   end
 
+  @doc """
+  Returns the current embedding model being used.
+  """
+  def embedding_model do
+    @embedding_model
+  end
+
   # Private functions
 
   defp generate_embedding(text) do
