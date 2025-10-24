@@ -266,12 +266,23 @@ final class DatabaseManager {
                 print("✅ Thread database created for shard: \(shardId)")
             } else {
                 print("♻️ [THREAD_DB] Reusing existing thread database for shard: \(shardId)")
+                // Normalize any legacy TEXT timestamps to REAL Apple-reference seconds
+                try normalizeCDCDates(in: connection)
             }
 
             return connection
         } catch {
             throw DatabaseError.shardingFailed("Failed to create thread database: \(error.localizedDescription)")
         }
+    }
+
+    /// Normalize legacy CDC timestamp storage formats to REAL seconds since Apple reference date
+    private func normalizeCDCDates(in connection: Connection) throws {
+        // Convert TEXT timestamps (e.g., from datetime('now')) to REAL Apple-reference seconds
+        let normalizeTimestamp = "UPDATE cdc_logs SET timestamp = CASE WHEN typeof(timestamp) = 'text' THEN (strftime('%s', timestamp) - 978307200.0) ELSE timestamp END;"
+        let normalizeCreatedAt = "UPDATE cdc_logs SET created_at = CASE WHEN typeof(created_at) = 'text' THEN (strftime('%s', created_at) - 978307200.0) ELSE created_at END;"
+        try connection.execute(normalizeTimestamp)
+        try connection.execute(normalizeCreatedAt)
     }
 
     private func createThreadTables(in connection: Connection) async throws {
