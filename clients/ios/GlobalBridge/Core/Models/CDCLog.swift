@@ -9,7 +9,7 @@ import Foundation
 
 /// Change Data Capture log entry for sync operations
 struct CDCLog: Identifiable, Codable, Equatable {
-    let id: UUID
+    let id: String  // Changed from UUID - backend uses MD5 hash strings
     let tableName: String
     let recordId: UUID
     let operation: CDCOperation
@@ -28,7 +28,7 @@ struct CDCLog: Identifiable, Codable, Equatable {
     }
 
     nonisolated init(
-        id: UUID = UUID(),
+        id: String,  // Changed from UUID
         tableName: String,
         recordId: UUID,
         operation: CDCOperation,

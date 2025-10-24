@@ -70,7 +70,7 @@ extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
         // Convert logs to serializable format
         let logsPayload = logs.map { log -> [String: Any] in
             var dict: [String: Any] = [
-                "id": log.id.uuidString,
+                "id": log.id,  // Already a String (MD5 hash or UUID string)
                 "table_name": log.tableName,
                 "record_id": log.recordId.uuidString,
                 "operation": log.operation.rawValue,
@@ -128,8 +128,7 @@ extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
 
     /// Parse a CDC log from dictionary
     nonisolated private func parseCDCLog(from dict: [String: Any]) throws -> CDCLog {
-        guard let idStr = dict["id"] as? String,
-              let id = UUID(uuidString: idStr),
+        guard let id = dict["id"] as? String,  // Changed: id is String (MD5 hash), not UUID
               let tableName = dict["table_name"] as? String,
               let recordIdStr = dict["record_id"] as? String,
               let recordId = UUID(uuidString: recordIdStr),

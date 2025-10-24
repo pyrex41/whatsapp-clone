@@ -272,7 +272,7 @@ final class CDCManager {
               let messageType = Message.MessageType(rawValue: messageTypeStr),
               let statusStr = data["status"],
               let status = Message.Status(rawValue: statusStr) else {
-            throw CDCError.invalidMessageData(UUID())
+            throw CDCError.invalidMessageData("unknown")  // Pass string since we don't have ID yet
         }
 
         // Parse optional fields
@@ -283,7 +283,7 @@ final class CDCManager {
         // Parse required date fields
         guard let createdAtStr = data["created_at"],
               let createdAt = ISO8601DateFormatter().date(from: createdAtStr) else {
-            throw CDCError.invalidMessageData(id)
+            throw CDCError.invalidMessageData(idStr)  // Pass the string ID
         }
 
         let updatedAt = data["updated_at"]
@@ -319,7 +319,7 @@ protocol PhoenixChannelManagerProtocol: Sendable {
 
 enum CDCError: Error, LocalizedError {
     case threadNotFound(UUID)
-    case invalidMessageData(UUID)
+    case invalidMessageData(String)  // Changed to String - CDC log IDs are MD5 hashes
     case syncFailed(String)
     case conflictResolutionFailed(String)
 

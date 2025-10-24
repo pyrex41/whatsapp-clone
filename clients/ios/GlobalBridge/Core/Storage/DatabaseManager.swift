@@ -913,16 +913,15 @@ final class DatabaseManager {
                     changedFields = try? JSONDecoder().decode([String].self, from: data)
                 }
 
-                // Safely parse UUIDs
-                guard let logId = UUID(uuidString: row[cdcId]),
-                      let recordId = UUID(uuidString: row[cdcRecordId]),
+                // Parse CDC log (id is String, not UUID - backend uses MD5 hashes)
+                guard let recordId = UUID(uuidString: row[cdcRecordId]),
                       let operation = CDCLog.CDCOperation(rawValue: row[cdcOperation]) else {
                     print("⚠️ [CDC] Skipping invalid CDC log: id=\(row[cdcId]), recordId=\(row[cdcRecordId]), operation=\(row[cdcOperation])")
                     continue
                 }
 
                 let log = CDCLog(
-                    id: logId,
+                    id: row[cdcId],  // Use string directly, not UUID
                     tableName: row[cdcTableName],
                     recordId: recordId,
                     operation: operation,
@@ -944,12 +943,12 @@ final class DatabaseManager {
     }
 
     /// Mark CDC log as synced
-    func markCDCLogAsSynced(logId: UUID, shardId: String) async throws {
+    func markCDCLogAsSynced(logId: String, shardId: String) async throws {
         let db = try await getThreadDatabase(shardId: shardId)
         let cdcIsSynced = Expression<Bool>("is_synced")
 
         do {
-            let logRow = cdcLogsTable.filter(cdcId == logId.uuidString)
+            let logRow = cdcLogsTable.filter(cdcId == logId)  // Already a String
             let update = logRow.update(cdcIsSynced <- true)
 
             let changes = try db.run(update)
