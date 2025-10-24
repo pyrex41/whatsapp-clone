@@ -12,19 +12,34 @@ struct AppState: Equatable {
     var chat: ChatState
     var authError: String?
     var connectionState: ConnectionState = .disconnected
+    var userCache: [String: CachedUserInfo] = [:]  // userId -> display info
 
     init(
         user: User = .sampleCurrent,
         threads: ThreadsState = .init(),
         chat: ChatState = .init(),
         authError: String? = nil,
-        connectionState: ConnectionState = .disconnected
+        connectionState: ConnectionState = .disconnected,
+        userCache: [String: CachedUserInfo] = [:]
     ) {
         self.user = user
         self.threads = threads
         self.chat = chat
         self.authError = authError
         self.connectionState = connectionState
+        self.userCache = userCache
+    }
+}
+
+/// Cached user display information
+struct CachedUserInfo: Equatable, Codable {
+    let id: String
+    let displayName: String?
+    let username: String
+    let avatarUrl: String?
+    
+    var effectiveDisplayName: String {
+        displayName ?? username
     }
 }
 

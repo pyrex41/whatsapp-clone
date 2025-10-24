@@ -27,9 +27,8 @@ struct MessageComposerView: View {
                 sendIfPossible()
             } label: {
                 Image(systemName: "arrow.up.circle.fill")
-                    .font(.system(size: 28))
-                    .symbolRenderingMode(.palette)
-                    .foregroundStyle(text.isEmpty || isSending ? Color.gray : Color.accentColor)
+                    .font(.system(size: 32))
+                    .foregroundStyle(text.isEmpty || isSending ? Color.gray : Color.blue)
             }
             .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)
             .accessibilityLabel("Send message")

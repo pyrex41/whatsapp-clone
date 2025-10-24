@@ -66,16 +66,20 @@ struct Thread: Identifiable, Codable, Equatable {
     }
     
     /// Display name for the thread (for DMs, shows other participant)
-    func displayName(currentUserId: String) -> String {
+    func displayName(currentUserId: String, userCache: [String: CachedUserInfo] = [:]) -> String {
         // For groups, use the title
         if threadType != .direct {
             return title ?? "Group Chat"
         }
         
-        // For DMs, show the other participant
-        // TODO: Look up actual user name from contacts/users
+        // For DMs, show the other participant's actual name
         if let participants = participantIds,
            let otherParticipant = participants.first(where: { $0 != currentUserId }) {
+            // Look up from cache first
+            if let cachedUser = userCache[otherParticipant] {
+                return cachedUser.effectiveDisplayName
+            }
+            // Fallback to ID prefix
             let prefix = otherParticipant.prefix(8)
             return "User \(prefix)"
         }

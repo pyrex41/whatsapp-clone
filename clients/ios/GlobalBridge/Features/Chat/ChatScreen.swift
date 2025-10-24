@@ -25,7 +25,8 @@ struct ChatScreen: View {
                                     let _ = print("🔍 [OWNERSHIP] Message \(message.id) | senderId=\(message.senderId) | currentUserId=\(store.state.user.id) | isOwn=\(isOwn)")
                                     MessageRow(
                                         message: message,
-                                        isOwnMessage: isOwn
+                                        isOwnMessage: isOwn,
+                                        userCache: store.state.userCache
                                     )
                                     .id(message.id)
                                 }
@@ -92,7 +93,7 @@ struct ChatScreen: View {
                 .toolbar {
                     ToolbarItem(placement: .principal) {
                         VStack(spacing: 2) {
-                            Text(thread.displayName(currentUserId: store.state.user.id))
+                            Text(thread.displayName(currentUserId: store.state.user.id, userCache: store.state.userCache))
                                 .font(.headline)
                             if let lastMessageAt = thread.lastMessageAt {
                                 Text("Active \(TimestampFormatter.string(for: lastMessageAt))")
@@ -116,7 +117,7 @@ struct ChatScreen: View {
                 )
             }
         }
-        .navigationTitle(chatState.currentThread?.displayName(currentUserId: store.state.user.id) ?? "Messages")
+        .navigationTitle(chatState.currentThread?.displayName(currentUserId: store.state.user.id, userCache: store.state.userCache) ?? "Messages")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -124,6 +125,7 @@ struct ChatScreen: View {
 private struct MessageRow: View {
     let message: Message
     let isOwnMessage: Bool
+    let userCache: [String: CachedUserInfo]
 
     var body: some View {
         HStack {
@@ -155,7 +157,11 @@ private struct MessageRow: View {
     }
     
     private var senderDisplayName: String {
-        // TODO: Fetch from user lookup - for now show sender ID prefix
+        // Look up from user cache
+        if let cachedUser = userCache[message.senderId] {
+            return cachedUser.effectiveDisplayName
+        }
+        // Fallback to sender ID prefix
         let prefix = message.senderId.prefix(8)
         return "User \(prefix)"
     }

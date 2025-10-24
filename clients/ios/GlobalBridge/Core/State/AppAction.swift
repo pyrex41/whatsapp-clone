@@ -36,7 +36,7 @@ enum AppAction {
     case sendQuickReply(threadID: Thread.ID, text: String)
     
     // Thread creation actions
-    case createDirectMessage(userId: String)
+    case createDirectMessage(userId: String, displayName: String?, username: String)
     case directMessageCreated(Result<Thread, Error>)
     case createGroupThread(title: String, participantIds: [String])
     case groupThreadCreated(Result<Thread, Error>)

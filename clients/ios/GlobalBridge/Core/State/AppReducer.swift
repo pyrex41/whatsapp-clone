@@ -533,8 +533,16 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
 
         return .none
     
-    case let .createDirectMessage(userId):
+    case let .createDirectMessage(userId, displayName, username):
         print("💬 [DM] Creating direct message with user: \(userId)")
+        
+        // Cache user info for display name lookup
+        state.userCache[userId] = CachedUserInfo(
+            id: userId,
+            displayName: displayName,
+            username: username,
+            avatarUrl: nil
+        )
         return .run(priority: nil) { send in
             do {
                 let threadData = try await environment.realtime.createDirectMessage(userId)

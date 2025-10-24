@@ -175,8 +175,12 @@ struct NewDirectMessageView: View {
     }
     
     private func createDM(with user: UserSearchResult) {
-        // Send create DM request
-        store.send(.createDirectMessage(userId: user.id))
+        // Send create DM request with user info for display name caching
+        store.send(.createDirectMessage(
+            userId: user.id,
+            displayName: user.displayName,
+            username: user.username
+        ))
         dismiss()
     }
 }

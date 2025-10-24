@@ -27,7 +27,8 @@ struct ThreadsListScreen: View {
                         ThreadRow(
                             thread: thread,
                             isSelected: thread.id == threadsState.selectedThreadID,
-                            currentUserId: store.state.user.id
+                            currentUserId: store.state.user.id,
+                            userCache: store.state.userCache
                         )
                         .contentShape(Rectangle())
                         .onTapGesture {
@@ -154,6 +155,7 @@ struct ThreadRow: View {
     let thread: Thread
     let isSelected: Bool
     let currentUserId: String
+    let userCache: [String: CachedUserInfo]
 
     var body: some View {
         HStack(spacing: 12) {
@@ -169,7 +171,7 @@ struct ThreadRow: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(thread.displayName(currentUserId: currentUserId))
+                    Text(thread.displayName(currentUserId: currentUserId, userCache: userCache))
                         .font(.headline)
                         .lineLimit(1)
                     Spacer()
@@ -249,11 +251,12 @@ struct ThreadsListCompactView: View {
                 } else {
                     ForEach(threadsState.filteredItems, id: \.id) { thread in
                         NavigationLink(value: thread.id) {
-                            ThreadRow(
-                                thread: thread,
-                                isSelected: thread.id == threadsState.selectedThreadID,
-                                currentUserId: store.state.user.id
-                            )
+                        ThreadRow(
+                            thread: thread,
+                            isSelected: thread.id == threadsState.selectedThreadID,
+                            currentUserId: store.state.user.id,
+                            userCache: store.state.userCache
+                        )
                         }
                         .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     }
