@@ -266,9 +266,12 @@ final class DatabaseManager {
             try await createThreadTables(in: connection)
 
             // Cache the connection
+            print("🔧 [THREAD_DB] About to cache connection for shard: \(shardId)")
             threadConnections[shardId] = connection
+            print("🔧 [THREAD_DB] Connection cached successfully")
 
             print("✅ Thread database created for shard: \(shardId)")
+            print("🔧 [THREAD_DB] About to return connection")
             return connection
         } catch {
             throw DatabaseError.shardingFailed("Failed to create thread database: \(error.localizedDescription)")
@@ -680,8 +683,10 @@ final class DatabaseManager {
         print("🔧 [CREATE_THREAD] Inserted into main DB successfully")
 
         print("🔧 [CREATE_THREAD] About to get thread database for shard: \(thread.databaseShardId)")
+        print("🔧 [CREATE_THREAD] Calling getThreadDatabase...")
         let threadDb = try await getThreadDatabase(shardId: thread.databaseShardId)
-        print("🔧 [CREATE_THREAD] Got thread database successfully - connection exists: \(threadDb != nil)")
+        print("🔧 [CREATE_THREAD] getThreadDatabase returned successfully")
+        print("🔧 [CREATE_THREAD] Got thread database - connection exists: \(threadDb != nil)")
     }
 
     /// Clear all threads from database
