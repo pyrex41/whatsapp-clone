@@ -13,6 +13,10 @@ public class FeatureFlags {
     private var currentTier: UserTier = .free
     private var features: [String: Bool] = [:]
     private var limits: TierLimits?
+    private var translationLimit: Int?
+
+    // Service dependency
+    private let service: FeatureFlagsService
 
     // MARK: - Tier Definition
 
@@ -33,6 +37,11 @@ public class FeatureFlags {
     // MARK: - Feature Names
 
     enum Feature: String {
+        // Core AI Features (from backend API)
+        case translationEnabled = "translation_enabled"
+        case threadSummarization = "thread_summarization"
+        case semanticSearch = "semantic_search"
+
         // Free tier
         case directMessaging = "direct_messaging"
         case groupMessaging = "group_messaging"
@@ -82,7 +91,8 @@ public class FeatureFlags {
 
     // MARK: - Initialization
 
-    private init() {
+    private init(service: FeatureFlagsService = FeatureFlagsService()) {
+        self.service = service
         loadCachedFeatures()
     }
 
@@ -103,59 +113,88 @@ public class FeatureFlags {
         return limits
     }
 
-    /// Fetch features from API
+    /// Get translation limit for current tier
+    func getTranslationLimit() -> Int? {
+        return translationLimit
+    }
+
+    /// Check if user has remaining translation capacity
+    func hasTranslationCapacity(currentUsage: Int) -> Bool {
+        guard hasFeature(.translationEnabled) else { return false }
+
+        // Enterprise and some tiers may have unlimited translations (nil limit)
+        guard let limit = translationLimit else { return true }
+
+        return currentUsage < limit
+    }
+
+    /// Fetch features from API using the service layer
     func fetchFeatures() async throws {
-        guard let url = URL(string: "\(APIConfig.baseURL)/api/v1/features") else {
-            throw FeatureFlagsError.invalidURL
-        }
+        print("🔄 [FEATURE_FLAGS] Fetching features from backend...")
 
-        guard let token = await AuthManager.shared.getAccessToken() else {
-            throw FeatureFlagsError.notAuthenticated
-        }
+        do {
+            let response = try await service.fetchFeatures()
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            await MainActor.run {
+                updateFeaturesFromService(response)
+            }
 
-        let (data, _) = try await URLSession.shared.data(for: request)
+            print("✅ [FEATURE_FLAGS] Features updated successfully")
+        } catch let error as FeatureFlagsServiceError {
+            print("❌ [FEATURE_FLAGS] Service error: \(error.localizedDescription)")
 
-        let decoder = JSONDecoder()
-        let response = try decoder.decode(FeatureResponse.self, from: data)
+            // On network error, fall back to cached features
+            if case .networkError = error {
+                print("📦 [FEATURE_FLAGS] Using cached features (offline mode)")
+                // Cached features already loaded in init
+            }
 
-        await MainActor.run {
-            updateFeatures(
-                tier: response.data.tier,
-                features: response.data.features,
-                limits: response.data.limits
-            )
+            throw FeatureFlagsError.serviceError(error)
+        } catch {
+            print("❌ [FEATURE_FLAGS] Unexpected error: \(error.localizedDescription)")
+            throw FeatureFlagsError.unknown
         }
     }
 
     /// Check a specific feature from API
     func checkFeature(_ feature: Feature) async throws -> Bool {
-        guard let url = URL(string: "\(APIConfig.baseURL)/api/v1/features/\(feature.rawValue)") else {
-            throw FeatureFlagsError.invalidURL
+        do {
+            let hasAccess = try await service.checkFeature(feature.rawValue)
+            print("✅ [FEATURE_FLAGS] Feature check for \(feature.rawValue): \(hasAccess)")
+            return hasAccess
+        } catch {
+            print("❌ [FEATURE_FLAGS] Feature check failed: \(error.localizedDescription)")
+            // Fall back to local cache
+            return hasFeature(feature)
         }
-
-        guard let token = await AuthManager.shared.getAccessToken() else {
-            throw FeatureFlagsError.notAuthenticated
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-        let (data, _) = try await URLSession.shared.data(for: request)
-
-        let decoder = JSONDecoder()
-        let response = try decoder.decode(FeatureCheckResponse.self, from: data)
-        return response.data.hasAccess
     }
 
     // MARK: - Private Methods
 
-    private func updateFeatures(tier: String, features: [String: Bool], limits: TierLimits) {
+    /// Update features from service response
+    private func updateFeaturesFromService(_ response: FeaturesResponse) {
+        self.currentTier = UserTier(rawValue: response.tier) ?? .free
+        self.features = response.toFeaturesDictionary()
+        self.translationLimit = response.translationLimit
+
+        print("📊 [FEATURE_FLAGS] Updated features:")
+        print("   - Tier: \(self.currentTier.rawValue)")
+        print("   - Translation Enabled: \(response.translationEnabled)")
+        print("   - Translation Limit: \(response.translationLimit?.description ?? "unlimited")")
+        print("   - Thread Summarization: \(response.threadSummarization)")
+        print("   - Semantic Search: \(response.semanticSearch)")
+
+        cacheFeatures()
+
+        // Post notification for UI updates
+        NotificationCenter.default.post(
+            name: .featureFlagsUpdated,
+            object: nil
+        )
+    }
+
+    /// Legacy update method for compatibility (kept for potential direct updates)
+    private func updateFeatures(tier: String, features: [String: Bool], limits: TierLimits?) {
         self.currentTier = UserTier(rawValue: tier) ?? .free
         self.features = features
         self.limits = limits
@@ -172,23 +211,32 @@ public class FeatureFlags {
         let cache = FeatureCache(
             tier: currentTier.rawValue,
             features: features,
-            limits: limits
+            limits: limits,
+            translationLimit: translationLimit
         )
 
         if let encoded = try? JSONEncoder().encode(cache) {
             UserDefaults.standard.set(encoded, forKey: "cached_features")
+            print("💾 [FEATURE_FLAGS] Features cached to UserDefaults")
         }
     }
 
     private func loadCachedFeatures() {
         guard let data = UserDefaults.standard.data(forKey: "cached_features"),
               let cache = try? JSONDecoder().decode(FeatureCache.self, from: data) else {
+            print("ℹ️  [FEATURE_FLAGS] No cached features found, using defaults")
             return
         }
 
         self.currentTier = UserTier(rawValue: cache.tier) ?? .free
         self.features = cache.features
         self.limits = cache.limits
+        self.translationLimit = cache.translationLimit
+
+        print("📦 [FEATURE_FLAGS] Loaded cached features:")
+        print("   - Tier: \(self.currentTier.rawValue)")
+        print("   - Features: \(self.features)")
+        print("   - Translation Limit: \(self.translationLimit?.description ?? "unlimited")")
     }
 
     /// Clear cached feature flags (call on logout)
@@ -197,6 +245,7 @@ public class FeatureFlags {
         currentTier = .free
         features = [:]
         limits = nil
+        translationLimit = nil
         print("🗑️ [FEATURE_FLAGS] Cache cleared")
     }
 
@@ -206,31 +255,13 @@ public class FeatureFlags {
         let tier: String
         let features: [String: Bool]
         let limits: TierLimits?
-    }
+        let translationLimit: Int?
 
-    private nonisolated struct FeatureResponse: Codable {
-        let data: FeatureData
-
-        struct FeatureData: Codable {
-            let tier: String
-            let features: [String: Bool]
-            let limits: TierLimits
-        }
-    }
-
-    private nonisolated struct FeatureCheckResponse: Codable {
-        let data: FeatureCheckData
-
-        struct FeatureCheckData: Codable {
-            let feature: String
-            let hasAccess: Bool
-            let tier: String
-
-            enum CodingKeys: String, CodingKey {
-                case feature
-                case hasAccess = "has_access"
-                case tier
-            }
+        enum CodingKeys: String, CodingKey {
+            case tier
+            case features
+            case limits
+            case translationLimit = "translation_limit"
         }
     }
 
@@ -238,6 +269,8 @@ public class FeatureFlags {
         case invalidURL
         case notAuthenticated
         case noData
+        case serviceError(FeatureFlagsServiceError)
+        case unknown
 
         var errorDescription: String? {
             switch self {
@@ -247,6 +280,10 @@ public class FeatureFlags {
                 return "User not authenticated"
             case .noData:
                 return "No data received from server"
+            case .serviceError(let serviceError):
+                return "Service error: \(serviceError.localizedDescription)"
+            case .unknown:
+                return "An unknown error occurred"
             }
         }
     }

@@ -1,7 +1,7 @@
 # Product Requirements Document: GlobalBridge Messenger
 
-**Version:** 2.0  
-**Last Updated:** October 20, 2025  
+**Version:** 2.1
+**Last Updated:** October 24, 2025  
 **Document Type:** Technical Product Requirements  
 **Status:** Planning Phase
 
@@ -492,51 +492,144 @@ end
 
 #### F4: Telegram Bridge (Per-Thread)
 
+**📋 Detailed Implementation:** See `docs/telegram-bridge-prd.md` for complete technical specification.
+
 **Requirements:**
-- Bot creation via BotFather
-- Group invitation mechanism
-- Polling (`getUpdates`) + webhook support
-- Bi-directional sync with author mapping
-- Media handling (text + files)
-- Rate limiting compliance (30 req/sec Telegram limit)
+- Bot creation via BotFather with webhook/polling support
+- Per-thread bridge activation with granular permissions
+- Bi-directional message synchronization with deduplication
+- Rate limiting compliance (30 req/sec Telegram API limit)
+- Automatic error recovery and health monitoring
+- User mapping and attribution for cross-platform messages
+- Message format conversion between Telegram and GlobalBridge
+- Webhook signature verification (optional security enhancement)
 
 **User Flow:**
-1. User taps "Connect Telegram"
-2. Backend creates bot (if not exists), generates invite link
-3. User adds bot to Telegram group
-4. Bot receives `/start thread_id` command, links group to thread
-5. GenServer begins polling/webhook subscription
-6. Messages sync bi-directionally
+1. User navigates to thread settings → "Add Bridge" → "Telegram"
+2. User provides bot token from @BotFather
+3. Backend validates token and creates bridge configuration
+4. User adds bot to Telegram group via generated invite link
+5. Bridge establishes connection via webhooks (primary) + polling (fallback)
+6. Messages flow bi-directionally with real-time synchronization
+7. Bridge status shown in UI with error handling and reconnection
 
-**Implementation:**
+**Technical Architecture:**
+- **Backend:** GenServer per bridge with supervision tree
+- **Sync Strategy:** Webhook-first with polling fallback
+- **Database:** Dedicated bridge tables with message deduplication
+- **Security:** Encrypted bot tokens, access control validation
+- **Monitoring:** Health checks, error tracking, performance metrics
+
+**Implementation Overview:**
 ```elixir
-# Backend: Telegram bridge GenServer
-defmodule Bridge.TelegramServer do
+# Production-ready GenServer with comprehensive error handling
+defmodule GlobalbridgeBackend.Bridges.TelegramServer do
   use GenServer
+  require Logger
+
+  @poll_interval 5000  # 5 seconds
+  @max_retry_attempts 3
+  @health_check_interval 300_000  # 5 minutes
+
+  def init({bridge_id, config}) do
+    # Webhook setup with fallback to polling
+    case setup_webhook(config) do
+      :ok -> schedule_poll()
+      :error -> Logger.warn("Webhook setup failed, using polling only")
+    end
+
+    schedule_health_check()
+
+    {:ok, %{
+      bridge_id: bridge_id,
+      config: config,
+      offset: config.last_telegram_update_id || 0,
+      consecutive_failures: 0,
+      webhook_active: true
+    }}
+  end
 
   def handle_info(:poll, state) do
-    updates = Telegram.Api.get_updates(offset: state.offset)
-    
-    Enum.each(updates, fn update ->
-      if update.message && update.message.chat.id == state.chat_id do
-        forward_to_thread(%{
-          content: update.message.text,
-          sender: update.message.from.id,
-          source: "telegram",
-          external_id: update.message.message_id
-        }, state.thread_id)
-      end
-    end)
-    
-    {:noreply, %{state | offset: last_update_id(updates) + 1}}
+    case poll_updates(state) do
+      {:ok, new_offset, updates_processed} ->
+        update_bridge_offset(state.bridge_id, new_offset)
+        schedule_poll()
+        {:noreply, %{state | offset: new_offset, consecutive_failures: 0}}
+
+      {:error, reason} ->
+        handle_poll_error(state, reason)
+    end
+  end
+
+  def handle_cast({:webhook_update, update}, state) do
+    # Process real-time webhook updates
+    process_update(update, state.config.thread_id, state.bridge_id)
+    {:noreply, state}
+  end
+
+  # Message processing with deduplication
+  defp process_update(update, thread_id, bridge_id) do
+    telegram_message_id = update["message"]["message_id"]
+
+    unless message_already_processed?(bridge_id, telegram_message_id) do
+      message_attrs = convert_telegram_to_globalbridge(update["message"], thread_id)
+      create_globalbridge_message(message_attrs)
+      record_message_mapping(bridge_id, telegram_message_id)
+      broadcast_to_thread(thread_id, message_attrs)
+    end
   end
 end
 ```
 
+**Database Schema:**
+```sql
+-- Bridge configuration
+ALTER TABLE bridges ADD COLUMN telegram_chat_id TEXT;
+ALTER TABLE bridges ADD COLUMN telegram_webhook_url TEXT;
+ALTER TABLE bridges ADD COLUMN last_telegram_update_id INTEGER DEFAULT 0;
+
+-- Message deduplication
+CREATE TABLE bridge_messages (
+  bridge_id TEXT,
+  telegram_message_id INTEGER,
+  globalbridge_message_id TEXT,
+  direction TEXT,
+  synced_at TIMESTAMP
+);
+```
+
+**API Endpoints:**
+- `POST /api/v1/bridges/telegram` - Create bridge
+- `GET /api/v1/bridges/{thread_id}/telegram` - Get status
+- `DELETE /api/v1/bridges/{bridge_id}` - Remove bridge
+- `POST /api/webhooks/telegram/{bridge_id}` - Webhook receiver
+
 **Bridge Sharing Flow:**
-- Bot invite link: `t.me/yourbot?start=thread_id`
-- New users message bot → bot verifies thread access → user added
-- Permissions: Read group messages, send messages
+- **Bot Setup:** User creates bot via @BotFather, provides token to GlobalBridge
+- **Group Invitation:** App generates `t.me/{bot_username}?start={thread_id}` link
+- **Permission Model:** Bot requires read/write access to group messages
+- **User Verification:** Bot validates thread access before joining group
+- **Multi-User Support:** Any thread participant can add/remove bridges
+
+**Error Handling & Recovery:**
+- Automatic webhook → polling fallback on network issues
+- Exponential backoff for rate limit violations
+- Health monitoring with status indicators
+- Graceful degradation with user notifications
+- Automatic reconnection attempts
+
+**Performance Characteristics:**
+- **Latency:** <5 seconds average message delivery
+- **Throughput:** 30 messages/second per bridge (Telegram limit)
+- **Reliability:** >99.5% uptime with automatic recovery
+- **Scalability:** Support for 100+ concurrent bridges
+
+**Security Considerations:**
+- Bot tokens encrypted at rest using application secrets
+- Webhook endpoints protected by bridge ID randomization
+- Access control ensures only thread participants can manage bridges
+- Message content sanitization prevents malicious payload injection
+- Optional webhook signature verification for enhanced security
 
 ### 3.3 Future Features (Post-MVP) - Architecture Ready
 
@@ -1911,6 +2004,16 @@ iOS configuration (Xcode schemes):
 |---------|------|--------|---------|
 | 1.0 | Oct 20, 2025 | Team | Initial PRD from repository synthesis |
 | 2.0 | Oct 20, 2025 | Team | Refined to technical focus: removed timelines, pricing, KPIs; emphasized AI-ready architecture and feature flag system |
+| 2.1 | Oct 24, 2025 | Team | Updated Telegram Bridge section (F4) with detailed implementation plan; added references to `docs/telegram-bridge-prd.md` for complete technical specification |
+
+### F. Related Documents
+
+| Document | Location | Purpose |
+|----------|----------|---------|
+| **Telegram Bridge Implementation PRD** | `docs/telegram-bridge-prd.md` | Complete technical specification for Telegram bridge feature including backend API, database schema, frontend integration, testing strategy, and deployment guide |
+| **iOS Frontend PRD** | `.taskmaster/docs/ios-ai-frontend-prd-updated.md` | iOS client implementation details and API integration |
+| **API Documentation** | `docs/API_DOCUMENTATION.md` | Auto-generated OpenAPI specification for all backend endpoints |
+| **Backend Implementation Summary** | `docs/ios-prd-backend-sync-analysis.md` | Analysis of backend-iOS synchronization patterns |
 
 ### E. Approval & Sign-off
 
