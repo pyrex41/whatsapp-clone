@@ -293,12 +293,23 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             print("📊 [MESSAGES] Loaded \(messages.count) messages from local DB for thread: \(threadID)")
             state.chat.messages = messages.sorted(by: { $0.createdAt < $1.createdAt })
             
-            // Mark if we need to fetch from backend (will happen after channel joins)
+            // Check if we have user info for message senders
+            let senderIds = Set(messages.map { $0.senderId })
+            let missingUsers = senderIds.filter { state.userCache[$0] == nil }
+            
+            if !missingUsers.isEmpty {
+                print("👥 [MESSAGES] Missing user info for \(missingUsers.count) senders, will fetch...")
+                state.chat.needsHistoricalFetch = true  // Set flag to trigger user info fetch
+            }
+            
+            // Mark if we need to fetch messages from backend
             if messages.isEmpty {
                 print("⚠️ [MESSAGES] Local DB empty - SETTING needsHistoricalFetch = true")
                 state.chat.needsHistoricalFetch = true
+            } else if !missingUsers.isEmpty {
+                print("⚠️ [MESSAGES] Have messages but missing user info - SETTING fetch flag")
             } else {
-                print("✅ [MESSAGES] Messages loaded, NOT setting fetch flag")
+                print("✅ [MESSAGES] Messages loaded with all user info present")
             }
         case let .failure(error):
             state.chat.messageError = error.localizedDescription
@@ -716,15 +727,14 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         print("   Messages empty: \(state.chat.messages.isEmpty)")
         print("   Needs fetch flag: \(state.chat.needsHistoricalFetch)")
         
-        // Only fetch if we actually need it (empty messages and flag set)
+        // Only fetch if needed (flag must be set, thread must match)
         guard state.chat.currentThread?.id == threadID,
-              state.chat.messages.isEmpty,
               state.chat.needsHistoricalFetch else {
-            print("⚠️ [FETCH] Skipping historical fetch - conditions not met")
+            print("⚠️ [FETCH] Skipping - flag not set or thread mismatch")
             return .none
         }
         
-        print("📥 [FETCH] ✅ All conditions met, fetching historical messages from backend...")
+        print("📥 [FETCH] ✅ Fetching from backend (for messages and/or user info)...")
         state.chat.needsHistoricalFetch = false  // Clear flag
         
         // Get participant IDs to populate user cache
@@ -745,21 +755,29 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                     )
                 }
                 
+                // Update user cache first (critical for names to show!)
                 if !usersToCache.isEmpty {
+                    print("👤 [FETCH] Caching \(usersToCache.count) users...")
                     send(.cacheUsers(usersToCache))
+                } else {
+                    print("⚠️ [FETCH] No users returned from backend!")
                 }
                 
-                // Store messages locally
-                for phoenixMsg in result.messages {
-                    if let message = Message.fromPhoenix(phoenixMsg) {
-                        try? await environment.database.storeMessage(message)
-                        print("💾 [FETCH] Stored message: \(message.id)")
+                // Store messages locally (only if we fetched any)
+                if !result.messages.isEmpty {
+                    print("💾 [FETCH] Storing \(result.messages.count) messages...")
+                    for phoenixMsg in result.messages {
+                        if let message = Message.fromPhoenix(phoenixMsg) {
+                            try? await environment.database.storeMessage(message)
+                        }
                     }
+                    
+                    // Reload from local DB to show in UI with user names
+                    print("🔄 [FETCH] Reloading messages to display with names...")
+                    send(.loadMessages(threadID))
+                } else {
+                    print("ℹ️ [FETCH] No new messages, user cache updated (names should update)") 
                 }
-                
-                // Reload from local DB to show in UI
-                print("🔄 [FETCH] Reloading messages from local DB...")
-                send(.loadMessages(threadID))
             } catch {
                 print("⚠️ [FETCH] Backend fetch failed: \(error.localizedDescription)")
             }
