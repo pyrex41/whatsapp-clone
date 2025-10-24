@@ -265,13 +265,8 @@ final class DatabaseManager {
             // Create per-thread tables
             try await createThreadTables(in: connection)
 
-            // Cache the connection
-            print("🔧 [THREAD_DB] About to cache connection for shard: \(shardId)")
-            threadConnections[shardId] = connection
-            print("🔧 [THREAD_DB] Connection cached successfully")
-
             print("✅ Thread database created for shard: \(shardId)")
-            print("🔧 [THREAD_DB] About to return connection")
+            print("🔧 [THREAD_DB] About to return connection (no caching)")
 
             // Validate connection before returning
             print("🔧 [THREAD_DB] Validating connection before return...")
@@ -283,7 +278,7 @@ final class DatabaseManager {
                 throw DatabaseError.connectionFailed("Thread database connection invalid: \(error.localizedDescription)")
             }
 
-            print("🔧 [THREAD_DB] Returning connection now")
+            print("🔧 [THREAD_DB] Returning connection now (no caching)")
             return connection
         } catch {
             throw DatabaseError.shardingFailed("Failed to create thread database: \(error.localizedDescription)")
