@@ -7,6 +7,7 @@
 //
 
 import Foundation
+@preconcurrency import SwiftPhoenixClient
 
 /// Deletion scope for messages
 enum DeletionScope {
@@ -128,9 +129,10 @@ final class MessageDeletionHandler {
         messageId: String,
         scope: DeletionScope
     ) async throws {
-        guard let channel = await phoenixChannelManager.channel(for: conversationId) else {
+        guard let sendableChannel = await phoenixChannelManager.sendableChannel(for: conversationId) else {
             throw DeletionError.channelNotJoined
         }
+        let channel = sendableChannel.channel
 
         let payload: [String: Any] = [
             "message_id": messageId,

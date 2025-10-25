@@ -15,12 +15,27 @@ public typealias TypingHandler = @Sendable (TypingIndicator) -> Void
 public typealias ReadReceiptHandler = @Sendable (ReadReceipt) -> Void
 
 /// Connection state for Phoenix channels
-public enum PhoenixConnectionState: Sendable {
+public enum PhoenixConnectionState: Sendable, Equatable {
     case disconnected
     case connecting
     case connected
     case reconnecting
     case error(Error)
+
+    public static func == (lhs: PhoenixConnectionState, rhs: PhoenixConnectionState) -> Bool {
+        switch (lhs, rhs) {
+        case (.disconnected, .disconnected),
+             (.connecting, .connecting),
+             (.connected, .connected),
+             (.reconnecting, .reconnecting):
+            return true
+        case (.error, .error):
+            // Consider all error states as equal for comparison purposes
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 /// Main actor managing Phoenix Channel connections
@@ -47,6 +62,16 @@ public actor PhoenixChannelManager {
 
     func channel(for conversationId: String) -> Channel? {
         channels[topic(for: conversationId)]
+    }
+
+    /// Get channel wrapped in Sendable container to bypass concurrency warnings
+    /// Channel from SwiftPhoenixClient is thread-safe despite not being Sendable
+    func sendableChannel(for conversationId: String) async -> UnsafeSendableChannel? {
+        guard let channel = channels[topic(for: conversationId)] else {
+            return nil
+        }
+        // Creating the wrapper may require MainActor due to Channel annotations
+        return await MainActor.run { UnsafeSendableChannel(channel: channel) }
     }
 
     func setChannel(_ channel: Channel, for conversationId: String) {
@@ -229,9 +254,9 @@ public actor PhoenixChannelManager {
                 .receive("ok") { response in
                     // Reduce payload logging noise for bootstrap
                     print("✅ [BOOTSTRAP] Response received")
-                    
+
                     do {
-                        let data = try JSONSerialization.data(withJSONObject: payload)
+                        let data = try JSONSerialization.data(withJSONObject: response.payload)
                         let decoder = JSONDecoder()
                         decoder.dateDecodingStrategy = .custom { decoder in
                             let container = try decoder.singleValueContainer()
@@ -1226,32 +1251,32 @@ public actor PhoenixChannelManager {
 
     private func setupChannelHandlers(_ channel: Channel, conversationId: String) {
         // Handle new messages
-        channel.on("new_message") { [weak self] socketMessage in
+        channel.on("new_message") { [weak self] (message: SocketMessage) in
             guard let self else { return }
             do {
-                let message = try self.parsePhoenixMessage(from: socketMessage.payload)
-                Task { await self.deliverNewMessage(message, conversationId: conversationId) }
+                let phoenixMessage = try self.parsePhoenixMessage(from: message.payload)
+                Task { await self.deliverNewMessage(phoenixMessage, conversationId: conversationId) }
             } catch {
                 print("[Phoenix] Failed to decode message: \(error)")
             }
         }
 
         // Handle message updates
-        channel.on("message_updated") { [weak self] socketMessage in
+        channel.on("message_updated") { [weak self] (message: SocketMessage) in
             guard let self else { return }
             do {
-                let message = try self.parsePhoenixMessage(from: socketMessage.payload)
-                Task { await self.deliverMessageUpdate(message, conversationId: conversationId) }
+                let phoenixMessage = try self.parsePhoenixMessage(from: message.payload)
+                Task { await self.deliverMessageUpdate(phoenixMessage, conversationId: conversationId) }
             } catch {
                 print("[Phoenix] Failed to decode message update: \(error)")
             }
         }
 
         // Handle typing indicators
-        channel.on("user_typing") { [weak self] socketMessage in
+        channel.on("user_typing") { [weak self] (message: SocketMessage) in
             guard let self else { return }
             do {
-                let indicator = try self.parseTypingIndicator(from: socketMessage.payload)
+                let indicator = try self.parseTypingIndicator(from: message.payload)
                 Task { await self.deliverTypingIndicator(indicator, conversationId: conversationId) }
             } catch {
                 print("[Phoenix] Failed to decode typing indicator: \(error)")
@@ -1259,10 +1284,10 @@ public actor PhoenixChannelManager {
         }
 
         // Handle read receipts
-        channel.on("read_receipt") { [weak self] socketMessage in
+        channel.on("read_receipt") { [weak self] (message: SocketMessage) in
             guard let self else { return }
             do {
-                let receipt = try self.parseReadReceipt(from: socketMessage.payload)
+                let receipt = try self.parseReadReceipt(from: message.payload)
                 Task { await self.deliverReadReceipt(receipt, conversationId: conversationId) }
             } catch {
                 print("[Phoenix] Failed to decode read receipt: \(error)")
@@ -1270,9 +1295,9 @@ public actor PhoenixChannelManager {
         }
 
         // Handle presence
-        channel.on("presence_diff") { [weak self] socketMessage in
+        channel.on("presence_diff") { [weak self] (message: SocketMessage) in
             guard let self else { return }
-            let payload = socketMessage.payload
+            let payload = message.payload
             let joins = (payload["joins"] as? [String: Any])?.keys.map { String($0) } ?? []
             let leaves = (payload["leaves"] as? [String: Any])?.keys.map { String($0) } ?? []
 
@@ -1287,11 +1312,11 @@ public actor PhoenixChannelManager {
     }
 
     private func setupUserChannelHandlers(_ channel: Channel) {
-        channel.on("new_message") { [weak self] socketMessage in
+        channel.on("new_message") { [weak self] (message: SocketMessage) in
             guard let self else { return }
             do {
-                let message = try self.parsePhoenixMessage(from: socketMessage.payload)
-                Task { await self.deliverNewMessage(message, conversationId: message.conversationId) }
+                let phoenixMessage = try self.parsePhoenixMessage(from: message.payload)
+                Task { await self.deliverNewMessage(phoenixMessage, conversationId: phoenixMessage.conversationId) }
             } catch {
                 print("[Phoenix] Failed to decode user-channel message: \(error)")
             }
@@ -1404,4 +1429,12 @@ public enum PhoenixError: Error, LocalizedError, Sendable {
 private enum PhoenixDecodingError: Error {
     case missingRequiredFields
     case unknownStatus(String)
+}
+
+// MARK: - Unsafe Sendable Wrapper for Channel
+/// Wrapper to make Channel Sendable for cross-actor usage
+/// Channel from SwiftPhoenixClient is thread-safe but not marked as Sendable
+@preconcurrency
+struct UnsafeSendableChannel: @unchecked Sendable {
+    let channel: Channel
 }

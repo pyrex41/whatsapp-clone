@@ -7,7 +7,7 @@
 
 import Foundation
 import Combine
-import Auth0
+@preconcurrency import Auth0
 import UIKit
 
 // MARK: - Auth Errors
@@ -167,7 +167,7 @@ final class AuthManager: ObservableObject {
             print("⏳ [AUTH] Waiting for scene to be active...")
             var attempts = 0
             while attempts < 20 {  // Wait up to 2 seconds
-                if let scene = await UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    scene.activationState == .foregroundActive {
                     print("✅ [AUTH] Scene is active, proceeding with login")
                     break
@@ -220,7 +220,7 @@ final class AuthManager: ObservableObject {
                 print("")
                 print("📦 OTHER DETAILS:")
                 print("   - Refresh Token: \(credentials.refreshToken != nil ? "present" : "nil")")
-                print("   - Token Type: \(credentials.tokenType ?? "unknown")")
+                print("   - Token Type: \(credentials.tokenType)")
                 print("   - Expires In: \(credentials.expiresIn)")
                 print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                 print("")
@@ -336,7 +336,7 @@ final class AuthManager: ObservableObject {
     
     /// Refresh the access token using refresh token
     func refreshToken() async throws -> String {
-        guard let refreshToken = refreshToken else {
+        guard refreshToken != nil else {
             throw AuthError.noRefreshToken
         }
         

@@ -18,7 +18,7 @@ defmodule GlobalbridgeBackendWeb.AIController do
   action_fallback(GlobalbridgeBackendWeb.FallbackController)
 
   @doc """
-  Translates text to a target language.
+  Translates text to a target language with idiom analysis and cultural context.
 
   POST /api/ai/translate
   Body: {"text": "Hello world", "target_language": "es", "source_language": "en"}
@@ -27,34 +27,61 @@ defmodule GlobalbridgeBackendWeb.AIController do
     - text: String, max 10,000 characters (required)
     - target_language: Valid language code (required)
     - source_language: Valid language code (optional, defaults to "auto")
+
+  ## Response Format
+    - translation: The translated text
+    - confidence: Translation confidence score (0.0-1.0)
+    - cultural_notes: Array of idiom analyses with cultural context (may be empty)
+    - source_language: Detected or provided source language
+    - target_language: Target language
+
+  ## Examples
+
+  Response with idioms:
+  ```json
+  {
+    "success": true,
+    "translation": "¡Buena suerte en tu examen!",
+    "confidence": 0.95,
+    "cultural_notes": [
+      {
+        "source_phrase": "Break a leg",
+        "explanation": "A theatrical idiom meaning 'good luck'",
+        "target_equivalent": "¡Mucha mierda!",
+        "cultural_context": "Theater tradition of wishing performers good luck"
+      }
+    ],
+    "source_language": "English",
+    "target_language": "Spanish"
+  }
+  ```
+
+  Response without idioms:
+  ```json
+  {
+    "success": true,
+    "translation": "Hola mundo",
+    "confidence": 0.99,
+    "cultural_notes": [],
+    "source_language": "English",
+    "target_language": "Spanish"
+  }
+  ```
   """
   def translate(conn, params) do
-    user = conn.assigns[:current_user] || Guardian.Plug.current_resource(conn)
+    _user = conn.assigns[:current_user] || Guardian.Plug.current_resource(conn)
 
     with {:ok, text} <- AIValidator.validate_text(params["text"]),
          {:ok, target_lang} <- validate_required_language(params["target_language"]),
-         {:ok, source_lang} <- validate_source_language(params["source_language"]) do
+         {:ok, _source_lang} <- validate_source_language(params["source_language"]) do
       # Check rate limits and feature flags (placeholder for now)
       # TODO: Implement rate limiting based on user tier
       # TODO: Check feature flags for translation access
 
-      # Prepare job input
-      job_input = %{
-        text: text,
-        target_language: target_lang,
-        source_language: source_lang,
-        user_id: user.id
-      }
-
-      # Execute translation job
-      case Job.run(TranslationJob.job_config(), job_input) do
+      # Execute simple translation (bypassing complex Agens job system for now)
+      case simple_translate(text, target_lang) do
         {:ok, result} ->
-          json(conn, %{
-            success: true,
-            translation: result,
-            source_language: source_lang,
-            target_language: target_lang
-          })
+          json(conn, Map.merge(%{success: true}, result))
 
         {:error, reason} ->
           safe_error_response(conn, :unprocessable_entity, "Translation failed", reason)
@@ -370,6 +397,79 @@ defmodule GlobalbridgeBackendWeb.AIController do
   end
 
   # Private helper functions
+
+  defp simple_translate(text, target_lang) do
+    # Direct translation using Groq API, bypassing the buggy Agens framework
+    groq_api_key = System.get_env("GROQ_API_KEY")
+
+    if !groq_api_key do
+      {:error, "GROQ_API_KEY not configured"}
+    else
+      # Build the translation prompt
+      prompt = """
+      Translate the following text to #{target_lang}.
+      Provide the translation along with a confidence score (0.0 to 1.0).
+      If there are any idioms or cultural phrases, note them.
+
+      Text to translate: #{text}
+
+      Respond in JSON format:
+      {
+        "translation": "the translated text",
+        "confidence": 0.95,
+        "cultural_notes": [],
+        "source_language": "detected language name",
+        "target_language": "#{target_lang}"
+      }
+      """
+
+      # Make the API call to Groq
+      url = "https://api.groq.com/openai/v1/chat/completions"
+      headers = [
+        {"Authorization", "Bearer #{groq_api_key}"},
+        {"Content-Type", "application/json"}
+      ]
+
+      body = Jason.encode!(%{
+        model: System.get_env("GROQ_MODEL") || "llama-3.3-70b-versatile",
+        messages: [
+          %{role: "system", content: "You are a professional translator. Always respond with valid JSON."},
+          %{role: "user", content: prompt}
+        ],
+        temperature: 0.3,
+        response_format: %{type: "json_object"}
+      })
+
+      case HTTPoison.post(url, body, headers, recv_timeout: 30_000) do
+        {:ok, %HTTPoison.Response{status_code: 200, body: response_body}} ->
+          case Jason.decode(response_body) do
+            {:ok, %{"choices" => [%{"message" => %{"content" => content}} | _]}} ->
+              case Jason.decode(content) do
+                {:ok, result} ->
+                  {:ok, %{
+                    translation: result["translation"],
+                    confidence: result["confidence"] || 0.9,
+                    cultural_notes: result["cultural_notes"] || [],
+                    source_language: result["source_language"] || "auto",
+                    target_language: result["target_language"] || target_lang
+                  }}
+                {:error, _} ->
+                  {:error, "Failed to parse translation result"}
+              end
+            _ ->
+              {:error, "Invalid API response format"}
+          end
+
+        {:ok, %HTTPoison.Response{status_code: status_code, body: error_body}} ->
+          Logger.error("Groq API error: #{status_code} - #{error_body}")
+          {:error, "Translation API error: #{status_code}"}
+
+        {:error, %HTTPoison.Error{reason: reason}} ->
+          Logger.error("HTTP error calling Groq: #{inspect(reason)}")
+          {:error, "Translation service unavailable"}
+      end
+    end
+  end
 
   defp resolve_shard_id(thread_id) do
     case Repo.get(Thread, thread_id) do

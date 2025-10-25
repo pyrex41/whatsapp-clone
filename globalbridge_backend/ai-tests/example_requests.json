@@ -1,0 +1,38 @@
+{
+  "basic_english_to_spanish": {
+    "text": "Hello, how are you today?",
+    "target_language": "es"
+  },
+  "idiom_detection": {
+    "text": "It's raining cats and dogs outside",
+    "target_language": "fr"
+  },
+  "auto_language_detection": {
+    "text": "Bonjour, comment allez-vous?",
+    "target_language": "en"
+  },
+  "technical_text": {
+    "text": "The API uses RESTful endpoints with JSON payloads",
+    "target_language": "de"
+  },
+  "emoji_text": {
+    "text": "I love coding! 🚀💻",
+    "target_language": "ja"
+  },
+  "business_formal": {
+    "text": "Dear Sir, I am writing to inform you of our quarterly results.",
+    "target_language": "es"
+  },
+  "chinese_idiom": {
+    "text": "一石二鸟",
+    "target_language": "en"
+  },
+  "mixed_language": {
+    "text": "Hello amigo, cómo estás? The meeting is at 3 PM.",
+    "target_language": "es"
+  },
+  "long_text": {
+    "text": "The history of artificial intelligence began in ancient times with philosophers and mathematicians developing ideas about mechanical men and artificial beings. The field of AI research was founded at a workshop at Dartmouth College in 1956.",
+    "target_language": "es"
+  }
+}

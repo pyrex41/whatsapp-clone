@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-import EventKit
+@preconcurrency import EventKit
 
 /// Detailed view for viewing and editing a task
 struct TaskDetailView: View {
@@ -550,12 +550,12 @@ struct ExportTaskSheet: View {
     // MARK: - Export Methods
 
     private func exportToCalendar() {
-        let eventStore = EKEventStore()
-
-        eventStore.requestFullAccessToEvents { granted, error in
+        let store = EKEventStore()
+        store.requestFullAccessToEvents { granted, _ in
             DispatchQueue.main.async {
                 if granted {
-                    createCalendarEvent(eventStore: eventStore)
+                    // Use a fresh store instance inside the closure to avoid capturing non-Sendable
+                    createCalendarEvent(eventStore: EKEventStore())
                 } else {
                     showingCalendarPermissionAlert = true
                 }
@@ -594,12 +594,12 @@ struct ExportTaskSheet: View {
     }
 
     private func exportToReminders() {
-        let eventStore = EKEventStore()
-
-        eventStore.requestFullAccessToReminders { granted, error in
+        let store = EKEventStore()
+        store.requestFullAccessToReminders { granted, _ in
             DispatchQueue.main.async {
                 if granted {
-                    createReminder(eventStore: eventStore)
+                    // Use a fresh store instance inside the closure to avoid capturing non-Sendable
+                    createReminder(eventStore: EKEventStore())
                 } else {
                     showingRemindersPermissionAlert = true
                 }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 /// Displays a single message with read receipt status
 struct MessageCellView: View {
@@ -113,7 +114,8 @@ struct ReadReceiptIndicatorView: View {
                 content: "Hello!",
                 timestamp: Date(),
                 status: .sent,
-                metadata: nil
+                metadata: nil,
+                clientMessageId: nil
             ),
             isOwnMessage: true,
             readCount: 0,
@@ -129,7 +131,8 @@ struct ReadReceiptIndicatorView: View {
                 content: "How are you?",
                 timestamp: Date().addingTimeInterval(-60),
                 status: .read,
-                metadata: nil
+                metadata: nil,
+                clientMessageId: nil
             ),
             isOwnMessage: true,
             readCount: 1,
@@ -145,7 +148,8 @@ struct ReadReceiptIndicatorView: View {
                 content: "I'm doing great, thanks!",
                 timestamp: Date().addingTimeInterval(-120),
                 status: .delivered,
-                metadata: nil
+                metadata: nil,
+                clientMessageId: nil
             ),
             isOwnMessage: false,
             readCount: 0,
@@ -161,7 +165,8 @@ struct ReadReceiptIndicatorView: View {
                 content: "Hello everyone!",
                 timestamp: Date().addingTimeInterval(-180),
                 status: .read,
-                metadata: nil
+                metadata: nil,
+                clientMessageId: nil
             ),
             isOwnMessage: true,
             readCount: 3,

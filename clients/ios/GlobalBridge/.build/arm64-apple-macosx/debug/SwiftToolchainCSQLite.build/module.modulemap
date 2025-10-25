@@ -1,0 +1,4 @@
+module SwiftToolchainCSQLite {
+    umbrella "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/checkouts/swift-toolchain-sqlite/Sources/CSQLite/include"
+    export *
+}

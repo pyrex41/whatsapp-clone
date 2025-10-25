@@ -147,7 +147,8 @@ public class ReadReceiptManager: ObservableObject {
 
     private func convertToParticipantReceipts(
         _ state: ReadReceiptState,
-        messageId: String
+        messageId: String,
+        conversationId: String = ""
     ) -> [ParticipantReadReceipt] {
         guard let readers = state.receipts[messageId] else {
             return []
@@ -155,10 +156,11 @@ public class ReadReceiptManager: ObservableObject {
 
         return readers.map { userId, readAt in
             ParticipantReadReceipt(
+                id: UUID().uuidString,
                 userId: userId,
-                userName: userId, // Would fetch real name from user service
-                readAt: readAt,
-                isRead: true
+                messageId: messageId,
+                conversationId: conversationId,
+                readAt: readAt
             )
         }
     }
@@ -186,7 +188,7 @@ public class ReadReceiptManager: ObservableObject {
         // ])
     }
 
-    private func fetchReadReceiptsFromBackend(_ messageId: String) async throws -> [ParticipantReadReceipt] {
+    private func fetchReadReceiptsFromBackend(_ messageId: String, conversationId: String = "") async throws -> [ParticipantReadReceipt] {
         // Fetch from backend API
         // In production, this would call the backend API endpoint
 
@@ -196,31 +198,33 @@ public class ReadReceiptManager: ObservableObject {
         // Mock data for testing
         return [
             ParticipantReadReceipt(
+                id: UUID().uuidString,
                 userId: "user1",
-                userName: "Alice",
-                readAt: Date().addingTimeInterval(-300),
-                isRead: true
+                messageId: messageId,
+                conversationId: conversationId,
+                readAt: Date().addingTimeInterval(-300)
             ),
             ParticipantReadReceipt(
+                id: UUID().uuidString,
                 userId: "user2",
-                userName: "Bob",
-                readAt: Date().addingTimeInterval(-120),
-                isRead: true
+                messageId: messageId,
+                conversationId: conversationId,
+                readAt: Date().addingTimeInterval(-120)
             )
         ]
     }
 
-    private func fetchParticipantsFromBackend(_ messageId: String) async throws -> [ConversationParticipant] {
+    private func fetchParticipantsFromBackend(_ messageId: String, conversationId: String = "") async throws -> [ConversationParticipant] {
         // Fetch from backend API
         // Simulate network delay
         try await Task.sleep(nanoseconds: 500_000_000) // 500ms
 
         // Mock data for testing
         return [
-            ConversationParticipant(id: "user1", name: "Alice"),
-            ConversationParticipant(id: "user2", name: "Bob"),
-            ConversationParticipant(id: "user3", name: "Charlie"),
-            ConversationParticipant(id: "user4", name: "Diana")
+            ConversationParticipant.makeMock(userId: "user1", conversationId: conversationId, displayName: "Alice"),
+            ConversationParticipant.makeMock(userId: "user2", conversationId: conversationId, displayName: "Bob"),
+            ConversationParticipant.makeMock(userId: "user3", conversationId: conversationId, displayName: "Charlie"),
+            ConversationParticipant.makeMock(userId: "user4", conversationId: conversationId, displayName: "Diana")
         ]
     }
 }

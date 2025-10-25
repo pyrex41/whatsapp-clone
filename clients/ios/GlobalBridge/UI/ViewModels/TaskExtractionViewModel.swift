@@ -171,13 +171,11 @@ final class TaskExtractionViewModel: ObservableObject {
         do {
             print("📋 [TASK_VM] Starting task extraction for thread: \(threadId)")
 
-            // Call AI service to extract tasks
-            let response = try await aiService.extractTasksDetailed(
+            // Call AI service to extract tasks (domain models)
+            let extractedTasks = try await aiService.extractTasks(
                 threadId: threadId.uuidString,
                 query: customQuery
             )
-
-            let extractedTasks = response.toExtractedTasks()
 
             print("✅ [TASK_VM] Extracted \(extractedTasks.count) tasks")
 
@@ -364,59 +362,4 @@ struct TaskStatistics {
     }
 }
 
-// MARK: - AIService Extension
-
-extension AIService {
-    /// Extract tasks with detailed task models (uses backend task extraction endpoint)
-    func extractTasksDetailed(
-        threadId: String,
-        query: String? = nil
-    ) async throws -> TaskExtractionAPIResponse {
-        // Check feature availability
-        guard featureFlags.hasFeature(.threadSummarization) else {
-            throw AIServiceError.featureDisabled(feature: "task_extraction")
-        }
-
-        guard !threadId.isEmpty else {
-            throw AIServiceError.invalidInput(reason: "Thread ID cannot be empty")
-        }
-
-        let endpoint = baseURL.appendingPathComponent("api/v1/ai/extract_tasks")
-        var requestBody: [String: Any] = ["thread_id": threadId]
-
-        if let query = query {
-            requestBody["query"] = query
-        }
-
-        print("📋 [AI_SERVICE] Extracting detailed tasks from thread: \(threadId)")
-
-        let responseData = try await performRequest(
-            endpoint: endpoint,
-            method: "POST",
-            body: requestBody
-        )
-
-        let decoder = JSONDecoder()
-        let response = try decoder.decode(TaskExtractionAPIResponse.self, from: responseData)
-
-        guard response.success else {
-            throw AIServiceError.apiError(message: "Task extraction failed")
-        }
-
-        print("✅ [AI_SERVICE] Task extraction successful")
-
-        return response
-    }
-
-    // Make performRequest accessible
-    fileprivate func performRequest(
-        endpoint: URL,
-        method: String,
-        body: [String: Any]? = nil,
-        attempt: Int = 1
-    ) async throws -> Data {
-        // Access the existing private performRequest method
-        // This is a workaround - in production, make performRequest internal
-        return try await self.performRequest(endpoint: endpoint, method: method, body: body, attempt: attempt)
-    }
-}
+// (Removed AIService extension – use AIService.extractTasks returning [ExtractedTask])

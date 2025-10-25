@@ -174,7 +174,7 @@ final class PresenceIndicatorTests: XCTestCase {
     func testTypingIndicatorSingleUser() {
         // Given
         let typingUsers: Set<String> = ["Alice"]
-        let indicator = TypingIndicatorView(
+        let indicator = TypingUsersIndicatorView(
             typingUsers: typingUsers,
             currentUserId: "me"
         )
@@ -186,7 +186,7 @@ final class PresenceIndicatorTests: XCTestCase {
     func testTypingIndicatorTwoUsers() {
         // Given
         let typingUsers: Set<String> = ["Alice", "Bob"]
-        let indicator = TypingIndicatorView(
+        let indicator = TypingUsersIndicatorView(
             typingUsers: typingUsers,
             currentUserId: "me"
         )
@@ -198,7 +198,7 @@ final class PresenceIndicatorTests: XCTestCase {
     func testTypingIndicatorMultipleUsers() {
         // Given
         let typingUsers: Set<String> = ["Alice", "Bob", "Charlie"]
-        let indicator = TypingIndicatorView(
+        let indicator = TypingUsersIndicatorView(
             typingUsers: typingUsers,
             currentUserId: "me"
         )
@@ -210,7 +210,7 @@ final class PresenceIndicatorTests: XCTestCase {
     func testTypingIndicatorEmpty() {
         // Given
         let typingUsers: Set<String> = []
-        let indicator = TypingIndicatorView(
+        let indicator = TypingUsersIndicatorView(
             typingUsers: typingUsers,
             currentUserId: "me"
         )
@@ -222,7 +222,7 @@ final class PresenceIndicatorTests: XCTestCase {
     func testTypingIndicatorExcludesCurrentUser() {
         // Given
         let typingUsers: Set<String> = ["Alice", "me"]
-        let indicator = TypingIndicatorView(
+        let indicator = TypingUsersIndicatorView(
             typingUsers: typingUsers,
             currentUserId: "me"
         )

@@ -1,0 +1,3 @@
+module SwiftPhoenixClient {
+    header "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/SwiftPhoenixClient.build/include/SwiftPhoenixClient-Swift.h"
+}

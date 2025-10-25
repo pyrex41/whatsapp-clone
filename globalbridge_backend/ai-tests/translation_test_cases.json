@@ -1,0 +1,444 @@
+[
+  {
+    "id": "basic_en_to_es",
+    "description": "Basic English to Spanish translation",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "Hello, how are you?",
+        "target_language": "es"
+      }
+    },
+    "expected": {
+      "success": true,
+      "translation": "Hola, ¿cómo estás?",
+      "confidence": 0.99,
+      "cultural_notes": [],
+      "source_language": "English",
+      "target_language": "es"
+    },
+    "notes": "Simple greeting translation, should have high confidence and no cultural notes"
+  },
+  {
+    "id": "idiom_raining_cats_dogs",
+    "description": "Idiom detection: 'raining cats and dogs'",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "It is raining cats and dogs outside",
+        "target_language": "es"
+      }
+    },
+    "expected": {
+      "success": true,
+      "translation": "Está lloviendo gatos y perros afuera",
+      "confidence": 0.95,
+      "cultural_notes": [
+        "The phrase 'It is raining cats and dogs' is an idiom that means raining very heavily. The literal translation is provided, but in Spanish, a more common equivalent idiom is 'Está lloviendo a cántaros' or 'Está lloviendo torrentes'."
+      ],
+      "source_language": "English",
+      "target_language": "es"
+    },
+    "notes": "Should detect idiom and provide cultural context note"
+  },
+  {
+    "id": "auto_language_detection",
+    "description": "Auto language detection from Spanish to English",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "¿Cómo estás hoy?",
+        "target_language": "en"
+      }
+    },
+    "expected": {
+      "success": true,
+      "translation": "How are you today?",
+      "confidence": 0.99,
+      "cultural_notes": [],
+      "source_language": "Spanish",
+      "target_language": "en"
+    },
+    "notes": "Tests automatic language detection when source_language is not specified"
+  },
+  {
+    "id": "japanese_translation",
+    "description": "English to Japanese translation",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "Thank you for your help",
+        "target_language": "ja"
+      }
+    },
+    "expected": {
+      "success": true,
+      "translation": "お手伝いいただきありがとうございます",
+      "confidence": 0.95,
+      "cultural_notes": [],
+      "source_language": "English",
+      "target_language": "ja"
+    },
+    "notes": "Tests translation to Japanese with different writing system"
+  },
+  {
+    "id": "chinese_idiom",
+    "description": "Chinese idiom: '一石二鸟' (kill two birds with one stone)",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "一石二鸟",
+        "target_language": "en"
+      }
+    },
+    "expected": {
+      "success": true,
+      "translation": "kill two birds with one stone",
+      "confidence": 0.90,
+      "cultural_notes": [
+        "'一石二鸟' is a Chinese idiom meaning to accomplish two things with one action, similar to the English idiom 'kill two birds with one stone'."
+      ],
+      "source_language": "Chinese",
+      "target_language": "en"
+    },
+    "notes": "Tests Chinese idiom detection and equivalent English idiom"
+  },
+  {
+    "id": "arabic_translation",
+    "description": "English to Arabic translation",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "Welcome to our meeting",
+        "target_language": "ar"
+      }
+    },
+    "expected": {
+      "success": true,
+      "translation": "مرحبا بكم في اجتماعنا",
+      "confidence": 0.95,
+      "cultural_notes": [],
+      "source_language": "English",
+      "target_language": "ar"
+    },
+    "notes": "Tests right-to-left language translation"
+  },
+  {
+    "id": "emoji_handling",
+    "description": "Text with emojis",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "I love coding! 🚀💻",
+        "target_language": "fr"
+      }
+    },
+    "expected": {
+      "success": true,
+      "translation": "J'adore coder ! 🚀💻",
+      "confidence": 0.98,
+      "cultural_notes": [],
+      "source_language": "English",
+      "target_language": "fr"
+    },
+    "notes": "Tests emoji preservation in translation"
+  },
+  {
+    "id": "technical_jargon",
+    "description": "Technical text with jargon",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "The API uses RESTful endpoints with JSON payloads",
+        "target_language": "de"
+      }
+    },
+    "expected": {
+      "success": true,
+      "translation": "Die API verwendet RESTful-Endpunkte mit JSON-Payloads",
+      "confidence": 0.97,
+      "cultural_notes": [],
+      "source_language": "English",
+      "target_language": "de"
+    },
+    "notes": "Tests technical terminology preservation"
+  },
+  {
+    "id": "long_text",
+    "description": "Long text translation (under 10k limit)",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "The history of artificial intelligence began in ancient times with philosophers and mathematicians developing ideas about mechanical men and artificial beings. The field of AI research was founded at a workshop at Dartmouth College in 1956. The term 'artificial intelligence' was coined by John McCarthy. Since then, AI has gone through several cycles of optimism followed by disappointment and loss of funding, known as AI winters. Today, AI is widely used in many applications including speech recognition, computer vision, and natural language processing.",
+        "target_language": "es"
+      }
+    },
+    "expected": {
+      "success": true,
+      "translation": "La historia de la inteligencia artificial comenzó en tiempos antiguos con filósofos y matemáticos desarrollando ideas sobre hombres mecánicos y seres artificiales. El campo de la investigación en IA se fundó en un taller en el Dartmouth College en 1956. El término 'inteligencia artificial' fue acuñado por John McCarthy. Desde entonces, la IA ha pasado por varios ciclos de optimismo seguidos de decepción y pérdida de financiación, conocidos como inviernos de IA. Hoy en día, la IA se utiliza ampliamente en muchas aplicaciones, incluyendo reconocimiento de voz, visión por computadora y procesamiento de lenguaje natural.",
+      "confidence": 0.92,
+      "cultural_notes": [],
+      "source_language": "English",
+      "target_language": "es"
+    },
+    "notes": "Tests longer text handling, should maintain coherence"
+  },
+  {
+    "id": "mixed_language",
+    "description": "Mixed language text",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "Hello amigo, cómo estás? This meeting is at 3 PM.",
+        "target_language": "es"
+      }
+    },
+    "expected": {
+      "success": true,
+      "translation": "Hola amigo, ¿cómo estás? Esta reunión es a las 3 PM.",
+      "confidence": 0.96,
+      "cultural_notes": [],
+      "source_language": "English",
+      "target_language": "es"
+    },
+    "notes": "Tests mixed English/Spanish text, should detect primary language as English"
+  },
+  {
+    "id": "error_missing_target",
+    "description": "Error: Missing target language",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "Hello world"
+      }
+    },
+    "expected": {
+      "error": "Target language is required"
+    },
+    "notes": "Should return 400 error for missing required parameter"
+  },
+  {
+    "id": "error_missing_text",
+    "description": "Error: Missing text parameter",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "target_language": "es"
+      }
+    },
+    "expected": {
+      "error": "Text is required"
+    },
+    "notes": "Should return 400 error for missing required text parameter"
+  },
+  {
+    "id": "error_invalid_language",
+    "description": "Error: Invalid language code",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "Hello",
+        "target_language": "invalid"
+      }
+    },
+    "expected": {
+      "error": "Invalid language code"
+    },
+    "notes": "Should return 400 error for unsupported language code"
+  },
+  {
+    "id": "error_empty_text",
+    "description": "Error: Empty text",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "",
+        "target_language": "es"
+      }
+    },
+    "expected": {
+      "error": "Text cannot be empty"
+    },
+    "notes": "Should return 400 error for empty text"
+  },
+  {
+    "id": "business_formal_tone",
+    "description": "Business formal tone preservation",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "Dear Sir, I am writing to inform you of our quarterly results.",
+        "target_language": "fr"
+      }
+    },
+    "expected": {
+      "success": true,
+      "translation": "Cher Monsieur, je vous écris pour vous informer de nos résultats trimestriels.",
+      "confidence": 0.98,
+      "cultural_notes": [],
+      "source_language": "English",
+      "target_language": "fr"
+    },
+    "notes": "Tests formal business tone preservation in translation"
+  },
+  {
+    "id": "slang_detection",
+    "description": "Slang detection: 'lit' and 'GOAT'",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "This party is lit! You're the GOAT.",
+        "target_language": "es"
+      }
+    },
+    "expected": {
+      "success": true,
+      "translation": "¡Esta fiesta está encendida! Eres el GOAT.",
+      "confidence": 0.90,
+      "cultural_notes": [
+        "'Lit' is slang meaning something is exciting or excellent. 'GOAT' stands for 'Greatest Of All Time', used to describe someone who is the best in their field."
+      ],
+      "source_language": "English",
+      "target_language": "es"
+    },
+    "notes": "Should detect modern slang and provide explanations"
+  },
+  {
+    "id": "cultural_reference",
+    "description": "Cultural reference: Thanksgiving",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "Happy Thanksgiving! Time for turkey and football.",
+        "target_language": "es"
+      }
+    },
+    "expected": {
+      "success": true,
+      "translation": "¡Feliz Día de Acción de Gracias! Hora de pavo y fútbol americano.",
+      "confidence": 0.95,
+      "cultural_notes": [
+        "Thanksgiving is an American holiday celebrated on the fourth Thursday of November, commemorating the Pilgrims' harvest feast with Native Americans. It's typically celebrated with turkey, stuffing, and watching American football."
+      ],
+      "source_language": "English",
+      "target_language": "es"
+    },
+    "notes": "Should provide cultural context for holiday references"
+  },
+  {
+    "id": "code_snippet",
+    "description": "Text containing code snippet",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "To install the package, run: npm install axios",
+        "target_language": "de"
+      }
+    },
+    "expected": {
+      "success": true,
+      "translation": "Um das Paket zu installieren, führen Sie aus: npm install axios",
+      "confidence": 0.98,
+      "cultural_notes": [],
+      "source_language": "English",
+      "target_language": "de"
+    },
+    "notes": "Should leave code snippets untranslated while translating surrounding text"
+  },
+  {
+    "id": "numbers_and_dates",
+    "description": "Text with numbers and dates",
+    "request": {
+      "method": "POST",
+      "url": "http://localhost:4000/api/v1/ai/translate",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "text": "The meeting is on January 15th at 2:30 PM in room 204.",
+        "target_language": "fr"
+      }
+    },
+    "expected": {
+      "success": true,
+      "translation": "La réunion est le 15 janvier à 14h30 dans la salle 204.",
+      "confidence": 0.97,
+      "cultural_notes": [],
+      "source_language": "English",
+      "target_language": "fr"
+    },
+    "notes": "Should handle numbers, dates, and times appropriately, converting 12-hour to 24-hour format for French"
+  }
+]

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 /// Displays tier badge and feature availability status
 /// Shows "Free", "Pro", or "Enterprise" with appropriate styling
@@ -75,7 +76,7 @@ struct FeatureBadgeView: View {
                         .font(.headline)
                         .fontWeight(.bold)
 
-                    if let feature = feature {
+                    if feature != nil {
                         Text(featureStatusText)
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -89,7 +90,7 @@ struct FeatureBadgeView: View {
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .shadow(color: tierColor.opacity(0.3), radius: 4, x: 0, y: 2)
 
-            if let feature = feature {
+            if feature != nil {
                 featureStatusIndicator
             }
         }

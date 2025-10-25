@@ -148,7 +148,7 @@ final class SummaryGenerationViewModel {
             statusMessage = "Error: \(serviceError.localizedDescription)"
             print("❌ [SUMMARY] Error: \(serviceError)")
         } catch {
-            let wrappedError = AIServiceError.apiError(message: error.localizedDescription)
+            let wrappedError = AIServiceError.unknown(error)
             self.error = wrappedError
             statusMessage = "Error: \(error.localizedDescription)"
             print("❌ [SUMMARY] Unexpected error: \(error)")
@@ -164,7 +164,7 @@ final class SummaryGenerationViewModel {
         // For now, create a basic ThreadSummary from the simple result
 
         return ThreadSummary(
-            threadId: UUID(uuidString: basicResult.threadId) ?? threadId,
+            threadId: threadId,
             summary: basicResult.summary,
             keyPoints: extractKeyPoints(from: basicResult.summary),
             decisions: [],
@@ -268,16 +268,20 @@ final class SummaryGenerationViewModel {
 
 // MARK: - Summary Cache Manager
 
-@MainActor
-final class SummaryCacheManager {
+final class SummaryCacheManager: @unchecked Sendable {
     static let shared = SummaryCacheManager()
 
-    private var cache: [UUID: ThreadSummary] = [:]
+    // Use nonisolated(unsafe) since we manage thread safety via cacheQueue
+    nonisolated(unsafe) private var cache: [UUID: ThreadSummary] = [:]
     private let cacheQueue = DispatchQueue(label: "com.globalbridge.summaryCache", attributes: .concurrent)
 
     func getCachedSummary(for threadId: UUID) async -> ThreadSummary? {
         return await withCheckedContinuation { continuation in
-            cacheQueue.async {
+            cacheQueue.async { [weak self] in
+                guard let self = self else {
+                    continuation.resume(returning: nil)
+                    return
+                }
                 continuation.resume(returning: self.cache[threadId])
             }
         }
@@ -285,7 +289,11 @@ final class SummaryCacheManager {
 
     func cacheSummary(_ summary: ThreadSummary) async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            cacheQueue.async(flags: .barrier) {
+            cacheQueue.async(flags: .barrier) { [weak self] in
+                guard let self = self else {
+                    continuation.resume()
+                    return
+                }
                 self.cache[summary.threadId] = summary
                 print("💾 [CACHE] Cached summary for thread: \(summary.threadId)")
                 continuation.resume()
@@ -295,7 +303,11 @@ final class SummaryCacheManager {
 
     func clearCache(for threadId: UUID) async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            cacheQueue.async(flags: .barrier) {
+            cacheQueue.async(flags: .barrier) { [weak self] in
+                guard let self = self else {
+                    continuation.resume()
+                    return
+                }
                 self.cache.removeValue(forKey: threadId)
                 print("🗑️  [CACHE] Cleared cache for thread: \(threadId)")
                 continuation.resume()
@@ -305,7 +317,11 @@ final class SummaryCacheManager {
 
     func clearAllCache() async {
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            cacheQueue.async(flags: .barrier) {
+            cacheQueue.async(flags: .barrier) { [weak self] in
+                guard let self = self else {
+                    continuation.resume()
+                    return
+                }
                 let count = self.cache.count
                 self.cache.removeAll()
                 print("🗑️  [CACHE] Cleared all cache (\(count) items)")
@@ -556,7 +572,7 @@ struct SummaryGenerationView: View {
                     .font(.headline)
                     .foregroundColor(.primary)
 
-                Text(error.localizedDescription ?? "Unknown error occurred")
+                Text(error.localizedDescription)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)

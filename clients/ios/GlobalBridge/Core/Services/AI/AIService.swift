@@ -9,6 +9,12 @@
 import Foundation
 import Combine
 
+// MARK: - Type Aliases
+// Map internal result types to domain model types for backwards compatibility
+typealias SummarizationResult = ThreadSummary
+typealias TaskExtractionResult = ExtractedTask
+// ToneAnalysisResult and RateLimitCheckResult defined in Core/AI/Models/
+
 /// Concrete AI service implementation with HTTP networking and authentication
 @MainActor
 final class AIService: ObservableObject {
@@ -134,7 +140,7 @@ final class AIService: ObservableObject {
         let response = try decoder.decode(TranslationResponse.self, from: responseData)
 
         guard response.success else {
-            throw AIServiceError.apiError(message: "Translation failed")
+            throw AIServiceError.backendError(message: "Translation failed")
         }
 
         let result = TranslationResult(
@@ -214,13 +220,19 @@ final class AIService: ObservableObject {
         let response = try decoder.decode(SummarizationResponse.self, from: responseData)
 
         guard response.success else {
-            throw AIServiceError.apiError(message: "Summarization failed")
+            throw AIServiceError.backendError(message: "Summarization failed")
         }
 
-        let result = SummarizationResult(
+        // Convert simple backend response to rich domain model
+        let result = ThreadSummary(
+            threadId: UUID(uuidString: response.threadId) ?? UUID(),
             summary: response.summary,
-            threadId: response.threadId,
-            messageCount: nil // Backend doesn't return message count
+            keyPoints: [],
+            decisions: [],
+            actionItems: [],
+            participants: [],
+            messageCount: nil,
+            maxLength: response.maxLength
         )
 
         print("✅ [AI_SERVICE] Thread summarization successful")
@@ -313,16 +325,23 @@ final class AIService: ObservableObject {
         let response = try decoder.decode(SearchResponse.self, from: responseData)
 
         guard response.success else {
-            throw AIServiceError.apiError(message: "Semantic search failed")
+            throw AIServiceError.backendError(message: "Semantic search failed")
         }
 
+        // Convert simple backend response to rich domain model
         let results = response.results.map { item in
             SearchResult(
-                messageId: item.messageId,
-                content: item.content,
-                relevanceScore: item.score,
-                threadId: item.threadId,
-                timestamp: item.timestamp
+                message: SearchResult.MessageInfo(
+                    id: UUID(uuidString: item.messageId) ?? UUID(),
+                    threadId: UUID(uuidString: item.threadId ?? "") ?? UUID(),
+                    senderId: UUID(), // Backend doesn't provide sender info
+                    senderUsername: "Unknown",
+                    senderDisplayName: nil,
+                    content: item.content,
+                    timestamp: ISO8601DateFormatter().date(from: item.timestamp ?? "") ?? Date(),
+                    isEdited: nil
+                ),
+                relevanceScore: item.score
             )
         }
 
@@ -338,12 +357,12 @@ final class AIService: ObservableObject {
     /// - Parameters:
     ///   - threadId: Thread UUID to analyze
     ///   - query: Optional custom query (defaults to "tasks, deadlines, decisions, commitments")
-    /// - Returns: TaskExtractionResult with extracted tasks and metadata
+    /// - Returns: Array of ExtractedTask objects with tasks, deadlines, and decisions
     /// - Throws: AIServiceError for various failure cases
     func extractTasks(
         threadId: String,
         query: String? = nil
-    ) async throws -> TaskExtractionResult {
+    ) async throws -> [ExtractedTask] {
         // Check feature availability (using thread_summarization as proxy for task extraction)
         guard featureFlags.hasFeature(.threadSummarization) else {
             print("❌ [AI_SERVICE] Task extraction not enabled for tier")
@@ -396,20 +415,51 @@ final class AIService: ObservableObject {
         let response = try decoder.decode(TaskExtractionResponse.self, from: responseData)
 
         guard response.success else {
-            throw AIServiceError.apiError(message: "Task extraction failed")
+            throw AIServiceError.backendError(message: "Task extraction failed")
         }
 
-        let result = TaskExtractionResult(
-            tasks: response.extraction.tasks,
-            deadlines: response.extraction.deadlines ?? [],
-            decisions: response.extraction.decisions ?? [],
-            threadId: threadId
-        )
+        // Convert simple backend task strings to rich ExtractedTask domain models
+        let threadUUID = UUID(uuidString: threadId) ?? UUID()
+        var allTasks: [ExtractedTask] = []
 
-        print("✅ [AI_SERVICE] Extracted \(result.tasks.count) tasks")
+        // Convert regular tasks
+        allTasks += response.extraction.tasks.map { taskTitle in
+            ExtractedTask(
+                threadId: threadUUID,
+                title: taskTitle,
+                description: nil,
+                taskType: .action
+            )
+        }
+
+        // Convert deadlines
+        if let deadlines = response.extraction.deadlines {
+            allTasks += deadlines.map { deadlineTitle in
+                ExtractedTask(
+                    threadId: threadUUID,
+                    title: deadlineTitle,
+                    description: nil,
+                    taskType: .deadline
+                )
+            }
+        }
+
+        // Convert decisions
+        if let decisions = response.extraction.decisions {
+            allTasks += decisions.map { decisionTitle in
+                ExtractedTask(
+                    threadId: threadUUID,
+                    title: decisionTitle,
+                    description: nil,
+                    taskType: .decision
+                )
+            }
+        }
+
+        print("✅ [AI_SERVICE] Extracted \(allTasks.count) tasks")
         incrementRequestCount()
 
-        return result
+        return allTasks
     }
 
     // MARK: - Tone Analysis
@@ -467,7 +517,7 @@ final class AIService: ObservableObject {
         let response = try decoder.decode(ToneAnalysisResponse.self, from: responseData)
 
         guard response.success else {
-            throw AIServiceError.apiError(message: "Tone analysis failed")
+            throw AIServiceError.backendError(message: "Tone analysis failed")
         }
 
         let result = ToneAnalysisResult(
@@ -495,7 +545,7 @@ final class AIService: ObservableObject {
         // Get authentication token
         guard let token = await authManager.getAccessToken() else {
             print("❌ [AI_SERVICE] No authentication token available")
-            throw AIServiceError.notAuthenticated
+            throw AIServiceError.unauthorized
         }
 
         // Build request
@@ -510,7 +560,7 @@ final class AIService: ObservableObject {
             do {
                 request.httpBody = try JSONSerialization.data(withJSONObject: body)
             } catch {
-                throw AIServiceError.encodingError(error)
+                throw AIServiceError.decodingError(error)
             }
         }
 
@@ -553,13 +603,15 @@ final class AIService: ObservableObject {
                     try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                     return try await performRequest(endpoint: endpoint, method: method, body: body, attempt: attempt + 1)
                 } else {
-                    throw AIServiceError.rateLimitExceeded(retryAfter: resetTime)
+                    // Convert TimeInterval (seconds from now) to Date
+                    let retryAfterDate = resetTime.map { Date().addingTimeInterval($0) }
+                    throw AIServiceError.rateLimitExceeded(retryAfter: retryAfterDate, remainingQuota: nil, tierLimit: nil)
                 }
 
             case 400...499:
                 // Client error
                 let errorMessage = parseErrorMessage(from: data)
-                throw AIServiceError.clientError(statusCode: httpResponse.statusCode, message: errorMessage)
+                throw AIServiceError.httpError(statusCode: httpResponse.statusCode, message: errorMessage)
 
             case 500...599:
                 // Server error - retry with exponential backoff
@@ -569,11 +621,11 @@ final class AIService: ObservableObject {
                     try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                     return try await performRequest(endpoint: endpoint, method: method, body: body, attempt: attempt + 1)
                 } else {
-                    throw AIServiceError.serverError(statusCode: httpResponse.statusCode)
+                    throw AIServiceError.httpError(statusCode: httpResponse.statusCode, message: "Server error")
                 }
 
             default:
-                throw AIServiceError.unexpectedStatusCode(httpResponse.statusCode)
+                throw AIServiceError.httpError(statusCode: httpResponse.statusCode, message: "Unexpected status code")
             }
 
         } catch let error as AIServiceError {
@@ -654,131 +706,12 @@ final class AIService: ObservableObject {
 }
 
 // MARK: - Result Types
-
-/// Translation result with metadata
-struct TranslationResult {
-    let originalText: String
-    let translatedText: String
-    let sourceLanguage: String
-    let targetLanguage: String
-    let confidence: Double?
-}
-
-/// Thread summarization result
-struct SummarizationResult {
-    let summary: String
-    let threadId: String
-    let messageCount: Int?
-}
-
-/// Semantic search result
-struct SearchResult {
-    let messageId: String
-    let content: String
-    let relevanceScore: Double
-    let threadId: String?
-    let timestamp: String?
-}
-
-/// Task extraction result
-struct TaskExtractionResult {
-    let tasks: [String]
-    let deadlines: [String]
-    let decisions: [String]
-    let threadId: String
-}
-
-/// Tone analysis result
-struct ToneAnalysisResult {
-    let tone: String
-    let confidence: Double
-    let emotions: [String]
-    let language: String
-}
+// All result type definitions are in Core/AI/Models/:
+// - TranslationResult.swift
+// - SearchResult.swift
+// - ThreadSummary.swift
+// - ExtractedTask.swift
 
 // MARK: - Error Types
 
-/// Comprehensive error type for AI service operations
-enum AIServiceError: LocalizedError, Equatable {
-    case notAuthenticated
-    case unauthorized
-    case forbidden
-    case featureDisabled(feature: String)
-    case invalidInput(reason: String)
-    case rateLimitExceeded(retryAfter: TimeInterval?)
-    case quotaExceeded
-    case invalidResponse
-    case encodingError(Error)
-    case networkError(Error)
-    case clientError(statusCode: Int, message: String)
-    case serverError(statusCode: Int)
-    case unexpectedStatusCode(Int)
-    case apiError(message: String)
-    case timeout
-
-    var errorDescription: String? {
-        switch self {
-        case .notAuthenticated:
-            return "Not authenticated. Please log in."
-        case .unauthorized:
-            return "Authentication token expired. Please log in again."
-        case .forbidden:
-            return "Access forbidden. This feature may not be available for your account tier."
-        case .featureDisabled(let feature):
-            return "Feature '\(feature)' is not enabled for your account tier."
-        case .invalidInput(let reason):
-            return "Invalid input: \(reason)"
-        case .rateLimitExceeded(let retryAfter):
-            if let delay = retryAfter {
-                return "Rate limit exceeded. Please try again in \(Int(delay)) seconds."
-            }
-            return "Rate limit exceeded. Please try again later."
-        case .quotaExceeded:
-            return "Usage quota exceeded. Please upgrade your plan."
-        case .invalidResponse:
-            return "Invalid response from server."
-        case .encodingError(let error):
-            return "Failed to encode request: \(error.localizedDescription)"
-        case .networkError(let error):
-            return "Network error: \(error.localizedDescription)"
-        case .clientError(let statusCode, let message):
-            return "Client error (\(statusCode)): \(message)"
-        case .serverError(let statusCode):
-            return "Server error (\(statusCode)). Please try again later."
-        case .unexpectedStatusCode(let code):
-            return "Unexpected status code: \(code)"
-        case .apiError(let message):
-            return "API error: \(message)"
-        case .timeout:
-            return "Request timed out. Please try again."
-        }
-    }
-
-    static func == (lhs: AIServiceError, rhs: AIServiceError) -> Bool {
-        switch (lhs, rhs) {
-        case (.notAuthenticated, .notAuthenticated),
-             (.unauthorized, .unauthorized),
-             (.forbidden, .forbidden),
-             (.invalidResponse, .invalidResponse),
-             (.quotaExceeded, .quotaExceeded),
-             (.timeout, .timeout):
-            return true
-        case (.featureDisabled(let lhsFeature), .featureDisabled(let rhsFeature)):
-            return lhsFeature == rhsFeature
-        case (.invalidInput(let lhsReason), .invalidInput(let rhsReason)):
-            return lhsReason == rhsReason
-        case (.rateLimitExceeded(let lhsRetry), .rateLimitExceeded(let rhsRetry)):
-            return lhsRetry == rhsRetry
-        case (.clientError(let lhsCode, let lhsMsg), .clientError(let rhsCode, let rhsMsg)):
-            return lhsCode == rhsCode && lhsMsg == rhsMsg
-        case (.serverError(let lhsCode), .serverError(let rhsCode)):
-            return lhsCode == rhsCode
-        case (.unexpectedStatusCode(let lhsCode), .unexpectedStatusCode(let rhsCode)):
-            return lhsCode == rhsCode
-        case (.apiError(let lhsMsg), .apiError(let rhsMsg)):
-            return lhsMsg == rhsMsg
-        default:
-            return false
-        }
-    }
-}
+// AIServiceError enum is defined in Core/AI/Errors/AIServiceError.swift

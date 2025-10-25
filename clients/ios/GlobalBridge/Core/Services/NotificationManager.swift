@@ -25,6 +25,9 @@ public class NotificationManager: NSObject, ObservableObject {
     private let notificationCenter = UNUserNotificationCenter.current()
     private var notificationHandlers: [(UNNotificationResponse) -> Void] = []
 
+    // Track badge count internally to avoid deprecated API in iOS 17+
+    private var internalBadgeCount: Int = 0
+
     // MARK: - Initialization
 
     private override init() {
@@ -61,7 +64,7 @@ public class NotificationManager: NSObject, ObservableObject {
 
     /// Register for remote notifications (APNs)
     public func registerForRemoteNotifications() async {
-        await UIApplication.shared.registerForRemoteNotifications()
+        UIApplication.shared.registerForRemoteNotifications()
     }
 
     /// Set device token from AppDelegate
@@ -73,7 +76,7 @@ public class NotificationManager: NSObject, ObservableObject {
         // Attempt to register with backend (best-effort)
         Task {
             do {
-                guard let userId = await AuthManager.shared.getUserId() else {
+                guard let userId = AuthManager.shared.getUserId() else {
                     print("[Notifications] Skipping token register: no user id")
                     return
                 }
@@ -101,16 +104,20 @@ public class NotificationManager: NSObject, ObservableObject {
         messageId: String,
         delay: TimeInterval = 0
     ) async throws {
+        let newBadgeCount = await getBadgeCount() + 1
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
         content.sound = .default
-        content.badge = NSNumber(value: await getBadgeCount() + 1)
+        content.badge = NSNumber(value: newBadgeCount)
         content.userInfo = [
             "conversation_id": conversationId,
             "message_id": messageId,
             "type": "message"
         ]
+
+        // Update internal badge count
+        await setBadgeCount(newBadgeCount)
 
         let trigger = delay > 0
             ? UNTimeIntervalNotificationTrigger(timeInterval: delay, repeats: false)
@@ -127,12 +134,27 @@ public class NotificationManager: NSObject, ObservableObject {
 
     /// Clear badge count
     public func clearBadge() async {
-        UIApplication.shared.applicationIconBadgeNumber = 0
+        internalBadgeCount = 0
+        if #available(iOS 17.0, *) {
+            try? await notificationCenter.setBadgeCount(0)
+        } else {
+            UIApplication.shared.applicationIconBadgeNumber = 0
+        }
     }
 
     /// Get current badge count
     public func getBadgeCount() async -> Int {
-        UIApplication.shared.applicationIconBadgeNumber
+        return internalBadgeCount
+    }
+
+    /// Set badge count
+    private func setBadgeCount(_ count: Int) async {
+        internalBadgeCount = count
+        if #available(iOS 17.0, *) {
+            try? await notificationCenter.setBadgeCount(count)
+        } else {
+            UIApplication.shared.applicationIconBadgeNumber = count
+        }
     }
 
     /// Remove all delivered notifications

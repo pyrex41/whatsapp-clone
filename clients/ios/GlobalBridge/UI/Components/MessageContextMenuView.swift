@@ -216,8 +216,8 @@ struct DeletedMessageTombstoneView: View {
                             socketURL: URL(string: "ws://localhost:4000/socket")!
                         )
                     ),
-                    databaseManager: DatabaseManager(),
-                    offlineQueueManager: OfflineQueueManager(databaseManager: DatabaseManager())
+                    databaseManager: DatabaseManager.shared,
+                    offlineQueueManager: OfflineQueueManager(databaseManager: DatabaseManager.shared)
                 ),
                 deletionHandler: MessageDeletionHandler(
                     phoenixChannelManager: PhoenixChannelManager(
@@ -225,8 +225,8 @@ struct DeletedMessageTombstoneView: View {
                             socketURL: URL(string: "ws://localhost:4000/socket")!
                         )
                     ),
-                    databaseManager: DatabaseManager(),
-                    offlineQueueManager: OfflineQueueManager(databaseManager: DatabaseManager())
+                    databaseManager: DatabaseManager.shared,
+                    offlineQueueManager: OfflineQueueManager(databaseManager: DatabaseManager.shared)
                 ),
                 onEdit: { print("Edit") },
                 onDelete: { print("Delete: \($0)") },
@@ -251,8 +251,8 @@ struct DeletedMessageTombstoneView: View {
                         socketURL: URL(string: "ws://localhost:4000/socket")!
                     )
                 ),
-                databaseManager: DatabaseManager(),
-                offlineQueueManager: OfflineQueueManager(databaseManager: DatabaseManager())
+                databaseManager: DatabaseManager.shared,
+                offlineQueueManager: OfflineQueueManager(databaseManager: DatabaseManager.shared)
             ),
             isOwnMessage: true
         )

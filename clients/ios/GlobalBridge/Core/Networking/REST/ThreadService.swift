@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 struct ThreadService {
     let baseURL: URL

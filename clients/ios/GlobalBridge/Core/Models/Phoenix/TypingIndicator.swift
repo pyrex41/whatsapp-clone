@@ -62,11 +62,11 @@ public struct ReadReceipt: Codable, Sendable, Equatable {
 }
 
 /// Stores typing state for a conversation
-public struct TypingState: Equatable {
+public struct TypingState: Equatable, Sendable {
     public var typingUsers: Set<String>
     public var lastUpdate: Date
 
-    public init(typingUsers: Set<String> = [], lastUpdate: Date = Date()) {
+    public nonisolated init(typingUsers: Set<String> = [], lastUpdate: Date = Date()) {
         self.typingUsers = typingUsers
         self.lastUpdate = lastUpdate
     }

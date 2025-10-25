@@ -6311,7 +6311,7 @@
   "ai-front": {
     "tasks": [
       {
-        "id": "1",
+        "id": 1,
         "title": "Set up SwiftUI Project Structure",
         "description": "Initialize the SwiftUI project with necessary folders, models, and basic views for the GlobalBridge Messenger app.",
         "details": "Create a new SwiftUI project in Xcode. Set up folders for Models, Views, Services, and Managers. Define basic structs like Message, Thread, and User based on the PRD's message schema. Implement a root ContentView with navigation. Use SwiftUI's ObservableObject for state management. Ensure the project targets iOS 17.4+ for Apple Translation framework compatibility.",
@@ -6361,7 +6361,7 @@
         "updatedAt": "2025-10-24T17:30:55.358Z"
       },
       {
-        "id": "2",
+        "id": 2,
         "title": "Integrate Auth0 Authentication",
         "description": "Implement Auth0 OAuth 2.0 authentication with JWT token management as specified in the PRD.",
         "details": "Create AuthManager as an ObservableObject. Configure Auth0 with the provided domain, client ID, and audience. Implement login flow using Auth0 WebAuth, token storage in iOS Keychain, and automatic refresh 5 minutes before expiry. Handle session restoration on app launch. Use the makeAuthenticatedRequest pattern for API calls.",
@@ -6425,7 +6425,7 @@
         "updatedAt": "2025-10-24T17:30:57.974Z"
       },
       {
-        "id": "3",
+        "id": 3,
         "title": "Implement Phoenix Channel WebSocket Integration",
         "description": "Set up Phoenix Channels for real-time messaging and presence tracking.",
         "details": "Create PhoenixChannelManager as an actor. Implement connection to Phoenix server with auth token. Define channel joining for threads, event handlers for new_message, presence_state, etc. Implement message sending with client_message_id and client_created_at. Handle presence tracking with PresenceBadgeView.",
@@ -6501,7 +6501,7 @@
         "updatedAt": "2025-10-24T17:31:00.032Z"
       },
       {
-        "id": "4",
+        "id": 4,
         "title": "Set up CDC Offline Sync",
         "description": "Implement Change Data Capture (CDC) for offline-first architecture with SQLite database.",
         "details": "Create CDCManager and DatabaseManager. Set up SQLite tables for cdc_logs and messages. Implement pullChanges and pushChanges methods for bidirectional sync. Use last-write-wins conflict resolution. Schedule periodic sync every 30 seconds when active.",
@@ -6590,7 +6590,7 @@
         "updatedAt": "2025-10-24T17:31:02.862Z"
       },
       {
-        "id": "5",
+        "id": 5,
         "title": "Implement Feature Flags System",
         "description": "Create a tier-based feature access system with backend integration, fetching features from /api/v1/features on every app launch.",
         "status": "done",
@@ -6641,7 +6641,7 @@
         "updatedAt": "2025-10-24T18:53:37.096Z"
       },
       {
-        "id": "6",
+        "id": 6,
         "title": "Develop AI Service Protocol and Implementation",
         "description": "Create AIServiceProtocol and implement methods for translation, summarization, search, task extraction, and tone analysis.",
         "status": "done",
@@ -6725,7 +6725,7 @@
         "updatedAt": "2025-10-24T19:25:17.671Z"
       },
       {
-        "id": "7",
+        "id": 7,
         "title": "Implement Apple Translation Framework Integration",
         "description": "Integrate Apple's on-device Translation framework for offline translation.",
         "details": "Create AppleTranslationService class. Check language availability and implement translate and translateBatch methods. Use TranslationSession for on-device processing. Integrate with SwiftUI using translationPresentation modifier.",
@@ -6780,7 +6780,7 @@
         "updatedAt": "2025-10-24T20:09:24.703Z"
       },
       {
-        "id": "8",
+        "id": 8,
         "title": "Create Backend AI Translation Service",
         "description": "Implement cloud-based translation using the backend AI API.",
         "details": "Create BackendTranslationService class. Make POST requests to /api/v1/ai/translate with text, target_language, and source_language. Parse TranslationResult responses. Handle cultural notes if provided.",
@@ -6822,7 +6822,7 @@
         "updatedAt": "2025-10-24T20:09:30.906Z"
       },
       {
-        "id": "9",
+        "id": 9,
         "title": "Build Unified Translation Service with Feature Flags",
         "description": "Combine Apple and Backend translation services with provider switching via feature flags.",
         "details": "Create TranslationService class with translate method that selects provider based on FeatureFlags. Implement hybrid mode for comparison. Log metrics for analysis. Handle offline strategy preferring Apple when offline.",
@@ -6900,7 +6900,7 @@
         "updatedAt": "2025-10-24T20:22:58.774Z"
       },
       {
-        "id": "10",
+        "id": 10,
         "title": "Design Message Bubble UI with Translation",
         "description": "Implement MessageBubbleView with support for different content types and translation overlay.",
         "details": "Create MessageBubbleView struct with text, image, video, audio, file views. Add context menu for translate action. Implement TranslationOverlay for displaying translations. Handle reply previews and message metadata.",
@@ -6969,7 +6969,7 @@
         "updatedAt": "2025-10-24T20:23:08.492Z"
       },
       {
-        "id": "11",
+        "id": 11,
         "title": "Implement Translation Comparison UI",
         "description": "Enhance existing MessageCellView.swift with AI features: translation overlay, cultural notes display, translate context menu action, loading states.",
         "status": "done",
@@ -7027,7 +7027,7 @@
         "updatedAt": "2025-10-24T21:36:07.688Z"
       },
       {
-        "id": "12",
+        "id": 12,
         "title": "Add Rate Limiting and Error Handling",
         "description": "Implement simple auto-retry for rate limiting on 429 errors and basic error handling for AI services.",
         "status": "done",
@@ -7079,7 +7079,7 @@
         "updatedAt": "2025-10-24T21:36:09.018Z"
       },
       {
-        "id": "13",
+        "id": 13,
         "title": "Integrate Thread Summarization UI",
         "description": "Add UI for AI-powered thread summaries.",
         "details": "Create a summary view that calls AIService.summarizeThread. Display summary in thread header. Handle loading states and errors. Integrate with feature flags for tier access.",
@@ -7120,7 +7120,7 @@
         "updatedAt": "2025-10-24T21:36:10.302Z"
       },
       {
-        "id": "14",
+        "id": 14,
         "title": "Implement Semantic Search Interface",
         "description": "Build UI for multilingual semantic search with cross-language highlighting.",
         "details": "Create search view with input field and results list. Call AIService.searchSemantic with query, threadId, etc. Highlight matches in results. Support recency bias and translation options.",
@@ -7173,7 +7173,7 @@
         "updatedAt": "2025-10-24T21:36:11.650Z"
       },
       {
-        "id": "15",
+        "id": 15,
         "title": "Develop Task Extraction UI",
         "description": "Implement interface for extracting tasks and decisions from threads.",
         "details": "Create task extraction view that calls AIService.extractTasks. Display extracted tasks with assignee, deadline, priority. Allow marking tasks complete. Integrate with feature flags.",
@@ -7226,7 +7226,7 @@
         "updatedAt": "2025-10-24T21:36:13.064Z"
       },
       {
-        "id": "16",
+        "id": 16,
         "title": "Implement Message Edit and Delete Functionality",
         "description": "Add support for editing and deleting messages in the app, including real-time updates via Phoenix channels, UI enhancements for context menus and editing sheets, and database schema modifications for soft deletes and edit tracking.",
         "details": "Update PhoenixChannelManager to handle 'edit_message' and 'delete_message' events by sending them to the appropriate channel, and listen for 'message_edited' and 'message_deleted' broadcast events to update the local message state. Modify the Message model to include 'isEdited' and 'isDeleted' boolean fields, ensuring 'isDeleted' implements soft deletes where messages are marked deleted but not removed from the database. Update the database schema in DatabaseManager to add these fields to the messages table, integrating with the existing CDC sync to propagate changes bidirectionally. Enhance MessageCellView to include an Edit/Delete context menu option, conditionally shown based on message ownership and feature flags. Create a new EditMessageView as a SwiftUI sheet that allows users to modify message text, validate input, and send the edit via PhoenixChannelManager. Ensure the UI handles loading states during edit/delete operations and updates the message display to reflect edited status (e.g., with a subtle 'edited' indicator). Integrate with the offline sync system to queue edits/deletes when offline and sync on reconnection. Consider edge cases like editing a message that's already deleted or handling conflicts in CDC. Use the existing AuthManager for user permissions and ensure edits preserve message metadata like timestamps.",
@@ -7241,7 +7241,7 @@
         "updatedAt": "2025-10-24T21:36:14.375Z"
       },
       {
-        "id": "17",
+        "id": 17,
         "title": "Polish Read Receipts UI",
         "description": "Enhance MessageCellView with checkmark indicators for sent, delivered, and read statuses using different icons, add a 'Who Read This?' context menu option, and create ReadReceiptDetailView to display who read the message and when.",
         "details": "Update MessageCellView.swift to include visual indicators for message read receipts. Implement three distinct checkmark icons: a single checkmark for sent, double checkmarks for delivered, and blue double checkmarks for read. Position these indicators in the bottom-right corner of the message bubble, ensuring they are visible and unobtrusive. Add a new 'Who Read This?' option to the existing context menu in MessageCellView, which should trigger navigation to a new ReadReceiptDetailView. Create ReadReceiptDetailView as a SwiftUI view that fetches and displays a list of users who have read the message, including their names, avatars, and timestamps of when they read it. Integrate with Phoenix channels to receive real-time updates on read receipts; subscribe to the appropriate channel for the message thread and update the UI reactively. Handle cases where read receipts are not available (e.g., for older messages or group chats with privacy settings). Ensure the UI is responsive and accessible, with proper loading states while fetching receipt data. Consider edge cases like messages sent by the user themselves (show receipts for others) and messages in channels where receipts are disabled. Use Combine or SwiftUI's state management to bind receipt data to the views. No backend changes are needed as support is already in place.",
@@ -7255,7 +7255,7 @@
         "updatedAt": "2025-10-24T21:36:15.762Z"
       },
       {
-        "id": "18",
+        "id": 18,
         "title": "Implement User Channel WebSocket for App-Level Operations",
         "description": "Implement WebSocket integration for user channel to handle contact management, thread creation, user search, and app bootstrap on launch, integrating with the existing PhoenixChannelManager to enable real-time contacts, new threads/DMs, cross-platform user search, and fast app initialization.",
         "details": "Extend the PhoenixChannelManager to join a dedicated 'user' channel for app-level operations, handling events such as contact updates, thread creation, user search results, and bootstrap data (e.g., initial user state, contacts list). Implement event handlers for incoming broadcasts like 'contact_added', 'contact_removed', 'thread_created', 'user_search_results', and 'bootstrap_complete', updating local state accordingly. For UI integration, enhance ContactsView to display and manage contacts with real-time updates, including add/remove actions sent via the channel. Update NewThreadView to support creating new threads or DMs by sending 'create_thread' events with participants, and handle responses for thread ID assignment. Implement user search functionality with a search input that sends 'search_users' events and displays results in a list view, supporting cross-platform search with pagination if needed. For app bootstrap, on launch, join the user channel and request initial data via a 'bootstrap' event, populating local caches for contacts and user info to enable fast startup. Ensure integration with existing CDC offline sync (from Task 4) for persisting contact and thread data locally, and handle offline scenarios by queuing actions for when the channel reconnects. Reference docs/user-channel-explained.md for detailed event specifications, payload structures, and authentication requirements. Consider error handling for channel join failures, event timeouts, and rate limiting on search requests. Update any relevant models (e.g., User, Contact, Thread) to include fields for channel-sourced data, and ensure thread safety in PhoenixChannelManager as an actor.",
@@ -7276,6 +7276,803 @@
       "completedCount": 18,
       "tags": [
         "ai-front"
+      ],
+      "created": "2025-10-25T02:13:13.638Z",
+      "description": "Tasks for ai-front context"
+    }
+  },
+  "agent-update": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Design IdiomAnalyzerAgent Module",
+        "description": "Design the structure and configuration for the new IdiomAnalyzerAgent, including the prompt template and integration with Groq Llama model.",
+        "details": "Create the module file at lib/globalbridge_backend/ai/agents/idiom_analyzer_agent.ex. Configure it to use Groq's llama-3.1-70b-versatile via OpenAIServing. Implement the exact prompt as specified, with placeholders for source_language, target_language, and text. Ensure the agent responds only with valid JSON array or empty array. Use Elixir's Agens.Agent.call for invocation.",
+        "testStrategy": "Unit test the agent initialization and prompt generation with mock inputs. Validate that the prompt is correctly formatted and contains the required placeholders.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create IdiomAnalyzerAgent Module File",
+            "description": "Create the new Elixir module file at the specified path with basic structure.",
+            "dependencies": [],
+            "details": "Initialize the module file lib/globalbridge_backend/ai/agents/idiom_analyzer_agent.ex with the necessary Elixir module declaration and imports for OpenAIServing and Agent functionality.\n<info added on 2025-10-25T02:30:54.045Z>\nCreated IdiomAnalyzerAgent module file at lib/globalbridge_backend/ai/agents/idiom_analyzer_agent.ex. Implemented full module with: Agent config using Groq llama-3.1-70b-versatile model, comprehensive moduledoc and type specifications, analyze/4 function for direct idiom detection, parse_analysis_result/1 for JSON parsing, validation functions (valid_analysis?/1, valid_idiom?/1), helper functions for JSON extraction from various output formats, follows same pattern as existing agents (SummarizerAgent, TranslatorAgent), configured to route through OpenAIServing to Groq API.\n</info added on 2025-10-25T02:30:54.045Z>",
+            "status": "pending",
+            "testStrategy": "Unit test to verify the module can be loaded without errors.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Configure LLM Integration with Groq",
+            "description": "Set up the configuration to use Groq's llama-3.1-70b-versatile model via OpenAIServing.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the module, configure the OpenAIServing client to connect to Groq's API endpoint, specifying the model llama-3.1-70b-versatile, and set up any required API keys or authentication parameters.\n<info added on 2025-10-25T02:31:29.973Z>\nRegistered IdiomAnalyzerAgent and SummarizerAgent in AgensSetup module. Updated: - Added aliases for IdiomAnalyzerAgent and SummarizerAgent - Updated moduledoc to document new agents - Added Agent.start calls for both new agents in start_components/0 - Agents are now initialized when the application starts\n</info added on 2025-10-25T02:31:29.973Z>",
+            "status": "done",
+            "testStrategy": "Unit test the configuration by mocking the OpenAIServing setup and verifying model selection.",
+            "parentId": "undefined",
+            "updatedAt": "2025-10-25T02:31:19.964Z"
+          },
+          {
+            "id": 3,
+            "title": "Implement Prompt Template with Placeholders",
+            "description": "Implement the exact prompt template as specified, including placeholders for source_language, target_language, and text.",
+            "dependencies": [
+              2
+            ],
+            "details": "Define the prompt string within the module, ensuring it includes placeholders for source_language, target_language, and text, and that the prompt instructs the LLM to respond only with a valid JSON array or empty array.",
+            "status": "pending",
+            "testStrategy": "Unit test prompt generation with sample inputs to check placeholder substitution and format correctness.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Add Response Handling for JSON Output",
+            "description": "Implement logic to handle the LLM response, ensuring it parses as a valid JSON array or returns an empty array on failure.",
+            "dependencies": [
+              3
+            ],
+            "details": "Add code to parse the LLM response as JSON; if parsing fails or the response is invalid, return an empty array. Validate that the output is an array of objects with required fields like phrase, explanation, equivalent_in_target.",
+            "status": "pending",
+            "testStrategy": "Unit tests with mocked LLM responses, including valid JSON, invalid JSON, and empty cases, to verify parsing and fallback behavior.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Implement Agent Call Function",
+            "description": "Add the function to invoke the agent using Elixir's Agent.call, integrating the prompt and response handling.",
+            "dependencies": [
+              4
+            ],
+            "details": "Define a public function in the module that uses Agent.call to send the prompt to the LLM, processes the response as per the handling logic, and returns the result. Ensure the function is callable from TranslationJob.",
+            "status": "pending",
+            "testStrategy": "Unit test the call function with mocks for the LLM interaction, verifying correct invocation, response processing, and output format.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "No expansion needed as this is a straightforward module design task.",
+        "updatedAt": "2025-10-25T02:33:29.436Z"
+      },
+      {
+        "id": "2",
+        "title": "Implement IdiomAnalyzerAgent Logic",
+        "description": "Implement the core logic for the IdiomAnalyzerAgent to analyze text for idioms and return structured JSON output.",
+        "details": "In the IdiomAnalyzerAgent module, add a function to call the LLM with the prompt. Parse the response as JSON; if parsing fails, return an empty array. Handle cases where no idioms are found. Ensure output matches the required format: array of objects with phrase, explanation, equivalent_in_target.",
+        "testStrategy": "Unit tests with various text inputs (with and without idioms). Mock LLM responses to test parsing, error handling, and output validation against the schema.",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define IdiomAnalyzerAgent Function Structure",
+            "description": "Create the basic structure for the IdiomAnalyzerAgent function that will handle idiom analysis, including input parameters for text and prompt.",
+            "dependencies": [],
+            "details": "In the IdiomAnalyzerAgent module, define a new function named analyze_idioms that takes text and a prompt as inputs. Set up the function to prepare for LLM interaction, ensuring it aligns with the module's existing patterns.",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify function definition and parameter handling.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement LLM Call to Analyze Idioms",
+            "description": "Add logic to call the LLM with the provided prompt and text for idiom detection.",
+            "dependencies": [
+              1
+            ],
+            "details": "Within the analyze_idioms function, integrate the LLM call using the existing API client. Pass the prompt and text to the LLM, and capture the response. Ensure the call is asynchronous if needed for performance.",
+            "status": "pending",
+            "testStrategy": "Unit tests with mocked LLM responses to confirm the call is made correctly and responses are captured.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Parse LLM Response as JSON",
+            "description": "Parse the LLM response into a JSON structure, extracting the list of idioms.",
+            "dependencies": [
+              2
+            ],
+            "details": "After receiving the LLM response, attempt to parse it as JSON. Extract the array of idiom objects. If parsing succeeds, proceed to validate the structure; otherwise, prepare for error handling.",
+            "status": "pending",
+            "testStrategy": "Unit tests with valid and invalid JSON mock responses to ensure parsing works and errors are handled appropriately.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Handle Parsing Failures and No Idioms Cases",
+            "description": "Implement error handling for JSON parsing failures and cases where no idioms are detected.",
+            "dependencies": [
+              3
+            ],
+            "details": "If JSON parsing fails, return an empty array. Additionally, check if the parsed response indicates no idioms found (e.g., empty array) and ensure the output remains an empty array in such cases. Log errors for debugging.",
+            "status": "pending",
+            "testStrategy": "Unit tests covering parsing failures (e.g., malformed JSON) and no idioms scenarios, verifying empty array returns.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Validate and Format Output Structure",
+            "description": "Ensure the output matches the required format: an array of objects with phrase, explanation, and equivalent_in_target.",
+            "dependencies": [
+              4
+            ],
+            "details": "After parsing and handling errors, validate that each object in the array has the exact fields: phrase, explanation, and equivalent_in_target. If validation fails, treat it as a parsing error and return an empty array. Format the final output accordingly.",
+            "status": "pending",
+            "testStrategy": "Unit tests with mock outputs to validate schema compliance, including edge cases where fields are missing or incorrect.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "No expansion needed as the logic implementation is cohesive.",
+        "updatedAt": "2025-10-25T02:33:46.980Z"
+      },
+      {
+        "id": "3",
+        "title": "Update TranslationJob to Chain IdiomAnalyzerAgent",
+        "description": "Modify the TranslationJob to dynamically chain the IdiomAnalyzerAgent after language detection and translation.",
+        "status": "done",
+        "dependencies": [
+          "2"
+        ],
+        "priority": "high",
+        "details": "Update lib/globalbridge_backend/ai/jobs/translation_job.ex as per the provided code snippet. Add the analyze_idioms function that calls the IdiomAnalyzerAgent. Ensure sequential execution: detect language, translate, analyze idioms, then assemble response. Sequential execution is the correct approach due to strict data dependencies.",
+        "testStrategy": "Integration tests for the job workflow: verify that language detection, translation, and idiom analysis are called in order, and the response includes cultural_notes. Test with mock agents.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Review Current TranslationJob Structure",
+            "description": "Examine the existing TranslationJob code in lib/globalbridge_backend/ai/jobs/translation_job.ex to understand the current workflow for language detection and translation.",
+            "dependencies": [],
+            "details": "Analyze the code to identify where language detection and translation occur, and how the response is assembled. This will provide a foundation for integrating the IdiomAnalyzerAgent chaining.",
+            "status": "pending",
+            "testStrategy": "Manual code review and documentation of current flow.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Add Analyze Idioms Function",
+            "description": "Implement the analyze_idioms function within TranslationJob that calls the IdiomAnalyzerAgent with appropriate parameters.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a new function that takes the translated text, source and target languages, and invokes the IdiomAnalyzerAgent. Ensure it handles the agent's response, parsing it as JSON or defaulting to an empty array if needed.",
+            "status": "pending",
+            "testStrategy": "Unit tests for the function with mocked IdiomAnalyzerAgent responses to verify correct invocation and output handling.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Integrate Sequential Chaining Logic",
+            "description": "Modify the TranslationJob's main execution flow to chain the IdiomAnalyzerAgent after translation, ensuring sequential order: detect language, translate, analyze idioms, assemble response.",
+            "dependencies": [
+              2
+            ],
+            "details": "Update the job's run or perform function to call analyze_idioms after translation. Pass the necessary data (translated text, languages) and incorporate the cultural_notes into the final response structure.",
+            "status": "pending",
+            "testStrategy": "Integration tests simulating the full workflow with mocks for agents, verifying the order of execution and response inclusion.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Handle Agent Failures and Fallbacks",
+            "description": "Add error handling in the chaining logic to log IdiomAnalyzerAgent failures and proceed with empty cultural_notes.",
+            "dependencies": [
+              3
+            ],
+            "details": "Implement try-catch or error handling around the IdiomAnalyzerAgent call. On failure, log the error and set cultural_notes to an empty array, ensuring the job completes without crashing.",
+            "status": "pending",
+            "testStrategy": "Unit and integration tests for failure scenarios, mocking agent errors and verifying logging and fallback behavior.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "No expansion needed as the chaining logic is integrated into the existing job.",
+        "updatedAt": "2025-10-25T02:35:02.612Z"
+      },
+      {
+        "id": "4",
+        "title": "Implement ResponseAssembler Function",
+        "description": "Add the assemble_response function to combine translation and cultural notes into the enriched JSON response, simplified as a straightforward 10-line function that builds a map with 5 fields.",
+        "status": "done",
+        "dependencies": [
+          "3"
+        ],
+        "priority": "medium",
+        "details": "In TranslationJob, implement assemble_response with the signature: defp assemble_response(translation, opts \\\\ []). Build the response map with fields: success (set to true), translation, cultural_notes (default to [] if not provided), source_language, and target_language. Ensure backward compatibility by keeping existing fields and adding cultural_notes as an array.",
+        "testStrategy": "Comprehensive unit tests for assemble_response: pass in mock translation and cultural_notes, verify the output JSON structure matches the API spec, including default values and edge cases.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement assemble_response function with default values",
+            "description": "Create the assemble_response function in TranslationJob with the specified signature and logic to build the response map.",
+            "dependencies": [],
+            "details": "Implement the function as a private function (defp) that takes translation and opts (defaulting to []). Extract source_language, target_language, and cultural_notes from opts, defaulting cultural_notes to [] if not provided. Build and return a map with success: true, translation, cultural_notes, source_language, and target_language.",
+            "status": "pending",
+            "testStrategy": null,
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Write comprehensive unit tests for assemble_response",
+            "description": "Create unit tests to verify the function builds the correct JSON structure with various inputs.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the test file, add tests that pass mock data for translation, opts with languages and cultural_notes, then assert that the returned map matches the expected structure. Include tests for default cultural_notes (empty array), provided cultural_notes, and ensure all fields are present with correct types.",
+            "status": "pending",
+            "testStrategy": "Use ExUnit to mock inputs and verify output JSON structure against the API spec, covering edge cases like empty or missing cultural_notes.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 3,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "No expansion needed as this is a simple function implementation.",
+        "updatedAt": "2025-10-25T02:35:05.096Z"
+      },
+      {
+        "id": "5",
+        "title": "Update AIController for Enriched Response",
+        "description": "Modify the /api/ai/translate endpoint controller to handle the enriched response without changing the request format.",
+        "details": "In the AIController, update the translate action to call the updated TranslationJob. Ensure the response JSON includes the new cultural_notes field. No changes to request validation or routing.",
+        "testStrategy": "Integration tests for the API endpoint: send requests with and without idioms, verify response structure, status codes, and that cultural_notes is present (empty or populated).",
+        "priority": "high",
+        "dependencies": [
+          "4"
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Review Current AIController Implementation",
+            "description": "Examine the existing AIController code for the /api/ai/translate endpoint to understand the current structure and how it handles requests and responses.",
+            "dependencies": [],
+            "details": "Locate the AIController file in the project, specifically the translate action. Review the current implementation to identify where the TranslationJob is called and how the response is constructed. Ensure familiarity with the request format to avoid changes.",
+            "status": "pending",
+            "testStrategy": "Manual code review to verify no unintended changes are made.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Update Translate Action to Call Updated TranslationJob",
+            "description": "Modify the translate action in AIController to invoke the updated TranslationJob that includes idiom analysis and enriched response.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the translate action, replace the call to the old TranslationJob with the new one that chains the IdiomAnalyzerAgent. Ensure the job is executed and the result is captured for response building.",
+            "status": "pending",
+            "testStrategy": "Unit test the controller action to confirm the correct job is called and results are returned.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Ensure Response JSON Includes Cultural Notes Field",
+            "description": "Update the response construction in the translate action to include the new cultural_notes field from the TranslationJob output.",
+            "dependencies": [
+              2
+            ],
+            "details": "After receiving the result from TranslationJob, extract the cultural_notes and include it in the JSON response. Maintain backward compatibility by keeping existing fields like success, translation, source_language, and target_language.",
+            "status": "pending",
+            "testStrategy": "Integration test the API endpoint to verify the response JSON structure includes cultural_notes as an array.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Verify No Changes to Request Format or Routing",
+            "description": "Confirm that the request validation and routing remain unchanged, ensuring the endpoint still accepts the same input format.",
+            "dependencies": [
+              1
+            ],
+            "details": "Check the controller's request handling logic to ensure no modifications affect input parameters. Run tests to confirm requests with and without idioms are processed identically in terms of validation.",
+            "status": "pending",
+            "testStrategy": "API tests sending various request formats to ensure no regressions in request handling.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Conduct Integration Testing for Enriched Response",
+            "description": "Perform full integration tests to validate the updated controller works end-to-end with the enriched response.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Set up integration tests that send requests to the /api/ai/translate endpoint, verify status codes, response structure, and that cultural_notes is present (empty or populated based on input). Test with and without idioms.",
+            "status": "pending",
+            "testStrategy": "Automated integration tests using tools like Postman or test suites to cover success and error scenarios.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "No expansion needed as the controller update is minimal.",
+        "updatedAt": "2025-10-25T02:35:49.945Z"
+      },
+      {
+        "id": "6",
+        "title": "Integrate Caching for Idiom Analysis",
+        "description": "Add caching for idiom analysis results to reduce latency and cost.",
+        "details": "Use TranslationCache with key as hash(text + source + target), TTL 7 days. Cache the cultural_notes array. Modify IdiomAnalyzerAgent to check cache first before calling LLM.",
+        "testStrategy": "Unit tests for caching logic: verify cache hits and misses, TTL expiration. Integration tests to ensure cached results are returned without LLM calls.",
+        "priority": "medium",
+        "dependencies": [
+          "2"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Cache Key Generation",
+            "description": "Create a function to generate cache keys using hash of text, source, and target languages.",
+            "dependencies": [
+              2
+            ],
+            "details": "In the IdiomAnalyzerAgent module, add a private function to compute a SHA256 hash of the concatenated text, source, and target strings. Ensure the key is unique and consistent for identical inputs.",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify key generation produces consistent hashes for same inputs and different for varied inputs.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Modify IdiomAnalyzerAgent to Check Cache First",
+            "description": "Update the IdiomAnalyzerAgent to query the TranslationCache before making LLM calls.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the analyze_idioms function, first generate the cache key and check if a cached result exists. If found, return the cached cultural_notes array directly without calling the LLM.",
+            "status": "pending",
+            "testStrategy": "Unit tests to mock cache hits and verify no LLM calls are made; integration tests to ensure cached data is returned.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Handle Cache Misses and Store Results",
+            "description": "Implement logic to call LLM on cache miss and store the results in cache.",
+            "dependencies": [
+              2
+            ],
+            "details": "After LLM call in IdiomAnalyzerAgent, store the cultural_notes array in TranslationCache with the generated key and TTL of 7 days. Ensure storage happens only on successful analysis.",
+            "status": "pending",
+            "testStrategy": "Unit tests for cache misses: verify LLM is called and results are stored; check TTL is set correctly.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Update Cache Management for TTL",
+            "description": "Ensure TTL is properly set and handled in the caching mechanism.",
+            "dependencies": [
+              3
+            ],
+            "details": "Configure TranslationCache to enforce 7-day TTL on stored entries. Add any necessary cleanup or expiration logic if not handled by the cache library.",
+            "status": "pending",
+            "testStrategy": "Integration tests to simulate time passage and verify expired entries are not returned; unit tests for TTL settings.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Test Caching Integration End-to-End",
+            "description": "Perform comprehensive testing of the caching feature in the full workflow.",
+            "dependencies": [
+              4
+            ],
+            "details": "Run unit tests for cache logic, integration tests for TranslationJob including caching, and verify latency reduction and cost savings in scenarios with repeated requests.",
+            "status": "pending",
+            "testStrategy": "E2E tests with repeated idiom analyses to confirm cache hits reduce LLM calls; benchmark latency and cost metrics.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "No expansion needed as caching integration is focused."
+      },
+      {
+        "id": "7",
+        "title": "Integrate Cost Tracking for Idiom Analysis",
+        "description": "Track costs for the idiom analysis operation using CostTracker, enhanced to include cache hit ratio for measuring cost savings. Track model name (llama-3.1-70b-versatile), token count, cache_hit boolean, calculated cost, and timestamp to enable measurement of cost per idiom analysis, cache effectiveness (% saved), Groq cost vs theoretical OpenAI cost comparison, and ROI of caching implementation.",
+        "status": "pending",
+        "dependencies": [
+          "2"
+        ],
+        "priority": "medium",
+        "details": "In IdiomAnalyzerAgent, after LLM call, add enhanced cost tracking with operation: :idiom_analysis, including the specified fields (model name, token count, cache_hit boolean, calculated cost, timestamp). Ensure costs and metrics are aggregated per request in TranslationJob, incorporating cache hit ratios and cost savings calculations. Add dashboard metrics for cache hit ratio and cost savings trends.",
+        "testStrategy": "Unit tests for enhanced cost tracking: mock cost values, cache hits/misses, and verify all fields (model name, token count, cache_hit, calculated cost, timestamp) are logged correctly. Integration tests to check total cost per translation request includes idiom analysis, with metrics for cache effectiveness, cost comparisons, and ROI. Include tests for dashboard metrics visualization.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Modify IdiomAnalyzerAgent to Add Cost Tracking",
+            "description": "Update the IdiomAnalyzerAgent to include enhanced cost tracking after the LLM call using CostTracker with operation :idiom_analysis, now tracking model name, token count, cache_hit boolean, calculated cost, and timestamp.",
+            "dependencies": [],
+            "details": "Locate the IdiomAnalyzerAgent module, find the section after the LLM call, and integrate the CostTracker.track_cost function with the specified operation and additional fields. Ensure the cost and metrics are captured accurately for each analysis, including cache hit status.",
+            "status": "pending",
+            "testStrategy": "Unit tests to mock LLM calls and verify enhanced cost tracking is invoked correctly, including all new fields and cache_hit logic.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Update TranslationJob for Cost Aggregation",
+            "description": "Modify TranslationJob to aggregate costs and metrics per request, including the idiom analysis cost, cache hit ratio, and cost savings calculations.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the TranslationJob, add logic to collect and sum costs from all operations, including the new idiom analysis cost and metrics, ensuring aggregation happens per translation request with calculations for cache effectiveness, cost comparisons, and ROI.",
+            "status": "pending",
+            "testStrategy": "Integration tests to simulate a full translation request and verify total cost and metrics include idiom analysis, with cache hit ratios and savings trends.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement Unit Tests for Cost Tracking",
+            "description": "Create unit tests for the enhanced cost tracking functionality in IdiomAnalyzerAgent, including new fields and cache metrics.",
+            "dependencies": [
+              1
+            ],
+            "details": "Write tests that mock cost values, cache hits/misses, and verify they are logged correctly using the CostTracker. Cover scenarios like successful tracking, error handling, and all new metrics (model name, token count, etc.).",
+            "status": "pending",
+            "testStrategy": "Run unit test suite to ensure 100% coverage on enhanced cost tracking code, including cache-related logic.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Implement Integration Tests for Cost Aggregation",
+            "description": "Develop integration tests to check total cost and metrics per translation request includes idiom analysis, with cache effectiveness and ROI calculations.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create tests that simulate end-to-end translation jobs, verifying that costs and metrics are aggregated properly across all steps, including idiom analysis, cache hits, and savings trends.",
+            "status": "pending",
+            "testStrategy": "Execute integration tests to validate cost summation, cache hit ratios, and ROI metrics in the TranslationJob workflow.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Verify and Document Cost Tracking Integration",
+            "description": "Test the full integration and update any relevant documentation, including new metrics and dashboard features.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Perform manual testing to ensure enhanced cost tracking works in the overall system, and document the changes in code comments or project docs for future reference, covering cache hit ratios and cost savings.",
+            "status": "pending",
+            "testStrategy": "Manual QA to confirm costs, metrics, and dashboard visualizations are tracked and aggregated without errors in live-like scenarios.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 6,
+            "title": "Implement Dashboard Metrics for Cache Hit Ratio and Cost Savings",
+            "description": "Add dashboard metrics to visualize cache hit ratio and cost savings trends, enabling measurement of cache effectiveness and ROI.",
+            "dependencies": [
+              2
+            ],
+            "details": "Integrate dashboard components that pull from the aggregated cost and cache data to display cache hit ratios, cost savings over time, Groq vs OpenAI cost comparisons, and overall ROI of caching implementation.",
+            "status": "pending",
+            "testStrategy": "Unit and integration tests for dashboard metrics: verify data accuracy, visualization correctness, and that metrics update based on tracked costs and cache hits.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "No expansion needed as cost tracking is a targeted addition."
+      },
+      {
+        "id": "8",
+        "title": "Add Telemetry Logging for New Workflow",
+        "description": "Implement telemetry logging for latency, confidence, errors, and business metrics in the idiom analysis step, including technical events and metrics like idioms_found count, duration_ms, source_language, target_language, and cache_hit boolean.",
+        "status": "pending",
+        "dependencies": [
+          "3"
+        ],
+        "priority": "medium",
+        "details": "In TranslationJob and IdiomAnalyzerAgent, add telemetry logs for latency, confidence scores, errors with fallback to empty cultural_notes, and business metrics. Log technical events [:idiom_analysis, :start], [:idiom_analysis, :stop], [:idiom_analysis, :exception], and include business metrics: idioms_found count, duration_ms, source_language, target_language, cache_hit boolean. This enables tracking language pairs with most idioms, average idioms per translation, performance variance by language, and cache effectiveness for data-driven optimization.",
+        "testStrategy": "Integration tests: verify telemetry events are emitted for successful and failed analyses, including technical events and business metrics. Check logs for latency (duration_ms), confidence, idioms_found count, source/target languages, cache_hit boolean, and error details.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add Latency Telemetry Logging in IdiomAnalyzerAgent",
+            "description": "Implement telemetry logging to capture and log the latency (duration_ms) of the idiom analysis process in the IdiomAnalyzerAgent module, including cache_hit boolean.",
+            "dependencies": [],
+            "details": "In the IdiomAnalyzerAgent, add code to measure the time taken for the LLM call and parsing, then log this latency using the telemetry system. Ensure the log includes timestamps, duration in milliseconds, and cache_hit status. Also log technical events [:idiom_analysis, :start] and [:idiom_analysis, :stop].",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify latency (duration_ms) and cache_hit are logged correctly with mock LLM responses, checking log outputs for accurate timing data and cache status.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Add Confidence Score and Business Metrics Telemetry Logging",
+            "description": "Add telemetry logging for confidence scores and business metrics like idioms_found count, source_language, and target_language returned by the IdiomAnalyzerAgent.",
+            "dependencies": [
+              1
+            ],
+            "details": "Modify the IdiomAnalyzerAgent to extract confidence scores from the LLM response and log them via telemetry. Also log idioms_found count (number of idioms detected), source_language, and target_language. If confidence is not provided, log a default value. Ensure logs are structured for easy querying and include business metrics for insights on language pairs and idiom frequency.",
+            "status": "pending",
+            "testStrategy": "Unit tests with mocked LLM responses containing various confidence levels and idiom counts, verifying that confidence scores, idioms_found, source_language, and target_language are logged accurately in telemetry events.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Implement Error Logging with Fallback in IdiomAnalyzerAgent",
+            "description": "Add error logging for failures in idiom analysis, ensuring fallback to empty cultural_notes and proper telemetry logging, including technical event [:idiom_analysis, :exception].",
+            "dependencies": [
+              2
+            ],
+            "details": "In IdiomAnalyzerAgent, wrap the analysis logic in try-catch blocks to log errors (e.g., LLM call failures, JSON parsing errors) using telemetry. On error, return empty cultural_notes and log details like error type and message, along with source_language and target_language for business metrics context.",
+            "status": "pending",
+            "testStrategy": "Unit tests simulating error conditions (e.g., invalid JSON, network failures), verifying error logs are emitted (including [:idiom_analysis, :exception]), fallback to empty array occurs, and business metrics like languages are included.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Integrate Telemetry Logging in TranslationJob for Idiom Analysis",
+            "description": "Update TranslationJob to include telemetry logging calls around the idiom analysis step for latency, confidence, errors, and business metrics.",
+            "dependencies": [
+              3
+            ],
+            "details": "In TranslationJob, within the analyze_idioms function, add telemetry logging for the start and end of the analysis, capturing latency (duration_ms), confidence scores, idioms_found count, source_language, target_language, cache_hit boolean, and any errors. Propagate and log technical events [:idiom_analysis, :start], [:idiom_analysis, :stop], [:idiom_analysis, :exception] from IdiomAnalyzerAgent.",
+            "status": "pending",
+            "testStrategy": "Integration tests for TranslationJob workflow, checking that telemetry events and business metrics are logged for idiom analysis latency, confidence, idioms_found, languages, cache_hit, and errors in successful and failed scenarios.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Test and Validate Telemetry Integration",
+            "description": "Conduct end-to-end testing to ensure all telemetry logs, including technical events and business metrics, are properly integrated and emitted across the workflow.",
+            "dependencies": [
+              4
+            ],
+            "details": "Run integration tests on the full TranslationJob pipeline, verifying that telemetry events for latency (duration_ms), confidence, errors, idioms_found count, source/target languages, and cache_hit are correctly logged and can be queried. Ensure no performance degradation, logs are in the expected format, and enable insights for language pairs, idiom averages, performance variance, and cache effectiveness.",
+            "status": "pending",
+            "testStrategy": "End-to-end integration tests with real or mocked data, monitoring telemetry outputs to confirm all metrics and events are captured accurately without impacting response times.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "No expansion needed as logging is additive."
+      },
+      {
+        "id": "9",
+        "title": "Enhance Input Validation and Error Handling",
+        "description": "Update validation and error handling for the new cultural_notes in responses and agent failures, incorporating specific requirements such as text length limits, language pair validation, text quality checks, retry logic with exponential backoff for Groq API failures, circuit breaker pattern for outages, and handling of specific error scenarios like timeouts, rate limits, invalid JSON, empty responses, and partial idiom data.",
+        "status": "pending",
+        "dependencies": [
+          "5"
+        ],
+        "priority": "medium",
+        "details": "Reuse AIValidator for text/lang checks, including enforcing a 5000-character text length limit, validating supported language pairs, and performing text quality checks (minimum 10 characters after trim). Add validation for cultural_notes structure in responses. In TranslationJob, on IdiomAnalyzerAgent failure, log error and proceed with empty cultural_notes, while implementing retry logic with exponential backoff for transient Groq API failures, a circuit breaker pattern for outages to fail fast, and handling specific errors: API timeout (60s+), rate limit exceeded, invalid JSON, empty response, partial idiom data with missing required fields.",
+        "testStrategy": "Unit tests for validation: test invalid inputs including text length violations, unsupported language pairs, low-quality text, and ensure proper error responses. Edge case tests for agent failures, verifying fallback behavior, retry mechanisms, circuit breaker activation, and handling of specific error scenarios like timeouts, rate limits, invalid JSON, empty responses, and partial data.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Reuse AIValidator for Text and Language Checks",
+            "description": "Integrate the existing AIValidator to perform text and language validation checks in the updated system, including enforcing a 5000-character text length limit, validating supported language pairs, and performing text quality checks (minimum 10 characters after trim).",
+            "dependencies": [],
+            "details": "Modify the relevant modules to reuse the AIValidator class or function for validating text inputs and language parameters, ensuring consistency with previous implementations and adding the new checks to prevent LLM timeouts and ensure input quality.",
+            "status": "pending",
+            "testStrategy": "Unit tests to verify that AIValidator correctly handles valid and invalid text/language inputs, including length limits, supported pairs, and quality checks, without errors.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Add Validation for Cultural Notes Structure",
+            "description": "Implement validation logic to ensure the cultural_notes field in responses adheres to the required structure, including checks for partial idiom data with missing required fields.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the response handling code, add checks to validate that cultural_notes is an array of objects with required fields like phrase, explanation, and equivalent_in_target, rejecting invalid structures and handling partial data.",
+            "status": "pending",
+            "testStrategy": "Unit tests for validation functions: test with valid and invalid cultural_notes structures, including partial data, ensuring proper error responses for malformed data.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Handle IdiomAnalyzerAgent Failure in TranslationJob",
+            "description": "Update TranslationJob to log errors and proceed with empty cultural_notes when IdiomAnalyzerAgent fails, implementing retry logic with exponential backoff for transient Groq API failures, a circuit breaker pattern for outages to fail fast, and handling specific error scenarios: API timeout (60s+), rate limit exceeded, invalid JSON, empty response.",
+            "dependencies": [
+              2
+            ],
+            "details": "In the TranslationJob module, wrap the IdiomAnalyzerAgent call in error handling logic that logs any failures, applies retry with exponential backoff and circuit breaker, handles specific errors, and sets cultural_notes to an empty array, allowing the translation process to continue.",
+            "status": "pending",
+            "testStrategy": "Integration tests simulating agent failures, including timeouts, rate limits, invalid JSON, empty responses, verifying that errors are logged, retries and circuit breaker work, and the job completes with empty cultural_notes.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Update Response Assembly for Cultural Notes",
+            "description": "Modify the response assembly logic to include the validated cultural_notes field.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Ensure that after validation and error handling, the final response JSON correctly includes the cultural_notes field, whether populated or empty, without altering other response elements.",
+            "status": "pending",
+            "testStrategy": "Integration tests for response assembly: check that cultural_notes is present and correctly formatted in various scenarios, including after error handling.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Conduct Edge Case Testing for Validation and Errors",
+            "description": "Perform comprehensive testing for edge cases in validation and agent failure scenarios, including text length limits, language pairs, text quality, retry logic, circuit breaker, and specific errors like timeouts, rate limits, invalid JSON, empty responses, and partial data.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Run tests covering unusual inputs like empty texts, unsupported languages, agent timeouts, rate limits, malformed responses, and API outages to ensure robustness of the validation and error handling mechanisms.",
+            "status": "pending",
+            "testStrategy": "Edge case unit and integration tests: verify fallback behavior, error logging, retry and circuit breaker functionality, and that the system remains stable under stress.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "No expansion needed as validation updates are specific."
+      },
+      {
+        "id": "10",
+        "title": "Develop Unit and Integration Tests",
+        "description": "Create comprehensive tests for the new workflow, including unit tests for agents and integration tests for the full translation process, expanded with a detailed test plan covering unit, integration, and performance tests.",
+        "status": "pending",
+        "dependencies": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
+        "priority": "high",
+        "details": "Write unit tests for IdiomAnalyzerAgent, TranslationJob updates, and new functions. Integration tests for API endpoint with E2E scenarios (no idioms, with idioms, errors). Aim for 100% coverage on new code. Test performance for latency <600ms. Detailed test plan: UNIT TESTS - (1) Test idiom detection with known idioms in multiple languages, (2) Test empty response handling when no idioms found, (3) Test malformed JSON from LLM, (4) Test cache hit/miss logic, (5) Test cost tracking integration. INTEGRATION TESTS - (6) Test full workflow: detect → translate → analyze → assemble, (7) Test API endpoint with idiom-rich text, (8) Test API endpoint with idiom-free text, (9) Test error propagation when agents fail, (10) Test backward compatibility with existing clients. PERFORMANCE TESTS - (11) Benchmark latency with/without caching, (12) Load test with 100 concurrent translations. Need corpus of idiom-rich texts in multiple languages with expected outputs for validation.",
+        "testStrategy": "Run test suite to validate all new functionality, including the detailed test plan. Manual QA for accuracy of idiom detection. Benchmark latency and cost against requirements, using the corpus for validation.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Write Unit Tests for IdiomAnalyzerAgent and New Functions",
+            "description": "Develop unit tests specifically for the IdiomAnalyzerAgent class, including its idiom detection logic, and any new functions introduced in the workflow such as those in TranslationJob updates. Cover: (1) Test idiom detection with known idioms in multiple languages, (2) Test empty response handling when no idioms found, (3) Test malformed JSON from LLM, (4) Test cache hit/miss logic, (5) Test cost tracking integration.",
+            "dependencies": [],
+            "details": "Create unit tests using a testing framework like RSpec or JUnit, focusing on mocking dependencies for IdiomAnalyzerAgent. Test edge cases like empty inputs, various languages, and idiom detection accuracy. Ensure tests cover new functions in TranslationJob for updates and response assembly. Aim for high coverage on these components. Incorporate the detailed unit test plan items (1-5).",
+            "status": "pending",
+            "testStrategy": "Run unit test suite to verify functionality and achieve 100% code coverage on new code paths, including the specific unit test scenarios.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Develop Integration Tests for TranslationJob Workflow and API Endpoint",
+            "description": "Create integration tests that validate the entire TranslationJob workflow, including interactions between agents, and test the API endpoint for the translation process. Cover: (6) Test full workflow: detect → translate → analyze → assemble, (7) Test API endpoint with idiom-rich text, (8) Test API endpoint with idiom-free text, (9) Test error propagation when agents fail, (10) Test backward compatibility with existing clients.",
+            "dependencies": [],
+            "details": "Implement integration tests that simulate the full workflow from request to response, including scenarios with no idioms, with idioms, and error handling. Use tools like Postman or automated scripts to test the /api/ai/translate endpoint. Verify data flow through TranslationJob, IdiomAnalyzerAgent, and response assembly. Incorporate the detailed integration test plan items (6-10).",
+            "status": "pending",
+            "testStrategy": "Execute integration test suite to check end-to-end functionality, response structures, and error handling, including the specific integration test scenarios.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Create Performance and E2E Tests for Latency and Accuracy",
+            "description": "Develop performance tests to measure latency and end-to-end (E2E) tests to ensure accuracy of the translation process, including idiom handling. Cover: (11) Benchmark latency with/without caching, (12) Load test with 100 concurrent translations.",
+            "dependencies": [],
+            "details": "Set up performance benchmarks to ensure translation latency is under 600ms, using load testing tools. Create E2E tests covering full user scenarios, verifying translation accuracy, cultural notes inclusion, and handling of idioms. Include tests for caching and cost tracking impacts on performance. Incorporate the detailed performance test plan items (11-12). Use the corpus of idiom-rich texts in multiple languages with expected outputs for validation.",
+            "status": "pending",
+            "testStrategy": "Run performance benchmarks and E2E tests to validate latency requirements and manual QA for accuracy of idiom detection and translations, leveraging the corpus for validation.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 9,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break down into subtasks: 1) Write unit tests for IdiomAnalyzerAgent and new functions, 2) Develop integration tests for TranslationJob workflow and API endpoint, 3) Create performance and E2E tests for latency and accuracy."
+      },
+      {
+        "id": "11",
+        "title": "Create Documentation and Monitoring for IdiomAnalyzerAgent Launch",
+        "description": "Develop comprehensive documentation and monitoring infrastructure to support the launch of the IdiomAnalyzerAgent feature, including API updates, user guides, dashboards, alerts, and operational runbooks.",
+        "details": "(1) Update API documentation: Revise the API docs for the /api/ai/translate endpoint to include the new cultural_notes field in the response schema. Provide detailed specification with field types (array of objects), required properties (phrase, explanation, equivalent_in_target), examples of responses with and without idioms, and JSON schema validation. Ensure docs are in Markdown format and hosted in the project's docs repository. (2) Create user-facing guide: Develop a user guide in Markdown explaining the cultural notes feature, including how idioms are detected, what equivalents mean, and practical examples in multiple language pairs (e.g., English to Spanish). Include screenshots or code snippets for API usage and place it in the docs/user-guides directory. (3) Set up monitoring dashboards: Using tools like Grafana or Prometheus, create dashboards to visualize metrics such as idiom analysis latency (average and percentiles), error rates (by type), cache hit ratio (percentage), cost per analysis (in USD), and idioms found per language pair (counts). Pull data from telemetry logs and cost tracking implemented in previous tasks. Ensure dashboards are accessible via the project's monitoring portal. (4) Configure alerts: Set up alerting rules in the monitoring system (e.g., Prometheus Alertmanager) for thresholds: error rate exceeding 5% over 5 minutes, latency greater than 2 seconds for 95th percentile, cache hit rate below 50%, and Groq API failures (e.g., timeouts or 5xx errors). Configure notifications to Slack or email for the devops team. (5) Create operational runbook: Write a runbook in Markdown covering common issues like high latency (check cache/LLM), API failures (retry logic, circuit breaker), low cache hit rates (adjust TTL or key hashing), and troubleshooting steps including log queries, metric checks, and escalation procedures. Store it in docs/operations/runbooks.",
+        "testStrategy": "(1) For API documentation: Manually review updated docs for accuracy, completeness, and schema correctness; validate examples by running API calls and comparing responses. (2) For user guide: Conduct user testing or peer review to ensure clarity and usefulness; verify examples work with actual API responses. (3) For dashboards: Deploy dashboards and verify metrics display correctly by simulating traffic and checking real-time data against expected values (e.g., latency spikes, error injections). (4) For alerts: Test alert triggers by artificially inducing conditions (e.g., mock API failures) and confirm notifications are sent promptly. (5) For runbook: Simulate common issues in a staging environment, follow runbook steps to resolution, and document any gaps for updates; perform a dry-run walkthrough with the team.",
+        "status": "pending",
+        "dependencies": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10"
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": "12",
+        "title": "Implement Gradual Rollout and A/B Testing for IdiomAnalyzerAgent",
+        "description": "Implement the IdiomAnalyzerAgent as an always-on feature in the TranslationJob workflow, with production monitoring dashboards, a rollback plan for critical issues, and documentation for operational procedures and troubleshooting.",
+        "status": "pending",
+        "dependencies": [
+          "11"
+        ],
+        "priority": "medium",
+        "details": "(1) Implement IdiomAnalyzerAgent as an always-on feature in the TranslationJob workflow, ensuring it is called for every translation request without conditional flags. (2) Set up production monitoring dashboards to track: idiom analysis latency, error rates, cache hit ratio, cost per analysis, and idioms found per language pair; integrate with existing monitoring systems for real-time visibility. (3) Create a rollback plan for critical production issues, such as automatic disabling of the agent via alerting rules if metrics exceed thresholds (e.g., high error rates or latency spikes), with documented manual override procedures. (4) Document operational procedures, including deployment steps for full production rollout after testing, and a troubleshooting guide covering common issues like parsing failures or performance bottlenecks.",
+        "testStrategy": "(1) Unit and integration tests for always-on implementation: Verify TranslationJob always calls IdiomAnalyzerAgent, with mocks for agent responses; ensure sequential execution in the workflow. (2) Monitoring dashboard tests: Simulate metrics injection and validate dashboard accuracy for latency, error rates, cache hits, costs, and idiom counts; use synthetic data to test alerting thresholds. (3) Rollback plan verification: Trigger mock critical issues (e.g., high latency) and confirm automatic agent disabling; manual tests for override procedures. (4) Documentation review: Peer review of operational procedures and troubleshooting guide for completeness, including references to actual metrics and actionable steps. End-to-end tests: Deploy to staging, run full translation requests, and validate monitoring dashboards and rollback mechanisms without impacting production.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement IdiomAnalyzerAgent as Always-On in TranslationJob",
+            "description": "Modify TranslationJob to integrate IdiomAnalyzerAgent as a mandatory step in every translation workflow, removing any conditional logic and ensuring it runs sequentially after translation.",
+            "dependencies": [],
+            "details": "Update the TranslationJob module to call IdiomAnalyzerAgent unconditionally for all requests. Ensure the workflow sequence is: detect language, translate, analyze idioms, assemble response. Test for backward compatibility and performance.",
+            "status": "pending",
+            "testStrategy": "Integration tests to confirm agent is called in every request; unit tests for workflow sequencing with mocks.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Set Up Production Monitoring Dashboards",
+            "description": "Configure monitoring dashboards for key metrics related to IdiomAnalyzerAgent performance and usage.",
+            "dependencies": [],
+            "details": "Integrate with monitoring tools to track idiom analysis latency, error rates, cache hit ratio, cost per analysis, and idioms found per language pair. Set up real-time dashboards and alerting for anomalies.",
+            "status": "pending",
+            "testStrategy": "Simulate metric data and verify dashboard displays and alerts function correctly.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Create Rollback Plan for Critical Issues",
+            "description": "Develop and implement a plan to handle critical production issues with IdiomAnalyzerAgent.",
+            "dependencies": [],
+            "details": "Define thresholds for automatic rollback (e.g., disable agent if error rate >5% or latency >1s). Implement alerting rules and document manual override steps for quick recovery.",
+            "status": "pending",
+            "testStrategy": "Mock critical scenarios and test automatic disabling; validate manual override procedures.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Document Operational Procedures and Troubleshooting",
+            "description": "Create documentation for deploying and maintaining IdiomAnalyzerAgent in production.",
+            "dependencies": [],
+            "details": "Write guides for full production deployment post-testing, operational procedures, and troubleshooting common issues like LLM response parsing errors or high costs.",
+            "status": "pending",
+            "testStrategy": "Peer review documentation for clarity and completeness; test procedures in staging environment.",
+            "parentId": "undefined"
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2025-10-25T02:35:49.955Z",
+      "taskCount": 12,
+      "completedCount": 5,
+      "tags": [
+        "agent-update"
       ]
     }
   }

@@ -8,8 +8,8 @@
 import Foundation
 import Combine
 
-/// Participant read receipt information
-public struct ParticipantReadReceipt: Identifiable, Equatable {
+/// UI display model for a participant's read receipt (avoids name clash with Core model)
+public struct ReadReceiptDisplay: Identifiable, Equatable {
     public let id = UUID()
     public let userId: String
     public let userName: String
@@ -24,8 +24,8 @@ public struct ParticipantReadReceipt: Identifiable, Equatable {
     }
 }
 
-/// Conversation participant information
-public struct ConversationParticipant: Identifiable, Equatable {
+/// UI display model for a conversation participant (avoids name clash with Core model)
+public struct ParticipantDisplay: Identifiable, Equatable {
     public let id: String
     public let name: String
     public let avatarUrl: String?
@@ -42,8 +42,8 @@ public struct ConversationParticipant: Identifiable, Equatable {
 public class ReadReceiptDetailViewModel: ObservableObject {
     // MARK: - Published Properties
 
-    @Published public private(set) var receipts: [ParticipantReadReceipt] = []
-    @Published public private(set) var participants: [ConversationParticipant] = []
+    @Published public private(set) var receipts: [ReadReceiptDisplay] = []
+    @Published public private(set) var participants: [ParticipantDisplay] = []
     @Published public private(set) var isLoading = false
     @Published public private(set) var error: Error?
 
@@ -55,15 +55,16 @@ public class ReadReceiptDetailViewModel: ObservableObject {
 
     // MARK: - Computed Properties
 
-    public var readReceipts: [ParticipantReadReceipt] {
-        receipts.filter { $0.isRead }.sorted { $0.readAt > $1.readAt }
+    public var readReceipts: [ReadReceiptDisplay] {
+        receipts.sorted { $0.readAt > $1.readAt }
     }
 
-    public var deliveredReceipts: [ParticipantReadReceipt] {
-        receipts.filter { !$0.isRead }
+    public var deliveredReceipts: [ReadReceiptDisplay] {
+        // Delivered-but-not-read state is not tracked via the Core model; none by default
+        []
     }
 
-    public var pendingReceipts: [ConversationParticipant] {
+    public var pendingReceipts: [ParticipantDisplay] {
         let readUserIds = Set(receipts.map { $0.userId })
         return participants.filter { !readUserIds.contains($0.id) }
     }
@@ -116,8 +117,24 @@ public class ReadReceiptDetailViewModel: ObservableObject {
             let fetchedReceipts = try await manager.fetchReadReceipts(for: messageId)
             let fetchedParticipants = try await manager.fetchParticipants(for: messageId)
 
-            receipts = fetchedReceipts
-            participants = fetchedParticipants
+            // Map to display models
+            let participantNameById: [String: String] = Dictionary(uniqueKeysWithValues: fetchedParticipants.map { ($0.id, $0.displayName ?? $0.id) })
+
+            receipts = fetchedReceipts.map { core in
+                ReadReceiptDisplay(
+                    userId: core.userId,
+                    userName: participantNameById[core.userId] ?? core.userId,
+                    readAt: core.readAt
+                )
+            }
+
+            participants = fetchedParticipants.map { core in
+                ParticipantDisplay(
+                    id: core.id,
+                    name: core.displayName ?? core.id,
+                    avatarUrl: core.avatarUrl
+                )
+            }
             isLoading = false
         } catch {
             self.error = error
@@ -131,8 +148,23 @@ public class ReadReceiptDetailViewModel: ObservableObject {
             let fetchedReceipts = try await manager.fetchReadReceipts(for: messageId)
             let fetchedParticipants = try await manager.fetchParticipants(for: messageId)
 
-            receipts = fetchedReceipts
-            participants = fetchedParticipants
+            let participantNameById: [String: String] = Dictionary(uniqueKeysWithValues: fetchedParticipants.map { ($0.id, $0.displayName ?? $0.id) })
+
+            receipts = fetchedReceipts.map { core in
+                ReadReceiptDisplay(
+                    userId: core.userId,
+                    userName: participantNameById[core.userId] ?? core.userId,
+                    readAt: core.readAt
+                )
+            }
+
+            participants = fetchedParticipants.map { core in
+                ParticipantDisplay(
+                    id: core.id,
+                    name: core.displayName ?? core.id,
+                    avatarUrl: core.avatarUrl
+                )
+            }
         } catch {
             // Silently fail for refresh
             print("Failed to refresh read receipts: \(error)")
@@ -144,25 +176,21 @@ public class ReadReceiptDetailViewModel: ObservableObject {
     private func handleReadReceiptUpdate(_ receipt: ReadReceipt) {
         // Update or add the receipt
         if let index = receipts.firstIndex(where: { $0.userId == receipt.userId }) {
-            var updatedReceipt = receipts[index]
-            updatedReceipt = ParticipantReadReceipt(
+            let updated = ReadReceiptDisplay(
                 userId: receipt.userId,
-                userName: updatedReceipt.userName,
+                userName: receipts[index].userName,
                 readAt: receipt.readAt,
                 isRead: true
             )
-            receipts[index] = updatedReceipt
-        } else {
-            // New read receipt - find participant name
-            if let participant = participants.first(where: { $0.id == receipt.userId }) {
-                let newReceipt = ParticipantReadReceipt(
-                    userId: receipt.userId,
-                    userName: participant.name,
-                    readAt: receipt.readAt,
-                    isRead: true
-                )
-                receipts.append(newReceipt)
-            }
+            receipts[index] = updated
+        } else if let participant = participants.first(where: { $0.id == receipt.userId }) {
+            let newReceipt = ReadReceiptDisplay(
+                userId: receipt.userId,
+                userName: participant.name,
+                readAt: receipt.readAt,
+                isRead: true
+            )
+            receipts.append(newReceipt)
         }
     }
 }
@@ -175,19 +203,19 @@ extension ReadReceiptDetailViewModel {
         let viewModel = ReadReceiptDetailViewModel(messageId: "test-message", manager: .preview)
 
         viewModel.receipts = [
-            ParticipantReadReceipt(
+            ReadReceiptDisplay(
                 userId: "user1",
                 userName: "Alice Johnson",
                 readAt: Date().addingTimeInterval(-300),
                 isRead: true
             ),
-            ParticipantReadReceipt(
+            ReadReceiptDisplay(
                 userId: "user2",
                 userName: "Bob Smith",
                 readAt: Date().addingTimeInterval(-120),
                 isRead: true
             ),
-            ParticipantReadReceipt(
+            ReadReceiptDisplay(
                 userId: "user3",
                 userName: "Charlie Brown",
                 readAt: Date(),
@@ -196,11 +224,11 @@ extension ReadReceiptDetailViewModel {
         ]
 
         viewModel.participants = [
-            ConversationParticipant(id: "user1", name: "Alice Johnson"),
-            ConversationParticipant(id: "user2", name: "Bob Smith"),
-            ConversationParticipant(id: "user3", name: "Charlie Brown"),
-            ConversationParticipant(id: "user4", name: "Diana Prince"),
-            ConversationParticipant(id: "user5", name: "Eve Miller")
+            ParticipantDisplay(id: "user1", name: "Alice Johnson"),
+            ParticipantDisplay(id: "user2", name: "Bob Smith"),
+            ParticipantDisplay(id: "user3", name: "Charlie Brown"),
+            ParticipantDisplay(id: "user4", name: "Diana Prince"),
+            ParticipantDisplay(id: "user5", name: "Eve Miller")
         ]
 
         return viewModel

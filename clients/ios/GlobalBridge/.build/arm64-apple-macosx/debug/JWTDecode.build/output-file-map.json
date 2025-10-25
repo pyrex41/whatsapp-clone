@@ -1,0 +1,26 @@
+{
+  "": {
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/master.swiftdeps"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/checkouts/JWTDecode.swift/JWTDecode/JWT.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/JWT.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/JWT.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/JWT~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/JWT.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/JWT.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/checkouts/JWTDecode.swift/JWTDecode/JWTDecode.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/JWTDecode.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/JWTDecode.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/JWTDecode~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/JWTDecode.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/JWTDecode.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/checkouts/JWTDecode.swift/JWTDecode/JWTDecodeError.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/JWTDecodeError.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/JWTDecodeError.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/JWTDecodeError~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/JWTDecodeError.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/JWTDecode.build/JWTDecodeError.dia"
+  }
+}

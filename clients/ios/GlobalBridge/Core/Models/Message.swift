@@ -23,7 +23,7 @@ struct Message: Identifiable, Codable, Equatable {
     var encryptionKeyId: String?
     var ciphertext: Data?
     let createdAt: Date
-    let updatedAt: Date
+    var updatedAt: Date
     var clientMessageId: String?  // For deduplication - tracks original client UUID
 
     enum MessageType: String, Codable {

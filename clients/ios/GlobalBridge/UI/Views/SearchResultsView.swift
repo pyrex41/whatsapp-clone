@@ -89,7 +89,7 @@ struct SearchResultsView: View {
     private var threadGroupedResults: some View {
         ForEach(groupedByThread, id: \.key) { group in
             Section {
-                ForEach(group.value, id: \.messageId) { result in
+                ForEach(group.value) { result in
                     SearchResultRow(
                         result: result,
                         query: query,
@@ -100,7 +100,7 @@ struct SearchResultsView: View {
                         }
                     )
 
-                    if result.messageId != group.value.last?.messageId {
+                    if result.id != group.value.last?.id {
                         Divider()
                             .padding(.leading, 72)
                     }
@@ -139,7 +139,7 @@ struct SearchResultsView: View {
     private var dateGroupedResults: some View {
         ForEach(groupedByDate, id: \.key) { group in
             Section {
-                ForEach(group.value, id: \.messageId) { result in
+                ForEach(group.value) { result in
                     SearchResultRow(
                         result: result,
                         query: query,
@@ -150,7 +150,7 @@ struct SearchResultsView: View {
                         }
                     )
 
-                    if result.messageId != group.value.last?.messageId {
+                    if result.id != group.value.last?.id {
                         Divider()
                             .padding(.leading, 72)
                     }
@@ -188,25 +188,19 @@ struct SearchResultsView: View {
 
     private var groupedByThread: [(key: String, value: [SearchResult])] {
         let grouped = Dictionary(grouping: results) { result in
-            result.threadId ?? "Unknown Thread"
+            result.threadId.uuidString
         }
         return grouped.sorted { $0.key < $1.key }
     }
 
     private var groupedByDate: [(key: String, value: [SearchResult])] {
-        let dateFormatter = ISO8601DateFormatter()
-
         let grouped = Dictionary(grouping: results) { result in
-            guard let timestamp = result.timestamp,
-                  let date = dateFormatter.date(from: timestamp) else {
-                return "Unknown Date"
-            }
-            return formatDateGroup(date)
+            formatDateGroup(result.timestamp)
         }
 
         return grouped.sorted { key1, key2 in
             // Sort with most recent first
-            let order = ["Today", "Yesterday", "This Week", "Last Week", "This Month", "Earlier", "Unknown Date"]
+            let order = ["Today", "Yesterday", "This Week", "Last Week", "This Month", "Earlier"]
             let index1 = order.firstIndex(of: key1.key) ?? order.count
             let index2 = order.firstIndex(of: key2.key) ?? order.count
             return index1 < index2
@@ -259,26 +253,22 @@ struct SearchResultRow: View {
                     // Metadata
                     HStack(spacing: 12) {
                         // Thread indicator
-                        if let threadId = result.threadId {
-                            HStack(spacing: 4) {
-                                Image(systemName: "bubble.left.and.bubble.right")
-                                    .font(.caption2)
-                                Text(threadId.prefix(8))
-                                    .font(.caption)
-                            }
-                            .foregroundColor(.secondary)
+                        HStack(spacing: 4) {
+                            Image(systemName: "bubble.left.and.bubble.right")
+                                .font(.caption2)
+                            Text(String(result.threadId.uuidString.prefix(8)))
+                                .font(.caption)
                         }
+                        .foregroundColor(.secondary)
 
                         // Timestamp
-                        if let timestamp = result.timestamp {
-                            HStack(spacing: 4) {
-                                Image(systemName: "clock")
-                                    .font(.caption2)
-                                Text(formatTimestamp(timestamp))
-                                    .font(.caption)
-                            }
-                            .foregroundColor(.secondary)
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock")
+                                .font(.caption2)
+                            Text(formatTimestamp(result.timestamp))
+                                .font(.caption)
                         }
+                        .foregroundColor(.secondary)
 
                         Spacer()
 
@@ -312,19 +302,18 @@ struct SearchResultRow: View {
 
     private var accessibilityLabel: String {
         var label = "Message with \(Int(result.relevanceScore * 100))% relevance: \(result.content)"
-
-        if let timestamp = result.timestamp {
-            label += ", sent \(formatTimestamp(timestamp))"
-        }
-
-        if let threadId = result.threadId {
-            label += ", in thread \(threadId.prefix(8))"
-        }
-
+        label += ", sent \(formatTimestamp(result.timestamp))"
+        label += ", in thread \(String(result.threadId.uuidString.prefix(8)))"
         return label
     }
 
-    private func formatTimestamp(_ timestamp: String) -> String {
+    private func formatTimestamp(_ date: Date) -> String {
+        let relativeFormatter = RelativeDateTimeFormatter()
+        relativeFormatter.unitsStyle = .abbreviated
+        return relativeFormatter.localizedString(for: date, relativeTo: Date())
+    }
+
+    private func formatTimestampOld(_ timestamp: String) -> String {
         let dateFormatter = ISO8601DateFormatter()
         guard let date = dateFormatter.date(from: timestamp) else {
             return timestamp
@@ -424,11 +413,18 @@ struct HighlightedText: View {
         let components = highlightedComponents()
 
         // Use Text concatenation for proper formatting
-        components.reduce(Text("")) { result, component in
-            result + Text(component.text)
-                .foregroundColor(component.isHighlighted ? .primary : .primary)
-                .fontWeight(component.isHighlighted ? .semibold : .regular)
-                .background(component.isHighlighted ? Color.yellow.opacity(0.3) : Color.clear)
+        // Note: '+' operator deprecated in iOS 26, but still needed for iOS 17-25 support
+        if #available(iOS 26.0, *) {
+            // Use AttributedString for iOS 26+
+            Text(components.map { $0.text }.joined())
+                .fontWeight(components.contains { $0.isHighlighted } ? .semibold : .regular)
+        } else {
+            components.reduce(Text("")) { result, component in
+                let textPart = Text(component.text)
+                    .foregroundColor(component.isHighlighted ? .primary : .primary)
+                    .fontWeight(component.isHighlighted ? .semibold : .regular)
+                return result + textPart
+            }
         }
     }
 
@@ -438,7 +434,7 @@ struct HighlightedText: View {
         }
 
         var components: [(String, Bool)] = []
-        var remainingText = text
+        let remainingText = text
 
         // Split query into words
         let queryWords = query.lowercased().split(separator: " ").map { String($0) }
@@ -489,31 +485,52 @@ enum GroupingMode {
 // MARK: - Preview
 
 #Preview("With Results") {
-    let mockResults = [
+    let mockResults: [SearchResult] = [
         SearchResult(
-            messageId: "msg1",
-            content: "Hey, let's meet for dinner tomorrow at 7pm. How does that sound?",
+            message: SearchResult.MessageInfo(
+                id: UUID(),
+                threadId: UUID(),
+                senderId: UUID(),
+                senderUsername: "alice",
+                senderDisplayName: "Alice",
+                content: "Hey, let's meet for dinner tomorrow at 7pm. How does that sound?",
+                timestamp: Date(),
+                isEdited: nil
+            ),
             relevanceScore: 0.92,
-            threadId: "thread1",
-            timestamp: ISO8601DateFormatter().string(from: Date())
+            snippet: nil
         ),
         SearchResult(
-            messageId: "msg2",
-            content: "I'll bring the dinner supplies we talked about.",
+            message: SearchResult.MessageInfo(
+                id: UUID(),
+                threadId: UUID(),
+                senderId: UUID(),
+                senderUsername: "bob",
+                senderDisplayName: "Bob",
+                content: "I'll bring the dinner supplies we talked about.",
+                timestamp: Date().addingTimeInterval(-3600),
+                isEdited: nil
+            ),
             relevanceScore: 0.85,
-            threadId: "thread1",
-            timestamp: ISO8601DateFormatter().string(from: Date().addingTimeInterval(-3600))
+            snippet: nil
         ),
         SearchResult(
-            messageId: "msg3",
-            content: "What time should we plan for dinner?",
+            message: SearchResult.MessageInfo(
+                id: UUID(),
+                threadId: UUID(),
+                senderId: UUID(),
+                senderUsername: "carol",
+                senderDisplayName: "Carol",
+                content: "What time should we plan for dinner?",
+                timestamp: Date().addingTimeInterval(-86400),
+                isEdited: nil
+            ),
             relevanceScore: 0.78,
-            threadId: "thread2",
-            timestamp: ISO8601DateFormatter().string(from: Date().addingTimeInterval(-86400))
+            snippet: nil
         )
     ]
 
-    return SearchResultsView(
+    SearchResultsView(
         results: mockResults,
         query: "dinner",
         onResultTap: { _ in },

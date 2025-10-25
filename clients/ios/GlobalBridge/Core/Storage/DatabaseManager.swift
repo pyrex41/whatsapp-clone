@@ -847,8 +847,10 @@ final class DatabaseManager {
 
         try db.run(insert)
         // Ensure shard DB exists
-        let threadDb = try await getThreadDatabase(shardId: thread.databaseShardId)
-        print("🔧 [CREATE_THREAD] Inserted thread and ensured shard DB (exists=\(threadDb != nil))")
+        _ = try await getThreadDatabase(shardId: thread.databaseShardId)
+        let shardPath = databasesDirectory.appendingPathComponent("thread_\(thread.databaseShardId).db").path
+        let exists = fileManager.fileExists(atPath: shardPath)
+        print("🔧 [CREATE_THREAD] Inserted thread and ensured shard DB (path=\(shardPath), exists=\(exists))")
     }
 
     /// Clear all threads from database
@@ -999,7 +1001,61 @@ final class DatabaseManager {
         }
     }
 
-    /// Fetch messages for a thread
+    /// Get a single message by ID
+    func getMessage(id: UUID, threadId: UUID) async throws -> Message? {
+        guard let thread = try await fetchThread(id: threadId) else {
+            throw DatabaseError.notFound("Thread: \(threadId)")
+        }
+
+        let db = try await getThreadDatabase(shardId: thread.databaseShardId)
+
+        let query = messagesTable.filter(messageId == id.uuidString && messageThreadId == threadId.uuidString)
+
+        guard let row = try db.pluck(query) else {
+            return nil
+        }
+
+        guard let messageIdStr = try? row.get(messageId),
+              let msgId = UUID(uuidString: messageIdStr),
+              let threadIdStr = try? row.get(messageThreadId),
+              let threadIdParsed = UUID(uuidString: threadIdStr),
+              let senderIdVal = try? row.get(messageSenderId),
+              let contentVal = try? row.get(messageContent),
+              let typeStr = try? row.get(messageType),
+              let messageType = Message.MessageType(rawValue: typeStr),
+              let statusStr = try? row.get(messageStatus),
+              let status = Message.Status(rawValue: statusStr),
+              let createdAtVal = try? row.get(messageCreatedAt),
+              let updatedAtVal = try? row.get(messageUpdatedAt) else {
+            return nil
+        }
+
+        var metadata: [String: String]? = nil
+        if let metadataStr = try? row.get(messageMetadata),
+           let data = metadataStr.data(using: .utf8) {
+            metadata = try? JSONDecoder().decode([String: String].self, from: data)
+        }
+
+        return Message(
+            id: msgId,
+            threadId: threadIdParsed,
+            senderId: senderIdVal,
+            content: contentVal,
+            messageType: messageType,
+            status: status,
+            metadata: metadata,
+            replyToId: nil,
+            editedAt: try? row.get(messageEditedAt),
+            deletedAt: nil,
+            isEncrypted: false,
+            encryptionKeyId: nil,
+            ciphertext: nil,
+            createdAt: createdAtVal,
+            updatedAt: updatedAtVal,
+            clientMessageId: nil
+        )
+    }
+
     func fetchMessages(threadId: UUID, limit: Int = 50, offset: Int = 0) async throws -> [Message] {
         guard let thread = try await fetchThread(id: threadId) else {
             throw DatabaseError.notFound("Thread: \(threadId)")

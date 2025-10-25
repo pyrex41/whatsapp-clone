@@ -302,7 +302,8 @@ extension AppEnvironment {
                             guard let message = Message.fromPhoenix(phoenixMessage) else { return }
                             // Present banner in banner mode only
                             Task { @Sendable in
-                                guard NotificationConfig.current != .system else { return }
+                                let mode = await MainActor.run { NotificationConfig.current }
+                                guard mode != .system else { return }
                                 // Skip self messages
                                 let currentUserId = await AuthManager.shared.getUserId()
                                 if let currentUserId, currentUserId == message.senderId { return }

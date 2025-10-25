@@ -1,0 +1,775 @@
+{
+  "": {
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/master.swiftdeps"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Errors/AIServiceError.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceError.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceError.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceError~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceError.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceError.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/ExtractedTask.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ExtractedTask.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ExtractedTask.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ExtractedTask~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ExtractedTask.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ExtractedTask.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/SearchResult.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SearchResult.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SearchResult.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SearchResult~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SearchResult.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SearchResult.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/ThreadSummary.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadSummary.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadSummary.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadSummary~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadSummary.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadSummary.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/ToneAnalysisResult.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ToneAnalysisResult.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ToneAnalysisResult.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ToneAnalysisResult~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ToneAnalysisResult.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ToneAnalysisResult.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/TranslationResult.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationResult.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationResult.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationResult~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationResult.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationResult.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/VectorHealthStatus.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/VectorHealthStatus.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/VectorHealthStatus.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/VectorHealthStatus~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/VectorHealthStatus.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/VectorHealthStatus.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Protocols/AIServiceProtocol.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceProtocol.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceProtocol.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceProtocol~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceProtocol.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceProtocol.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Auth/AuthManager.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AuthManager.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AuthManager.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AuthManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AuthManager.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AuthManager.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Config/Auth0Config.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Auth0Config.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Auth0Config.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Auth0Config~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Auth0Config.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Auth0Config.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Config/NotificationConfig.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NotificationConfig.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NotificationConfig.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NotificationConfig~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NotificationConfig.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NotificationConfig.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Features/MessageEdit/MessageDeletionHandler.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageDeletionHandler.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageDeletionHandler.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageDeletionHandler~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageDeletionHandler.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageDeletionHandler.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Features/MessageEdit/MessageEditManager.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageEditManager.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageEditManager.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageEditManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageEditManager.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageEditManager.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Managers/ReadReceiptManager.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptManager.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptManager.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptManager.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptManager.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/BootstrapModels.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/BootstrapModels.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/BootstrapModels.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/BootstrapModels~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/BootstrapModels.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/BootstrapModels.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/CDCLog.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/CDCLog.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/CDCLog.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/CDCLog~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/CDCLog.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/CDCLog.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/Contact.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Contact.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Contact.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Contact~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Contact.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Contact.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/Conversation/ConversationParticipant.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ConversationParticipant.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ConversationParticipant.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ConversationParticipant~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ConversationParticipant.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ConversationParticipant.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/Conversation/ParticipantRole.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ParticipantRole.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ParticipantRole.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ParticipantRole~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ParticipantRole.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ParticipantRole.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/Message.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Message.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Message.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Message~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Message.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Message.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/NotificationEvent.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NotificationEvent.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NotificationEvent.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NotificationEvent~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NotificationEvent.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NotificationEvent.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/Phoenix/PhoenixMessage.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixMessage.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixMessage.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixMessage~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixMessage.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixMessage.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/Phoenix/TypingIndicator.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TypingIndicator.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TypingIndicator.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TypingIndicator~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TypingIndicator.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TypingIndicator.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/ReadReceipts/ParticipantReadReceipt.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ParticipantReadReceipt.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ParticipantReadReceipt.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ParticipantReadReceipt~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ParticipantReadReceipt.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ParticipantReadReceipt.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/Thread+Samples.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Thread+Samples.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Thread+Samples.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Thread+Samples~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Thread+Samples.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Thread+Samples.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/Thread.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Thread.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Thread.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Thread~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Thread.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Thread.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/User.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/User.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/User.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/User~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/User.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/User.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+CDC.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+CDC.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+CDC.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+CDC~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+CDC.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+CDC.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+MessageEdit.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+MessageEdit.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+MessageEdit.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+MessageEdit~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+MessageEdit.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+MessageEdit.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixConfig.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixConfig.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixConfig.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixConfig~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixConfig.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixConfig.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixStateManager.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixStateManager.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixStateManager.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixStateManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixStateManager.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixStateManager.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/UserChannelManager.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UserChannelManager.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UserChannelManager.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UserChannelManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UserChannelManager.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UserChannelManager.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/REST/PushService.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PushService.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PushService.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PushService~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PushService.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PushService.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/REST/ThreadService.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadService.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadService.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadService~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadService.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadService.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/AIService.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIService.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIService.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIService~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIService.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIService.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/AppleTranslationService.md": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppleTranslationService.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppleTranslationService.md.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppleTranslationService~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppleTranslationService.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppleTranslationService.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/AppleTranslationService.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppleTranslationService.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppleTranslationService.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppleTranslationService~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppleTranslationService.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppleTranslationService.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/BackendTranslationService.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/BackendTranslationService.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/BackendTranslationService.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/BackendTranslationService~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/BackendTranslationService.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/BackendTranslationService.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/README.md": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/README.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/README.md.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/README~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/README.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/README.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/TRANSLATION_INTEGRATION.md": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TRANSLATION_INTEGRATION.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TRANSLATION_INTEGRATION.md.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TRANSLATION_INTEGRATION~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TRANSLATION_INTEGRATION.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TRANSLATION_INTEGRATION.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/UnifiedTranslationService.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UnifiedTranslationService.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UnifiedTranslationService.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UnifiedTranslationService~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UnifiedTranslationService.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UnifiedTranslationService.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AIServiceCache.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceCache.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceCache.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceCache~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceCache.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceCache.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/FeatureFlagsService.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlagsService.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlagsService.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlagsService~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlagsService.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlagsService.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/InAppBannerCenter.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerCenter.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerCenter.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerCenter~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerCenter.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerCenter.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/NotificationManager.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NotificationManager.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NotificationManager.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NotificationManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NotificationManager.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NotificationManager.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/RateLimitTracker.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/RateLimitTracker.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/RateLimitTracker.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/RateLimitTracker~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/RateLimitTracker.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/RateLimitTracker.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/TaskPersistenceService.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskPersistenceService.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskPersistenceService.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskPersistenceService~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskPersistenceService.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskPersistenceService.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/State/AppAction.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppAction.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppAction.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppAction~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppAction.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppAction.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/State/AppEnvironment.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppEnvironment.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppEnvironment.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppEnvironment~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppEnvironment.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppEnvironment.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/State/AppReducer.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppReducer.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppReducer.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppReducer~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppReducer.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppReducer.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/State/AppState.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppState.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppState.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppState~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppState.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppState.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/State/Swiftea/Command.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Command.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Command.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Command~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Command.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Command.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/State/Swiftea/Store.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Store.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Store.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Store~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Store.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Store.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Storage/CDCManager.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/CDCManager.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/CDCManager.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/CDCManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/CDCManager.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/CDCManager.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Storage/ContactManager.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ContactManager.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ContactManager.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ContactManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ContactManager.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ContactManager.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Storage/DatabaseError.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/DatabaseError.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/DatabaseError.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/DatabaseError~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/DatabaseError.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/DatabaseError.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Storage/DatabaseManager.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/DatabaseManager.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/DatabaseManager.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/DatabaseManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/DatabaseManager.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/DatabaseManager.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Storage/OfflineQueueManager.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/OfflineQueueManager.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/OfflineQueueManager.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/OfflineQueueManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/OfflineQueueManager.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/OfflineQueueManager.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Sync/SyncActor.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SyncActor.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SyncActor.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SyncActor~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SyncActor.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SyncActor.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Utilities/FeatureFlags.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlags.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlags.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlags~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlags.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlags.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Utilities/NetworkMonitor.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NetworkMonitor.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NetworkMonitor.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NetworkMonitor~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NetworkMonitor.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NetworkMonitor.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Utilities/TimestampFormatter.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TimestampFormatter.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TimestampFormatter.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TimestampFormatter~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TimestampFormatter.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TimestampFormatter.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/AppRoot/AppRootView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppRootView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppRootView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppRootView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppRootView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppRootView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/AppRoot/DebugMenuView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/DebugMenuView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/DebugMenuView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/DebugMenuView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/DebugMenuView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/DebugMenuView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/AppRoot/InAppBannerContainer.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerContainer.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerContainer.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerContainer~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerContainer.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerContainer.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/AppRoot/InAppBannerView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Chat/ChatScreen.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatScreen.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatScreen.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatScreen~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatScreen.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatScreen.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Chat/MessageComposerView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageComposerView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageComposerView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageComposerView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageComposerView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageComposerView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Settings/FeatureFlagsExampleView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlagsExampleView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlagsExampleView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlagsExampleView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlagsExampleView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlagsExampleView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Threads/NewConversationView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewConversationView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewConversationView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewConversationView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewConversationView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewConversationView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Threads/NewDirectMessageView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewDirectMessageView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewDirectMessageView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewDirectMessageView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewDirectMessageView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewDirectMessageView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Threads/NewGroupView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewGroupView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewGroupView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewGroupView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewGroupView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewGroupView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Threads/ThreadCreationSheet.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadCreationSheet.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadCreationSheet.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadCreationSheet~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadCreationSheet.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadCreationSheet.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Threads/ThreadsListScreen.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadsListScreen.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadsListScreen.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadsListScreen~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadsListScreen.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadsListScreen.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/Assets.xcassets": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Assets.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Assets.xcassets.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Assets~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Assets.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Assets.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/ContentView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ContentView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ContentView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ContentView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ContentView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ContentView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/GlobalBridge.entitlements": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/GlobalBridge.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/GlobalBridge.entitlements.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/GlobalBridge~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/GlobalBridge.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/GlobalBridge.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/GlobalBridgeApp.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/GlobalBridgeApp.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/GlobalBridgeApp.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/GlobalBridgeApp~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/GlobalBridgeApp.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/GlobalBridgeApp.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/Info.plist": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Info.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Info.plist.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Info~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Info.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Info.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Components/MessageContentView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContentView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContentView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContentView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContentView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContentView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Components/MessageContextMenuView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContextMenuView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContextMenuView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContextMenuView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContextMenuView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContextMenuView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Components/TranslationProviderBadge.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationProviderBadge.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationProviderBadge.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationProviderBadge~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationProviderBadge.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationProviderBadge.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/ViewModels/MessageBubbleViewModel.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageBubbleViewModel.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageBubbleViewModel.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageBubbleViewModel~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageBubbleViewModel.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageBubbleViewModel.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/ViewModels/ReadReceiptDetailViewModel.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptDetailViewModel.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptDetailViewModel.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptDetailViewModel~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptDetailViewModel.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptDetailViewModel.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/ViewModels/TaskExtractionViewModel.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskExtractionViewModel.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskExtractionViewModel.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskExtractionViewModel~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskExtractionViewModel.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskExtractionViewModel.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/AI/SummaryGenerationView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SummaryGenerationView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SummaryGenerationView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SummaryGenerationView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SummaryGenerationView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SummaryGenerationView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/AI/ThreadSummaryView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadSummaryView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadSummaryView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadSummaryView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadSummaryView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadSummaryView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/ChatView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/ChatViewWithTasks.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatViewWithTasks.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatViewWithTasks.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatViewWithTasks~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatViewWithTasks.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatViewWithTasks.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/FeatureBadgeView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureBadgeView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureBadgeView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureBadgeView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureBadgeView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureBadgeView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageBubbleView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageBubbleView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageBubbleView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageBubbleView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageBubbleView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageBubbleView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageCellView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageCellView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageCellView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageCellView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageCellView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageCellView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageContentView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContentView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContentView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContentView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContentView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContentView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageEditView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageEditView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageEditView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageEditView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageEditView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageEditView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/PresenceBadgeView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PresenceBadgeView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PresenceBadgeView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PresenceBadgeView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PresenceBadgeView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PresenceBadgeView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/PresenceIndicator.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PresenceIndicator.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PresenceIndicator.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PresenceIndicator~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PresenceIndicator.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PresenceIndicator.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/RateLimitStatusView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/RateLimitStatusView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/RateLimitStatusView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/RateLimitStatusView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/RateLimitStatusView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/RateLimitStatusView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/ReadReceiptDetailView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptDetailView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptDetailView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptDetailView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptDetailView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptDetailView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/ReadReceiptIndicator.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptIndicator.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptIndicator.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptIndicator~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptIndicator.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptIndicator.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/ReadReceiptSettingsView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptSettingsView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptSettingsView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptSettingsView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptSettingsView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptSettingsView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/SearchResultsView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SearchResultsView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SearchResultsView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SearchResultsView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SearchResultsView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SearchResultsView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/SemanticSearchView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SemanticSearchView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SemanticSearchView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SemanticSearchView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SemanticSearchView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SemanticSearchView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TaskDetailView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskDetailView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskDetailView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskDetailView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskDetailView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskDetailView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TaskExtractionView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskExtractionView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskExtractionView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskExtractionView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskExtractionView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskExtractionView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/ThreadListView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadListView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadListView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadListView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadListView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadListView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TranslationComparisonView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationComparisonView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationComparisonView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationComparisonView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationComparisonView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationComparisonView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TranslationOverlayView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationOverlayView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationOverlayView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationOverlayView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationOverlayView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationOverlayView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TypingIndicatorView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TypingIndicatorView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TypingIndicatorView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TypingIndicatorView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TypingIndicatorView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TypingIndicatorView.dia"
+  },
+  "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/UsageQuotaView.swift": {
+    "dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UsageQuotaView.d",
+    "object": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UsageQuotaView.swift.o",
+    "swiftmodule": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UsageQuotaView~partial.swiftmodule",
+    "swift-dependencies": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UsageQuotaView.swiftdeps",
+    "diagnostics": "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UsageQuotaView.dia"
+  }
+}

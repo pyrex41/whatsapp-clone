@@ -17,16 +17,21 @@ defmodule GlobalbridgeBackendWeb.FeatureController do
   Returns a map of feature names to boolean values indicating availability.
   """
   def index(conn, _params) do
-    user = Guardian.Plug.current_resource(conn)
+    user = conn.assigns[:current_user] || Guardian.Plug.current_resource(conn)
+
+    # Handle dev mode mock users without tier
+    tier = user.tier || "free"
+    tier_atom = if is_binary(tier), do: String.to_existing_atom(tier), else: tier
+
     features = Features.get_user_features(user)
 
     conn
     |> put_status(:ok)
     |> json(%{
       data: %{
-        tier: user.tier,
+        tier: tier,
         features: features,
-        limits: Features.tier_limits(String.to_existing_atom(user.tier))
+        limits: Features.tier_limits(tier_atom)
       }
     })
   end

@@ -10,6 +10,9 @@
 //
 
 import Foundation
+import Combine
+import UIKit
+@preconcurrency import ObjectiveC
 
 /// Multi-tier caching system for AI service responses
 @MainActor
@@ -36,8 +39,8 @@ final class AIServiceCache {
     /// Metrics tracking
     private var metrics = CacheMetrics()
 
-    /// Memory warning observer
-    private var memoryWarningObserver: NSObjectProtocol?
+    /// Memory warning observer - nonisolated to allow access from deinit
+    nonisolated(unsafe) private var memoryWarningObserver: NSObjectProtocol?
 
     // MARK: - Configuration
 
@@ -103,6 +106,7 @@ final class AIServiceCache {
     }
 
     deinit {
+        // deinit is nonisolated; safely remove observer
         if let observer = memoryWarningObserver {
             NotificationCenter.default.removeObserver(observer)
         }
@@ -294,9 +298,12 @@ final class AIServiceCache {
             return
         }
 
+        // Use allObjects to avoid makeIterator() issues in async context
+        let fileURLs = enumerator.allObjects.compactMap { $0 as? URL }
+
         var removedCount = 0
 
-        for case let fileURL as URL in enumerator {
+        for fileURL in fileURLs {
             guard let data = try? Data(contentsOf: fileURL),
                   let cachedItem = try? JSONDecoder().decode(CachedItem.self, from: data) else {
                 continue
@@ -331,8 +338,11 @@ final class AIServiceCache {
             return
         }
 
+        // Use allObjects to avoid makeIterator() issues in async context
+        let fileURLs = enumerator.allObjects.compactMap { $0 as? URL }
+
         var files: [(url: URL, date: Date)] = []
-        for case let fileURL as URL in enumerator {
+        for fileURL in fileURLs {
             guard let date = try? fileURL.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate else {
                 continue
             }
@@ -368,7 +378,9 @@ final class AIServiceCache {
             queue: .main
         ) { [weak self] _ in
             print("⚠️ [AI_CACHE] Memory warning - clearing memory cache")
-            self?.memoryCache.removeAllObjects()
+            Task { @MainActor in
+                self?.memoryCache.removeAllObjects()
+            }
         }
     }
 }

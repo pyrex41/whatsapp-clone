@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import Combine
 
 /// Detailed view showing read receipt information for a message
 public struct ReadReceiptDetailView: View {
@@ -91,7 +92,7 @@ public struct ReadReceiptDetailView: View {
             // Not yet delivered
             if !viewModel.pendingReceipts.isEmpty {
                 Section("Pending") {
-                    ForEach(viewModel.pendingReceipts, id: \.userId) { participant in
+                    ForEach(viewModel.pendingReceipts, id: \.id) { participant in
                         PendingReceiptRow(participant: participant)
                     }
                 }
@@ -223,7 +224,7 @@ public struct ReadReceiptDetailView: View {
 // MARK: - Read Receipt Row
 
 struct ReadReceiptRow: View {
-    let receipt: ParticipantReadReceipt
+    let receipt: ReadReceiptDisplay
 
     var body: some View {
         HStack(spacing: 12) {
@@ -275,7 +276,7 @@ struct ReadReceiptRow: View {
 // MARK: - Delivered Receipt Row
 
 struct DeliveredReceiptRow: View {
-    let receipt: ParticipantReadReceipt
+    let receipt: ReadReceiptDisplay
 
     var body: some View {
         HStack(spacing: 12) {
@@ -317,7 +318,7 @@ struct DeliveredReceiptRow: View {
 // MARK: - Pending Receipt Row
 
 struct PendingReceiptRow: View {
-    let participant: ConversationParticipant
+    let participant: ParticipantDisplay
 
     var body: some View {
         HStack(spacing: 12) {

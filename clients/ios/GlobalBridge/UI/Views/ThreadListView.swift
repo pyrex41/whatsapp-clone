@@ -6,17 +6,20 @@
 //
 
 import SwiftUI
+import Combine
 import Observation
 
 /// Displays list of conversation threads with presence indicators
 struct ThreadListView: View {
     @Bindable var phoenixState: PhoenixStateManager
+    @ObservedObject var store: Store<AppState, AppAction>
     @State private var threads: [ThreadViewModel] = []
     @State private var showingNewConversation = false
     @State private var connectionState: PhoenixConnectionState = .disconnected
 
-    init(phoenixState: PhoenixStateManager) {
+    init(phoenixState: PhoenixStateManager, store: Store<AppState, AppAction>) {
         self._phoenixState = Bindable(phoenixState)
+        self.store = store
     }
 
     var body: some View {
@@ -48,7 +51,7 @@ struct ThreadListView: View {
                 }
             }
             .sheet(isPresented: $showingNewConversation) {
-                NewConversationView()
+                NewConversationView(store: store)
             }
         }
         .task {
@@ -295,5 +298,12 @@ struct PhoenixConnectionIndicator: View {
 // MARK: - Preview
 
 #Preview {
-    ThreadListView(phoenixState: PhoenixStateManager.preview)
+    ThreadListView(
+        phoenixState: PhoenixStateManager.preview,
+        store: Store(
+            initialState: AppState(),
+            reducer: appReducer,
+            environment: .preview
+        )
+    )
 }

@@ -122,22 +122,16 @@ struct ThreadCreationSheet: View {
         
         Task {
             defer { isSearching = false }
-            
-            do {
-                // TODO: Wire up ContactManager when available
-                // For now, stub implementation
-                contacts = []
-                
-                // If query contains @, search for users by email
-                if query.contains("@") {
-                    searchResults = []
-                    // TODO: searchResults = try await contactManager.searchUsersByEmail(query: query)
-                } else {
-                    searchResults = []
-                }
-            } catch {
-                print("❌ [SEARCH] Failed to search: \(error)")
-                contacts = []
+
+            // TODO: Wire up ContactManager when available
+            // For now, stub implementation
+            contacts = []
+
+            // If query contains @, search for users by email
+            if query.contains("@") {
+                searchResults = []
+                // TODO: searchResults = try await contactManager.searchUsersByEmail(query: query)
+            } else {
                 searchResults = []
             }
         }

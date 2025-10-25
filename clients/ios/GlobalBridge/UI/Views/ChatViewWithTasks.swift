@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import Combine
 
 /// Chat view with integrated task extraction button
 struct ChatViewWithTasks: View {
@@ -43,7 +44,7 @@ struct ChatViewWithTasks: View {
 
             // Typing indicator
             if let typingText = typingState.typingText(currentUserId: currentUserId) {
-                TypingIndicatorView(typingText: typingText)
+                InlineTypingIndicatorView(typingText: typingText)
                     .padding(.horizontal, 8)
             }
 
@@ -76,7 +77,7 @@ struct ChatViewWithTasks: View {
                         .font(.headline)
 
                     if let presence = primaryUserPresence {
-                        PresenceTextView(
+                        ChatPresenceTextView(
                             status: presence.status,
                             lastSeen: presence.lastSeen
                         )
@@ -184,8 +185,8 @@ struct ChatViewWithTasks: View {
 }
 
 /// Presence text view component
-struct PresenceTextView: View {
-    let status: UserPresence.Status
+struct ChatPresenceTextView: View {
+    let status: UserPresence.PresenceStatus
     let lastSeen: Date?
 
     var body: some View {
@@ -222,7 +223,7 @@ struct PresenceTextView: View {
 #Preview {
     NavigationStack {
         ChatViewWithTasks(
-            phoenixState: PhoenixStateManager.shared,
+            phoenixState: PhoenixStateManager.preview,
             conversationId: UUID().uuidString,
             currentUserId: "user_123"
         )

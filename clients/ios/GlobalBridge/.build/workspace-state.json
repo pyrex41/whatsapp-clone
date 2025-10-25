@@ -1,0 +1,115 @@
+{
+  "object" : {
+    "artifacts" : [
+
+    ],
+    "dependencies" : [
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "auth0.swift",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/auth0/Auth0.swift",
+          "name" : "Auth0"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "259b5d5f303d49203a6cc8415b56100d8b7584ce",
+            "version" : "2.15.1"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "Auth0.swift"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "jwtdecode.swift",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/auth0/JWTDecode.swift.git",
+          "name" : "JWTDecode"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "36a5ce735a61c4bc119593f43ce2c027b4ca7392",
+            "version" : "3.3.0"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "JWTDecode.swift"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "simplekeychain",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/auth0/SimpleKeychain.git",
+          "name" : "SimpleKeychain"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "776c4a6db74d5c6c143974be91c383680d468630",
+            "version" : "1.3.0"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "SimpleKeychain"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "sqlite.swift",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/stephencelis/SQLite.swift",
+          "name" : "SQLite.swift"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "392dd6058624d9f6c5b4c769d165ddd8c7293394",
+            "version" : "0.15.4"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "SQLite.swift"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "swift-toolchain-sqlite",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/swiftlang/swift-toolchain-sqlite",
+          "name" : "swift-toolchain-sqlite"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "b626d3002773b1a1304166643e7f118f724b2132",
+            "version" : "1.0.4"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "swift-toolchain-sqlite"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
+          "identity" : "swiftphoenixclient",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/davidstump/SwiftPhoenixClient",
+          "name" : "SwiftPhoenixClient"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "25a4d8a3fa754ef3fb587a34addd08c7e568abc4",
+            "version" : "5.3.5"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "SwiftPhoenixClient"
+      }
+    ],
+    "prebuilts" : [
+
+    ]
+  },
+  "version" : 7
+}

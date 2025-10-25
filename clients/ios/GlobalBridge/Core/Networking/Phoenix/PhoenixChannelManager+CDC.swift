@@ -17,7 +17,7 @@ extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
     ///   - since: Optional timestamp to fetch changes since
     /// - Returns: Array of CDC logs from server
     func pullCDCLogs(threadId: String, since: Date?) async throws -> [CDCLog] {
-        guard let channel = await channel(for: threadId) else {
+        guard let channel = channel(for: threadId) else {
             throw PhoenixError.channelNotJoined
         }
 
@@ -63,7 +63,7 @@ extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
     ///   - logs: CDC logs to push
     ///   - threadId: Thread ID these logs belong to
     func pushCDCLogs(_ logs: [CDCLog], threadId: String) async throws {
-        guard let channel = await channel(for: threadId) else {
+        guard let channel = channel(for: threadId) else {
             throw PhoenixError.channelNotJoined
         }
 
@@ -115,8 +115,8 @@ extension PhoenixChannelManager: PhoenixChannelManagerProtocol {
 
     /// Check if network is available
     /// - Returns: True if connected, false otherwise
-    func isNetworkAvailable() async -> Bool {
-        switch await getConnectionState() {
+    func isNetworkAvailable() -> Bool {
+        switch getConnectionState() {
         case .connected:
             return true
         default:

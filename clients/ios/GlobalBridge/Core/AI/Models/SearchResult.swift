@@ -224,6 +224,33 @@ extension SearchResult {
     var senderName: String {
         message.senderDisplayName ?? message.senderUsername
     }
+
+    // MARK: - Convenience Properties for Direct Access
+
+    /// Direct access to message ID
+    var messageId: UUID {
+        message.id
+    }
+
+    /// Direct access to thread ID
+    var threadId: UUID {
+        message.threadId
+    }
+
+    /// Direct access to message content
+    var content: String {
+        message.content
+    }
+
+    /// Direct access to timestamp
+    var timestamp: Date {
+        message.timestamp
+    }
+
+    /// Direct access to sender ID
+    var senderId: UUID {
+        message.senderId
+    }
 }
 
 // MARK: - Display Helpers

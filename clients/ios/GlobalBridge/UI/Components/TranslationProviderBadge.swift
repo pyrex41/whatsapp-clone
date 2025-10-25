@@ -111,5 +111,4 @@ struct DetailedTranslationProviderBadge: View {
         DetailedTranslationProviderBadge(provider: "hybrid")
     }
     .padding()
-    .previewLayout(.sizeThatFits)
 }

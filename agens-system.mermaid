@@ -1,0 +1,74 @@
+graph TB
+    subgraph "Agens LLM Agent System"
+        subgraph "Core Framework"
+            AG[Agens Framework<br/>v0.1.3]
+            SERV[OpenAIServing<br/>GenServer]
+            MSG[Message Struct<br/>input + prompt]
+        end
+
+        subgraph "Agent Types"
+            LDA[LanguageDetectionAgent<br/>Simple language ID]
+            TRA[TranslatorAgent<br/>Cultural-aware translation]
+            SUMA[SummarizerAgent<br/>Structured summaries]
+            RAGA[RAGRetrieverAgent<br/>Semantic search]
+        end
+
+        subgraph "Tool System"
+            CCT[CulturalContextTool<br/>Cultural analysis]
+            TET[TaskExtractionTool<br/>Action item extraction]
+        end
+
+        subgraph "Job Orchestration"
+            TJ[TranslationJob<br/>Background processing]
+            SJ[SummarizationJob<br/>Async summaries]
+            BEJ[BatchEmbedJob<br/>Vector generation]
+            GEJ[GenerateEmbeddingJob<br/>Single embeddings]
+        end
+
+        subgraph "Serving Layer"
+            OAI[OpenAI API<br/>gpt-4o-mini/claude-3-haiku]
+            ANT[Anthropic API<br/>Claude models]
+        end
+    end
+
+    %% Framework connections
+    AG --> SERV
+    SERV --> MSG
+    MSG --> OAI
+    MSG --> ANT
+
+    %% Agent connections
+    AG --> LDA
+    AG --> TRA
+    AG --> SUMA
+    AG --> RAGA
+
+    %% Tool connections
+    TRA --> CCT
+    TRA --> TET
+
+    %% Job connections
+    TJ --> TRA
+    SJ --> SUMA
+    BEJ --> RAGA
+    GEJ --> RAGA
+
+    %% External API connections
+    SERV --> OAI
+    SERV --> ANT
+
+    %% Styling
+    style AG fill:#e1f5fe
+    style SERV fill:#f3e5f5
+    style LDA fill:#e8f5e8
+    style TRA fill:#e8f5e8
+    style SUMA fill:#e8f5e8
+    style RAGA fill:#e8f5e8
+    style CCT fill:#fff3e0
+    style TET fill:#fff3e0
+    style TJ fill:#fce4ec
+    style SJ fill:#fce4ec
+    style BEJ fill:#fce4ec
+    style GEJ fill:#fce4ec
+    style OAI fill:#e0f2f1
+    style ANT fill:#e0f2f1

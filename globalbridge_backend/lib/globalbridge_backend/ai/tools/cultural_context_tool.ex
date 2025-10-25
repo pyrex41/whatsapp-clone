@@ -13,8 +13,16 @@ defmodule GlobalbridgeBackend.AI.Tools.CulturalContextTool do
   """
   @impl true
   def pre(input) do
+    # Handle both raw strings and {:ok, string} tuples from previous steps
+    text = case input do
+      {:ok, text} -> text
+      {:error, _} -> "Error in previous step"
+      text when is_binary(text) -> text
+      _ -> inspect(input)
+    end
+
     """
-    Analyze this text for cultural context and translation needs: #{input}
+    Analyze this text for cultural context and translation needs: #{text}
 
     Consider:
     - Idioms and colloquial expressions
@@ -53,7 +61,15 @@ defmodule GlobalbridgeBackend.AI.Tools.CulturalContextTool do
   """
   @impl true
   def to_args(result) do
-    case Jason.decode(result) do
+    # Handle both raw strings and {:ok, string} tuples
+    text = case result do
+      {:ok, text} -> text
+      {:error, _} -> "{}"
+      text when is_binary(text) -> text
+      _ -> inspect(result)
+    end
+
+    case Jason.decode(text) do
       {:ok,
        %{
          "cultural_elements" => elements,

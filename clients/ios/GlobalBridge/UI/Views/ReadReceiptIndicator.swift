@@ -26,7 +26,7 @@ public struct ReadReceiptIndicator: View {
 
     // MARK: - Initialization
 
-    public init(
+    init(
         messageId: String = "",
         status: Message.MessageStatus,
         readCount: Int = 0,
@@ -232,7 +232,7 @@ public struct CompactReadReceiptIndicator: View {
     let status: Message.MessageStatus
     let readCount: Int?
 
-    public init(status: Message.MessageStatus, readCount: Int? = nil) {
+    init(status: Message.MessageStatus, readCount: Int? = nil) {
         self.status = status
         self.readCount = readCount
     }

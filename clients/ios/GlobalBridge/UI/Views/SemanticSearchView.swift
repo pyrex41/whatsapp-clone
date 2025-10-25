@@ -435,12 +435,12 @@ struct SemanticSearchView: View {
 
     private func handleResultSelection(_ result: SearchResult) {
         // TODO: Navigate to message in thread
-        print("📍 Navigate to message: \(result.messageId) in thread: \(result.threadId ?? "unknown")")
+        print("📍 Navigate to message: \(result.message.id.uuidString) in thread: \(result.message.threadId.uuidString)")
     }
 
     private func handleReply(to result: SearchResult) {
         // TODO: Open reply compose sheet
-        print("💬 Reply to message: \(result.messageId)")
+        print("💬 Reply to message: \(result.message.id.uuidString)")
     }
 
     private func copyToClipboard(_ text: String) {
@@ -451,7 +451,7 @@ struct SemanticSearchView: View {
 
     private func handleTranslate(_ result: SearchResult) {
         // TODO: Open translation overlay
-        print("🌐 Translate message: \(result.messageId)")
+        print("🌐 Translate message: \(result.message.id.uuidString)")
     }
 
     private func announceSearchResults() {
@@ -587,7 +587,7 @@ class SemanticSearchViewModel: ObservableObject {
             searchError = error
             searchResults = []
         } catch {
-            searchError = .apiError(message: error.localizedDescription)
+            searchError = .unknown(error)
             searchResults = []
         }
 
@@ -595,38 +595,29 @@ class SemanticSearchViewModel: ObservableObject {
     }
 
     private func filterByDateRange(_ results: [SearchResult]) -> [SearchResult] {
-        let dateFormatter = ISO8601DateFormatter()
-
         switch dateRange {
         case .anytime:
             return results
         case .today:
             let startOfDay = Calendar.current.startOfDay(for: Date())
             return results.filter { result in
-                guard let timestamp = result.timestamp,
-                      let date = dateFormatter.date(from: timestamp) else { return false }
-                return date >= startOfDay
+                return result.message.timestamp >= startOfDay
             }
         case .lastWeek:
             let weekAgo = Date().addingTimeInterval(-7 * 24 * 3600)
             return results.filter { result in
-                guard let timestamp = result.timestamp,
-                      let date = dateFormatter.date(from: timestamp) else { return false }
-                return date >= weekAgo
+                return result.message.timestamp >= weekAgo
             }
         case .lastMonth:
             let monthAgo = Date().addingTimeInterval(-30 * 24 * 3600)
             return results.filter { result in
-                guard let timestamp = result.timestamp,
-                      let date = dateFormatter.date(from: timestamp) else { return false }
-                return date >= monthAgo
+                return result.message.timestamp >= monthAgo
             }
         case .custom:
             let startOfStartDay = Calendar.current.startOfDay(for: customStartDate)
             let endOfEndDay = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: customEndDate) ?? customEndDate
             return results.filter { result in
-                guard let timestamp = result.timestamp,
-                      let date = dateFormatter.date(from: timestamp) else { return false }
+                let date = result.message.timestamp
                 return date >= startOfStartDay && date <= endOfEndDay
             }
         }

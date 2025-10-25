@@ -6,9 +6,10 @@
 //
 
 import SwiftUI
+import Combine
 
 /// Displays typing indicator for users currently typing
-struct TypingIndicatorView: View {
+struct InlineTypingIndicatorView: View {
     let typingText: String?
 
     var body: some View {
@@ -55,10 +56,10 @@ private struct TypingDots: View {
 
 #Preview {
     VStack(spacing: 16) {
-        TypingIndicatorView(typingText: "Alice is typing...")
-        TypingIndicatorView(typingText: "Bob and Charlie are typing...")
-        TypingIndicatorView(typingText: "Multiple people are typing...")
-        TypingIndicatorView(typingText: nil)
+        InlineTypingIndicatorView(typingText: "Alice is typing...")
+        InlineTypingIndicatorView(typingText: "Bob and Charlie are typing...")
+        InlineTypingIndicatorView(typingText: "Multiple people are typing...")
+        InlineTypingIndicatorView(typingText: nil)
     }
     .padding()
 }

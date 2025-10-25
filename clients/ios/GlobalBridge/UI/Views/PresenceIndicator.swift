@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import Combine
 
 // MARK: - Status Indicator Badge
 
@@ -221,7 +222,7 @@ public struct PresenceAvatar: View {
 // MARK: - Typing Indicator
 
 /// Animated typing indicator ("User is typing...")
-public struct TypingIndicatorView: View {
+public struct TypingUsersIndicatorView: View {
     let typingUsers: Set<String>
     let currentUserId: String
     @State private var animationPhase: Int = 0
@@ -270,7 +271,9 @@ public struct TypingIndicatorView: View {
 
     private func startAnimation() {
         Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { _ in
-            animationPhase = (animationPhase + 1) % 3
+            Task { @MainActor in
+                animationPhase = (animationPhase + 1) % 3
+            }
         }
     }
 }
@@ -308,7 +311,9 @@ public struct TypingDotsView: View {
 
     private func startAnimation() {
         Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { _ in
-            animationPhase = (animationPhase + 1) % 3
+            Task { @MainActor in
+                animationPhase = (animationPhase + 1) % 3
+            }
         }
     }
 }
@@ -532,7 +537,7 @@ public struct ProfilePresenceHeader: View {
         Text("Typing Indicators")
             .font(.headline)
 
-        TypingIndicatorView(
+        TypingUsersIndicatorView(
             typingUsers: ["Alice"],
             currentUserId: "me"
         )

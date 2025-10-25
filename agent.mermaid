@@ -1,0 +1,158 @@
+graph TB
+    subgraph "Task Master AI - Development Orchestration"
+        TM[Task Master AI System]
+        TM1[Main Agent<br/>grok-code-fast-1]
+        TM2[Research Agent<br/>gpt-5]
+        TM3[Fallback Agent<br/>claude-3-7-sonnet]
+
+        TM --> TM1
+        TM --> TM2
+        TM --> TM3
+    end
+
+    subgraph "Phoenix Backend - AI Layer"
+        subgraph "Multi-Agent Framework"
+            AG[Agens Framework<br/>v0.1.3]
+            AG1[TranslatorAgent]
+            AG2[SummarizerAgent]
+            AG3[RAGRetrieverAgent]
+            AG4[TaskExtractionTool]
+            AG5[CulturalContextTool]
+            AG6[LanguageDetectionAgent]
+
+            AG --> AG1
+            AG --> AG2
+            AG --> AG3
+            AG --> AG4
+            AG --> AG5
+            AG --> AG6
+        end
+
+        subgraph "AI Jobs & Background Processing"
+            JOB1[TranslationJob]
+            JOB2[SummarizationJob]
+            JOB3[BatchEmbedJob]
+            JOB4[GenerateEmbeddingJob]
+            JOB5[CleanupCacheJob]
+
+            JOB1 --> AG1
+            JOB2 --> AG2
+            JOB3 --> AG3
+            JOB4 --> AG3
+        end
+
+        subgraph "AI Services"
+            AIS[EmbeddingService<br/>OpenAI text-embedding-3-large]
+            RAG[RAGRetriever<br/>Cosine Similarity Search]
+            SS[SemanticSearch<br/>Multilingual Support]
+            CT[CostTracker<br/>API Usage Monitoring]
+            BM[BudgetMonitor<br/>Tier Limits]
+            CO[CostOptimizer<br/>Model Selection]
+        end
+
+        subgraph "Caching Infrastructure"
+            CACHE1[TranslationCache<br/>Redis, 7-day TTL]
+            CACHE2[EmbeddingCache<br/>Redis, Permanent]
+            CACHE3[FeatureFlags<br/>Redis Cache]
+
+            CACHE1 --> CT
+            CACHE2 --> CT
+        end
+
+        subgraph "Vector Storage"
+            VS[VectorStore<br/>SQLite vec extension]
+            VIRT[Virtual Tables<br/>vec0 for cosine similarity]
+
+            VS --> VIRT
+        end
+
+        subgraph "API Controllers"
+            AIC[AIController<br/>Phoenix REST API]
+            AIC1[translate endpoint]
+            AIC2[summarize_thread endpoint]
+            AIC3[search_semantic endpoint]
+            AIC4[extract_tasks endpoint]
+            AIC5[analyze_tone endpoint]
+
+            AIC --> AIC1
+            AIC --> AIC2
+            AIC --> AIC3
+            AIC --> AIC4
+            AIC --> AIC5
+        end
+
+        subgraph "Background Processing"
+            OBAN[Oban<br/>Background Jobs]
+            PROM[Prometheus<br/>Metrics & Monitoring]
+            TEL[Telemetry<br/>Performance Tracking]
+
+            OBAN --> JOB1
+            OBAN --> JOB2
+            OBAN --> JOB3
+            PROM --> TEL
+        end
+
+        AG --> JOB1
+        AG --> JOB2
+        AIS --> CACHE2
+        RAG --> VS
+        SS --> RAG
+        AIC --> AG
+        AIC --> AIS
+        AIC --> SS
+        AIC --> CACHE1
+        AIC --> CACHE3
+    end
+
+    subgraph "External AI Providers"
+        OAI[OpenAI API<br/>Embeddings & Chat]
+        ANT[Anthropic API<br/>Claude Models]
+
+        AIS --> OAI
+        AG1 --> OAI
+        AG1 --> ANT
+        AG2 --> OAI
+        AG2 --> ANT
+    end
+
+    subgraph "Client Integration"
+        IOS[AIService.swift<br/>iOS Client]
+        IOS1[HTTP Networking<br/>Async/Await]
+        IOS2[Auth0 JWT<br/>Token Management]
+        IOS3[Feature Flags<br/>Tier Checking]
+        IOS4[Error Handling<br/>Retry Logic]
+
+        IOS --> IOS1
+        IOS --> IOS2
+        IOS --> IOS3
+        IOS --> IOS4
+        IOS --> AIC
+    end
+
+    subgraph "Database Layer"
+        SHARED[Shared SQLite DB<br/>users.db, bridges.db]
+        THREAD[Thread Shards<br/>priv/threads/&lt;thread_id&gt;.db]
+
+        VS --> THREAD
+        AIC --> SHARED
+        AIC --> THREAD
+    end
+
+    TM --> AG
+    AG --> AIS
+    AG --> RAG
+    AG --> CT
+    AG --> BM
+    AG --> CO
+    CACHE1 --> REDIS[(Redis Cache)]
+    CACHE2 --> REDIS
+    CACHE3 --> REDIS
+    TEL --> PROM
+    OBAN --> PROM
+
+    style TM fill:#e1f5fe
+    style AG fill:#f3e5f5
+    style AIS fill:#e8f5e8
+    style CACHE1 fill:#fff3e0
+    style AIC fill:#fce4ec
+    style IOS fill:#f1f8e9

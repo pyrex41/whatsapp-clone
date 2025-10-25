@@ -7,6 +7,7 @@
 //
 
 import Foundation
+@preconcurrency import SwiftPhoenixClient
 
 /// Manages message editing operations with real-time sync
 @MainActor
@@ -141,9 +142,10 @@ final class MessageEditManager {
         messageId: String,
         newContent: String
     ) async throws {
-        guard let channel = await phoenixChannelManager.channel(for: conversationId) else {
+        guard let sendableChannel = await phoenixChannelManager.sendableChannel(for: conversationId) else {
             throw EditError.channelNotJoined
         }
+        let channel = sendableChannel.channel
 
         let payload: [String: Any] = [
             "message_id": messageId,
@@ -205,40 +207,37 @@ final class MessageEditManager {
     ///   - conversationId: The conversation ID
     /// - Returns: Array of edit history entries
     func getEditHistory(messageId: String, conversationId: String) async throws -> [EditHistoryEntry] {
-        guard let channel = await phoenixChannelManager.channel(for: conversationId) else {
+        guard let sendableChannel = await phoenixChannelManager.sendableChannel(for: conversationId) else {
             throw EditError.channelNotJoined
         }
+        let channel = sendableChannel.channel
 
         let payload: [String: Any] = ["message_id": messageId]
 
         return try await withCheckedThrowingContinuation { continuation in
             channel.push("get_edit_history", payload: payload)
                 .receive("ok") { response in
-                    do {
-                        guard let history = response.payload["history"] as? [[String: Any]] else {
-                            continuation.resume(returning: [])
-                            return
-                        }
-
-                        let entries = try history.compactMap { dict -> EditHistoryEntry? in
-                            guard
-                                let content = dict["content"] as? String,
-                                let timestampStr = dict["edited_at"] as? String,
-                                let timestamp = ISO8601DateFormatter().date(from: timestampStr)
-                            else {
-                                return nil
-                            }
-
-                            return EditHistoryEntry(
-                                content: content,
-                                editedAt: timestamp
-                            )
-                        }
-
-                        continuation.resume(returning: entries)
-                    } catch {
-                        continuation.resume(throwing: error)
+                    guard let history = response.payload["history"] as? [[String: Any]] else {
+                        continuation.resume(returning: [])
+                        return
                     }
+
+                    let entries = history.compactMap { dict -> EditHistoryEntry? in
+                        guard
+                            let content = dict["content"] as? String,
+                            let timestampStr = dict["edited_at"] as? String,
+                            let timestamp = ISO8601DateFormatter().date(from: timestampStr)
+                        else {
+                            return nil
+                        }
+
+                        return EditHistoryEntry(
+                            content: content,
+                            editedAt: timestamp
+                        )
+                    }
+
+                    continuation.resume(returning: entries)
                 }
                 .receive("error") { message in
                     print("⚠️ [EDIT] Failed to fetch edit history: \(message.payload)")

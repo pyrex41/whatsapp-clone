@@ -324,7 +324,7 @@ final class UnifiedTranslationService: ObservableObject {
         }
 
         // Rule 3: Check rate limits for backend
-        let rateLimitCheck = rateLimiter.canMakeRequest(for: .translation)
+        let rateLimitCheck = rateLimiter.canMakeRequest(for: RateLimitTracker.AIFeature.translation)
         if !rateLimitCheck.isAllowed {
             print("⚠️ [UNIFIED_TRANSLATE] Backend quota exceeded, falling back to Apple")
             return .apple
@@ -551,8 +551,10 @@ final class UnifiedTranslationService: ObservableObject {
 
     /// Clear translation cache
     func clearCache() {
-        cache.clearAll()
-        print("🗑️ [UNIFIED_TRANSLATE] Cache cleared")
+        Task {
+            await cache.clearAll()
+            print("🗑️ [UNIFIED_TRANSLATE] Cache cleared")
+        }
     }
 
     // MARK: - Metrics Recording
@@ -620,7 +622,7 @@ final class UnifiedTranslationService: ObservableObject {
     ) -> String {
         let components = [text, source, target, provider.rawValue]
         let combined = components.joined(separator: "_")
-        return combined.data(using: .utf8)?.base64EncodedString() ?? combined
+        return combined.data(using: String.Encoding.utf8)?.base64EncodedString() ?? combined
     }
 }
 

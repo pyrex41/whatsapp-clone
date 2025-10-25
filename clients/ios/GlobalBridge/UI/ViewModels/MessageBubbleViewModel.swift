@@ -69,13 +69,13 @@ final class MessageBubbleViewModel: ObservableObject {
                 provider: .auto
             )
 
-            translation = result
-            print("✅ [BUBBLE_VM] Translation successful: \(result.provider ?? "unknown")")
+            translation = result.toTranslationResult()
+            print("✅ [BUBBLE_VM] Translation successful: \(result.provider)")
         } catch let error as AIServiceError {
             translationError = error
             print("❌ [BUBBLE_VM] Translation failed: \(error.localizedDescription)")
         } catch {
-            translationError = .serviceUnavailable(underlyingError: error)
+            translationError = .unknown(error)
             print("❌ [BUBBLE_VM] Translation failed: \(error.localizedDescription)")
         }
 
@@ -115,9 +115,6 @@ final class MessageBubbleViewModel: ObservableObject {
     // MARK: - Cache Management
 
     private func checkTranslationCache() async {
-        let targetLanguage = Locale.current.language.languageCode?.identifier ?? "en"
-        let cacheKey = "\(message.content)_\(targetLanguage)".hashValue
-
         // TODO: Implement cache lookup
         // if let cached = await translationService.cachedTranslation(for: cacheKey) {
         //     translation = cached
@@ -132,15 +129,16 @@ final class MessageBubbleViewModel: ObservableObject {
 
         // Apple Translation (if supported)
         let targetLang = Locale.current.language.languageCode?.identifier ?? "en"
-        if translationService.supportsLanguagePair(from: "auto", to: targetLang, provider: .apple) {
+        let pair = "\("en")_\(targetLang)" // when source is auto, assume 'en' for support check
+        if AppleTranslationService.supportedLanguagePairs.contains(pair) {
             providers.append(.apple)
         }
 
         // Backend always available (with network)
         providers.append(.backend)
 
-        // Hybrid if both available
-        if providers.count == 2 {
+        // Add auto (smart) if we have at least one concrete provider to choose between
+        if !providers.isEmpty {
             providers.append(.auto)
         }
 
@@ -148,20 +146,22 @@ final class MessageBubbleViewModel: ObservableObject {
     }
 }
 
-// MARK: - Translation Provider
+// MARK: - TranslationProvider UI helpers
 
-enum TranslationProvider: String, CaseIterable, Identifiable {
-    case apple = "apple-translation"
-    case backend = "backend-ai"
-    case auto = "auto"
+extension TranslationProvider: CaseIterable, Identifiable {
+    public var id: String { rawValue }
 
-    var id: String { rawValue }
+    public static var allCases: [TranslationProvider] {
+        // UI selection uses these; 'hybrid' is internal/debug only
+        return [.apple, .backend, .auto]
+    }
 
     var displayName: String {
         switch self {
         case .apple: return "On-Device (Private)"
         case .backend: return "Cloud AI (More Languages)"
         case .auto: return "Automatic"
+        case .hybrid: return "Hybrid (Compare)"
         }
     }
 
@@ -170,6 +170,7 @@ enum TranslationProvider: String, CaseIterable, Identifiable {
         case .apple: return "apple.logo"
         case .backend: return "cloud.fill"
         case .auto: return "arrow.triangle.2.circlepath"
+        case .hybrid: return "rectangle.split.2x1"
         }
     }
 
@@ -181,70 +182,8 @@ enum TranslationProvider: String, CaseIterable, Identifiable {
             return "More languages, cultural notes. Requires internet."
         case .auto:
             return "Automatically choose best provider for your needs."
-        }
-    }
-}
-
-// MARK: - Unified Translation Service (Stub)
-
-/// Unified translation service coordinating Apple and Backend translation
-@MainActor
-final class UnifiedTranslationService {
-    static let shared = UnifiedTranslationService()
-
-    private let appleService = AppleTranslationService()
-    private let backendService = BackendTranslationService.shared
-
-    private init() {}
-
-    func translate(
-        text: String,
-        from sourceLanguage: String,
-        to targetLanguage: String,
-        provider: TranslationProvider
-    ) async throws -> TranslationResult {
-        switch provider {
-        case .apple:
-            return try await appleService.translate(
-                text: text,
-                from: sourceLanguage,
-                to: targetLanguage
-            )
-        case .backend:
-            return try await backendService.translate(
-                text: text,
-                from: sourceLanguage,
-                to: targetLanguage
-            )
-        case .auto:
-            // Try Apple first (faster, private), fallback to backend
-            do {
-                return try await appleService.translate(
-                    text: text,
-                    from: sourceLanguage,
-                    to: targetLanguage
-                )
-            } catch AIServiceError.unsupportedLanguage {
-                print("⚠️ [UNIFIED] Apple doesn't support this pair, using backend")
-                return try await backendService.translate(
-                    text: text,
-                    from: sourceLanguage,
-                    to: targetLanguage
-                )
-            }
-        }
-    }
-
-    func supportsLanguagePair(from: String, to: String, provider: TranslationProvider) -> Bool {
-        switch provider {
-        case .apple:
-            let normalizedFrom = from == "auto" ? "en" : from
-            let pair = "\(normalizedFrom)_\(to)"
-            return AppleTranslationService.supportedLanguagePairs.contains(pair)
-        case .backend:
-            return true // Backend supports all language pairs
-        case .auto:
-            return true // Auto will try both
+        case .hybrid:
+            return "Run both providers and compare results."
         }
     }
 }

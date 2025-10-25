@@ -19,7 +19,8 @@
 //
 
 import Foundation
-import Translation
+@preconcurrency import Translation
+import Combine
 
 /// Apple Translation Framework implementation of AIServiceProtocol
 /// Provides on-device translation with privacy-first architecture
@@ -117,21 +118,17 @@ final class AppleTranslationService: ObservableObject {
 
     /// Check if a specific language pair is available offline
     private func isLanguagePairAvailable(source: String, target: String) async -> Bool {
-        do {
-            let sourceLanguage = Locale.Language(identifier: source)
-            let targetLanguage = Locale.Language(identifier: target)
+        let sourceLanguage = Locale.Language(identifier: source)
+        let targetLanguage = Locale.Language(identifier: target)
 
-            let availability = LanguageAvailability()
-            let status = try await availability.status(
-                from: sourceLanguage,
-                to: targetLanguage
-            )
+        let availability = LanguageAvailability()
+        // iOS 18 API: status() doesn't throw, just returns async
+        let status = await availability.status(
+            from: sourceLanguage,
+            to: targetLanguage
+        )
 
-            return status == .installed
-        } catch {
-            print("❌ [APPLE_TRANSLATE] Failed to check availability for \(source) -> \(target): \(error)")
-            return false
-        }
+        return status == .installed
     }
 
     /// Download translation model for a language pair
@@ -152,12 +149,14 @@ final class AppleTranslationService: ObservableObject {
             let sourceLocale = Locale.Language(identifier: sourceLanguage)
             let targetLocale = Locale.Language(identifier: targetLanguage)
 
-            let availability = LanguageAvailability()
+            // Create a temporary translation session which will trigger model download
+            let session = TranslationSession(installedSource: sourceLocale, target: targetLocale)
 
             // Download with progress tracking
             downloadProgress[pairKey] = 0.0
 
-            try await availability.prepareTranslation(from: sourceLocale, to: targetLocale)
+            // Prepare translation (downloads models if needed)
+            try await session.prepareTranslation()
 
             downloadProgress[pairKey] = 1.0
             availableLanguagePairs.insert(pairKey)
@@ -181,7 +180,7 @@ final class AppleTranslationService: ObservableObject {
 
         // Close any active session
         if let session = activeSessions[pairKey] {
-            session.invalidate()
+            session.cancel()
             activeSessions.removeValue(forKey: pairKey)
         }
 
@@ -199,24 +198,18 @@ final class AppleTranslationService: ObservableObject {
             return nil
         }
 
-        do {
-            // Use NLLanguageRecognizer for language detection
-            let recognizer = NLLanguageRecognizer()
-            recognizer.processString(text)
+        // Use NLLanguageRecognizer for language detection
+        let recognizer = NLLanguageRecognizer()
+        recognizer.processString(text)
 
-            guard let dominantLanguage = recognizer.dominantLanguage else {
-                print("⚠️ [APPLE_TRANSLATE] Could not detect language")
-                return nil
-            }
-
-            let languageCode = dominantLanguage.rawValue
-            print("🔍 [APPLE_TRANSLATE] Detected language: \(languageCode)")
-            return languageCode
-
-        } catch {
-            print("❌ [APPLE_TRANSLATE] Language detection failed: \(error)")
+        guard let dominantLanguage = recognizer.dominantLanguage else {
+            print("⚠️ [APPLE_TRANSLATE] Could not detect language")
             return nil
         }
+
+        let languageCode = dominantLanguage.rawValue
+        print("🔍 [APPLE_TRANSLATE] Detected language: \(languageCode)")
+        return languageCode
     }
 
     // MARK: - Session Management
@@ -249,12 +242,8 @@ final class AppleTranslationService: ObservableObject {
         let sourceLocale = Locale.Language(identifier: sourceLanguage)
         let targetLocale = Locale.Language(identifier: targetLanguage)
 
-        let configuration = TranslationSession.Configuration(
-            source: sourceLocale,
-            target: targetLocale
-        )
-
-        let session = TranslationSession(configuration: configuration)
+        // Create session using iOS 18 API
+        let session = TranslationSession(installedSource: sourceLocale, target: targetLocale)
         activeSessions[sessionKey] = session
 
         print("✅ [APPLE_TRANSLATE] Created translation session: \(sessionKey)")
@@ -273,8 +262,8 @@ final class AppleTranslationService: ObservableObject {
     /// Invalidate all active sessions (call on memory warning or logout)
     func invalidateAllSessions() {
         for (key, session) in activeSessions {
-            session.invalidate()
-            print("🔄 [APPLE_TRANSLATE] Invalidated session: \(key)")
+            session.cancel()
+            print("🔄 [APPLE_TRANSLATE] Cancelled session: \(key)")
         }
         activeSessions.removeAll()
     }
@@ -379,21 +368,15 @@ extension AppleTranslationService: AIServiceProtocol {
             return cached
         }
 
-        // Get or create translation session
-        let session = try await getSession(from: normalizedSource, to: normalizedTarget)
-
-        // Create translation request
-        let request = TranslationSession.Request(
-            sourceText: text,
-            clientIdentifier: UUID().uuidString
-        )
-
         // Perform translation
         print("🔄 [APPLE_TRANSLATE] Translating: \(normalizedSource) -> \(normalizedTarget)")
         let startTime = Date()
 
         do {
-            let response = try await session.translate(request)
+            // Get session and perform translation in a single flow to avoid data race
+            // iOS 18 API: translate() takes a String directly
+            let session = try await getSession(from: normalizedSource, to: normalizedTarget)
+            let response = try await session.translate(text)
             let translatedText = response.targetText
 
             let duration = Date().timeIntervalSince(startTime)
@@ -428,17 +411,10 @@ extension AppleTranslationService: AIServiceProtocol {
             print("❌ [APPLE_TRANSLATE] Translation failed: \(error)")
 
             // Map Translation errors to AIServiceError
-            if let translationError = error as? TranslationSession.Error {
-                switch translationError {
-                case .unsupportedLanguagePair:
-                    throw AIServiceError.unsupportedLanguage(code: "\(normalizedSource) -> \(normalizedTarget)")
-                case .modelNotAvailable:
-                    throw AIServiceError.backendError(message: "Translation model not available. Please download it first.")
-                case .requestCancelled:
-                    throw AIServiceError.backendError(message: "Translation was cancelled")
-                @unknown default:
-                    throw AIServiceError.unknown(translationError)
-                }
+            // Note: iOS 18 TranslationError doesn't expose specific cases publicly,
+            // so we use generic error mapping
+            if let translationError = error as? TranslationError {
+                throw AIServiceError.unknown(translationError)
             }
 
             throw AIServiceError.unknown(error)

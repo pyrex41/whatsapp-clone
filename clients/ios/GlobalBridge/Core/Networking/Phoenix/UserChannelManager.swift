@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import SwiftPhoenixClient
+@preconcurrency import SwiftPhoenixClient
 import Combine
 
 /// User presence manager for tracking online/offline status
@@ -69,7 +69,7 @@ public actor UserChannelManager {
         /// Create from UserPresence model
         public init(from presence: UserPresence) {
             self.userId = presence.userId
-            self.status = presence.status
+            self.status = PresenceStatus(from: presence.status)
             self.lastSeen = presence.lastSeen
             self.isTyping = false
             self.typingInConversation = nil
@@ -240,14 +240,17 @@ public actor UserChannelManager {
 
         // This would typically be sent via Phoenix Presence track
         // For now, we'll use a custom event
-        if let channel = await phoenixManager.channel(for: "user:\(userId)") {
-            channel.push("presence_update", payload: payload)
-                .receive("ok") { _ in
-                    print("✅ [USER_CHANNEL] Presence broadcast: \(status.rawValue)")
-                }
-                .receive("error") { message in
-                    print("❌ [USER_CHANNEL] Failed to broadcast presence: \(message.payload)")
-                }
+        if let sendableChannel = await phoenixManager.sendableChannel(for: "user:\(userId)") {
+            await MainActor.run {
+                let channel = sendableChannel.channel
+                channel.push("presence_update", payload: payload)
+                    .receive("ok") { _ in
+                        print("✅ [USER_CHANNEL] Presence broadcast: \(status.rawValue)")
+                    }
+                    .receive("error") { message in
+                        print("❌ [USER_CHANNEL] Failed to broadcast presence: \(message.payload)")
+                    }
+            }
         }
 
         // Notify handlers

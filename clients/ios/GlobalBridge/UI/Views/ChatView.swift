@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 import Observation
 
 /// Main chat view displaying messages, typing indicators, and presence
@@ -48,7 +49,7 @@ struct ChatView: View {
 
             // Typing indicator
             if let typingText = typingState.typingText(currentUserId: currentUserId) {
-                TypingIndicatorView(typingText: typingText)
+                InlineTypingIndicatorView(typingText: typingText)
                     .padding(.horizontal, 8)
             }
 

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+@preconcurrency import SwiftPhoenixClient
 
 extension PhoenixChannelManager {
 
@@ -21,11 +22,11 @@ extension PhoenixChannelManager {
         currentUserId: String
     ) {
         // Handle incoming message edits
-        channel.on("message_edited") { [weak self] socketMessage in
+        channel.on("message_edited") { [weak self] (message: SwiftPhoenixClient.Message) in
             guard let self else { return }
             Task {
                 await self.handleMessageEdit(
-                    payload: socketMessage.payload,
+                    payload: message.payload,
                     conversationId: conversationId,
                     editManager: editManager
                 )
@@ -33,11 +34,11 @@ extension PhoenixChannelManager {
         }
 
         // Handle incoming message deletions
-        channel.on("message_deleted") { [weak self] socketMessage in
+        channel.on("message_deleted") { [weak self] (message: SwiftPhoenixClient.Message) in
             guard let self else { return }
             Task {
                 await self.handleMessageDeletion(
-                    payload: socketMessage.payload,
+                    payload: message.payload,
                     conversationId: conversationId,
                     deletionHandler: deletionHandler,
                     currentUserId: currentUserId

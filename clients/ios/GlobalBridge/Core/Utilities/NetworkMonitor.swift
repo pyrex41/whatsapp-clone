@@ -59,7 +59,10 @@ final class NetworkMonitor: ObservableObject {
     }
 
     deinit {
-        stopMonitoring()
+        // Avoid calling a main-actor isolated method from deinit.
+        // Cancel the monitor directly to satisfy actor isolation rules.
+        monitor.cancel()
+        print("🔌 [NETWORK_MONITOR] Network monitoring stopped")
     }
 
     // MARK: - Public Methods

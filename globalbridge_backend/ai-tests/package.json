@@ -1,0 +1,17 @@
+{
+  "name": "translation-api-test-runner",
+  "version": "1.0.0",
+  "description": "Visual test runner for Translation API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "testing",
+    "translation",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT"
+}

@@ -8,6 +8,7 @@
 //
 
 import SwiftUI
+import Combine
 
 /// Comprehensive message bubble view with translation support
 struct MessageBubbleView: View {

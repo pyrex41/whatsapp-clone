@@ -36,7 +36,7 @@ public class FeatureFlags {
 
     // MARK: - Feature Names
 
-    enum Feature: String {
+    enum Feature: String, CaseIterable {
         // Core AI Features (from backend API)
         case translationEnabled = "translation_enabled"
         case threadSummarization = "thread_summarization"

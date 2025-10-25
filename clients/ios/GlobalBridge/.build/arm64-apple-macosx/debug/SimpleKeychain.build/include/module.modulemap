@@ -1,0 +1,3 @@
+module SimpleKeychain {
+    header "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/SimpleKeychain.build/include/SimpleKeychain-Swift.h"
+}

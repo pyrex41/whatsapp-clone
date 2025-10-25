@@ -64,13 +64,37 @@ defmodule GlobalbridgeBackend.Auth.Pipeline do
 
   @doc """
   Custom authentication check that accepts either Auth0 or Guardian tokens.
+  In dev mode, bypasses authentication and creates a mock user.
   """
   def ensure_authenticated_custom(conn, _opts) do
-    if Guardian.Plug.current_resource(conn) || conn.assigns[:current_user] do
-      conn
-    else
-      # Try Guardian authentication
-      Guardian.Plug.EnsureAuthenticated.call(conn, [])
+    dev_mode = Application.get_env(:globalbridge_backend, :dev_mode, false)
+
+    cond do
+      # Already authenticated
+      Guardian.Plug.current_resource(conn) || conn.assigns[:current_user] ->
+        conn
+
+      # Dev mode bypass - create mock user
+      dev_mode ->
+        require Logger
+        Logger.info("🔓 [AUTH] Dev mode: bypassing authentication for #{conn.request_path}")
+
+        # Create a mock user for development
+        mock_user = %GlobalbridgeBackend.Schemas.User{
+          id: Ecto.UUID.generate(),
+          username: "dev_user",
+          phone_number: "+15551234567",
+          inserted_at: DateTime.utc_now(),
+          updated_at: DateTime.utc_now()
+        }
+
+        conn
+        |> Plug.Conn.assign(:current_user, mock_user)
+        |> Plug.Conn.assign(:dev_mode, true)
+
+      # Normal authentication required
+      true ->
+        Guardian.Plug.EnsureAuthenticated.call(conn, [])
     end
   end
 

@@ -163,7 +163,7 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             }
         }
 
-        print("✅ [ACTION] threadSelected guard passed, switching to thread: \(thread.title)")
+        print("✅ [ACTION] threadSelected guard passed, switching to thread: \(thread.title ?? "Untitled")")
 
         let previousThreadID = state.threads.selectedThreadID
         state.threads.selectedThreadID = threadID

@@ -10,7 +10,6 @@ import SwiftUI
 
 /// Example view demonstrating feature flags UI components in various contexts
 struct FeatureFlagsExampleView: View {
-    @ObservedObject var featureService = FeatureFlagsService.shared
     @State private var selectedTier: FeatureFlags.UserTier = .free
     @State private var showingFeatureList = false
 

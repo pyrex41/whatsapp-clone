@@ -102,9 +102,10 @@ defmodule GlobalbridgeBackendWeb.Plugs.RateLimitAI do
 
   defp get_rate_limit(endpoint) do
     # Try to get from config first, then environment, then defaults
-    config_limit = Application.get_env(:globalbridge_backend, :ai_rate_limits, %{})[endpoint]
+    ai_rate_limits = Application.get_env(:globalbridge_backend, :ai_rate_limits, %{})
+    config_limit = if is_map(ai_rate_limits), do: Map.get(ai_rate_limits, endpoint), else: nil
     env_limit = get_env_limit(endpoint)
-    default_limit = @default_limits[endpoint]
+    default_limit = Map.get(@default_limits, endpoint)
 
     config_limit || env_limit || default_limit || 10
   end

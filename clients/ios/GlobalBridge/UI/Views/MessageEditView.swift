@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import Combine
 
 /// View for editing a message
 struct MessageEditView: View {
@@ -303,8 +304,8 @@ struct InlineMessageEditView: View {
                     socketURL: URL(string: "ws://localhost:4000/socket")!
                 )
             ),
-            databaseManager: DatabaseManager(),
-            offlineQueueManager: OfflineQueueManager(databaseManager: DatabaseManager())
+            databaseManager: DatabaseManager.shared,
+            offlineQueueManager: OfflineQueueManager(databaseManager: DatabaseManager.shared)
         ),
         currentUserId: "user123",
         onSave: { newContent in

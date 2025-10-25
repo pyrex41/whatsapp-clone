@@ -1,0 +1,3 @@
+module GlobalBridge {
+    header "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/include/GlobalBridge-Swift.h"
+}

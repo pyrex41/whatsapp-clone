@@ -11,6 +11,7 @@
 //
 
 import SwiftUI
+import Combine
 
 /// Comprehensive rate limit status display with quota tracking and upgrade prompts
 @MainActor
@@ -18,8 +19,8 @@ struct RateLimitStatusView: View {
 
     // MARK: - Properties
 
-    @ObservedObject private var rateLimitTracker = RateLimitTracker.shared
-    @ObservedObject private var featureFlags = FeatureFlags.shared
+    private let rateLimitTracker = RateLimitTracker.shared
+    private let featureFlags = FeatureFlags.shared
     @State private var quotaSummaries: [RateLimitTracker.AIFeature: QuotaSummary] = [:]
     @State private var showUpgradeSheet = false
     @State private var selectedFeature: RateLimitTracker.AIFeature?
@@ -62,8 +63,6 @@ struct RateLimitStatusView: View {
         }
         .onReceive(timer) { _ in
             updateTimeUntilReset()
-        }
-        .onChange(of: rateLimitTracker.getQuotaSummary()) { _ in
             updateQuotaSummaries()
         }
         .sheet(isPresented: $showUpgradeSheet) {

@@ -19,6 +19,7 @@
 //
 
 import Foundation
+import Combine
 
 /// Advanced translation service with context awareness and cultural intelligence
 @MainActor
@@ -104,17 +105,29 @@ final class BackendTranslationService {
         }
 
         // Check feature availability
-        guard featureFlags.isFeatureEnabled(.aiTranslation) else {
+        guard featureFlags.hasFeature(.translationEnabled) else {
             throw AIServiceError.featureDisabled(feature: "AI Translation")
         }
 
         // Check rate limits
-        let rateLimitCheck = rateLimiter.canMakeRequest(for: .translation)
+        let rateLimitCheck = rateLimiter.canMakeRequest(for: RateLimitTracker.AIFeature.translation)
         guard rateLimitCheck.isAllowed else {
+            // Extract retry date from rate limit result
+            let retryDate: Date? = {
+                switch rateLimitCheck {
+                case .quotaExceeded(_, _, let resetDate),
+                     .rateLimited(let resetDate, _):
+                    return resetDate
+                case .backoff(let retryAfter, _):
+                    return retryAfter
+                default:
+                    return nil
+                }
+            }()
             throw AIServiceError.rateLimitExceeded(
-                retryAfter: nil,
-                remainingQuota: rateLimitCheck.remaining,
-                tierLimit: rateLimitCheck.tierName
+                retryAfter: retryDate,
+                remainingQuota: nil,
+                tierLimit: nil
             )
         }
 
@@ -175,7 +188,7 @@ final class BackendTranslationService {
         }
 
         // Check feature availability
-        guard featureFlags.isFeatureEnabled(.aiTranslation) else {
+        guard featureFlags.hasFeature(.translationEnabled) else {
             throw AIServiceError.featureDisabled(feature: "AI Translation")
         }
 
@@ -335,8 +348,8 @@ final class BackendTranslationService {
 
         let basicResult = try await aiService.translate(
             text: text,
-            targetLanguage: targetLanguage,
-            sourceLanguage: sourceLanguage
+            sourceLanguage: sourceLanguage,
+            targetLanguage: targetLanguage
         )
 
         // Enhance the basic result with additional features
@@ -345,7 +358,7 @@ final class BackendTranslationService {
             generateCulturalNotes(
                 originalText: text,
                 translatedText: basicResult.translatedText,
-                sourceLanguage: basicResult.detectedLanguage ?? sourceLanguage ?? "auto",
+                sourceLanguage: basicResult.sourceLanguage,
                 targetLanguage: targetLanguage
             ) : nil
 
@@ -354,7 +367,7 @@ final class BackendTranslationService {
         return EnhancedTranslationResult(
             originalText: text,
             translatedText: basicResult.translatedText,
-            sourceLanguage: basicResult.detectedLanguage ?? sourceLanguage ?? "auto",
+            sourceLanguage: basicResult.sourceLanguage,
             targetLanguage: targetLanguage,
             confidence: basicResult.confidence ?? 0.95,
             provider: "backend-ai",
@@ -618,19 +631,6 @@ extension EnhancedTranslationResult {
     }
 }
 
-// MARK: - FeatureFlags Extension
-
-extension FeatureFlags {
-    enum Feature {
-        case aiTranslation
-        case aiSummarization
-        case semanticSearch
-        case taskExtraction
-    }
-
-    func isFeatureEnabled(_ feature: Feature) -> Bool {
-        // In production, this would check actual feature flags
-        // For now, return true for all features
-        return true
-    }
-}
+// MARK: - FeatureFlags Integration
+// Note: Uses FeatureFlags.Feature enum defined in Core/Utilities/FeatureFlags.swift
+// Available features: .translationEnabled, .threadSummarization, .semanticSearch

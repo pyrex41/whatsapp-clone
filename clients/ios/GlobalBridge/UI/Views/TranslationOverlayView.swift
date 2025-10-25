@@ -262,7 +262,6 @@ struct TranslationOverlayView: View {
         onClose: {}
     )
     .padding()
-    .previewLayout(.sizeThatFits)
 }
 
 #Preview("Medium Confidence") {
@@ -280,7 +279,6 @@ struct TranslationOverlayView: View {
         onClose: {}
     )
     .padding()
-    .previewLayout(.sizeThatFits)
 }
 
 #Preview("Dark Mode") {
@@ -297,6 +295,5 @@ struct TranslationOverlayView: View {
         onClose: {}
     )
     .padding()
-    .previewLayout(.sizeThatFits)
     .preferredColorScheme(.dark)
 }

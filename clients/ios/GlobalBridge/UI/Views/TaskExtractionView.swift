@@ -547,7 +547,7 @@ struct TaskRowView: View {
 
                     Spacer()
 
-                    if let taskType = task.taskType {
+                    if task.taskType != nil {
                         Image(systemName: task.taskTypeIcon)
                             .font(.caption)
                             .foregroundColor(.secondary)

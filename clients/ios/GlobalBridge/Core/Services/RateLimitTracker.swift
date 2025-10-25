@@ -91,7 +91,7 @@ final class RateLimitTracker {
         // Check exponential backoff state
         if let backoff = backoffState[feature],
            backoff.isInBackoff {
-            let waitTime = backoff.nextRetryDate.timeIntervalSinceNow
+            _ = backoff.nextRetryDate.timeIntervalSinceNow
             return .backoff(retryAfter: backoff.nextRetryDate, attemptCount: backoff.attemptCount)
         }
 

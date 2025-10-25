@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 /// Displays presence badge for online/offline status
 struct PresenceBadgeView: View {

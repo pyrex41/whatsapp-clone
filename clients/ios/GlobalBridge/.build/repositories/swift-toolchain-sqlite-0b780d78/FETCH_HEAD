@@ -1,0 +1,40 @@
+b45b80b943e88db3cb8ddea798fa3fa9912375ff	not-for-merge	branch 'main' of https://github.com/swiftlang/swift-toolchain-sqlite
+6b173dc26a2557baba27babc8b72ae142389a245	not-for-merge	branch 'release/5.10' of https://github.com/swiftlang/swift-toolchain-sqlite
+818ab5ca3ddc96d6a4f553eba8b88427c200cda3	not-for-merge	branch 'release/6.0' of https://github.com/swiftlang/swift-toolchain-sqlite
+bb8321a7eea3830af401a1501c7c8cc27ded6793	not-for-merge	branch 'release/6.1' of https://github.com/swiftlang/swift-toolchain-sqlite
+287cf325db2ccaa1fecf54ba9850d1545f8b7776	not-for-merge	branch 'release/6.2' of https://github.com/swiftlang/swift-toolchain-sqlite
+9cff1f87bf66f6642ba510d42da7a3bb10006bba	not-for-merge	'refs/pull/1/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+14db00d07b70d0fd43b322748ba4a8f08b2a06a0	not-for-merge	'refs/pull/10/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+f3ae005368027c3c05cedb6cff278e839a16b28a	not-for-merge	'refs/pull/11/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+6d0d395c601c65e26d1633141e5c077eb94a19e1	not-for-merge	'refs/pull/12/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+0dc0c05cb034995a1d67e97f4f9ed126a749f015	not-for-merge	'refs/pull/13/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+c0181e0e1cdac231e3575dbbd20244b0835d6de2	not-for-merge	'refs/pull/14/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+44eae998c41d9d8d01a7776d5e7421ec28062e74	not-for-merge	'refs/pull/15/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+df6a95aacce7930eba1b311a57b02a920ce90f23	not-for-merge	'refs/pull/16/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+6b59084f6d3c663399eb4aa053ed3a3b1abd7bd2	not-for-merge	'refs/pull/17/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+421f1602d012e6610da409fc1a865a6eedcc2f19	not-for-merge	'refs/pull/18/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+a7e399007bf6df131e0c1ee94f3fef50037b4657	not-for-merge	'refs/pull/18/merge' of https://github.com/swiftlang/swift-toolchain-sqlite
+a25f429a3192bf6a888025da3604d8b834e33c63	not-for-merge	'refs/pull/19/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+d880346159190aaef8864f134e6fa6748d4a0fdf	not-for-merge	'refs/pull/2/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+b1c5f94000820f51b085d4f131e1c20956f2200b	not-for-merge	'refs/pull/20/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+091ba465b035aa5f986950b1b95cd2acb75aaa3b	not-for-merge	'refs/pull/21/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+55e900c8d2801bd6b27b96edbc2a644ced83d00a	not-for-merge	'refs/pull/22/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+a0c68304060a0005f44d55e5ae629ab6498efa7d	not-for-merge	'refs/pull/22/merge' of https://github.com/swiftlang/swift-toolchain-sqlite
+1997c4ce6ea7b3b6c566845657bf05196fcf7b90	not-for-merge	'refs/pull/23/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+daa58b698f233f72dbfa882638b9df67124b0085	not-for-merge	'refs/pull/23/merge' of https://github.com/swiftlang/swift-toolchain-sqlite
+e944002ff7cc6b93b814d3d0614082583621e2bb	not-for-merge	'refs/pull/4/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+52215401db41de5fdd3c6fdd932f36bf57194e2e	not-for-merge	'refs/pull/5/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+f09fd3fcadae1e8a33fae6268752be8e0f88edfc	not-for-merge	'refs/pull/6/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+6442d9364e158ac7c0fbdb396592fea947bd0360	not-for-merge	'refs/pull/7/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+fe293464a9ef2121590d557b58f713df563f3402	not-for-merge	'refs/pull/8/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+bb8321a7eea3830af401a1501c7c8cc27ded6793	not-for-merge	'refs/pull/9/head' of https://github.com/swiftlang/swift-toolchain-sqlite
+1282c539e1b4c6105eaedcc7383e8cc7336f988d	not-for-merge	tag '0.1' of https://github.com/swiftlang/swift-toolchain-sqlite
+2006ce7062b7ebdd9ed03d959fde71dd7667b58f	not-for-merge	tag '0.1.1' of https://github.com/swiftlang/swift-toolchain-sqlite
+3337c59e4868eaa79487b25b84ce909de8a3711c	not-for-merge	tag '1.0.0' of https://github.com/swiftlang/swift-toolchain-sqlite
+10b12172858b5f53cc87c74991e81b56d5e558c9	not-for-merge	tag '1.0.1' of https://github.com/swiftlang/swift-toolchain-sqlite
+c27c4111c277c65dbb01cb8ff67210843de77ebe	not-for-merge	tag '1.0.2' of https://github.com/swiftlang/swift-toolchain-sqlite
+7b092d9f3eb236ec890035d7e43a971fa6fcd9ad	not-for-merge	tag '1.0.3' of https://github.com/swiftlang/swift-toolchain-sqlite
+eaa5da4b9ee624c20e16b6460b71739c51676582	not-for-merge	tag '1.0.4' of https://github.com/swiftlang/swift-toolchain-sqlite
+bbb92d1ff8d3df687ddbb01d99927454c286c392	not-for-merge	tag '1.0.5' of https://github.com/swiftlang/swift-toolchain-sqlite
+72bc7415809587d2362e9a87febbec40eef85098	not-for-merge	tag '1.0.6' of https://github.com/swiftlang/swift-toolchain-sqlite
+9133a17011d7f74cef9a310723ed232b6db66921	not-for-merge	tag '1.0.7' of https://github.com/swiftlang/swift-toolchain-sqlite

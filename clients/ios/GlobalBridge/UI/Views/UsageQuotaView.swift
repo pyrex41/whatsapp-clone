@@ -300,13 +300,13 @@ struct UsageQuotaView: View {
     }
 
     private var usagePercentageText: String {
-        guard let limit = limit else { return "" }
+        guard limit != nil else { return "" }
         let percentage = Int(usagePercentage * 100)
         return "\(percentage)% used"
     }
 
     private var isApproachingLimit: Bool {
-        guard let limit = limit else { return false }
+        guard limit != nil else { return false }
         return usagePercentage >= 0.8
     }
 
