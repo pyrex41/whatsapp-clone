@@ -402,6 +402,8 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
       embedding BLOB,
       embedding_model TEXT DEFAULT 'text-embedding-3-large',
       embedding_generated_at INTEGER,
+      -- Language detection for translation
+      detected_language TEXT,
       inserted_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -410,6 +412,7 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
     CREATE INDEX IF NOT EXISTS messages_sender_id_index ON messages(sender_id);
     CREATE INDEX IF NOT EXISTS messages_inserted_at_index ON messages(inserted_at);
     CREATE INDEX IF NOT EXISTS messages_content_type_index ON messages(content_type);
+    CREATE INDEX IF NOT EXISTS messages_detected_language_index ON messages(detected_language);
     """
 
     Ecto.Adapters.SQL.query!(repo, sql)

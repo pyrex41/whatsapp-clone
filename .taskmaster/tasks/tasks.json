@@ -8089,7 +8089,62 @@
         "priority": "high",
         "dependencies": [],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create SmartReplySuggestion.swift file",
+            "description": "Initialize a new Swift file named SmartReplySuggestion.swift in the appropriate directory for the model definitions.",
+            "dependencies": [],
+            "details": "Create an empty Swift file in the Models folder or equivalent, ensuring it follows the project's file naming and organization conventions.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 2,
+            "title": "Define struct properties",
+            "description": "Add the required properties to the SmartReplySuggestion struct: id (UUID), type (String), content (String), confidence (Double), position (Int), context (String), and timestamp (Date).",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement the struct with all specified properties, using appropriate Swift types as per the PRD. Ensure properties are properly declared with correct access levels.",
+            "status": "pending",
+            "testStrategy": "Unit test property initialization and types."
+          },
+          {
+            "id": 3,
+            "title": "Add Codable conformance",
+            "description": "Make the SmartReplySuggestion struct conform to the Codable protocol for JSON serialization and deserialization.",
+            "dependencies": [
+              2
+            ],
+            "details": "Implement encoding and decoding by conforming to Codable, allowing the struct to be easily converted to and from JSON format for data persistence or API interactions.",
+            "status": "pending",
+            "testStrategy": "Unit test serialization/deserialization with JSONEncoder/Decoder."
+          },
+          {
+            "id": 4,
+            "title": "Implement isProactive computed property",
+            "description": "Add a computed property isProactive that determines if the suggestion is proactive based on the type or other criteria.",
+            "dependencies": [
+              2
+            ],
+            "details": "Define the isProactive property as a Bool computed property, likely checking if the type indicates a proactive suggestion, ensuring it updates dynamically based on the struct's state.",
+            "status": "pending",
+            "testStrategy": "Unit test the computed property logic with various type values."
+          },
+          {
+            "id": 5,
+            "title": "Validate PRD compliance",
+            "description": "Review and ensure the implemented struct matches the PRD specifications, including all properties, types, and additional requirements.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Cross-check the code against the PRD document to confirm accuracy in property names, types, and any other structural requirements, making adjustments as needed for full compliance.",
+            "status": "pending",
+            "testStrategy": "Integration test to verify the model works correctly in the broader application context."
+          }
+        ]
       },
       {
         "id": 2,
@@ -8100,7 +8155,63 @@
         "priority": "high",
         "dependencies": [],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define UserStyleProfile struct with basic properties",
+            "description": "Create the UserStyleProfile struct in UserStyleProfile.swift with properties for userId (UUID), formalityLevel (Double), emojiFrequency (Double), avgSentenceLength (Double), messagesAnalyzed (Int), confidenceScore (Double), and lastUpdatedAt (Date).",
+            "dependencies": [],
+            "details": "Implement the struct with the specified properties, ensuring userId is UUID, metrics are Double, messagesAnalyzed is Int, and lastUpdatedAt is Date. This forms the foundation of the model.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 2,
+            "title": "Add Codable conformance to UserStyleProfile",
+            "description": "Make the UserStyleProfile struct conform to the Codable protocol for JSON serialization and deserialization.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement Codable by ensuring all properties are encodable and decodable. Use standard JSONEncoder and JSONDecoder for testing basic serialization.",
+            "status": "pending",
+            "testStrategy": "Unit test serialization and deserialization using JSONEncoder/Decoder to verify the struct can be encoded to and decoded from JSON correctly."
+          },
+          {
+            "id": 3,
+            "title": "Implement isHighConfidence computed property",
+            "description": "Add a computed property isHighConfidence to UserStyleProfile that returns true if confidenceScore is greater than or equal to 0.8.",
+            "dependencies": [
+              1
+            ],
+            "details": "Define isHighConfidence as a computed property based on the confidenceScore threshold. Ensure it is read-only and calculates dynamically.",
+            "status": "pending",
+            "testStrategy": "Unit test the computed property with various confidenceScore values to verify it returns true for scores >= 0.8 and false otherwise."
+          },
+          {
+            "id": 4,
+            "title": "Add custom initializer for UserStyleProfile",
+            "description": "Implement a custom initializer for UserStyleProfile to set initial values, defaulting lastUpdatedAt to current date if not provided.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create an init method that takes all properties except lastUpdatedAt, which defaults to Date(). This allows easy creation of instances with current timestamp.",
+            "status": "pending",
+            "testStrategy": "Unit test the initializer with different inputs, ensuring lastUpdatedAt defaults correctly and all properties are set as expected."
+          },
+          {
+            "id": 5,
+            "title": "Create unit tests for UserStyleProfile model",
+            "description": "Write unit tests covering model initialization, computed properties, and confidence score thresholds.",
+            "dependencies": [
+              2,
+              3,
+              4
+            ],
+            "details": "Develop tests in a test file for UserStyleProfile, including tests for init, Codable, isHighConfidence, and edge cases like boundary confidence scores.",
+            "status": "pending",
+            "testStrategy": "Run unit tests to validate all functionalities, ensuring coverage for initialization, serialization, computed properties, and threshold logic."
+          }
+        ]
       },
       {
         "id": 3,
@@ -8111,7 +8222,61 @@
         "priority": "high",
         "dependencies": [],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create TranslationPreferences.swift file",
+            "description": "Create a new Swift file named TranslationPreferences.swift in the project's Models directory to house the TranslationPreferences struct.",
+            "dependencies": [],
+            "details": "Ensure the file is created in the correct location within the project structure, following the naming conventions and folder organization used in the codebase.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 2,
+            "title": "Define basic properties in TranslationPreferences struct",
+            "description": "Define the TranslationPreferences struct with initial properties: preferredLanguage as String and autoTranslateEnabled as Bool.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add the struct declaration and these two properties inside the file. Use appropriate access levels (e.g., public or internal) based on the project's needs.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 3,
+            "title": "Add override dictionaries to TranslationPreferences",
+            "description": "Add contactOverrides and threadOverrides properties as dictionaries, using [String: Bool] for override mappings.",
+            "dependencies": [
+              2
+            ],
+            "details": "Extend the struct to include these dictionary properties, allowing for custom translation settings per contact or thread, with String keys representing identifiers and Bool values for enable/disable states.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 4,
+            "title": "Implement Codable conformance for TranslationPreferences",
+            "description": "Make the TranslationPreferences struct conform to the Codable protocol to enable JSON encoding and decoding.",
+            "dependencies": [
+              3
+            ],
+            "details": "Add the Codable conformance to the struct declaration. Ensure all properties are compatible with Codable; no additional coding keys are needed if property names match JSON keys.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 5,
+            "title": "Add static default property to TranslationPreferences",
+            "description": "Add a static default property to the TranslationPreferences struct, providing sensible default values for all properties.",
+            "dependencies": [
+              4
+            ],
+            "details": "Define a static let default = TranslationPreferences(preferredLanguage: \"en\", autoTranslateEnabled: true, contactOverrides: [:], threadOverrides: [:]) or similar, ensuring the struct can be initialized with defaults for easy use.",
+            "status": "pending",
+            "testStrategy": "Unit test the default initialization to verify that the static property creates an instance with expected default values, and test serialization/deserialization of the default instance."
+          }
+        ]
       },
       {
         "id": 4,
@@ -8122,7 +8287,61 @@
         "priority": "medium",
         "dependencies": [],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create SuggestionFeedback.swift file",
+            "description": "Create a new Swift file named SuggestionFeedback.swift in the appropriate directory for model definitions.",
+            "dependencies": [],
+            "details": "Use Xcode or your preferred editor to create a new Swift file. Ensure it is placed in the Models folder or equivalent in the project structure. This file will contain the SuggestionFeedback struct definition.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 2,
+            "title": "Define SuggestionFeedback struct with basic properties",
+            "description": "Define the SuggestionFeedback struct with suggestionId as UUID and accepted as Bool.",
+            "dependencies": [
+              1
+            ],
+            "details": "Inside SuggestionFeedback.swift, declare a struct named SuggestionFeedback. Add two properties: suggestionId of type UUID and accepted of type Bool. Make sure the struct is properly formatted with Swift syntax.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 3,
+            "title": "Add optional string properties",
+            "description": "Add modifiedContent and rejectionReason as optional String properties to the struct.",
+            "dependencies": [
+              2
+            ],
+            "details": "Extend the SuggestionFeedback struct by adding modifiedContent: String? and rejectionReason: String?. These are optional to handle cases where feedback might not include modifications or reasons. Ensure they are declared as stored properties.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 4,
+            "title": "Add timeToResponseMs and timestamp properties",
+            "description": "Add timeToResponseMs as optional Int and timestamp as Date to the struct.",
+            "dependencies": [
+              3
+            ],
+            "details": "Add timeToResponseMs: Int? for measuring response time in milliseconds, and timestamp: Date for recording when the feedback was created. Use Swift's Date type for timestamp to leverage built-in date handling.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 5,
+            "title": "Implement Codable conformance and test serialization",
+            "description": "Make SuggestionFeedback conform to Codable and write unit tests for serialization.",
+            "dependencies": [
+              4
+            ],
+            "details": "Add Codable to the struct declaration to enable JSON encoding/decoding. Create unit tests in a test file to verify that instances can be encoded to JSON and decoded back, especially handling optional fields correctly.",
+            "status": "pending",
+            "testStrategy": "Unit test optional fields and serialization using JSONEncoder and JSONDecoder to ensure data integrity."
+          }
+        ]
       },
       {
         "id": 5,
@@ -8138,7 +8357,61 @@
           4
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add suggestion dictionaries to AppState",
+            "description": "Incorporate dictionaries for storing smart reply suggestions in AppState.",
+            "dependencies": [],
+            "details": "Update AppState.swift to include a dictionary property for suggestions, keyed by thread ID, to hold arrays of suggestion strings or objects.",
+            "status": "pending",
+            "testStrategy": "Unit test initialization of the suggestions dictionary and verify it can store and retrieve suggestion data."
+          },
+          {
+            "id": 2,
+            "title": "Add loading and error states to AppState",
+            "description": "Include dictionaries for loading states and errors related to AI features in AppState.",
+            "dependencies": [
+              1
+            ],
+            "details": "Extend AppState.swift with dictionaries for loading (e.g., keyed by operation ID) and errors (e.g., keyed by thread or operation), ensuring they integrate with existing state structure.",
+            "status": "pending",
+            "testStrategy": "Unit test state updates for loading flags and error handling, including equality checks."
+          },
+          {
+            "id": 3,
+            "title": "Integrate UserStyleProfile into AppState",
+            "description": "Add an optional UserStyleProfile property to AppState for user style preferences.",
+            "dependencies": [
+              2
+            ],
+            "details": "Modify AppState.swift to include an optional UserStyleProfile instance, ensuring it conforms to the existing state model and can be updated via actions.",
+            "status": "pending",
+            "testStrategy": "Integration test with reducer to verify profile updates and state persistence."
+          },
+          {
+            "id": 4,
+            "title": "Add TranslationPreferences and messageTranslations to AppState",
+            "description": "Incorporate TranslationPreferences and a dictionary for message translations in AppState.",
+            "dependencies": [
+              3
+            ],
+            "details": "Update AppState.swift to add TranslationPreferences struct and a messageTranslations dictionary, keyed by message ID, for storing translated text.",
+            "status": "pending",
+            "testStrategy": "Unit test preference settings and translation storage, ensuring compatibility with existing state."
+          },
+          {
+            "id": 5,
+            "title": "Add monitoring properties to AppState",
+            "description": "Include monitoredThreads, aiInsightsVisible, and threadId properties in AppState.",
+            "dependencies": [
+              4
+            ],
+            "details": "Finalize AppState.swift by adding an array or set for monitoredThreads, a boolean for aiInsightsVisible, and a string for threadId, ensuring all new properties work together.",
+            "status": "pending",
+            "testStrategy": "Unit test state initialization with all new properties and integration test with reducer for monitoring features."
+          }
+        ]
       },
       {
         "id": 6,
@@ -8151,7 +8424,61 @@
           5
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add Smart Replies Actions to AppAction Enum",
+            "description": "Add new cases to the AppAction enum specifically for smart replies functionality, including fetching and receiving suggestions.",
+            "dependencies": [],
+            "details": "Update AppAction.swift to include cases such as fetchSmartReplies and smartRepliesReceived, ensuring they align with the PRD specifications for smart reply handling.",
+            "status": "pending",
+            "testStrategy": "Unit test the creation of these actions and their pattern matching in reducers."
+          },
+          {
+            "id": 2,
+            "title": "Add Monitoring Actions to AppAction Enum",
+            "description": "Add new cases to the AppAction enum for monitoring features, such as starting and stopping thread monitoring.",
+            "dependencies": [
+              1
+            ],
+            "details": "Update AppAction.swift to include cases related to monitoring, like startMonitoring and stopMonitoring, matching the PRD requirements for per-thread monitoring toggles.",
+            "status": "pending",
+            "testStrategy": "Unit test action initialization and ensure proper dispatching in state management."
+          },
+          {
+            "id": 3,
+            "title": "Add Translation Actions to AppAction Enum",
+            "description": "Add new cases to the AppAction enum for message translation features, including triggering translations.",
+            "dependencies": [
+              2
+            ],
+            "details": "Update AppAction.swift to include cases such as translateMessage, ensuring they support translation preferences and message handling as per PRD.",
+            "status": "pending",
+            "testStrategy": "Unit test action creation and verify integration with translation state updates."
+          },
+          {
+            "id": 4,
+            "title": "Add Style Profile Actions to AppAction Enum",
+            "description": "Add new cases to the AppAction enum for style profile updates and related AI suggestions.",
+            "dependencies": [
+              3
+            ],
+            "details": "Update AppAction.swift to include cases like styleProfileUpdated and aiSuggestionBroadcast, aligning with PRD for user style learning and suggestions.",
+            "status": "pending",
+            "testStrategy": "Unit test pattern matching and state reducer interactions for style profile actions."
+          },
+          {
+            "id": 5,
+            "title": "Add Insights Actions to AppAction Enum",
+            "description": "Add new cases to the AppAction enum for AI insights, such as visibility toggles and thread-specific insights.",
+            "dependencies": [
+              4
+            ],
+            "details": "Update AppAction.swift to include cases related to insights, like toggleInsightsVisible, ensuring they match PRD specifications for aiInsightsVisible and threadId handling.",
+            "status": "pending",
+            "testStrategy": "Unit test action dispatching and integration with AppState for insights management."
+          }
+        ]
       },
       {
         "id": 7,
@@ -8167,7 +8494,26 @@
           6
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement fetchSuggestions method with caching",
+            "description": "Create the async fetchSuggestions method that calls POST /api/v1/ai/suggest_replies and includes caching with 60s TTL.",
+            "dependencies": [],
+            "details": "Implement the fetchSuggestions async method in SmartReplyService.swift. It should make a POST request to /api/v1/ai/suggest_replies, handle the response, and cache results for 60 seconds to avoid repeated calls. Ensure proper error handling using AIServiceError.",
+            "status": "pending",
+            "testStrategy": "Unit test the API call with mock responses and verify caching behavior with TTL."
+          },
+          {
+            "id": 2,
+            "title": "Implement recordFeedback method and error handling",
+            "description": "Add the recordFeedback method to call POST /api/v1/ai/record_feedback and integrate comprehensive error handling.",
+            "dependencies": [],
+            "details": "Implement the recordFeedback method in SmartReplyService.swift to send feedback via POST /api/v1/ai/record_feedback. Ensure all methods in the service handle errors appropriately using AIServiceError, including network failures and invalid responses.",
+            "status": "pending",
+            "testStrategy": "Unit test feedback recording with mocks and integration test error handling scenarios."
+          }
+        ]
       },
       {
         "id": 8,
@@ -8182,7 +8528,17 @@
         "priority": "medium",
         "details": "Implement startMonitoring and stopMonitoring methods. Handle {:ai_suggestions, suggestions} events. Maintain sliding window of last 20 messages. Dispatch to UI via actions.",
         "testStrategy": "Unit test event handling. Integration test with PhoenixChannelManager.",
-        "subtasks": null
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Event Handling and Sliding Window Logic",
+            "description": "Develop the core logic for handling Phoenix events, specifically the {:ai_suggestions, suggestions} events, and maintaining a sliding window of the last 20 messages in ConversationMonitorService.swift.",
+            "dependencies": [],
+            "details": "Implement methods to subscribe to Phoenix events using PhoenixChannelManager. Handle incoming {:ai_suggestions, suggestions} events by updating the sliding window of messages (limit to 20). Ensure the window slides correctly by adding new messages and removing old ones. Dispatch actions to the UI for real-time updates. Integrate with startMonitoring and stopMonitoring methods to control event subscription.",
+            "status": "pending",
+            "testStrategy": "Unit test event handling logic and sliding window maintenance with mock events. Integration test with PhoenixChannelManager to verify event subscription and dispatching."
+          }
+        ]
       },
       {
         "id": 9,
@@ -8197,7 +8553,28 @@
         "priority": "low",
         "details": "Implement translateMessage and batchTranslateSuggestions async methods calling POST /api/v1/ai/translate. Include caching with 3600s TTL. Handle preferences and auto-detect logic. Note: This is Phase 4, not needed for MVP smart reply feature.",
         "testStrategy": "Unit test translation logic and caching. Integration test with backend.",
-        "subtasks": null
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Translation Methods",
+            "description": "Develop the translateMessage and batchTranslateSuggestions async methods in SmartTranslationService.swift to handle message translation via POST /api/v1/ai/translate API calls, including caching with 3600s TTL.",
+            "dependencies": [],
+            "details": "Create async functions for translateMessage (single message translation) and batchTranslateSuggestions (batch translation). Integrate API calls to POST /api/v1/ai/translate, implement caching mechanism with 3600 seconds TTL to avoid redundant requests, and ensure proper error handling for network issues.",
+            "status": "pending",
+            "testStrategy": "Unit test the translation methods with mock API responses and verify caching behavior. Integration test API calls and caching persistence."
+          },
+          {
+            "id": 2,
+            "title": "Handle Preferences and Auto-Detect Logic",
+            "description": "Implement preference management and auto-detect logic in SmartTranslationService.swift for user settings and automatic language detection during translations.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add logic to manage user preferences for translation settings, such as preferred languages or auto-detect options. Integrate auto-detect functionality to identify source language before translation, ensuring it works seamlessly with the translation methods. Store preferences locally or via user settings.",
+            "status": "pending",
+            "testStrategy": "Unit test preference storage and retrieval, as well as auto-detect logic with various input scenarios. Integration test with translation methods to ensure preferences affect translations correctly."
+          }
+        ]
       },
       {
         "id": 10,
@@ -8244,7 +8621,17 @@
           8
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement AI Subscription and Style Learning Methods",
+            "description": "Add subscribeToAISuggestions method to join the thread channel and listen for ai_suggestions events, and implement triggerStyleLearning as a fire-and-forget call on message send in PhoenixChannelManager+AI.swift.",
+            "dependencies": [],
+            "details": "For subscribeToAISuggestions, use PhoenixChannel to join the thread channel with appropriate parameters and set up event listeners for 'ai_suggestions' events, handling incoming suggestions by dispatching actions. For triggerStyleLearning, implement it as a fire-and-forget method that sends a message to the channel without waiting for a response, ensuring it integrates seamlessly with message sending logic.",
+            "status": "pending",
+            "testStrategy": "Unit test the channel joining and event listening for subscribeToAISuggestions, and verify fire-and-forget behavior for triggerStyleLearning using mocks for PhoenixChannel."
+          }
+        ]
       },
       {
         "id": 12,
@@ -8259,7 +8646,28 @@
           10
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Suggestion Chips Rendering with Loading Shimmer",
+            "description": "Create the UI components in SmartReplyComposerView to render 1-3 suggestion chips using SwiftUI, including a loading shimmer effect while suggestions are being fetched.",
+            "dependencies": [],
+            "details": "Use SwiftUI's HStack or VStack to position chips horizontally above the text field. Implement a shimmer animation using SwiftUI's built-in effects or a custom modifier for the loading state. Ensure chips are styled according to PRD design with appropriate padding, colors, and fonts. Handle dynamic sizing based on content length.",
+            "status": "pending",
+            "testStrategy": "UI tests to verify chip rendering, shimmer animation, and positioning above the composer."
+          },
+          {
+            "id": 2,
+            "title": "Add Chip Interaction Handling for Tap-to-Insert and Translation Toggle",
+            "description": "Implement tap gestures on suggestion chips to insert content into the message composer and add a translation toggle button for each chip.",
+            "dependencies": [
+              1
+            ],
+            "details": "Attach onTapGesture to each chip to append the suggestion content to the text field's binding. Include a toggle button per chip for translation, updating the view state accordingly. Ensure accessibility with proper labels and VoiceOver support. Record feedback asynchronously upon insertion as per Task 14 dependencies.",
+            "status": "pending",
+            "testStrategy": "UI tests for tap-to-insert functionality and toggle interactions. Integration tests for feedback recording and accessibility checks with VoiceOver."
+          }
+        ]
       },
       {
         "id": 13,
@@ -8273,7 +8681,17 @@
           12
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Gesture Handling and Visual Indicators for SuggestionChipView",
+            "description": "Add swipe-to-dismiss gesture, haptic feedback on tap, and visual indicators including confidence indicator and proactive distinction (icon/color) to SuggestionChipView.",
+            "dependencies": [],
+            "details": "In SuggestionChipView.swift, integrate SwiftUI gestures for swipe-to-dismiss using DragGesture. Implement haptic feedback using UINotificationFeedbackGenerator on tap. Add visual states for confidence indicator (e.g., opacity or color based on confidence score) and proactive distinction (e.g., specific icon or color scheme). Ensure animations are smooth and states update reactively.",
+            "status": "pending",
+            "testStrategy": "UI tests for gesture recognition (swipe and tap), haptic feedback simulation, and visual state changes using snapshot testing or accessibility checks."
+          }
+        ]
       },
       {
         "id": 14,
@@ -8288,7 +8706,64 @@
           7
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add Tap Gesture Recognizer to Suggestion Chips",
+            "description": "Implement a tap gesture recognizer for the suggestion chips in SmartReplyComposerView to detect user taps.",
+            "dependencies": [],
+            "details": "In SmartReplyComposerView, add a UITapGestureRecognizer to each suggestion chip view. Ensure the recognizer is properly configured to handle single taps and is not conflicting with other gestures. This will trigger the insertion logic when a chip is tapped.",
+            "status": "pending",
+            "testStrategy": "Unit test that the gesture recognizer is added and responds to taps without interfering with other UI elements."
+          },
+          {
+            "id": 2,
+            "title": "Implement Text Insertion Method",
+            "description": "Create a method to append the tapped suggestion's content to the message composer text field.",
+            "dependencies": [
+              1
+            ],
+            "details": "Develop a function in SmartReplyComposerView that takes the suggestion text as input and appends it to the existing text in the composer's text field. Handle cases where the text field is empty or already has content, ensuring proper spacing and cursor positioning after insertion.",
+            "status": "pending",
+            "testStrategy": "UI test to verify that tapping a chip correctly inserts the suggestion text into the text field, maintaining proper formatting."
+          },
+          {
+            "id": 3,
+            "title": "Record Acceptance Feedback Asynchronously",
+            "description": "Asynchronously record the acceptance of the tapped suggestion using SmartReplyService.",
+            "dependencies": [
+              2
+            ],
+            "details": "After inserting the text, call SmartReplyService.recordFeedback asynchronously with the suggestion ID and acceptance type. Ensure this does not block the UI thread and handle any potential errors gracefully, logging them if necessary.",
+            "status": "pending",
+            "testStrategy": "Integration test to confirm that feedback is recorded via the API call when a suggestion is accepted, using mock services."
+          },
+          {
+            "id": 4,
+            "title": "Update UI State After Insertion",
+            "description": "Update the UI state in SmartReplyComposerView after a suggestion is inserted, such as hiding or refreshing suggestions.",
+            "dependencies": [
+              2
+            ],
+            "details": "After text insertion, update the view to reflect the change, e.g., dismiss the suggestion chips or refresh the list if needed. Ensure the composer remains focused and ready for further input, maintaining a smooth user experience.",
+            "status": "pending",
+            "testStrategy": "UI test to check that the suggestion chips are properly updated or hidden after insertion, and the composer behaves correctly."
+          },
+          {
+            "id": 5,
+            "title": "Handle Edge Cases and Validation",
+            "description": "Add validation and handling for edge cases like invalid suggestions, multiple rapid taps, or network issues during feedback recording.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Implement checks to ensure the suggestion is valid before insertion. Prevent multiple insertions from rapid taps by debouncing. Provide fallback behavior if feedback recording fails, and log errors for debugging purposes.",
+            "status": "pending",
+            "testStrategy": "Unit and integration tests for edge cases, such as testing debounce logic, invalid suggestion handling, and error scenarios in feedback recording."
+          }
+        ]
       },
       {
         "id": 15,
@@ -8302,7 +8777,61 @@
           7
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add Shimmer Animation Component",
+            "description": "Create a reusable shimmer animation component for loading states in the UI.",
+            "dependencies": [],
+            "details": "Implement a ShimmerView component using SwiftUI or UIKit that displays a skeleton loading animation. Ensure it can be customized for different sizes and shapes to fit the SmartReplyComposerView layout. This component will be used to show loading while fetching smart reply suggestions.",
+            "status": "pending",
+            "testStrategy": "Unit test the shimmer animation rendering and performance on different devices."
+          },
+          {
+            "id": 2,
+            "title": "Integrate Shimmer into SmartReplyComposerView",
+            "description": "Add the shimmer animation to SmartReplyComposerView to display during fetching operations.",
+            "dependencies": [
+              1
+            ],
+            "details": "Modify SmartReplyComposerView to conditionally show the ShimmerView when the loading state is active. Bind it to the AppState's loading properties for smart reply suggestions. Ensure the shimmer overlays or replaces the content appropriately without disrupting the UI flow.",
+            "status": "pending",
+            "testStrategy": "UI test to verify shimmer appears during loading and disappears when data loads."
+          },
+          {
+            "id": 3,
+            "title": "Implement Error Handling and Toast Display",
+            "description": "Add error handling logic to display error toasts on failure in SmartReplyComposerView.",
+            "dependencies": [
+              2
+            ],
+            "details": "Integrate error state from AppState into SmartReplyComposerView. Use a toast notification library or custom implementation to show error messages when fetching suggestions fails. Handle different error types (e.g., network, API) with appropriate user-friendly messages.",
+            "status": "pending",
+            "testStrategy": "UI test error toast display and message accuracy for various error scenarios."
+          },
+          {
+            "id": 4,
+            "title": "Add Retry Logic for Failed Requests",
+            "description": "Implement retry functionality for failed smart reply suggestion fetches.",
+            "dependencies": [
+              3
+            ],
+            "details": "Add a retry button or automatic retry mechanism in SmartReplyComposerView. Upon error, provide an option to retry the fetch operation. Integrate with SmartReplyService to re-attempt the API call. Include exponential backoff or user-configurable retry limits if applicable.",
+            "status": "pending",
+            "testStrategy": "Integration test retry logic with mocked failures to ensure retries work and update UI states correctly."
+          },
+          {
+            "id": 5,
+            "title": "Update View State Management",
+            "description": "Ensure SmartReplyComposerView properly manages loading, error, and retry states.",
+            "dependencies": [
+              4
+            ],
+            "details": "Refactor SmartReplyComposerView to handle state transitions between loading, error, and success. Use Combine or SwiftUI state to react to AppState changes. Ensure that shimmer, error toasts, and retry options are shown/hidden based on the current state, maintaining a smooth user experience.",
+            "status": "pending",
+            "testStrategy": "End-to-end test state transitions in the view, verifying all UI elements respond correctly to state changes."
+          }
+        ]
       },
       {
         "id": 16,
@@ -8317,7 +8846,17 @@
           14
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Feedback Recording for Acceptance, Rejection, and Modification",
+            "description": "Add logic to handle recording of feedback for accepted, rejected, and modified suggestions using SmartReplyService.recordFeedback. This includes on-tap acceptance, on-swipe rejection with optional reason, and on-modify recording of modified content.",
+            "dependencies": [],
+            "details": "Integrate feedback recording into the UI interactions: for tap events, call SmartReplyService.recordFeedback with accepted status; for swipe events, record rejected with optional reason; for modify events, compare and record modified content. Ensure proper error handling and integration with existing services.",
+            "status": "pending",
+            "testStrategy": "Unit test each feedback type recording logic and integration test with SmartReplyService API calls."
+          }
+        ]
       },
       {
         "id": 17,
@@ -8331,7 +8870,62 @@
           2
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Locate Message Send Handler",
+            "description": "Identify the exact location in the codebase where message sending is handled, such as the function or method responsible for sending messages.",
+            "dependencies": [],
+            "details": "Search the project for the message send handler, likely in a messaging or chat module. Ensure it's the correct handler that processes outgoing messages before they are sent.",
+            "status": "pending",
+            "testStrategy": "Verify the handler location through code review or logging to confirm it's the right entry point for message sends."
+          },
+          {
+            "id": 2,
+            "title": "Import PhoenixChannelManager",
+            "description": "Ensure PhoenixChannelManager is imported or accessible in the message send handler file.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add the necessary import statement for PhoenixChannelManager at the top of the file containing the message send handler. If it's already imported, confirm its availability.",
+            "status": "pending",
+            "testStrategy": "Compile the code to ensure no import errors and that PhoenixChannelManager is accessible in the scope."
+          },
+          {
+            "id": 3,
+            "title": "Extract Required Parameters",
+            "description": "Extract userId, message, and threadId from the message send context to pass to triggerStyleLearning.",
+            "dependencies": [
+              1
+            ],
+            "details": "Within the message send handler, retrieve the userId (likely from user session), message content, and threadId (from the current thread or conversation). Prepare these as parameters for the method call.",
+            "status": "pending",
+            "testStrategy": "Unit test the parameter extraction logic with mock data to ensure correct values are obtained."
+          },
+          {
+            "id": 4,
+            "title": "Integrate triggerStyleLearning Call",
+            "description": "Add the call to PhoenixChannelManager.triggerStyleLearning with the extracted parameters in the message send handler.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Insert the method call PhoenixChannelManager.triggerStyleLearning(userId: userId, message: message, threadId: threadId) inside the message send handler, ensuring it's executed on every message send. Make it fire-and-forget by not awaiting or handling the response.",
+            "status": "pending",
+            "testStrategy": "Integration test to simulate message sends and verify the method is called with correct parameters using mocks."
+          },
+          {
+            "id": 5,
+            "title": "Verify Fire-and-Forget Behavior",
+            "description": "Confirm that the triggerStyleLearning call does not block the message send process and is asynchronous.",
+            "dependencies": [
+              4
+            ],
+            "details": "Ensure the call is made asynchronously without awaiting the result, allowing the message send to proceed immediately. Test that the UI or send process is not delayed by this operation.",
+            "status": "pending",
+            "testStrategy": "Performance test to measure send times with and without the call, ensuring no blocking occurs. Mock the method to confirm it's called asynchronously."
+          }
+        ]
       },
       {
         "id": 18,
