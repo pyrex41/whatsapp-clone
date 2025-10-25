@@ -10,10 +10,6 @@ defmodule GlobalbridgeBackend.Application do
     # Validate sqlite-vec extension before starting
     validate_sqlite_vec()
 
-    # Initialize ETS table for thread repo cache BEFORE starting supervisor tree
-    # This ensures the table persists throughout application lifetime
-    GlobalbridgeBackend.AI.Cache.init()
-
     # Background job processing with Oban (not in test)
     children =
       [
@@ -28,6 +24,8 @@ defmodule GlobalbridgeBackend.Application do
         GlobalbridgeBackend.Auth.JWKSCache,
         # Participant cache for thread authorization
         GlobalbridgeBackend.Cache.ParticipantCache,
+        # AI Cache (ETS-based) for translations and embeddings
+        GlobalbridgeBackend.AI.Cache,
         # Task supervisor for async operations (message persistence, read receipts, notifications)
         {Task.Supervisor, name: GlobalbridgeBackend.TaskSupervisor},
         # Dynamic supervisor for per-thread database repos

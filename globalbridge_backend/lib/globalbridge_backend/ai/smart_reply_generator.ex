@@ -22,7 +22,7 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
 
   require Logger
 
-  alias GlobalbridgeBackend.AI.{Cache, VectorStore, Agents}
+  alias GlobalbridgeBackend.AI.{VectorStore, ConversationLanguageDetector, TranslationService}
   alias GlobalbridgeBackend.Schemas.{UserStyleProfile, SuggestionFeedback}
   alias GlobalbridgeBackend.Repo
   alias GlobalbridgeBackend.Repos.ThreadRepo
@@ -90,6 +90,8 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
   @doc """
   Generates smart reply suggestions based on conversation context and user style.
 
+  NEW: Now includes automatic translation support for multilingual conversations.
+
   ## Parameters
   - user_id: The user who will send the reply
   - thread_id: The conversation thread
@@ -97,23 +99,39 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
   - opts: Optional parameters
     - count: Number of suggestions to generate (default: 3)
     - style_match: Whether to match user's style (default: true)
+    - include_translations: Pre-translate suggestions (default: true)
 
   ## Returns
   - {:ok, [suggestions]} where each suggestion is:
     %{
       type: "smart_reply",
-      content: "suggested reply text",
+      content: "suggested reply text",  # In user's language
       confidence: 0.85,
       position: 1,
-      context: %{matched_style: true, ...}
+      context: %{matched_style: true, ...},
+      translation: %{  # NEW: Translation metadata
+        enabled: true,
+        target_language: "es",
+        target_language_name: "Spanish",
+        translated_content: "¡Suena bien!",
+        user_can_toggle: true,
+        auto_translate_on_send: true
+      }
     }
   """
   def generate_suggestions(user_id, thread_id, recent_messages, opts \\ []) do
     start_time = System.monotonic_time(:millisecond)
     count = Keyword.get(opts, :count, 3)
     style_match = Keyword.get(opts, :style_match, true)
+    include_translations = Keyword.get(opts, :include_translations, true)
 
     try do
+      # Get user's preferred language
+      user_language = ConversationLanguageDetector.get_user_language(user_id)
+
+      # Detect conversation language
+      conversation_language = ConversationLanguageDetector.get_conversation_language(thread_id)
+
       # Get user's style profile
       user_profile =
         if style_match do
@@ -133,11 +151,18 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
           []
         end
 
-      # Generate suggestions using AI
-      suggestions = generate_replies_with_ai(context, user_profile, similar_suggestions, count)
+      # Generate suggestions using AI (in user's language)
+      base_suggestions = generate_replies_with_ai(context, user_profile, similar_suggestions, count)
+
+      # Add translation metadata if needed
+      suggestions = if include_translations && ConversationLanguageDetector.translation_needed?(user_language, conversation_language) do
+        add_translation_metadata(base_suggestions, user_language, conversation_language)
+      else
+        add_no_translation_metadata(base_suggestions, user_language)
+      end
 
       elapsed = System.monotonic_time(:millisecond) - start_time
-      Logger.info("Generated #{length(suggestions)} suggestions in #{elapsed}ms")
+      Logger.info("Generated #{length(suggestions)} suggestions with translation support in #{elapsed}ms")
 
       {:ok, suggestions}
     rescue
@@ -595,5 +620,47 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
         # In production, you might want to retry or use a different strategy
         List.duplicate(0.0, 3072)
     end
+  end
+
+  ## Translation Support Functions
+
+  defp add_translation_metadata(suggestions, user_language, conversation_language) do
+    # Extract content for batch translation
+    contents = Enum.map(suggestions, & &1.content)
+
+    # Batch translate all suggestions at once (much faster)
+    case TranslationService.translate_batch_safe(contents, user_language, conversation_language) do
+      {:ok, translations} ->
+        # Zip suggestions with their translations
+        Enum.zip(suggestions, translations)
+        |> Enum.map(fn {suggestion, translated_content} ->
+          Map.put(suggestion, :translation, %{
+            enabled: true,
+            target_language: conversation_language,
+            target_language_name: ConversationLanguageDetector.language_name(conversation_language),
+            translated_content: translated_content,
+            user_can_toggle: true,
+            auto_translate_on_send: true,
+            original_language: user_language
+          })
+        end)
+
+      {:error, _reason} ->
+        # Fallback: no translation if it fails
+        Logger.warning("Translation failed, returning suggestions without translation")
+        add_no_translation_metadata(suggestions, user_language)
+    end
+  end
+
+  defp add_no_translation_metadata(suggestions, user_language) do
+    # No translation needed - same language
+    Enum.map(suggestions, fn suggestion ->
+      Map.put(suggestion, :translation, %{
+        enabled: false,
+        target_language: user_language,
+        user_can_toggle: false,
+        auto_translate_on_send: false
+      })
+    end)
   end
 end

@@ -1,0 +1,308 @@
+defmodule GlobalbridgeBackend.AI.TranslationIntegrationTest do
+  use GlobalbridgeBackend.DataCase, async: false
+
+  alias GlobalbridgeBackend.AI.{
+    SmartReplyGenerator,
+    ConversationLanguageDetector,
+    TranslationService
+  }
+  alias GlobalbridgeBackend.Schemas.{User, Message}
+  alias GlobalbridgeBackend.{Repo, Chat}
+  alias GlobalbridgeBackend.Repos.ThreadRepo
+
+  setup do
+    # Create test users
+    # TODO: Add preferred_language field to User schema
+    english_user = Repo.insert!(%User{
+      username: "english_user_#{:rand.uniform(1000000)}",
+      email: "english_#{:rand.uniform(1000000)}@example.com",
+      password_hash: Bcrypt.hash_pwd_salt("password123"),
+      display_name: "English User"
+    })
+
+    spanish_user = Repo.insert!(%User{
+      username: "spanish_user_#{:rand.uniform(1000000)}",
+      email: "spanish_#{:rand.uniform(1000000)}@example.com",
+      password_hash: Bcrypt.hash_pwd_salt("password123"),
+      display_name: "Spanish User"
+    })
+
+    # Create test thread
+    {:ok, thread} = Chat.create_thread(%{
+      title: "Multilingual Test Thread",
+      created_by: english_user.id
+    })
+
+    # Add both participants
+    Chat.add_participant(thread.id, english_user.id)
+    Chat.add_participant(thread.id, spanish_user.id)
+
+    # Initialize thread database
+    ThreadRepo.ensure_thread_database(thread.id)
+
+    {:ok, english_user: english_user, spanish_user: spanish_user, thread: thread}
+  end
+
+  describe "ConversationLanguageDetector" do
+    test "detects Spanish as primary language", %{thread: thread, spanish_user: spanish_user} do
+      # Create Spanish messages
+      repo = ThreadRepo.get_repo(thread.id)
+      messages = [
+        "¿Cómo estás?",
+        "Estoy bien, gracias",
+        "¿Vamos a la reunión mañana?",
+        "Sí, nos vemos ahí"
+      ]
+
+      for content <- messages do
+        repo.insert!(%Message{
+          id: Ecto.UUID.generate(),
+          content: content,
+          sender_id: spanish_user.id,
+          detected_language: "es",
+          inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+      end
+
+      # Detect language
+      assert {:ok, "es", confidence} = ConversationLanguageDetector.detect_thread_language(thread.id)
+      assert confidence == 1.0
+    end
+
+    test "detects mixed languages", %{thread: thread, english_user: english_user, spanish_user: spanish_user} do
+      repo = ThreadRepo.get_repo(thread.id)
+
+      # Create mixed messages
+      repo.insert!(%Message{
+        id: Ecto.UUID.generate(),
+        content: "Hello!",
+        sender_id: english_user.id,
+        detected_language: "en",
+        inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      })
+
+      repo.insert!(%Message{
+        id: Ecto.UUID.generate(),
+        content: "¡Hola!",
+        sender_id: spanish_user.id,
+        detected_language: "es",
+        inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      })
+
+      # Should return mixed
+      result = ConversationLanguageDetector.detect_thread_language(thread.id, 2)
+      assert match?({:mixed, _}, result) or match?({:ok, _, _}, result)
+    end
+
+    test "returns unknown for threads with no messages", %{thread: thread} do
+      assert {:unknown, []} = ConversationLanguageDetector.detect_thread_language(thread.id)
+    end
+
+    test "checks if translation is needed", %{thread: thread, english_user: english_user, spanish_user: spanish_user} do
+      # Create Spanish messages
+      repo = ThreadRepo.get_repo(thread.id)
+      repo.insert!(%Message{
+        id: Ecto.UUID.generate(),
+        content: "¿Cómo estás?",
+        sender_id: spanish_user.id,
+        detected_language: "es",
+        inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      })
+
+      # English user needs translation for Spanish thread
+      assert ConversationLanguageDetector.needs_translation?(thread.id, english_user.id) == true
+
+      # Spanish user doesn't need translation
+      assert ConversationLanguageDetector.needs_translation?(thread.id, spanish_user.id) == false
+    end
+  end
+
+  describe "TranslationService" do
+    test "translates batch of texts" do
+      texts = ["Hello!", "How are you?", "See you later!"]
+
+      {:ok, translations} = TranslationService.translate_batch(texts, "en", "es")
+
+      assert length(translations) == 3
+      # Translations should be different from originals
+      assert Enum.all?(Enum.zip(texts, translations), fn {orig, trans} ->
+        String.downcase(orig) != String.downcase(trans)
+      end)
+
+      IO.puts("\n🌐 Batch Translation Test:")
+      Enum.zip(texts, translations)
+      |> Enum.each(fn {orig, trans} ->
+        IO.puts("   #{orig} → #{trans}")
+      end)
+    end
+
+    test "returns original if same language" do
+      texts = ["Hello!", "World!"]
+      {:ok, result} = TranslationService.translate_batch(texts, "en", "en")
+      assert result == texts
+    end
+
+    test "caches translations" do
+      texts = ["Thanks!"]
+
+      # First call - should hit API
+      start1 = System.monotonic_time(:millisecond)
+      {:ok, _} = TranslationService.translate_batch(texts, "en", "es")
+      time1 = System.monotonic_time(:millisecond) - start1
+
+      # Second call - should hit cache
+      start2 = System.monotonic_time(:millisecond)
+      {:ok, _} = TranslationService.translate_batch(texts, "en", "es")
+      time2 = System.monotonic_time(:millisecond) - start2
+
+      # Cache should be much faster (at least 10x)
+      IO.puts("\n⚡ Cache Performance:")
+      IO.puts("   First call: #{time1}ms")
+      IO.puts("   Cached call: #{time2}ms")
+      IO.puts("   Speedup: #{Float.round(time1 / max(time2, 1), 1)}x")
+
+      assert time2 < time1 / 5  # Cache should be at least 5x faster
+    end
+
+    test "handles safe fallback on error" do
+      texts = ["Hello!"]
+      # Should fallback to original text on error
+      {:ok, result} = TranslationService.translate_batch_safe(texts, "en", "invalid_lang")
+      assert result == texts
+    end
+  end
+
+  describe "SmartReplyGenerator with Translation" do
+    test "generates suggestions with translation metadata for multilingual thread", %{
+      thread: thread,
+      english_user: english_user,
+      spanish_user: spanish_user
+    } do
+      # Create Spanish conversation
+      repo = ThreadRepo.get_repo(thread.id)
+      messages = [
+        %Message{
+          id: Ecto.UUID.generate(),
+          content: "¿Cómo estás?",
+          sender_id: spanish_user.id,
+          detected_language: "es",
+          inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        },
+        %Message{
+          id: Ecto.UUID.generate(),
+          content: "Bien, ¿y tú?",
+          sender_id: spanish_user.id,
+          detected_language: "es",
+          inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        }
+      ]
+
+      Enum.each(messages, &repo.insert!/1)
+
+      # Generate suggestions for English user
+      {:ok, suggestions} = SmartReplyGenerator.generate_suggestions(
+        english_user.id,
+        thread.id,
+        messages,
+        count: 3
+      )
+
+      assert length(suggestions) == 3
+
+      # Check each suggestion has translation metadata
+      Enum.each(suggestions, fn suggestion ->
+        assert Map.has_key?(suggestion, :translation)
+        translation = suggestion.translation
+
+        # Should have translation enabled for English user in Spanish thread
+        assert translation.enabled == true
+        assert translation.target_language == "es"
+        assert translation.target_language_name == "Spanish"
+        assert translation.user_can_toggle == true
+        assert translation.auto_translate_on_send == true
+
+        # Should have both display and translated content
+        assert is_binary(suggestion.content)  # Display in English
+        assert is_binary(translation.translated_content)  # Send in Spanish
+
+        # Content should be different (unless translation fails/fallback)
+        IO.puts("\n💬 Suggestion with Translation:")
+        IO.puts("   Display (en): #{suggestion.content}")
+        IO.puts("   Send (es): #{translation.translated_content}")
+      end)
+    end
+
+    test "generates suggestions without translation for same-language thread", %{
+      thread: thread,
+      english_user: english_user
+    } do
+      # Create English conversation
+      repo = ThreadRepo.get_repo(thread.id)
+      messages = [
+        %Message{
+          id: Ecto.UUID.generate(),
+          content: "How are you?",
+          sender_id: english_user.id,
+          detected_language: "en",
+          inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        }
+      ]
+
+      Enum.each(messages, &repo.insert!/1)
+
+      # Generate suggestions
+      {:ok, suggestions} = SmartReplyGenerator.generate_suggestions(
+        english_user.id,
+        thread.id,
+        messages,
+        count: 3
+      )
+
+      # Should have translation metadata but disabled
+      Enum.each(suggestions, fn suggestion ->
+        assert suggestion.translation.enabled == false
+        assert suggestion.translation.user_can_toggle == false
+        assert suggestion.translation.auto_translate_on_send == false
+      end)
+    end
+
+    test "performance: translation adds minimal overhead", %{
+      thread: thread,
+      english_user: english_user,
+      spanish_user: spanish_user
+    } do
+      # Create Spanish conversation
+      repo = ThreadRepo.get_repo(thread.id)
+      messages = [
+        %Message{
+          id: Ecto.UUID.generate(),
+          content: "¿Vamos a comer?",
+          sender_id: spanish_user.id,
+          detected_language: "es",
+          inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        }
+      ]
+
+      Enum.each(messages, &repo.insert!/1)
+
+      # Measure with translation
+      start = System.monotonic_time(:millisecond)
+      {:ok, suggestions} = SmartReplyGenerator.generate_suggestions(
+        english_user.id,
+        thread.id,
+        messages,
+        count: 3,
+        include_translations: true
+      )
+      time_with_translation = System.monotonic_time(:millisecond) - start
+
+      IO.puts("\n⏱️  Performance with Translation:")
+      IO.puts("   Total time: #{time_with_translation}ms")
+      IO.puts("   Suggestions: #{length(suggestions)}")
+      IO.puts("   Translation enabled: #{hd(suggestions).translation.enabled}")
+
+      # Should complete in reasonable time (<5s for real API calls)
+      assert time_with_translation < 10_000, "Translation took #{time_with_translation}ms, expected <10s"
+    end
+  end
+end

@@ -25,6 +25,9 @@ defmodule GlobalbridgeBackend.Schemas.User do
     field(:auth0_metadata, :map, default: %{})
     field(:auth0_refresh_token, :string)
 
+    # Language preference for AI translation
+    field(:preferred_language, :string, default: "en")
+
     # Associations
     has_many(:devices, GlobalbridgeBackend.Schemas.Device)
     has_many(:thread_participants, GlobalbridgeBackend.Schemas.ThreadParticipant)
@@ -46,6 +49,7 @@ defmodule GlobalbridgeBackend.Schemas.User do
       :avatar_url,
       :status_message,
       :public_key,
+      :preferred_language,
       :auth0_id,
       :email,
       :auth0_metadata,
@@ -74,6 +78,7 @@ defmodule GlobalbridgeBackend.Schemas.User do
       :avatar_url,
       :status_message,
       :public_key,
+      :preferred_language,
       :last_seen_at,
       :is_online,
       :tier

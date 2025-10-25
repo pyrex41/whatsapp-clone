@@ -1,389 +1,196 @@
 defmodule GlobalbridgeBackend.AI.Cache do
   @moduledoc """
-  Unified caching layer for AI services using Cachex + ETS.
+  ETS-based caching for AI operations (translations, embeddings, etc.).
 
-  This module provides a consolidated caching interface for:
-  - Embeddings (1 hour TTL)
-  - Search results (15 minutes TTL)
-  - Thread repositories (24 hours TTL)
+  ## Features
 
-  ## Architecture
+  - Fast in-memory storage with ETS
+  - TTL-based expiration
+  - Pattern-based deletion
+  - Automatic cleanup of expired entries
 
-  - **Cachex**: Application-level caching for embeddings and search results
-  - **ETS**: Process-level caching for thread repositories
+  ## Usage
 
-  ## Cache Keys
+      # Start the cache (usually in application.ex)
+      {:ok, _pid} = Cache.start_link()
 
-  - Embeddings: `embedding:{model}:{text_hash}`
-  - Search results: `search:{thread_id}:{query_hash}:{params}`
-  - Vector results: `vector:{thread_id}:{embedding_hash}:{limit}`
-  - Repositories: `repo:{shard_id}` (stored in ETS)
+      # Store with TTL
+      Cache.put("translation:en:es:hello", "¡Hola!", ttl: 3600)
+
+      # Retrieve
+      {:ok, "¡Hola!"} = Cache.get("translation:en:es:hello")
+
+      # Delete pattern
+      Cache.delete_pattern("translation:en:es:")
   """
 
+  use GenServer
   require Logger
 
-  # TTL configurations
-  @embeddings_ttl :timer.hours(1)
-  @search_results_ttl :timer.minutes(15)
-  @repos_ttl :timer.hours(24)
+  @table_name :ai_cache
+  @cleanup_interval 60_000  # Clean expired entries every 60 seconds
 
-  # Cache names
-  @cachex_name :ai_cache
-  @ets_table :thread_repo_cache
-
-  ## Initialization
+  ## Client API
 
   @doc """
-  Initializes the ETS table for repository caching.
-  Called automatically on application start.
+  Starts the cache GenServer.
   """
-  def init do
-    # Create ETS table if it doesn't exist
-    if :ets.info(@ets_table) == :undefined do
-      :ets.new(@ets_table, [:named_table, :public, :set, read_concurrency: true])
-    end
-
-    :ok
-  end
-
-  ## Embedding Cache Operations
-
-  @doc """
-  Gets a cached embedding for text.
-
-  Returns the embedding vector if found, nil otherwise.
-  """
-  def get_embedding(text, model \\ "text-embedding-3-large") do
-    key = embedding_key(text, model)
-
-    case Cachex.get(@cachex_name, key) do
-      {:ok, nil} ->
-        nil
-
-      {:ok, cached} ->
-        Jason.decode!(cached)
-
-      {:error, reason} ->
-        Logger.warning("Failed to get embedding from cache: #{inspect(reason)}")
-        nil
-    end
+  def start_link(opts \\ []) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
   @doc """
-  Stores an embedding in cache with 1 hour TTL.
+  Gets a value from the cache.
+
+  Returns {:ok, value} if found and not expired, {:error, :not_found} otherwise.
   """
-  def put_embedding(text, embedding, model \\ "text-embedding-3-large") do
-    key = embedding_key(text, model)
-    json = Jason.encode!(embedding)
-
-    case Cachex.put(@cachex_name, key, json, ttl: @embeddings_ttl) do
-      {:ok, true} ->
-        :ok
-
-      {:error, reason} ->
-        Logger.warning("Failed to cache embedding: #{inspect(reason)}")
-        {:error, reason}
-    end
-  end
-
-  @doc """
-  Checks if an embedding exists in cache.
-  """
-  def embedding_exists?(text, model \\ "text-embedding-3-large") do
-    key = embedding_key(text, model)
-
-    case Cachex.exists?(@cachex_name, key) do
-      {:ok, exists} -> exists
-      _ -> false
-    end
-  end
-
-  ## Search Results Cache Operations
-
-  @doc """
-  Gets cached search results for a query.
-
-  Returns the search results if found, nil otherwise.
-  """
-  def get_search_result(thread_id, query, opts \\ []) do
-    key = search_key(thread_id, query, opts)
-
-    case Cachex.get(@cachex_name, key) do
-      {:ok, nil} ->
-        nil
-
-      {:ok, cached} ->
-        Jason.decode!(cached, keys: :atoms)
-
-      {:error, reason} ->
-        Logger.warning("Failed to get search results from cache: #{inspect(reason)}")
-        nil
-    end
-  end
-
-  @doc """
-  Stores search results in cache with 15 minute TTL.
-  """
-  def put_search_result(thread_id, query, results, opts \\ []) do
-    key = search_key(thread_id, query, opts)
-    json = Jason.encode!(results)
-
-    case Cachex.put(@cachex_name, key, json, ttl: @search_results_ttl) do
-      {:ok, true} ->
-        :ok
-
-      {:error, reason} ->
-        Logger.warning("Failed to cache search results: #{inspect(reason)}")
-        {:error, reason}
-    end
-  end
-
-  @doc """
-  Gets cached vector search results for an embedding.
-  """
-  def get_vector_result(thread_id, embedding, limit) do
-    key = vector_key(thread_id, embedding, limit)
-
-    case Cachex.get(@cachex_name, key) do
-      {:ok, nil} ->
-        nil
-
-      {:ok, cached} ->
-        Jason.decode!(cached, keys: :atoms)
-
-      {:error, reason} ->
-        Logger.warning("Failed to get vector results from cache: #{inspect(reason)}")
-        nil
-    end
-  end
-
-  @doc """
-  Stores vector search results in cache with 15 minute TTL.
-  """
-  def put_vector_result(thread_id, embedding, results, limit) do
-    key = vector_key(thread_id, embedding, limit)
-    json = Jason.encode!(results)
-
-    case Cachex.put(@cachex_name, key, json, ttl: @search_results_ttl) do
-      {:ok, true} ->
-        :ok
-
-      {:error, reason} ->
-        Logger.warning("Failed to cache vector results: #{inspect(reason)}")
-        {:error, reason}
-    end
-  end
-
-  @doc """
-  Invalidates all search cache entries for a thread.
-  Useful when new messages are added to a thread.
-  """
-  def invalidate_thread_search(thread_id) do
-    # Get all keys
-    case Cachex.keys(@cachex_name) do
-      {:ok, keys} ->
-        keys
-        |> Enum.filter(fn key ->
-          String.starts_with?(key, "search:#{thread_id}:") or
-            String.starts_with?(key, "vector:#{thread_id}:")
-        end)
-        |> Enum.each(fn key ->
-          Cachex.del(@cachex_name, key)
-        end)
-
-        :ok
-
-      _ ->
-        :ok
-    end
-  end
-
-  ## Repository Cache Operations (ETS)
-
-  @doc """
-  Gets a cached repository module for a shard.
-
-  Returns the repo module if found, nil otherwise.
-  """
-  def get_repo(shard_id) do
-    case :ets.lookup(@ets_table, shard_id) do
-      [{^shard_id, repo_module, _timestamp}] ->
-        repo_module
-
+  def get(key) do
+    case :ets.lookup(@table_name, key) do
+      [{^key, value, expires_at}] ->
+        if expires_at == :infinity or System.system_time(:second) < expires_at do
+          {:ok, value}
+        else
+          # Expired - delete it
+          :ets.delete(@table_name, key)
+          {:error, :not_found}
+        end
       [] ->
-        nil
+        {:error, :not_found}
     end
   end
 
   @doc """
-  Stores a repository module in ETS cache with 24 hour TTL.
+  Puts a value into the cache.
 
-  Note: ETS doesn't natively support TTL, so we store a timestamp
-  and check it during retrieval. The cleanup happens periodically.
+  ## Options
+
+  - :ttl - Time to live in seconds (default: 3600)
+  - If ttl is :infinity, the entry never expires
+
+  ## Examples
+
+      Cache.put("key", "value", ttl: 3600)
+      Cache.put("key", "value", ttl: :infinity)
   """
-  def put_repo(shard_id, repo_module) do
-    timestamp = System.monotonic_time(:second)
-    :ets.insert(@ets_table, {shard_id, repo_module, timestamp})
-    :ok
-  end
+  def put(key, value, opts \\ []) do
+    ttl = Keyword.get(opts, :ttl, 3600)
 
-  @doc """
-  Removes a repository from cache.
-  """
-  def uncache_repo(shard_id) do
-    :ets.delete(@ets_table, shard_id)
-    :ok
-  end
-
-  @doc """
-  Checks if a repository is cached (and not expired).
-  """
-  def repo_cached?(shard_id) do
-    case :ets.lookup(@ets_table, shard_id) do
-      [{^shard_id, _repo_module, timestamp}] ->
-        # Check if entry is still within TTL
-        current_time = System.monotonic_time(:second)
-        age_seconds = current_time - timestamp
-        ttl_seconds = div(@repos_ttl, 1000)
-
-        age_seconds < ttl_seconds
-
-      [] ->
-        false
+    expires_at = case ttl do
+      :infinity -> :infinity
+      seconds when is_integer(seconds) -> System.system_time(:second) + seconds
     end
-  end
 
-  @doc """
-  Cleans up expired repository cache entries.
-
-  Should be called periodically to prevent memory leaks.
-  """
-  def cleanup_expired_repos do
-    current_time = System.monotonic_time(:second)
-    ttl_seconds = div(@repos_ttl, 1000)
-
-    :ets.select_delete(@ets_table, [
-      {
-        {:_, :_, :"$1"},
-        [{:<, {:-, current_time, :"$1"}, ttl_seconds}],
-        [true]
-      }
-    ])
-
+    :ets.insert(@table_name, {key, value, expires_at})
     :ok
   end
 
-  ## Cache Statistics & Management
+  @doc """
+  Deletes all entries matching a pattern.
+
+  Pattern uses simple prefix matching:
+  - "translation:en:es:" matches all English to Spanish translations
+
+  ## Examples
+
+      Cache.delete_pattern("translation:en:es:")
+      Cache.delete_pattern("embedding:")
+  """
+  def delete_pattern(pattern) do
+    # For pattern matching, we'll iterate through all keys
+    # This is acceptable since ETS is very fast and cache size is limited
+    prefix = String.trim_trailing(pattern, "*")
+
+    deleted = :ets.foldl(fn {key, _value, _expires_at}, acc ->
+      if String.starts_with?(key, prefix) do
+        :ets.delete(@table_name, key)
+        acc + 1
+      else
+        acc
+      end
+    end, 0, @table_name)
+
+    Logger.debug("Deleted #{deleted} cache entries matching pattern: #{pattern}")
+    {:ok, deleted}
+  end
 
   @doc """
-  Gets comprehensive cache statistics.
+  Deletes a specific key from the cache.
+  """
+  def delete(key) do
+    :ets.delete(@table_name, key)
+    :ok
+  end
+
+  @doc """
+  Clears all entries from the cache.
+  """
+  def clear do
+    :ets.delete_all_objects(@table_name)
+    :ok
+  end
+
+  @doc """
+  Gets cache statistics.
   """
   def stats do
-    cachex_stats = Cachex.stats(@cachex_name)
-    ets_size = :ets.info(@ets_table, :size)
+    total_entries = :ets.info(@table_name, :size)
+    memory_bytes = :ets.info(@table_name, :memory) * :erlang.system_info(:wordsize)
 
     %{
-      cachex: cachex_stats,
-      ets_repos: ets_size,
-      ttls: %{
-        embeddings: @embeddings_ttl,
-        search_results: @search_results_ttl,
-        repos: @repos_ttl
-      }
+      total_entries: total_entries,
+      memory_bytes: memory_bytes,
+      memory_mb: Float.round(memory_bytes / 1_024_000, 2)
     }
   end
 
-  @doc """
-  Clears all embedding cache entries.
-  """
-  def clear_embeddings do
-    case Cachex.keys(@cachex_name) do
-      {:ok, keys} ->
-        keys
-        |> Enum.filter(&String.starts_with?(&1, "embedding:"))
-        |> Enum.each(&Cachex.del(@cachex_name, &1))
+  ## Server Callbacks
 
-        :ok
+  @impl true
+  def init(_opts) do
+    # Create ETS table
+    :ets.new(@table_name, [
+      :set,
+      :public,
+      :named_table,
+      read_concurrency: true,
+      write_concurrency: true
+    ])
 
-      _ ->
-        :ok
-    end
+    # Schedule periodic cleanup
+    schedule_cleanup()
+
+    Logger.info("AI Cache started with ETS table: #{@table_name}")
+    {:ok, %{}}
   end
 
-  @doc """
-  Clears all search-related cache entries.
-  """
-  def clear_search_results do
-    case Cachex.keys(@cachex_name) do
-      {:ok, keys} ->
-        keys
-        |> Enum.filter(fn key ->
-          String.starts_with?(key, "search:") or String.starts_with?(key, "vector:")
-        end)
-        |> Enum.each(&Cachex.del(@cachex_name, &1))
-
-        :ok
-
-      _ ->
-        :ok
-    end
-  end
-
-  @doc """
-  Clears all repository cache entries.
-  """
-  def clear_repos do
-    if :ets.info(@ets_table) != :undefined do
-      :ets.delete_all_objects(@ets_table)
-    end
-
-    :ok
-  end
-
-  @doc """
-  Clears all caches (Cachex + ETS).
-  """
-  def clear_all do
-    Cachex.clear(@cachex_name)
-    clear_repos()
-    :ok
+  @impl true
+  def handle_info(:cleanup, state) do
+    cleanup_expired_entries()
+    schedule_cleanup()
+    {:noreply, state}
   end
 
   ## Private Functions
 
-  defp embedding_key(text, model) do
-    # Create a hash of the text for cache key
-    hash = :crypto.hash(:sha256, text) |> Base.encode16(case: :lower)
-    "embedding:#{model}:#{hash}"
+  defp schedule_cleanup do
+    Process.send_after(self(), :cleanup, @cleanup_interval)
   end
 
-  defp search_key(thread_id, query, opts) do
-    # Normalize query for consistent caching
-    normalized_query = normalize_query(query)
-    limit = Keyword.get(opts, :limit, 10)
-    recency_bias = Keyword.get(opts, :recency_bias, false)
-    recency_weight = Keyword.get(opts, :recency_weight, 0.3)
+  defp cleanup_expired_entries do
+    now = System.system_time(:second)
 
-    # Create a hash of the normalized query and parameters
-    params_string = "#{limit}:#{recency_bias}:#{recency_weight}"
-    hash = :crypto.hash(:sha256, normalized_query <> params_string) |> Base.encode16(case: :lower)
+    # Iterate and delete expired entries
+    deleted = :ets.foldl(fn {key, _value, expires_at}, acc ->
+      if expires_at != :infinity and expires_at < now do
+        :ets.delete(@table_name, key)
+        acc + 1
+      else
+        acc
+      end
+    end, 0, @table_name)
 
-    "search:#{thread_id}:#{hash}"
-  end
-
-  defp vector_key(thread_id, embedding, limit) do
-    # Create a hash of the embedding (first 100 elements for performance)
-    embedding_sample = Enum.take(embedding, 100)
-    hash = :crypto.hash(:sha256, Jason.encode!(embedding_sample)) |> Base.encode16(case: :lower)
-
-    "vector:#{thread_id}:#{hash}:#{limit}"
-  end
-
-  defp normalize_query(query) do
-    query
-    |> String.downcase()
-    |> String.trim()
-    # Normalize whitespace
-    |> String.replace(~r/\s+/, " ")
+    if deleted > 0 do
+      Logger.debug("Cleaned up #{deleted} expired cache entries")
+    end
   end
 end

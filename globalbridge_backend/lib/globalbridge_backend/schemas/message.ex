@@ -25,6 +25,9 @@ defmodule GlobalbridgeBackend.Schemas.Message do
     field(:deleted_at, :utc_datetime)
     field(:edited_at, :utc_datetime)
 
+    # Language detection for translation
+    field(:detected_language, :string)
+
     # Client-side timestamps for CDC sync
     field(:client_created_at, :utc_datetime)
 
@@ -47,6 +50,7 @@ defmodule GlobalbridgeBackend.Schemas.Message do
       :is_encrypted,
       :encryption_key_id,
       :reply_to_id,
+      :detected_language,
       :client_created_at
     ])
     |> validate_required([:thread_id, :sender_id, :content_type])
