@@ -1,0 +1,43 @@
+# Task ID: 18
+# Title: Build AIStyleProfileView
+# Status: pending
+# Dependencies: 2, 5
+# Priority: medium
+# Description: Create a settings view to display user style profile metrics.
+# Details:
+Use SwiftUI to show formalityLevel, emojiFrequency, etc., confidenceScore, and options to disable/clear profile.
+
+# Test Strategy:
+UI test display and interactions. Unit test data binding.
+
+# Subtasks:
+## 1. Design AIStyleProfileView Layout [pending]
+### Dependencies: None
+### Description: Design the SwiftUI layout for the settings view, including sections for displaying style profile metrics and action buttons.
+### Details:
+Create a SwiftUI View struct named AIStyleProfileView with a VStack containing sections for metrics display and buttons for disable/clear options. Use appropriate SwiftUI components like Text, HStack, VStack, and Button to structure the view.
+
+## 2. Implement Metrics Display [pending]
+### Dependencies: 18.1
+### Description: Add code to display user style profile metrics such as formalityLevel, emojiFrequency, and other relevant properties.
+### Details:
+Bind the view to AppState properties for style profile. Use Text views to show each metric with labels, ensuring data is fetched and displayed correctly. Handle cases where metrics might be nil or loading.
+
+## 3. Add Confidence Score Visualization [pending]
+### Dependencies: 18.1, 18.2
+### Description: Implement a visual representation of the confidenceScore in the view.
+### Details:
+Add a ProgressView or custom indicator to show the confidenceScore as a percentage or bar. Ensure it updates reactively with state changes and includes accessibility labels.
+
+## 4. Implement Disable Profile Option [pending]
+### Dependencies: 18.1
+### Description: Add a toggle or button to disable the AI style profile.
+### Details:
+Include a Toggle or Button in the view that updates the AppState to disable the profile. Ensure the action persists and affects related features, with confirmation dialog if needed.
+
+## 5. Implement Clear Profile Option [pending]
+### Dependencies: 18.1
+### Description: Add functionality to clear the user's style profile data.
+### Details:
+Add a Button that, when tapped, clears the style profile from AppState and possibly resets related metrics. Include a confirmation alert to prevent accidental clears.
+

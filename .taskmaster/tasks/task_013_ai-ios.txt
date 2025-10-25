@@ -1,0 +1,19 @@
+# Task ID: 13
+# Title: Build SuggestionChipView
+# Status: pending
+# Dependencies: 1, 12
+# Priority: medium
+# Description: Create SuggestionChipView.swift for individual tappable suggestion chips.
+# Details:
+Implement chip with confidence indicator, proactive distinction (icon/color), haptic feedback on tap, swipe-to-dismiss gesture.
+
+# Test Strategy:
+UI test gestures and feedback. Unit test visual states.
+
+# Subtasks:
+## 1. Implement Gesture Handling and Visual Indicators for SuggestionChipView [pending]
+### Dependencies: None
+### Description: Add swipe-to-dismiss gesture, haptic feedback on tap, and visual indicators including confidence indicator and proactive distinction (icon/color) to SuggestionChipView.
+### Details:
+In SuggestionChipView.swift, integrate SwiftUI gestures for swipe-to-dismiss using DragGesture. Implement haptic feedback using UINotificationFeedbackGenerator on tap. Add visual states for confidence indicator (e.g., opacity or color based on confidence score) and proactive distinction (e.g., specific icon or color scheme). Ensure animations are smooth and states update reactively.
+

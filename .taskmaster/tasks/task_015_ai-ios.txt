@@ -1,0 +1,43 @@
+# Task ID: 15
+# Title: Add Loading and Error States
+# Status: pending
+# Dependencies: 12, 7
+# Priority: medium
+# Description: Implement loading shimmer and error handling in SmartReplyComposerView.
+# Details:
+Show shimmer while fetching. Display error toast on failure. Retry logic if applicable.
+
+# Test Strategy:
+UI test loading animations and error displays.
+
+# Subtasks:
+## 1. Add Shimmer Animation Component [pending]
+### Dependencies: None
+### Description: Create a reusable shimmer animation component for loading states in the UI.
+### Details:
+Implement a ShimmerView component using SwiftUI or UIKit that displays a skeleton loading animation. Ensure it can be customized for different sizes and shapes to fit the SmartReplyComposerView layout. This component will be used to show loading while fetching smart reply suggestions.
+
+## 2. Integrate Shimmer into SmartReplyComposerView [pending]
+### Dependencies: 15.1
+### Description: Add the shimmer animation to SmartReplyComposerView to display during fetching operations.
+### Details:
+Modify SmartReplyComposerView to conditionally show the ShimmerView when the loading state is active. Bind it to the AppState's loading properties for smart reply suggestions. Ensure the shimmer overlays or replaces the content appropriately without disrupting the UI flow.
+
+## 3. Implement Error Handling and Toast Display [pending]
+### Dependencies: 15.2
+### Description: Add error handling logic to display error toasts on failure in SmartReplyComposerView.
+### Details:
+Integrate error state from AppState into SmartReplyComposerView. Use a toast notification library or custom implementation to show error messages when fetching suggestions fails. Handle different error types (e.g., network, API) with appropriate user-friendly messages.
+
+## 4. Add Retry Logic for Failed Requests [pending]
+### Dependencies: 15.3
+### Description: Implement retry functionality for failed smart reply suggestion fetches.
+### Details:
+Add a retry button or automatic retry mechanism in SmartReplyComposerView. Upon error, provide an option to retry the fetch operation. Integrate with SmartReplyService to re-attempt the API call. Include exponential backoff or user-configurable retry limits if applicable.
+
+## 5. Update View State Management [pending]
+### Dependencies: 15.4
+### Description: Ensure SmartReplyComposerView properly manages loading, error, and retry states.
+### Details:
+Refactor SmartReplyComposerView to handle state transitions between loading, error, and success. Use Combine or SwiftUI state to react to AppState changes. Ensure that shimmer, error toasts, and retry options are shown/hidden based on the current state, maintaining a smooth user experience.
+

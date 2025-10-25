@@ -1,0 +1,43 @@
+# Task ID: 19
+# Title: Show Confidence Scores in Chips
+# Status: pending
+# Dependencies: 13
+# Priority: low
+# Description: Display confidence indicators in SuggestionChipView.
+# Details:
+Add subtle visual indicator (e.g., opacity or badge) based on confidence Double.
+
+# Test Strategy:
+UI test confidence display. Unit test threshold logic.
+
+# Subtasks:
+## 1. Analyze SuggestionChipView Structure [pending]
+### Dependencies: None
+### Description: Examine the current SuggestionChipView implementation to understand how confidence scores are handled and where visual indicators can be added.
+### Details:
+Review the SuggestionChipView code to identify the confidence Double property and the view's layout. Determine the best place to integrate subtle visual indicators like opacity or badges without disrupting the existing UI.
+
+## 2. Define Confidence Thresholds [pending]
+### Dependencies: 19.1
+### Description: Establish logic for mapping confidence Double values to visual indicator levels.
+### Details:
+Define thresholds (e.g., low: 0-0.3, medium: 0.3-0.7, high: 0.7-1.0) and corresponding visual effects, such as opacity levels (e.g., 0.5 for low, 1.0 for high) or badge styles. Implement this as a helper function or computed property.
+
+## 3. Implement Visual Indicator Logic [pending]
+### Dependencies: 19.2
+### Description: Add code to apply the chosen visual indicator (e.g., opacity) based on confidence thresholds.
+### Details:
+Modify SuggestionChipView to include a modifier or property that adjusts opacity or adds a badge dynamically. Ensure the indicator is subtle and does not interfere with chip readability. Use SwiftUI modifiers for opacity or overlay for badges.
+
+## 4. Update SuggestionChipView UI [pending]
+### Dependencies: 19.3
+### Description: Integrate the confidence-based visual indicator into the chip's rendering.
+### Details:
+Apply the visual changes in the SuggestionChipView body, ensuring the indicator updates reactively with confidence changes. Test for smooth transitions and accessibility considerations, like ensuring text remains readable at lower opacities.
+
+## 5. Test Confidence Display Integration [pending]
+### Dependencies: 19.4
+### Description: Conduct end-to-end testing of the confidence indicators in the app context.
+### Details:
+Run UI tests to confirm the indicators display as expected in SuggestionChipView. Include edge cases like minimum and maximum confidence values. Verify no regressions in chip functionality or performance.
+

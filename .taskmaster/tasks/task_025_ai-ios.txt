@@ -1,0 +1,43 @@
+# Task ID: 25
+# Title: Add Dismissal for Proactive Suggestions
+# Status: pending
+# Dependencies: 13, 24
+# Priority: medium
+# Description: Implement dismissal interaction for proactive suggestions.
+# Details:
+Allow tap or swipe to dismiss without recording rejection. Update UI state.
+
+# Test Strategy:
+UI test dismissal gestures.
+
+# Subtasks:
+## 1. Add Gesture Recognizers to SuggestionChipView [pending]
+### Dependencies: None
+### Description: Integrate UITapGestureRecognizer and UISwipeGestureRecognizer into SuggestionChipView to enable dismissal interactions.
+### Details:
+Modify SuggestionChipView to add gesture recognizers for tap and swipe actions. Ensure they are configured to detect single taps and left/right swipes without conflicting with existing interactions. This sets up the foundation for handling dismissal gestures.
+
+## 2. Implement Tap Dismissal Handler [pending]
+### Dependencies: 25.1
+### Description: Create a method to handle tap gestures for dismissing proactive suggestions.
+### Details:
+In SuggestionChipView, implement a tap gesture handler that triggers dismissal when the user taps on the chip. This should animate the chip's removal from the UI and update the view state accordingly, without sending any rejection feedback to the backend.
+
+## 3. Implement Swipe Dismissal Handler [pending]
+### Dependencies: 25.1
+### Description: Create a method to handle swipe gestures for dismissing proactive suggestions.
+### Details:
+In SuggestionChipView, implement a swipe gesture handler that detects swipe directions (left or right) and dismisses the chip upon swipe. Include smooth animation for the dismissal and ensure the UI state is updated to reflect the removal of the suggestion.
+
+## 4. Update UI State on Dismissal [pending]
+### Dependencies: 25.2, 25.3
+### Description: Ensure the parent view or controller updates its state when a suggestion is dismissed.
+### Details:
+After dismissal via tap or swipe, notify the parent view controller or data source to remove the dismissed suggestion from the list or array. Update any relevant UI elements, such as hiding the suggestion list if all are dismissed, to maintain a consistent interface state.
+
+## 5. Prevent Rejection Recording on Dismissal [pending]
+### Dependencies: 25.2, 25.3
+### Description: Modify dismissal logic to avoid logging or sending rejection feedback.
+### Details:
+In the dismissal handlers, explicitly avoid triggering any feedback mechanisms that record rejections. Ensure that proactive suggestions can be dismissed silently, preserving user privacy and not influencing future suggestions based on dismissal actions.
+

@@ -1,0 +1,25 @@
+# Task ID: 7
+# Title: Implement SmartReplyService
+# Status: pending
+# Dependencies: 1, 2, 5, 6
+# Priority: high
+# Description: Create SmartReplyService.swift with methods to fetch suggestions, record feedback, and get user style profile via backend APIs.
+# Details:
+Implement fetchSuggestions async method calling POST /api/v1/ai/suggest_replies. Include caching with 60s TTL. Record feedback via POST /api/v1/ai/record_feedback. Handle errors with AIServiceError.
+
+# Test Strategy:
+Unit test API calls with mock responses. Integration test caching and error handling.
+
+# Subtasks:
+## 1. Implement fetchSuggestions API with 60s TTL cache and AIServiceError mapping [pending]
+### Dependencies: 7.1, 7.2, 7.5, 7.6
+### Description: Build SmartReplyService.fetchSuggestions to POST to /api/v1/ai/suggest_replies, return decoded suggestions, apply in-memory caching with a 60-second TTL, and map failures to AIServiceError.
+### Details:
+Create SmartReplyService.swift (protocol + concrete). Add async func fetchSuggestions(conversationId:String, messages:[Message], limit:Int?) -> [SmartReplySuggestion]. Before requesting, check an in-memory cache keyed by (conversationId, lastMessageId/hash, limit, locale). If a non-expired CacheEntry(expiry: Date, value: [SmartReplySuggestion]) exists, return it. Otherwise, build URLRequest to POST /api/v1/ai/suggest_replies with JSON body {conversationId, messages, limit}. Use injected HTTP client and JSONEncoder/Decoder. On 2xx, decode suggestions, write to cache with expiry = now + 60s, then return. Map network/HTTP errors and decoding problems to AIServiceError (.network, .timeout, .unauthorized, .rateLimited, .server, .decoding, .unknown). Ensure cache is thread-safe (actor or serial queue) and support Task cancellation.
+
+## 2. Implement recordFeedback API with robust payload and error handling [pending]
+### Dependencies: 7.1, 7.2, 7.5, 7.6
+### Description: Build SmartReplyService.recordFeedback to POST to /api/v1/ai/record_feedback, supporting accepted, rejected (with reason), and modified (with modifiedContent) events, with AIServiceError mapping.
+### Details:
+Add async func recordFeedback(conversationId:String, suggestionId:String, action: FeedbackAction, reason:String? = nil, modifiedContent:String? = nil) -> Void. Construct JSON payload {conversationId, suggestionId, action, reason?, modifiedContent?} and POST to /api/v1/ai/record_feedback via injected HTTP client. Include optional idempotency header (stable UUID from conversationId+suggestionId+action+modifiedContent) to avoid duplicates. Treat non-2xx as failures and map to AIServiceError (.unauthorized for 401, .rateLimited for 429, .badRequest for 400, .server for 5xx, .network/.timeout for connectivity, .unknown otherwise). Do not cache. Ensure method is cancellable, log non-fatal errors as needed, and keep types internal DTOs separate from domain models.
+

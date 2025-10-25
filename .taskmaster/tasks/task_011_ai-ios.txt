@@ -1,0 +1,19 @@
+# Task ID: 11
+# Title: Extend PhoenixChannelManager for AI
+# Status: pending
+# Dependencies: 8
+# Priority: high
+# Description: Add AI-specific methods to PhoenixChannelManager+AI.swift for subscribing to suggestions and triggering style learning.
+# Details:
+Implement subscribeToAISuggestions to join thread channel and listen for ai_suggestions events. Implement triggerStyleLearning as fire-and-forget on message send.
+
+# Test Strategy:
+Unit test channel subscription. Integration test event dispatching.
+
+# Subtasks:
+## 1. Implement AI Subscription and Style Learning Methods [pending]
+### Dependencies: None
+### Description: Add subscribeToAISuggestions method to join the thread channel and listen for ai_suggestions events, and implement triggerStyleLearning as a fire-and-forget call on message send in PhoenixChannelManager+AI.swift.
+### Details:
+For subscribeToAISuggestions, use PhoenixChannel to join the thread channel with appropriate parameters and set up event listeners for 'ai_suggestions' events, handling incoming suggestions by dispatching actions. For triggerStyleLearning, implement it as a fire-and-forget method that sends a message to the channel without waiting for a response, ensuring it integrates seamlessly with message sending logic.
+

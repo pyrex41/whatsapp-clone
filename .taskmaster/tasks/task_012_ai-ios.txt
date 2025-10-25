@@ -1,0 +1,25 @@
+# Task ID: 12
+# Title: Build SmartReplyComposerView
+# Status: pending
+# Dependencies: 1, 5, 10
+# Priority: high
+# Description: Create SmartReplyComposerView.swift to display suggestion chips inline above the composer.
+# Details:
+Use SwiftUI to render 1-3 chips with loading shimmer. Handle tap-to-insert. Include translation toggle. Position above text field as per PRD design.
+
+# Test Strategy:
+UI test tap interactions and loading states. Accessibility test with VoiceOver.
+
+# Subtasks:
+## 1. Implement Suggestion Chips Rendering with Loading Shimmer [pending]
+### Dependencies: None
+### Description: Create the UI components in SmartReplyComposerView to render 1-3 suggestion chips using SwiftUI, including a loading shimmer effect while suggestions are being fetched.
+### Details:
+Use SwiftUI's HStack or VStack to position chips horizontally above the text field. Implement a shimmer animation using SwiftUI's built-in effects or a custom modifier for the loading state. Ensure chips are styled according to PRD design with appropriate padding, colors, and fonts. Handle dynamic sizing based on content length.
+
+## 2. Add Chip Interaction Handling for Tap-to-Insert and Translation Toggle [pending]
+### Dependencies: 12.1
+### Description: Implement tap gestures on suggestion chips to insert content into the message composer and add a translation toggle button for each chip.
+### Details:
+Attach onTapGesture to each chip to append the suggestion content to the text field's binding. Include a toggle button per chip for translation, updating the view state accordingly. Ensure accessibility with proper labels and VoiceOver support. Record feedback asynchronously upon insertion as per Task 14 dependencies.
+

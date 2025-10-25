@@ -1,0 +1,43 @@
+# Task ID: 6
+# Title: Extend AppAction for AI Features
+# Status: pending
+# Dependencies: 5
+# Priority: high
+# Description: Add new cases to AppAction enum for smart replies, monitoring, translation, style profile, and insights.
+# Details:
+Update AppAction.swift with cases like fetchSmartReplies, smartRepliesReceived, aiSuggestionBroadcast, translateMessage, styleProfileUpdated, etc., matching PRD specifications.
+
+# Test Strategy:
+Unit test action creation and pattern matching.
+
+# Subtasks:
+## 1. Add Smart Replies Actions to AppAction Enum [pending]
+### Dependencies: None
+### Description: Add new cases to the AppAction enum specifically for smart replies functionality, including fetching and receiving suggestions.
+### Details:
+Update AppAction.swift to include cases such as fetchSmartReplies and smartRepliesReceived, ensuring they align with the PRD specifications for smart reply handling.
+
+## 2. Add Monitoring Actions to AppAction Enum [pending]
+### Dependencies: 6.1
+### Description: Add new cases to the AppAction enum for monitoring features, such as starting and stopping thread monitoring.
+### Details:
+Update AppAction.swift to include cases related to monitoring, like startMonitoring and stopMonitoring, matching the PRD requirements for per-thread monitoring toggles.
+
+## 3. Add Translation Actions to AppAction Enum [pending]
+### Dependencies: 6.2
+### Description: Add new cases to the AppAction enum for message translation features, including triggering translations.
+### Details:
+Update AppAction.swift to include cases such as translateMessage, ensuring they support translation preferences and message handling as per PRD.
+
+## 4. Add Style Profile Actions to AppAction Enum [pending]
+### Dependencies: 6.3
+### Description: Add new cases to the AppAction enum for style profile updates and related AI suggestions.
+### Details:
+Update AppAction.swift to include cases like styleProfileUpdated and aiSuggestionBroadcast, aligning with PRD for user style learning and suggestions.
+
+## 5. Add Insights Actions to AppAction Enum [pending]
+### Dependencies: 6.4
+### Description: Add new cases to the AppAction enum for AI insights, such as visibility toggles and thread-specific insights.
+### Details:
+Update AppAction.swift to include cases related to insights, like toggleInsightsVisible, ensuring they match PRD specifications for aiInsightsVisible and threadId handling.
+

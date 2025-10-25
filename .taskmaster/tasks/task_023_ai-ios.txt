@@ -1,0 +1,43 @@
+# Task ID: 23
+# Title: Subscribe to AI Suggestion Broadcasts
+# Status: pending
+# Dependencies: 8, 11
+# Priority: high
+# Description: Enable subscription to Phoenix AI events for active threads.
+# Details:
+In thread open, call ConversationMonitorService.startMonitoring. Handle broadcasts via PhoenixChannelManager.
+
+# Test Strategy:
+Integration test event subscription and handling.
+
+# Subtasks:
+## 1. Integrate ConversationMonitorService into Thread Opening [pending]
+### Dependencies: 23.8, 23.11
+### Description: Modify the thread opening logic to incorporate ConversationMonitorService for monitoring active threads.
+### Details:
+Locate the code responsible for opening threads and ensure ConversationMonitorService is accessible. Prepare the service for starting monitoring when a thread becomes active.
+
+## 2. Implement Call to startMonitoring on Thread Open [pending]
+### Dependencies: 23.1
+### Description: Add the call to ConversationMonitorService.startMonitoring when a thread is opened.
+### Details:
+In the thread open event handler, invoke startMonitoring method of ConversationMonitorService. Ensure this happens only for active threads and handle any potential errors gracefully.
+
+## 3. Set Up PhoenixChannelManager for Broadcast Handling [pending]
+### Dependencies: 23.2
+### Description: Configure PhoenixChannelManager to subscribe to and handle Phoenix AI event broadcasts.
+### Details:
+Initialize PhoenixChannelManager with the appropriate channel for AI suggestions. Set up event listeners to receive broadcasts when monitoring starts.
+
+## 4. Implement Broadcast Event Processing [pending]
+### Dependencies: 23.3
+### Description: Process incoming broadcasts from PhoenixChannelManager into usable AI suggestion data.
+### Details:
+Parse the broadcast messages to extract suggestion details such as content, confidence, and context. Map them to SmartReplySuggestion models for further use in the app.
+
+## 5. Integrate Processed Suggestions into UI [pending]
+### Dependencies: 23.4
+### Description: Update the user interface to display or utilize the processed AI suggestions from broadcasts.
+### Details:
+Connect the processed suggestions to the UI components, such as SuggestionChipView, ensuring they are shown proactively or on demand. Handle updates in real-time as broadcasts arrive.
+

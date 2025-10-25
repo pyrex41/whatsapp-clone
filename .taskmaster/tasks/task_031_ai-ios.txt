@@ -1,0 +1,108 @@
+# Task ID: 31
+# Title: Milestone: E2E Test Smart Reply MVP
+# Status: pending
+# Dependencies: 7, 16
+# Priority: medium
+# Description: Validate the full Smart Reply flow end-to-end: suggestions fetched on chat open, user taps a suggestion to insert into composer, and sending records feedback. Add deterministic integration tests with a mocked backend and a light UI test covering the happy path.
+# Details:
+What to build and verify
+- Scope: Smart Reply MVP only. On opening a thread, fetch suggestions from backend, render chips, tap to insert into composer, send message, and record feedback (accept/modify/reject).
+- Not in scope: proactive (real-time) suggestions and per-thread monitor toggle (Task 26).
+
+Codebase alignment and hooks
+- UI layer: Suggestions render above the composer in Chat view (`clients/ios/GlobalBridge/Features/Chat/ChatScreen.swift`) and use the existing composer (`clients/ios/GlobalBridge/Features/Chat/MessageComposerView.swift`).
+- State/actions: Use current `AppAction.composerTextChanged` and `AppAction.sendMessage` for composing/sending, or dispatch `AppAction.sendQuickReply(threadID:text:)` if the UI opts to send immediately.
+- Tests infra: Reuse `MockURLProtocol` and ephemeral `URLSession` pattern from `clients/ios/GlobalBridge/Tests/FeatureFlags/FeatureFlagsServiceTests.swift:23` and class `MockURLProtocol` at `clients/ios/GlobalBridge/Tests/FeatureFlags/FeatureFlagsServiceTests.swift:428`.
+- Accessibility: Add identifiers so UI tests are reliable: set `.accessibilityIdentifier("ChatView")` on the Chat root, a container id `.accessibilityIdentifier("SmartReplyBar")`, each chip `.accessibilityIdentifier("SmartReplyChip-<index>")`, the composer text field `.accessibilityIdentifier("ComposerTextField")`, and send button `.accessibilityIdentifier("ComposerSendButton")`.
+
+Manual test script (primary acceptance)
+1) Launch app, open an existing thread. Confirm a Smart Reply bar appears with 2–3 chips within 1.5s of view appear.
+2) Tap the first chip. Composer populates exactly with chip text; caret at end; chips hide or remain per design.
+3) Tap Send. Message appears immediately (optimistic). Feedback is recorded as decision=accepted with suggestionId; no modifiedContent.
+4) Modify flow: tap a chip, append text, send. Feedback recorded as decision=modified with modifiedContent.
+5) Error paths: simulate offline via `NetworkMonitor.shared.simulateOffline()` (DEBUG) and confirm a non-blocking error state on the Smart Reply bar with a retry button; normal sending still works.
+6) Cache behavior: navigate away and back within 60s; bar repopulates using cache instantly, with background refresh deferred.
+
+Integration tests (XCTest, mocked backend)
+- Location: add `clients/ios/GlobalBridge/Tests/AI/SmartReply/SmartReplyServiceTests.swift` and `.../SmartReplyIntegrationTests.swift`.
+- Session mocking: use
+  ```swift
+  let cfg = URLSessionConfiguration.ephemeral
+  cfg.protocolClasses = [MockURLProtocol.self]
+  let session = URLSession(configuration: cfg)
+  let service = SmartReplyService(baseURL: FeatureFlagsService.defaultBaseURL,
+                                  session: session,
+                                  authManager: mockAuth,
+                                  cacheTTL: 60,
+                                  clock: mockClock)
+  ```
+- Suggest replies stub:
+  ```json
+  {"data":{"suggestions":[
+    {"id":"s1","text":"Sounds good."},
+    {"id":"s2","text":"Let’s do it."},
+    {"id":"s3","text":"I’ll get back to you."}
+  ]}}
+  ```
+  Verify: POST /api/v1/ai/suggest_replies with threadId, lastMessage; Authorization header present; Accept/Content-Type headers = application/json.
+- Caching: First call returns network result; second call within 60s returns cached result (no new network hit). Advance `mockClock` >60s to force refresh.
+- Feedback recording stub: intercept POST /api/v1/ai/record_feedback. Validate JSON body contains `suggestionId`, `decision` (accepted|modified|rejected), `threadId`, optional `modifiedContent`, and timing metadata (latencyMs/timeToAcceptMs if present). Return 200 and ensure service resolves successfully.
+- Error mapping: 401 → unauthorized, 429 → rateLimited(retryAfter), 5xx → backendError, invalid JSON → decodingError. Verify typed errors.
+
+UI test (XCUITest, happy path)
+- Location: add `clients/ios/GlobalBridge/Tests/UI/SmartReplyUITests.swift`.
+- Pattern: follow `MessageBubbleUITests.swift` for setup. Use launch arg "UI-Testing".
+- Flow: open chat (`app.otherElements["ChatView"]`), wait for `"SmartReplyBar"`, tap `"SmartReplyChip-0"`, assert `"ComposerTextField"` contains the chip text, tap `"ComposerSendButton"`, and assert a new outbound message bubble appears with that text.
+
+Best-practice implementation notes
+- Determinism: inject a `Clock`/`DateProvider` into `SmartReplyService` to test TTL precisely; avoid sleeping.
+- Isolation: prefer protocol-driven DI (`SmartReplyServiceProtocol` or extend `AIServiceProtocol`) so UI can be previewed with an in-memory mock.
+- Resilience: debounce re-fetch on rapid thread switches; guard against duplicate taps; clamp chip count to 3.
+- Telemetry: log accept/modify/reject with OSLog (privacy .private) in DEBUG only.
+- Accessibility: ensure chips have readable labels and hit targets ≥44pt; VoiceOver reads chip text and “double tap to insert”.
+
+Artifacts to add
+- Test files: `.../Tests/AI/SmartReply/SmartReplyServiceTests.swift`, `.../Tests/AI/SmartReply/SmartReplyIntegrationTests.swift`, `.../Tests/UI/SmartReplyUITests.swift`.
+- Minimal UI identifiers updates in `ChatScreen.swift` and `MessageComposerView.swift`.
+- Optional: `SmartReplyBarView.swift` + `SuggestionChipView.swift` (if not already present) with identifiers as noted.
+
+
+# Test Strategy:
+Unit/Integration (XCTest)
+- Fetch success: service returns 3 suggestions; assert decoding, order, and non-empty ids/text.
+- Caching TTL: first fetch hits network; second within 60s is cache; after advancing mock clock >60s, network called again.
+- Feedback accepted: tap path leads to POST /api/v1/ai/record_feedback with decision=accepted and correct suggestionId.
+- Feedback modified: modify composer before send; expect decision=modified with modifiedContent present.
+- Feedback rejected: simulate chip swipe-to-dismiss; expect decision=rejected with optional reason field.
+- Headers/auth: Authorization and JSON headers present on both endpoints.
+- Error mapping: assert 401→unauthorized, 429→rateLimited(retryAfter), 5xx→backendError, bad JSON→decodingError.
+
+UI (XCUITest)
+- Happy path: open chat → wait for SmartReplyBar → tap chip → composer fills → send → new message bubble appears.
+- No suggestions state: backend returns empty array → bar hidden or shows placeholder; ensure no layout jank.
+- Offline: simulate offline via DEBUG hook; bar shows retry affordance; composer send still works for typed text.
+- Accessibility: VoiceOver labels on chips and bar; ensure chips are hittable and visible with large text sizes.
+
+How to run
+- Scheme: run `GlobalBridgeTests` and `GlobalBridgeUITests` in Xcode. From CLI, use `xcodebuild test -scheme GlobalBridge -destination 'platform=iOS Simulator,name=iPhone 15'` with appropriate test targets.
+
+
+# Subtasks:
+## 1. Implement Unit and Integration Tests for Smart Reply Service [pending]
+### Dependencies: None
+### Description: Create unit tests for SmartReplyService and integration tests with mocked backend to validate fetching suggestions, caching, feedback recording, and error handling.
+### Details:
+Add SmartReplyServiceTests.swift and SmartReplyIntegrationTests.swift in clients/ios/GlobalBridge/Tests/AI/SmartReply/. Use MockURLProtocol and ephemeral URLSession for mocking. Test suggestion fetching with JSON stubs, caching TTL with mock clock, feedback POST validation, and error mappings. Ensure determinism with injected Clock.
+
+## 2. Develop UI Tests for Smart Reply Happy Path [pending]
+### Dependencies: 31.1
+### Description: Implement XCUITest for the happy path of Smart Reply flow, including opening chat, tapping chips, inserting into composer, and sending messages.
+### Details:
+Add SmartReplyUITests.swift in clients/ios/GlobalBridge/Tests/UI/. Follow MessageBubbleUITests pattern with launch arg 'UI-Testing'. Use accessibility identifiers like 'ChatView', 'SmartReplyBar', 'SmartReplyChip-0', 'ComposerTextField', 'ComposerSendButton'. Assert chip tap populates composer, send adds message bubble.
+
+## 3. Validate Manual Test Script for Smart Reply MVP [pending]
+### Dependencies: 31.1, 31.2
+### Description: Execute and validate the manual test script covering suggestion appearance, chip tapping, sending, feedback recording, error paths, and caching behavior.
+### Details:
+Perform manual testing: launch app, open thread, check Smart Reply bar with chips, tap chip to populate composer, send and verify feedback. Test modify flow, offline errors with retry, and cache repopulation. Use NetworkMonitor.shared.simulateOffline() for errors. Ensure all steps match the script and record results.
+

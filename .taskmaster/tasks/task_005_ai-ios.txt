@@ -1,0 +1,43 @@
+# Task ID: 5
+# Title: Extend AppState for AI Features
+# Status: pending
+# Dependencies: 1, 2, 3, 4
+# Priority: high
+# Description: Add new properties to AppState for smart reply suggestions, loading states, errors, style profile, translation preferences, and monitoring.
+# Details:
+Update AppState.swift to include dictionaries for suggestions, loading, errors; optional UserStyleProfile; TranslationPreferences; messageTranslations; monitoredThreads; aiInsightsVisible and threadId.
+
+# Test Strategy:
+Unit test state initialization and equality checks. Integration test with reducer.
+
+# Subtasks:
+## 1. Add suggestion dictionaries to AppState [pending]
+### Dependencies: None
+### Description: Incorporate dictionaries for storing smart reply suggestions in AppState.
+### Details:
+Update AppState.swift to include a dictionary property for suggestions, keyed by thread ID, to hold arrays of suggestion strings or objects.
+
+## 2. Add loading and error states to AppState [pending]
+### Dependencies: 5.1
+### Description: Include dictionaries for loading states and errors related to AI features in AppState.
+### Details:
+Extend AppState.swift with dictionaries for loading (e.g., keyed by operation ID) and errors (e.g., keyed by thread or operation), ensuring they integrate with existing state structure.
+
+## 3. Integrate UserStyleProfile into AppState [pending]
+### Dependencies: 5.2
+### Description: Add an optional UserStyleProfile property to AppState for user style preferences.
+### Details:
+Modify AppState.swift to include an optional UserStyleProfile instance, ensuring it conforms to the existing state model and can be updated via actions.
+
+## 4. Add TranslationPreferences and messageTranslations to AppState [pending]
+### Dependencies: 5.3
+### Description: Incorporate TranslationPreferences and a dictionary for message translations in AppState.
+### Details:
+Update AppState.swift to add TranslationPreferences struct and a messageTranslations dictionary, keyed by message ID, for storing translated text.
+
+## 5. Add monitoring properties to AppState [pending]
+### Dependencies: 5.4
+### Description: Include monitoredThreads, aiInsightsVisible, and threadId properties in AppState.
+### Details:
+Finalize AppState.swift by adding an array or set for monitoredThreads, a boolean for aiInsightsVisible, and a string for threadId, ensuring all new properties work together.
+

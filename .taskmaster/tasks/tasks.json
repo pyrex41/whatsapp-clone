@@ -8497,21 +8497,31 @@
         "subtasks": [
           {
             "id": 1,
-            "title": "Implement fetchSuggestions method with caching",
-            "description": "Create the async fetchSuggestions method that calls POST /api/v1/ai/suggest_replies and includes caching with 60s TTL.",
-            "dependencies": [],
-            "details": "Implement the fetchSuggestions async method in SmartReplyService.swift. It should make a POST request to /api/v1/ai/suggest_replies, handle the response, and cache results for 60 seconds to avoid repeated calls. Ensure proper error handling using AIServiceError.",
+            "title": "Implement fetchSuggestions API with 60s TTL cache and AIServiceError mapping",
+            "description": "Build SmartReplyService.fetchSuggestions to POST to /api/v1/ai/suggest_replies, return decoded suggestions, apply in-memory caching with a 60-second TTL, and map failures to AIServiceError.",
+            "dependencies": [
+              1,
+              2,
+              5,
+              6
+            ],
+            "details": "Create SmartReplyService.swift (protocol + concrete). Add async func fetchSuggestions(conversationId:String, messages:[Message], limit:Int?) -> [SmartReplySuggestion]. Before requesting, check an in-memory cache keyed by (conversationId, lastMessageId/hash, limit, locale). If a non-expired CacheEntry(expiry: Date, value: [SmartReplySuggestion]) exists, return it. Otherwise, build URLRequest to POST /api/v1/ai/suggest_replies with JSON body {conversationId, messages, limit}. Use injected HTTP client and JSONEncoder/Decoder. On 2xx, decode suggestions, write to cache with expiry = now + 60s, then return. Map network/HTTP errors and decoding problems to AIServiceError (.network, .timeout, .unauthorized, .rateLimited, .server, .decoding, .unknown). Ensure cache is thread-safe (actor or serial queue) and support Task cancellation.",
             "status": "pending",
-            "testStrategy": "Unit test the API call with mock responses and verify caching behavior with TTL."
+            "testStrategy": "Unit: mock HTTP client to verify path/body, decode result, cache hit/miss, TTL expiry, and AIServiceError mapping for 401/429/500/decoding. Inject a FakeClock/DateProvider to advance time. Integration: exercise cache across consecutive calls to confirm no duplicate network hits within 60s."
           },
           {
             "id": 2,
-            "title": "Implement recordFeedback method and error handling",
-            "description": "Add the recordFeedback method to call POST /api/v1/ai/record_feedback and integrate comprehensive error handling.",
-            "dependencies": [],
-            "details": "Implement the recordFeedback method in SmartReplyService.swift to send feedback via POST /api/v1/ai/record_feedback. Ensure all methods in the service handle errors appropriately using AIServiceError, including network failures and invalid responses.",
+            "title": "Implement recordFeedback API with robust payload and error handling",
+            "description": "Build SmartReplyService.recordFeedback to POST to /api/v1/ai/record_feedback, supporting accepted, rejected (with reason), and modified (with modifiedContent) events, with AIServiceError mapping.",
+            "dependencies": [
+              1,
+              2,
+              5,
+              6
+            ],
+            "details": "Add async func recordFeedback(conversationId:String, suggestionId:String, action: FeedbackAction, reason:String? = nil, modifiedContent:String? = nil) -> Void. Construct JSON payload {conversationId, suggestionId, action, reason?, modifiedContent?} and POST to /api/v1/ai/record_feedback via injected HTTP client. Include optional idempotency header (stable UUID from conversationId+suggestionId+action+modifiedContent) to avoid duplicates. Treat non-2xx as failures and map to AIServiceError (.unauthorized for 401, .rateLimited for 429, .badRequest for 400, .server for 5xx, .network/.timeout for connectivity, .unknown otherwise). Do not cache. Ensure method is cancellable, log non-fatal errors as needed, and keep types internal DTOs separate from domain models.",
             "status": "pending",
-            "testStrategy": "Unit test feedback recording with mocks and integration test error handling scenarios."
+            "testStrategy": "Unit: verify correct endpoint, headers, and JSON for accepted/rejected(with reason)/modified(with modifiedContent). Assert no caching. Simulate 400/401/429/500/timeouts and assert AIServiceError mapping. Integration: ensure compatibility with Task 16/21 call sites using a stub transport."
           }
         ]
       },

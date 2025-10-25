@@ -1,0 +1,43 @@
+# Task ID: 3
+# Title: Create TranslationPreferences Model
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Define the TranslationPreferences struct with properties for preferredLanguage, autoTranslateEnabled, contactOverrides, and threadOverrides.
+# Details:
+Implement TranslationPreferences.swift with Codable. Include static default property. Use String for language codes, Bool for toggles, dictionaries for overrides.
+
+# Test Strategy:
+Unit test default initialization and override logic. Verify dictionary handling.
+
+# Subtasks:
+## 1. Create TranslationPreferences.swift file [pending]
+### Dependencies: None
+### Description: Create a new Swift file named TranslationPreferences.swift in the project's Models directory to house the TranslationPreferences struct.
+### Details:
+Ensure the file is created in the correct location within the project structure, following the naming conventions and folder organization used in the codebase.
+
+## 2. Define basic properties in TranslationPreferences struct [pending]
+### Dependencies: 3.1
+### Description: Define the TranslationPreferences struct with initial properties: preferredLanguage as String and autoTranslateEnabled as Bool.
+### Details:
+Add the struct declaration and these two properties inside the file. Use appropriate access levels (e.g., public or internal) based on the project's needs.
+
+## 3. Add override dictionaries to TranslationPreferences [pending]
+### Dependencies: 3.2
+### Description: Add contactOverrides and threadOverrides properties as dictionaries, using [String: Bool] for override mappings.
+### Details:
+Extend the struct to include these dictionary properties, allowing for custom translation settings per contact or thread, with String keys representing identifiers and Bool values for enable/disable states.
+
+## 4. Implement Codable conformance for TranslationPreferences [pending]
+### Dependencies: 3.3
+### Description: Make the TranslationPreferences struct conform to the Codable protocol to enable JSON encoding and decoding.
+### Details:
+Add the Codable conformance to the struct declaration. Ensure all properties are compatible with Codable; no additional coding keys are needed if property names match JSON keys.
+
+## 5. Add static default property to TranslationPreferences [pending]
+### Dependencies: 3.4
+### Description: Add a static default property to the TranslationPreferences struct, providing sensible default values for all properties.
+### Details:
+Define a static let default = TranslationPreferences(preferredLanguage: "en", autoTranslateEnabled: true, contactOverrides: [:], threadOverrides: [:]) or similar, ensuring the struct can be initialized with defaults for easy use.
+

@@ -1,0 +1,43 @@
+# Task ID: 26
+# Title: Per-Thread Monitoring Toggle
+# Status: pending
+# Dependencies: 5, 23
+# Priority: medium
+# Description: Add setting to enable/disable monitoring per thread.
+# Details:
+In thread settings, toggle to start/stop monitoring. Persist in AppState.monitoredThreads.
+
+# Test Strategy:
+UI test toggle. Integration test state update.
+
+# Subtasks:
+## 1. Add Toggle UI to Thread Settings [pending]
+### Dependencies: None
+### Description: Implement a SwiftUI Toggle component in the thread settings view to allow users to enable or disable monitoring for individual threads.
+### Details:
+Locate the thread settings view (assuming it exists from prior tasks like 23), and add a Toggle view labeled 'Enable Monitoring' or similar. Bind it to a local state variable for the thread's monitoring status.
+
+## 2. Implement Toggle Action Logic [pending]
+### Dependencies: 26.1
+### Description: Add logic to the toggle action that starts or stops monitoring the thread based on the toggle state.
+### Details:
+In the toggle's action closure, check the toggle's state: if true, call a function to start monitoring (e.g., add to monitored list and initiate monitoring process); if false, stop monitoring and remove from list. Ensure this interacts with the app's monitoring system.
+
+## 3. Update AppState for Monitored Threads [pending]
+### Dependencies: 26.2
+### Description: Modify the AppState to reflect changes in monitored threads when the toggle is switched.
+### Details:
+Dispatch an action to the reducer to update AppState.monitoredThreads (added in Task 5). Add the thread ID to the monitored list if enabled, remove if disabled. Ensure the state persists across app sessions if needed.
+
+## 4. Bind Toggle to AppState [pending]
+### Dependencies: 26.3
+### Description: Connect the toggle's state to the AppState so it reflects the current monitoring status and updates accordingly.
+### Details:
+Use a binding or observed object to link the toggle to AppState.monitoredThreads. On view load, set the toggle based on whether the thread is in the monitored list. Ensure changes propagate back to state.
+
+## 5. Test Per-Thread Monitoring Toggle [pending]
+### Dependencies: 26.4
+### Description: Conduct comprehensive testing of the toggle feature including UI interactions and state persistence.
+### Details:
+Perform UI tests for toggle visibility and interaction, unit tests for logic, and integration tests for state updates. Verify that monitoring starts/stops as expected and persists in AppState.
+

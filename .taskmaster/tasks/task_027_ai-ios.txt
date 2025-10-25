@@ -1,0 +1,11 @@
+# Task ID: 27
+# Title: Build TranslationBubbleView
+# Status: deferred
+# Dependencies: 9
+# Priority: low
+# Description: Create TranslationBubbleView.swift for overlaying translations below messages.
+# Details:
+Use SwiftUI to show original and translated text with toggle. Include confidence badge if <80%. Fade-in animation.
+
+# Test Strategy:
+UI test toggle and animations. Accessibility test.

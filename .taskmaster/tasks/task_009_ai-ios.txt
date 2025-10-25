@@ -1,0 +1,25 @@
+# Task ID: 9
+# Title: Implement SmartTranslationService
+# Status: pending
+# Dependencies: 3, 5, 6
+# Priority: low
+# Description: Create SmartTranslationService.swift for translating messages and managing preferences.
+# Details:
+Implement translateMessage and batchTranslateSuggestions async methods calling POST /api/v1/ai/translate. Include caching with 3600s TTL. Handle preferences and auto-detect logic. Note: This is Phase 4, not needed for MVP smart reply feature.
+
+# Test Strategy:
+Unit test translation logic and caching. Integration test with backend.
+
+# Subtasks:
+## 1. Implement Translation Methods [pending]
+### Dependencies: None
+### Description: Develop the translateMessage and batchTranslateSuggestions async methods in SmartTranslationService.swift to handle message translation via POST /api/v1/ai/translate API calls, including caching with 3600s TTL.
+### Details:
+Create async functions for translateMessage (single message translation) and batchTranslateSuggestions (batch translation). Integrate API calls to POST /api/v1/ai/translate, implement caching mechanism with 3600 seconds TTL to avoid redundant requests, and ensure proper error handling for network issues.
+
+## 2. Handle Preferences and Auto-Detect Logic [pending]
+### Dependencies: 9.1
+### Description: Implement preference management and auto-detect logic in SmartTranslationService.swift for user settings and automatic language detection during translations.
+### Details:
+Add logic to manage user preferences for translation settings, such as preferred languages or auto-detect options. Integrate auto-detect functionality to identify source language before translation, ensuring it works seamlessly with the translation methods. Store preferences locally or via user settings.
+

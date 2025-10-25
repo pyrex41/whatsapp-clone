@@ -1,0 +1,11 @@
+# Task ID: 29
+# Title: Build TranslationPreferencesView
+# Status: deferred
+# Dependencies: 3, 5
+# Priority: low
+# Description: Create settings view for managing translation preferences.
+# Details:
+Use SwiftUI to set preferredLanguage, autoTranslateEnabled, contactOverrides, threadOverrides.
+
+# Test Strategy:
+UI test preference updates. Unit test storage.

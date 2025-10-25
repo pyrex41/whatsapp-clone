@@ -1,0 +1,43 @@
+# Task ID: 22
+# Title: Add Learning Indicator
+# Status: pending
+# Dependencies: 18
+# Priority: low
+# Description: Display indicator when style learning is active.
+# Details:
+In composer or settings, show 'Learning from your messages' text or icon when enabled.
+
+# Test Strategy:
+UI test visibility toggle.
+
+# Subtasks:
+## 1. Design the Learning Indicator UI Element [pending]
+### Dependencies: None
+### Description: Create a design specification for the 'Learning from your messages' indicator, deciding whether to use text, an icon, or both, and define its visual style.
+### Details:
+Research and decide on the indicator's appearance, such as a subtle text label or an icon (e.g., a brain or learning symbol). Ensure it fits the app's design language and is non-intrusive. Document the design in a mockup or specification.
+
+## 2. Determine Indicator Placement Location [pending]
+### Dependencies: 22.1
+### Description: Evaluate and select the optimal location for displaying the learning indicator, either in the composer or settings area.
+### Details:
+Analyze the user interface to choose between the composer (where messages are typed) or the settings screen. Consider user visibility, context, and minimal disruption. Update the design spec with the chosen location.
+
+## 3. Implement the Indicator UI Component [pending]
+### Dependencies: 22.2
+### Description: Develop the UI component for the learning indicator using the chosen design and location.
+### Details:
+In the relevant SwiftUI or UIKit file, add a view or component that displays the indicator. Use conditional rendering based on a state variable. Ensure it integrates seamlessly with existing UI elements in the selected location.
+
+## 4. Integrate Indicator with Style Learning State [pending]
+### Dependencies: 22.3
+### Description: Connect the indicator's visibility to the active state of style learning functionality.
+### Details:
+Bind the indicator's show/hide logic to a state variable that reflects whether style learning is enabled. This likely involves observing a property from the UserStyleProfile or a similar model, ensuring it updates in real-time when learning toggles on or off.
+
+## 5. Add UI Tests for Indicator Visibility [pending]
+### Dependencies: 22.4
+### Description: Implement tests to ensure the indicator toggles correctly based on the learning state.
+### Details:
+Write UI tests using XCTest or similar framework to check visibility in the composer or settings. Test both enabled and disabled states, and verify the indicator's position and appearance match the design.
+

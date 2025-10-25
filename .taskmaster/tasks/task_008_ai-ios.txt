@@ -1,0 +1,19 @@
+# Task ID: 8
+# Title: Implement ConversationMonitorService
+# Status: pending
+# Dependencies: 1, 5, 6
+# Priority: medium
+# Description: Create ConversationMonitorService.swift to subscribe to Phoenix events and handle AI suggestion broadcasts. Note: This is Phase 3 (after MVP) for real-time proactive suggestions - not needed for basic smart reply MVP.
+# Details:
+Implement startMonitoring and stopMonitoring methods. Handle {:ai_suggestions, suggestions} events. Maintain sliding window of last 20 messages. Dispatch to UI via actions.
+
+# Test Strategy:
+Unit test event handling. Integration test with PhoenixChannelManager.
+
+# Subtasks:
+## 1. Implement Event Handling and Sliding Window Logic [pending]
+### Dependencies: None
+### Description: Develop the core logic for handling Phoenix events, specifically the {:ai_suggestions, suggestions} events, and maintaining a sliding window of the last 20 messages in ConversationMonitorService.swift.
+### Details:
+Implement methods to subscribe to Phoenix events using PhoenixChannelManager. Handle incoming {:ai_suggestions, suggestions} events by updating the sliding window of messages (limit to 20). Ensure the window slides correctly by adding new messages and removing old ones. Dispatch actions to the UI for real-time updates. Integrate with startMonitoring and stopMonitoring methods to control event subscription.
+

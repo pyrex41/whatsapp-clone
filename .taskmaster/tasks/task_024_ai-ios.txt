@@ -1,0 +1,43 @@
+# Task ID: 24
+# Title: Visual Distinction for Proactive Suggestions
+# Status: pending
+# Dependencies: 13
+# Priority: medium
+# Description: Differentiate proactive suggestions with icon or color in SuggestionChipView.
+# Details:
+Check isProactive, apply different style (e.g., blue tint for proactive).
+
+# Test Strategy:
+UI test visual differences.
+
+# Subtasks:
+## 1. Review SuggestionChipView Implementation [pending]
+### Dependencies: 24.13
+### Description: Examine the existing SuggestionChipView.swift to understand its current structure, including how chips are rendered and styled.
+### Details:
+Open SuggestionChipView.swift and review the code for chip rendering, styling, and any existing properties. Ensure familiarity with the view's layout and current visual elements to prepare for adding proactive distinction.
+
+## 2. Add isProactive Property to SuggestionChipView [pending]
+### Dependencies: 24.1
+### Description: Introduce an isProactive boolean property to the SuggestionChipView to indicate if the suggestion is proactive.
+### Details:
+Modify SuggestionChipView.swift to include a new @State or parameter property named isProactive of type Bool. This will be used to conditionally apply different visual styles. Ensure the property is initialized appropriately in the view's initializer or body.
+
+## 3. Define Visual Styles for Proactive and Non-Proactive Chips [pending]
+### Dependencies: 24.2
+### Description: Create style definitions for differentiating proactive suggestions, such as a blue tint or specific icon.
+### Details:
+In SuggestionChipView.swift, define constants or computed properties for background color, border, or icon based on the isProactive flag. For example, use a blue tint (e.g., Color.blue.opacity(0.2)) for proactive chips and a default style for others. Optionally, add a small icon like a lightbulb for proactive suggestions.
+
+## 4. Implement Conditional Styling Logic [pending]
+### Dependencies: 24.3
+### Description: Apply the defined styles conditionally based on the isProactive property in the chip's rendering.
+### Details:
+Update the body of SuggestionChipView to use conditional modifiers. For instance, apply .background(isProactive ? proactiveBackground : defaultBackground) and add an icon overlay if isProactive. Ensure the logic integrates seamlessly with existing chip styling without breaking other features.
+
+## 5. Integrate and Test Visual Distinction in UI [pending]
+### Dependencies: 24.4
+### Description: Integrate the changes into the app's UI and perform end-to-end testing for visual differences.
+### Details:
+Run the app and navigate to where SuggestionChipView is used. Test various scenarios: proactive and non-proactive chips side by side. Confirm the blue tint or icon appears only for proactive suggestions. Adjust styling if needed for better distinction and accessibility.
+

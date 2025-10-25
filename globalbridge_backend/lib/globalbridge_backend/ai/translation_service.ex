@@ -117,33 +117,39 @@ defmodule GlobalbridgeBackend.AI.TranslationService do
   defp perform_batch_translation(texts, source_lang, target_lang, cache_key, cache_ttl) do
     start_time = System.monotonic_time(:millisecond)
 
-    # Build prompt for batch translation
-    prompt = build_batch_translation_prompt(texts, source_lang, target_lang)
+    try do
+      # Build prompt for batch translation
+      prompt = build_batch_translation_prompt(texts, source_lang, target_lang)
 
-    # Use translation model (fast Groq model)
-    model = System.get_env("TRANSLATION_MODEL") || "llama-3.1-70b-versatile"
+      # Use translation model (fast Groq model)
+      model = System.get_env("TRANSLATION_MODEL") || "llama-3.1-70b-versatile"
 
-    case OpenAIServing.generate_completion(prompt, model) do
-      {:ok, response} ->
-        translations = parse_batch_translations(response, length(texts))
+      case OpenAIServing.generate_completion(prompt, model) do
+        {:ok, response} ->
+          translations = parse_batch_translations(response, length(texts))
 
-        # Validate we got all translations
-        if length(translations) == length(texts) do
-          # Cache for reuse
-          Cache.put(cache_key, translations, ttl: cache_ttl)
+          # Validate we got all translations
+          if length(translations) == length(texts) do
+            # Cache for reuse
+            Cache.put(cache_key, translations, ttl: cache_ttl)
 
-          elapsed = System.monotonic_time(:millisecond) - start_time
-          Logger.info("Batch translated #{length(texts)} texts in #{elapsed}ms (#{source_lang}→#{target_lang})")
+            elapsed = System.monotonic_time(:millisecond) - start_time
+            Logger.info("Batch translated #{length(texts)} texts in #{elapsed}ms (#{source_lang}→#{target_lang})")
 
-          {:ok, translations}
-        else
-          Logger.error("Translation count mismatch: expected #{length(texts)}, got #{length(translations)}")
-          {:error, "Translation count mismatch"}
-        end
+            {:ok, translations}
+          else
+            Logger.error("Translation count mismatch: expected #{length(texts)}, got #{length(translations)}")
+            {:error, "Translation count mismatch"}
+          end
 
-      {:error, reason} ->
-        Logger.error("Batch translation failed: #{inspect(reason)}")
-        {:error, reason}
+        {:error, reason} ->
+          Logger.error("Batch translation failed: #{inspect(reason)}")
+          {:error, reason}
+      end
+    rescue
+      error ->
+        Logger.error("Translation error: #{inspect(error)}")
+        {:error, error}
     end
   end
 

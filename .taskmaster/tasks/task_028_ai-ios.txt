@@ -1,0 +1,11 @@
+# Task ID: 28
+# Title: Implement Auto-Translate on Message Receive
+# Status: deferred
+# Dependencies: 9, 27
+# Priority: low
+# Description: Auto-detect language and translate if needed using SmartTranslationService.
+# Details:
+On message receive, check shouldAutoTranslate. Call translateMessage if true. Display in TranslationBubbleView.
+
+# Test Strategy:
+Integration test detection and translation. Unit test preference logic.

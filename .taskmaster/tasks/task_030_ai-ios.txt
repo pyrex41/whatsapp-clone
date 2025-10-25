@@ -1,0 +1,11 @@
+# Task ID: 30
+# Title: Implement Batch Translate for Suggestions
+# Status: deferred
+# Dependencies: 9, 7
+# Priority: low
+# Description: Translate multiple suggestions in one API call.
+# Details:
+In SmartTranslationService, implement batchTranslateSuggestions calling POST /api/v1/ai/translate with array. Cache results.
+
+# Test Strategy:
+Unit test batch logic. Integration test API call.

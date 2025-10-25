@@ -1,0 +1,43 @@
+# Task ID: 21
+# Title: Implement Suggestion Modification Tracking
+# Status: pending
+# Dependencies: 16
+# Priority: medium
+# Description: Record when user modifies a suggestion before sending.
+# Details:
+Compare original content to sent message. If modified, record in feedback with modifiedContent.
+
+# Test Strategy:
+Unit test modification detection. Integration test recording.
+
+# Subtasks:
+## 1. Define Modification Detection Data Structures [pending]
+### Dependencies: 21.16
+### Description: Create data models and structures to hold original suggestion content and compare it with the modified version before sending.
+### Details:
+Implement structs or classes in Swift to represent suggestion data, including original content, modified content, and a flag for modification status. Ensure compatibility with existing feedback recording structures from Task 16.
+
+## 2. Implement Content Comparison Logic [pending]
+### Dependencies: 21.1
+### Description: Develop a function to compare the original suggestion text with the user-modified text to detect if any changes were made.
+### Details:
+Write a Swift function that performs string comparison, possibly using diff algorithms or simple equality checks, to identify modifications. Handle cases like whitespace changes, punctuation, and partial edits. Return a boolean indicating if modified, and optionally the diff.
+
+## 3. Integrate Modification Detection into Message Sending Flow [pending]
+### Dependencies: 21.2
+### Description: Hook the comparison logic into the UI flow where users send messages, specifically when sending a modified suggestion.
+### Details:
+Modify the message sending handler in the relevant view controller or service to call the comparison logic before sending. Capture the original suggestion and the final message content. Ensure this integrates seamlessly with the existing send message functionality.
+
+## 4. Record Modified Content in Feedback [pending]
+### Dependencies: 21.3
+### Description: When a modification is detected, prepare and record the feedback including the modified content using the SmartReplyService.
+### Details:
+Upon detection of modification, construct the feedback payload with the modifiedContent field as specified. Call SmartReplyService.recordFeedback asynchronously. Handle any errors gracefully and ensure the recording does not block the message sending process.
+
+## 5. Add Logging and Edge Case Handling [pending]
+### Dependencies: 21.4
+### Description: Implement logging for modification events and handle edge cases such as empty suggestions or network failures during feedback recording.
+### Details:
+Add logging statements to track when modifications are detected and recorded. Implement fallback logic for cases where feedback recording fails, ensuring the message still sends. Consider privacy implications and avoid logging sensitive content.
+

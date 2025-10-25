@@ -1,0 +1,19 @@
+# Task ID: 16
+# Title: Implement Feedback Recording
+# Status: pending
+# Dependencies: 7, 13, 14
+# Priority: high
+# Description: Add logic to record acceptance, rejection, and modification of suggestions.
+# Details:
+On tap: record accepted. On swipe: record rejected with optional reason. On modify: record modified content. Use SmartReplyService.recordFeedback.
+
+# Test Strategy:
+Unit test feedback logic. Integration test API calls.
+
+# Subtasks:
+## 1. Implement Feedback Recording for Acceptance, Rejection, and Modification [pending]
+### Dependencies: None
+### Description: Add logic to handle recording of feedback for accepted, rejected, and modified suggestions using SmartReplyService.recordFeedback. This includes on-tap acceptance, on-swipe rejection with optional reason, and on-modify recording of modified content.
+### Details:
+Integrate feedback recording into the UI interactions: for tap events, call SmartReplyService.recordFeedback with accepted status; for swipe events, record rejected with optional reason; for modify events, compare and record modified content. Ensure proper error handling and integration with existing services.
+

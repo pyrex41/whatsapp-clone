@@ -1,0 +1,25 @@
+# Task ID: 10
+# Title: Update AppReducer for AI Logic
+# Status: pending
+# Dependencies: 5, 6, 7
+# Priority: high
+# Description: Add reducer logic in AppReducer.swift for handling SmartReply actions like fetching suggestions and updating state.
+# Details:
+Implement cases for fetchSmartReplies, smartRepliesReceived, etc. Use .run for async operations. Ensure state updates correctly, e.g., setting loading states.
+
+# Test Strategy:
+Unit test reducer functions. Integration test state transitions.
+
+# Subtasks:
+## 1. AppReducer for Monitoring actions [pending]
+### Dependencies: None
+### Description: Add reducer logic in AppReducer.swift for handling Monitoring actions.
+### Details:
+Implement cases for monitoring related actions. Use .run for async operations. Ensure state updates correctly.
+
+## 2. AppReducer for Translation actions [pending]
+### Dependencies: None
+### Description: Add reducer logic in AppReducer.swift for handling Translation actions.
+### Details:
+Implement cases for translation related actions. Use .run for async operations. Ensure state updates correctly.
+

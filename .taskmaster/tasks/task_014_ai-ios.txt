@@ -1,0 +1,43 @@
+# Task ID: 14
+# Title: Implement Tap-to-Insert Behavior
+# Status: pending
+# Dependencies: 12, 13, 7
+# Priority: high
+# Description: Add logic to insert tapped suggestion into the message composer.
+# Details:
+In SmartReplyComposerView, on chip tap, append content to text field. Record acceptance feedback asynchronously.
+
+# Test Strategy:
+UI test insertion. Integration test feedback recording.
+
+# Subtasks:
+## 1. Add Tap Gesture Recognizer to Suggestion Chips [pending]
+### Dependencies: None
+### Description: Implement a tap gesture recognizer for the suggestion chips in SmartReplyComposerView to detect user taps.
+### Details:
+In SmartReplyComposerView, add a UITapGestureRecognizer to each suggestion chip view. Ensure the recognizer is properly configured to handle single taps and is not conflicting with other gestures. This will trigger the insertion logic when a chip is tapped.
+
+## 2. Implement Text Insertion Method [pending]
+### Dependencies: 14.1
+### Description: Create a method to append the tapped suggestion's content to the message composer text field.
+### Details:
+Develop a function in SmartReplyComposerView that takes the suggestion text as input and appends it to the existing text in the composer's text field. Handle cases where the text field is empty or already has content, ensuring proper spacing and cursor positioning after insertion.
+
+## 3. Record Acceptance Feedback Asynchronously [pending]
+### Dependencies: 14.2
+### Description: Asynchronously record the acceptance of the tapped suggestion using SmartReplyService.
+### Details:
+After inserting the text, call SmartReplyService.recordFeedback asynchronously with the suggestion ID and acceptance type. Ensure this does not block the UI thread and handle any potential errors gracefully, logging them if necessary.
+
+## 4. Update UI State After Insertion [pending]
+### Dependencies: 14.2
+### Description: Update the UI state in SmartReplyComposerView after a suggestion is inserted, such as hiding or refreshing suggestions.
+### Details:
+After text insertion, update the view to reflect the change, e.g., dismiss the suggestion chips or refresh the list if needed. Ensure the composer remains focused and ready for further input, maintaining a smooth user experience.
+
+## 5. Handle Edge Cases and Validation [pending]
+### Dependencies: 14.1, 14.2, 14.3, 14.4
+### Description: Add validation and handling for edge cases like invalid suggestions, multiple rapid taps, or network issues during feedback recording.
+### Details:
+Implement checks to ensure the suggestion is valid before insertion. Prevent multiple insertions from rapid taps by debouncing. Provide fallback behavior if feedback recording fails, and log errors for debugging purposes.
+

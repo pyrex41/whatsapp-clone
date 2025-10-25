@@ -1,0 +1,43 @@
+# Task ID: 20
+# Title: Track Time-to-Response for Feedback
+# Status: pending
+# Dependencies: 16
+# Priority: medium
+# Description: Measure and record time from suggestion display to acceptance/rejection.
+# Details:
+In SuggestionChipView, track timestamp on display. On interaction, calculate timeToResponseMs and include in feedback.
+
+# Test Strategy:
+Unit test time calculation. Integration test feedback inclusion.
+
+# Subtasks:
+## 1. Add timestamp tracking in SuggestionChipView on display [pending]
+### Dependencies: None
+### Description: Implement logic to record the timestamp when the suggestion chip is displayed to the user.
+### Details:
+In the SuggestionChipView class, add a property to store the display timestamp (e.g., using Date.timeIntervalSince1970). Set this timestamp in the view's onAppear or equivalent method to capture when the suggestion becomes visible.
+
+## 2. Calculate time-to-response on user interaction [pending]
+### Dependencies: 20.1
+### Description: Compute the elapsed time from display to user action (acceptance or rejection).
+### Details:
+In the interaction handler (e.g., on tap or swipe), calculate timeToResponseMs as the difference between current time and stored display timestamp, converting to milliseconds. Store this value in a local variable for inclusion in feedback.
+
+## 3. Integrate time-to-response into feedback data structure [pending]
+### Dependencies: 20.2
+### Description: Ensure the calculated time is included in the SuggestionFeedback object before recording.
+### Details:
+Modify the feedback creation logic to populate the timeToResponseMs field in SuggestionFeedback with the computed value. This should happen right after calculation and before calling the recording service.
+
+## 4. Update feedback recording to handle time-to-response [pending]
+### Dependencies: 20.3
+### Description: Adjust the SmartReplyService.recordFeedback method to process and store the time-to-response metric.
+### Details:
+In the feedback recording implementation (dependent on Task 16), ensure that the timeToResponseMs is passed to the service and handled appropriately, possibly logging or sending it to analytics without altering core rejection/acceptance logic.
+
+## 5. Test end-to-end time-to-response tracking [pending]
+### Dependencies: 20.4
+### Description: Perform comprehensive testing to ensure the entire flow from display to feedback recording works correctly.
+### Details:
+Conduct integration tests simulating user interactions with SuggestionChipView, verifying that timestamps are tracked, times are calculated, and feedback is recorded with accurate timeToResponseMs values across different scenarios.
+

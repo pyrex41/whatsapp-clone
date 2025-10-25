@@ -1,0 +1,43 @@
+# Task ID: 17
+# Title: Auto-Trigger Style Learning
+# Status: pending
+# Dependencies: 11, 2
+# Priority: medium
+# Description: Trigger style learning on every message send.
+# Details:
+In message send handler, call PhoenixChannelManager.triggerStyleLearning with userId, message, threadId. Fire-and-forget.
+
+# Test Strategy:
+Integration test triggering on send. Mock backend response.
+
+# Subtasks:
+## 1. Locate Message Send Handler [pending]
+### Dependencies: None
+### Description: Identify the exact location in the codebase where message sending is handled, such as the function or method responsible for sending messages.
+### Details:
+Search the project for the message send handler, likely in a messaging or chat module. Ensure it's the correct handler that processes outgoing messages before they are sent.
+
+## 2. Import PhoenixChannelManager [pending]
+### Dependencies: 17.1
+### Description: Ensure PhoenixChannelManager is imported or accessible in the message send handler file.
+### Details:
+Add the necessary import statement for PhoenixChannelManager at the top of the file containing the message send handler. If it's already imported, confirm its availability.
+
+## 3. Extract Required Parameters [pending]
+### Dependencies: 17.1
+### Description: Extract userId, message, and threadId from the message send context to pass to triggerStyleLearning.
+### Details:
+Within the message send handler, retrieve the userId (likely from user session), message content, and threadId (from the current thread or conversation). Prepare these as parameters for the method call.
+
+## 4. Integrate triggerStyleLearning Call [pending]
+### Dependencies: 17.2, 17.3
+### Description: Add the call to PhoenixChannelManager.triggerStyleLearning with the extracted parameters in the message send handler.
+### Details:
+Insert the method call PhoenixChannelManager.triggerStyleLearning(userId: userId, message: message, threadId: threadId) inside the message send handler, ensuring it's executed on every message send. Make it fire-and-forget by not awaiting or handling the response.
+
+## 5. Verify Fire-and-Forget Behavior [pending]
+### Dependencies: 17.4
+### Description: Confirm that the triggerStyleLearning call does not block the message send process and is asynchronous.
+### Details:
+Ensure the call is made asynchronously without awaiting the result, allowing the message send to proceed immediately. Test that the UI or send process is not delayed by this operation.
+

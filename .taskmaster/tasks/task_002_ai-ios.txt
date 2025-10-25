@@ -1,0 +1,43 @@
+# Task ID: 2
+# Title: Create UserStyleProfile Model
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Define the UserStyleProfile struct with properties for userId, formalityLevel, emojiFrequency, avgSentenceLength, messagesAnalyzed, confidenceScore, and lastUpdatedAt.
+# Details:
+Implement UserStyleProfile.swift with Codable. Include computed property isHighConfidence. Use UUID for userId, Double for metrics, Date for timestamps.
+
+# Test Strategy:
+Unit test model initialization and computed properties. Test confidence score thresholds.
+
+# Subtasks:
+## 1. Define UserStyleProfile struct with basic properties [pending]
+### Dependencies: None
+### Description: Create the UserStyleProfile struct in UserStyleProfile.swift with properties for userId (UUID), formalityLevel (Double), emojiFrequency (Double), avgSentenceLength (Double), messagesAnalyzed (Int), confidenceScore (Double), and lastUpdatedAt (Date).
+### Details:
+Implement the struct with the specified properties, ensuring userId is UUID, metrics are Double, messagesAnalyzed is Int, and lastUpdatedAt is Date. This forms the foundation of the model.
+
+## 2. Add Codable conformance to UserStyleProfile [pending]
+### Dependencies: 2.1
+### Description: Make the UserStyleProfile struct conform to the Codable protocol for JSON serialization and deserialization.
+### Details:
+Implement Codable by ensuring all properties are encodable and decodable. Use standard JSONEncoder and JSONDecoder for testing basic serialization.
+
+## 3. Implement isHighConfidence computed property [pending]
+### Dependencies: 2.1
+### Description: Add a computed property isHighConfidence to UserStyleProfile that returns true if confidenceScore is greater than or equal to 0.8.
+### Details:
+Define isHighConfidence as a computed property based on the confidenceScore threshold. Ensure it is read-only and calculates dynamically.
+
+## 4. Add custom initializer for UserStyleProfile [pending]
+### Dependencies: 2.1
+### Description: Implement a custom initializer for UserStyleProfile to set initial values, defaulting lastUpdatedAt to current date if not provided.
+### Details:
+Create an init method that takes all properties except lastUpdatedAt, which defaults to Date(). This allows easy creation of instances with current timestamp.
+
+## 5. Create unit tests for UserStyleProfile model [pending]
+### Dependencies: 2.2, 2.3, 2.4
+### Description: Write unit tests covering model initialization, computed properties, and confidence score thresholds.
+### Details:
+Develop tests in a test file for UserStyleProfile, including tests for init, Codable, isHighConfidence, and edge cases like boundary confidence scores.
+

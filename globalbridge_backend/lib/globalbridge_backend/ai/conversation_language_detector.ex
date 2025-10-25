@@ -21,7 +21,7 @@ defmodule GlobalbridgeBackend.AI.ConversationLanguageDetector do
 
   require Logger
   alias GlobalbridgeBackend.Repo
-  alias GlobalbridgeBackend.Schemas.{Message, User}
+  alias GlobalbridgeBackend.Schemas.{Message, User, Thread}
   alias GlobalbridgeBackend.Repos.ThreadRepo
   import Ecto.Query
 
@@ -148,18 +148,26 @@ defmodule GlobalbridgeBackend.AI.ConversationLanguageDetector do
   defp get_recent_messages(thread_id, count) do
     # Try to get thread repo (SQLite)
     try do
-      repo = ThreadRepo.get_repo(thread_id)
+      # First get the thread to find its database shard
+      thread = Repo.get(Thread, thread_id)
 
-      query = from m in Message,
-        order_by: [desc: m.inserted_at],
-        limit: ^count,
-        select: m
+      if thread do
+        repo = ThreadRepo.get_repo(thread.database_shard_id)
 
-      repo.all(query)
+        query = from m in Message,
+          order_by: [desc: m.inserted_at],
+          limit: ^count,
+          select: m
+
+        repo.all(query)
+      else
+        Logger.debug("Thread #{thread_id} not found")
+        []
+      end
     rescue
-      _ ->
+      error ->
         # Fallback: thread might not exist or repo not initialized
-        Logger.debug("Could not get messages from thread repo #{thread_id}")
+        Logger.debug("Could not get messages from thread repo #{thread_id}: #{inspect(error)}")
         []
     end
   end

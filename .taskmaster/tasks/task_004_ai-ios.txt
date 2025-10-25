@@ -1,0 +1,43 @@
+# Task ID: 4
+# Title: Create SuggestionFeedback Model
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Define the SuggestionFeedback struct with properties for suggestionId, accepted, modifiedContent, rejectionReason, timeToResponseMs, and timestamp.
+# Details:
+Implement SuggestionFeedback.swift with Codable. Use UUID for suggestionId, Bool for accepted, optional Strings for content/reason, optional Int for time, Date for timestamp.
+
+# Test Strategy:
+Unit test optional fields and serialization.
+
+# Subtasks:
+## 1. Create SuggestionFeedback.swift file [pending]
+### Dependencies: None
+### Description: Create a new Swift file named SuggestionFeedback.swift in the appropriate directory for model definitions.
+### Details:
+Use Xcode or your preferred editor to create a new Swift file. Ensure it is placed in the Models folder or equivalent in the project structure. This file will contain the SuggestionFeedback struct definition.
+
+## 2. Define SuggestionFeedback struct with basic properties [pending]
+### Dependencies: 4.1
+### Description: Define the SuggestionFeedback struct with suggestionId as UUID and accepted as Bool.
+### Details:
+Inside SuggestionFeedback.swift, declare a struct named SuggestionFeedback. Add two properties: suggestionId of type UUID and accepted of type Bool. Make sure the struct is properly formatted with Swift syntax.
+
+## 3. Add optional string properties [pending]
+### Dependencies: 4.2
+### Description: Add modifiedContent and rejectionReason as optional String properties to the struct.
+### Details:
+Extend the SuggestionFeedback struct by adding modifiedContent: String? and rejectionReason: String?. These are optional to handle cases where feedback might not include modifications or reasons. Ensure they are declared as stored properties.
+
+## 4. Add timeToResponseMs and timestamp properties [pending]
+### Dependencies: 4.3
+### Description: Add timeToResponseMs as optional Int and timestamp as Date to the struct.
+### Details:
+Add timeToResponseMs: Int? for measuring response time in milliseconds, and timestamp: Date for recording when the feedback was created. Use Swift's Date type for timestamp to leverage built-in date handling.
+
+## 5. Implement Codable conformance and test serialization [pending]
+### Dependencies: 4.4
+### Description: Make SuggestionFeedback conform to Codable and write unit tests for serialization.
+### Details:
+Add Codable to the struct declaration to enable JSON encoding/decoding. Create unit tests in a test file to verify that instances can be encoded to JSON and decoded back, especially handling optional fields correctly.
+

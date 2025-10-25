@@ -250,7 +250,11 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     filters = [limit: limit]
     filters = if before_timestamp, do: [{:before, before_timestamp} | filters], else: filters
 
-    messages = Messages.list_messages(thread_id, filters)
+    # Guard against any accidental duplicates at the DB layer
+    messages =
+      thread_id
+      |> Messages.list_messages(filters)
+      |> Enum.uniq_by(& &1.id)
 
     # Get unique sender IDs and fetch user info
     sender_ids = messages |> Enum.map(& &1.sender_id) |> Enum.uniq()
