@@ -7,7 +7,7 @@ defmodule GlobalbridgeBackend.AI.TranslationIntegrationTest do
     TranslationService
   }
   alias GlobalbridgeBackend.Schemas.{User, Message}
-  alias GlobalbridgeBackend.{Repo, Chat}
+  alias GlobalbridgeBackend.Repo
   alias GlobalbridgeBackend.Contexts.Threads
   alias GlobalbridgeBackend.Repos.ThreadRepo
 
@@ -36,11 +36,11 @@ defmodule GlobalbridgeBackend.AI.TranslationIntegrationTest do
     })
 
     # Add both participants
-    Chat.add_participant(thread.id, english_user.id)
-    Chat.add_participant(thread.id, spanish_user.id)
+    Threads.add_participant(thread, english_user.id)
+    Threads.add_participant(thread, spanish_user.id)
 
     # Initialize thread database
-    ThreadRepo.ensure_thread_database(thread.id)
+    ThreadRepo.get_repo(thread.database_shard_id)
 
     {:ok, english_user: english_user, spanish_user: spanish_user, thread: thread}
   end

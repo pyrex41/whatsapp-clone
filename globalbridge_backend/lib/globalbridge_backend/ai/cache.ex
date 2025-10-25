@@ -122,6 +122,25 @@ defmodule GlobalbridgeBackend.AI.Cache do
   end
 
   @doc """
+  Gets a cached thread repository module.
+  Used by ThreadRepo for fast lookups of active repos.
+  """
+  def get_repo(shard_id) do
+    case get("repo:#{shard_id}") do
+      {:ok, repo} -> repo
+      {:error, :not_found} -> nil
+    end
+  end
+
+  @doc """
+  Caches a thread repository module.
+  TTL: 24 hours (repos are long-lived)
+  """
+  def put_repo(shard_id, repo_module) do
+    put("repo:#{shard_id}", repo_module, ttl: 86400)  # 24 hours
+  end
+
+  @doc """
   Clears all entries from the cache.
   """
   def clear do
