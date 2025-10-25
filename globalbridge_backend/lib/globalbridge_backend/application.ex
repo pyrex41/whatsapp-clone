@@ -10,6 +10,9 @@ defmodule GlobalbridgeBackend.Application do
     # Validate sqlite-vec extension before starting
     validate_sqlite_vec()
 
+    # Validate production security settings
+    validate_production_security()
+
     # Background job processing with Oban (not in test)
     children =
       [
@@ -157,6 +160,32 @@ defmodule GlobalbridgeBackend.Application do
       Expanded path: #{expanded_path}
       Allowed directories: #{Enum.join(allowed_prefixes, ", ")}
       """
+    end
+  end
+
+  defp validate_production_security do
+    require Logger
+
+    # Only enforce in production
+    if Mix.env() == :prod do
+      # Verify SSL verification is enabled for webhooks
+      bridge_config = Application.get_env(:globalbridge_backend, :bridge, [])
+      webhook_ssl_verification = Keyword.get(bridge_config, :webhook_ssl_verification, true)
+
+      unless webhook_ssl_verification do
+        raise """
+        CRITICAL SECURITY ERROR: SSL verification for webhooks is disabled in production!
+        This exposes your application to man-in-the-middle attacks.
+
+        To fix this:
+        1. Remove or set WEBHOOK_SSL_VERIFICATION=true in your environment
+        2. Ensure all webhook endpoints use HTTPS with valid certificates
+
+        This check cannot be bypassed in production for security reasons.
+        """
+      end
+
+      Logger.info("✓ Production security validation passed: SSL verification enabled")
     end
   end
 end

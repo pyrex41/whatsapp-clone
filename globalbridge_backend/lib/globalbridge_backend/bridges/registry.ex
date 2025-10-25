@@ -229,23 +229,24 @@ defmodule GlobalbridgeBackend.Bridges.Registry do
       {:ok, bridge_id} ->
         Logger.warning("Bridge process #{bridge_id} died: #{inspect(reason)}")
 
-        # Update status in ETS
-        case :ets.lookup(:bridge_processes, bridge_id) do
-          [{^bridge_id, bridge_info}] ->
-            updated_info = %{bridge_info | status: :dead}
-            :ets.insert(:bridge_processes, {bridge_id, updated_info})
-
-          _ ->
-            :ok
-        end
+        # Delete from ETS immediately to prevent memory leak
+        # Previously we were marking as :dead, but this causes accumulation of dead entries
+        :ets.delete(:bridge_processes, bridge_id)
 
         # Remove from active state
         new_state = %{state | bridges: Map.delete(state.bridges, bridge_id)}
+
+        # Update database status to disconnected
+        update_bridge_status_async(bridge_id, "disconnected")
+
+        # Log for monitoring/alerting
+        Logger.info("Cleaned up bridge #{bridge_id} from registry after process termination")
 
         # TODO: Implement automatic restart logic here if desired
         {:noreply, new_state}
 
       :error ->
+        # Process was not in our registry, ignore
         {:noreply, state}
     end
   end
@@ -329,6 +330,34 @@ defmodule GlobalbridgeBackend.Bridges.Registry do
         {:error, reason} ->
           Logger.error(
             "Failed to load existing bridge #{bridge.bridge_type} #{bridge.id}: #{inspect(reason)}"
+          )
+      end
+    end)
+  end
+
+  defp update_bridge_status_async(bridge_id, status) do
+    # Update bridge status in database asynchronously to avoid blocking the registry
+    Task.Supervisor.start_child(GlobalbridgeBackend.TaskSupervisor, fn ->
+      try do
+        case Bridges.get_bridge(bridge_id) do
+          nil ->
+            Logger.warning("Bridge #{bridge_id} not found in database when updating status")
+
+          bridge ->
+            case Bridges.update_bridge(bridge, %{status: status}) do
+              {:ok, _updated_bridge} ->
+                Logger.debug("Updated bridge #{bridge_id} status to #{status}")
+
+              {:error, changeset} ->
+                Logger.error(
+                  "Failed to update bridge #{bridge_id} status: #{inspect(changeset.errors)}"
+                )
+            end
+        end
+      rescue
+        error ->
+          Logger.error(
+            "Error updating bridge #{bridge_id} status: #{Exception.message(error)}"
           )
       end
     end)

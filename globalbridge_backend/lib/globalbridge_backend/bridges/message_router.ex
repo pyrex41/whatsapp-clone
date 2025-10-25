@@ -303,9 +303,35 @@ defmodule GlobalbridgeBackend.Bridges.MessageRouter do
   end
 
   defp get_bridge_type(bridge_id) do
-    # This would need to be implemented - get bridge type from database
-    # For now, assume telegram
-    "telegram"
+    # Use Cachex to prevent N+1 queries when routing multiple messages
+    cache_key = "bridge_type:#{bridge_id}"
+
+    case Cachex.get(:ai_cache, cache_key) do
+      {:ok, nil} ->
+        # Cache miss - fetch from database
+        case GlobalbridgeBackend.Contexts.Bridges.get_bridge(bridge_id) do
+          nil ->
+            Logger.warning("Bridge #{bridge_id} not found in database")
+            nil
+
+          bridge ->
+            # Cache for 5 minutes to prevent N+1 queries
+            Cachex.put(:ai_cache, cache_key, bridge.bridge_type, ttl: :timer.minutes(5))
+            bridge.bridge_type
+        end
+
+      {:ok, bridge_type} ->
+        # Cache hit
+        bridge_type
+
+      {:error, reason} ->
+        Logger.error("Cache error for bridge #{bridge_id}: #{inspect(reason)}")
+        # Fallback to database query
+        case GlobalbridgeBackend.Contexts.Bridges.get_bridge(bridge_id) do
+          nil -> nil
+          bridge -> bridge.bridge_type
+        end
+    end
   end
 
   defp get_telegram_chat_id(gb_message) do

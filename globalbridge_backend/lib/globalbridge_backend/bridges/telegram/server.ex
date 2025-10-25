@@ -19,6 +19,16 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
   alias GlobalbridgeBackend.Notifications
   alias GlobalbridgeBackendWeb.Endpoint
 
+  # Configuration
+  @poll_interval Application.compile_env(:globalbridge_backend, [:bridge, :poll_interval], 2000)
+  @health_check_interval Application.compile_env(
+                           :globalbridge_backend,
+                           [:bridge, :health_check_interval],
+                           30_000
+                         )
+  @max_failures Application.compile_env(:globalbridge_backend, [:bridge, :max_failures], 5)
+  @max_backoff_time 300_000
+
   # Client API
 
   @doc """
@@ -147,7 +157,7 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
     }
 
     # Start health check timer
-    health_timer = Process.send_after(self(), :health_check, 30_000)
+    health_timer = Process.send_after(self(), :health_check, @health_check_interval)
 
     # If we have a bot token, start polling
     if bot_token do
@@ -282,7 +292,7 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
     Process.send(self(), :poll)
 
     # Set up recurring poll timer (every 2 seconds)
-    timer = Process.send_after(self(), :poll, 2000)
+    timer = Process.send_after(self(), :poll, @poll_interval)
 
     new_state = %{state | status: :connected, polling_timer: timer}
 
@@ -298,7 +308,7 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
     case check_circuit_breaker(state) do
       :open ->
         # Circuit breaker is open, skip polling
-        timer = Process.send_after(self(), :poll, 2000)
+        timer = Process.send_after(self(), :poll, @poll_interval)
         {:noreply, %{state | polling_timer: timer}}
 
       :half_open ->
@@ -308,7 +318,7 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
         case result do
           {:ok, _} ->
             # Success - close circuit breaker
-            timer = Process.send_after(self(), :poll, 2000)
+            timer = Process.send_after(self(), :poll, @poll_interval)
 
             {:noreply,
              %{new_state | polling_timer: timer, circuit_breaker: :closed, consecutive_errors: 0}}
@@ -333,14 +343,14 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
         case result do
           {:ok, _} ->
             # Success
-            timer = Process.send_after(self(), :poll, 2000)
+            timer = Process.send_after(self(), :poll, @poll_interval)
             {:noreply, %{new_state | polling_timer: timer, consecutive_errors: 0}}
 
           {:error, _reason} ->
             # Error - check if we should open circuit breaker
             consecutive_errors = new_state.consecutive_errors + 1
 
-            if consecutive_errors >= 5 do
+            if consecutive_errors >= @max_failures do
               # Open circuit breaker
               backoff_time = calculate_backoff_time(consecutive_errors)
               timer = Process.send_after(self(), :poll, backoff_time)
@@ -354,7 +364,7 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
                }}
             else
               # Continue polling
-              timer = Process.send_after(self(), :poll, 2000)
+              timer = Process.send_after(self(), :poll, @poll_interval)
 
               {:noreply,
                %{new_state | polling_timer: timer, consecutive_errors: consecutive_errors}}
@@ -399,7 +409,7 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
     end
 
     # Schedule next health check
-    timer = Process.send_after(self(), :health_check, 30_000)
+    timer = Process.send_after(self(), :health_check, @health_check_interval)
 
     {:noreply, %{state | health_check_timer: timer, status: new_status}}
   end
@@ -586,7 +596,7 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
 
       :open ->
         # Check if we should try half-open
-        if state.consecutive_errors >= 10 do
+        if state.consecutive_errors >= @max_failures * 2 do
           # Too many errors, stay open
           :open
         else
@@ -608,7 +618,7 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
   defp calculate_backoff_time(consecutive_errors) do
     # Exponential backoff: 2^errors seconds, max 300 seconds (5 minutes)
     base_time = :math.pow(2, min(consecutive_errors, 8)) * 1000
-    min(300_000, trunc(base_time))
+    min(@max_backoff_time, trunc(base_time))
   end
 
   defp perform_comprehensive_health_check(state) do
