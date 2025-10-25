@@ -7284,7 +7284,7 @@
   "agent-update": {
     "tasks": [
       {
-        "id": "1",
+        "id": 1,
         "title": "Design IdiomAnalyzerAgent Module",
         "description": "Design the structure and configuration for the new IdiomAnalyzerAgent, including the prompt template and integration with Groq Llama model.",
         "details": "Create the module file at lib/globalbridge_backend/ai/agents/idiom_analyzer_agent.ex. Configure it to use Groq's llama-3.1-70b-versatile via OpenAIServing. Implement the exact prompt as specified, with placeholders for source_language, target_language, and text. Ensure the agent responds only with valid JSON array or empty array. Use Elixir's Agens.Agent.call for invocation.",
@@ -7359,7 +7359,7 @@
         "updatedAt": "2025-10-25T02:33:29.436Z"
       },
       {
-        "id": "2",
+        "id": 2,
         "title": "Implement IdiomAnalyzerAgent Logic",
         "description": "Implement the core logic for the IdiomAnalyzerAgent to analyze text for idioms and return structured JSON output.",
         "details": "In the IdiomAnalyzerAgent module, add a function to call the LLM with the prompt. Parse the response as JSON; if parsing fails, return an empty array. Handle cases where no idioms are found. Ensure output matches the required format: array of objects with phrase, explanation, equivalent_in_target.",
@@ -7435,7 +7435,7 @@
         "updatedAt": "2025-10-25T02:33:46.980Z"
       },
       {
-        "id": "3",
+        "id": 3,
         "title": "Update TranslationJob to Chain IdiomAnalyzerAgent",
         "description": "Modify the TranslationJob to dynamically chain the IdiomAnalyzerAgent after language detection and translation.",
         "status": "done",
@@ -7499,7 +7499,7 @@
         "updatedAt": "2025-10-25T02:35:02.612Z"
       },
       {
-        "id": "4",
+        "id": 4,
         "title": "Implement ResponseAssembler Function",
         "description": "Add the assemble_response function to combine translation and cultural notes into the enriched JSON response, simplified as a straightforward 10-line function that builds a map with 5 fields.",
         "status": "done",
@@ -7539,7 +7539,7 @@
         "updatedAt": "2025-10-25T02:35:05.096Z"
       },
       {
-        "id": "5",
+        "id": 5,
         "title": "Update AIController for Enriched Response",
         "description": "Modify the /api/ai/translate endpoint controller to handle the enriched response without changing the request format.",
         "details": "In the AIController, update the translate action to call the updated TranslationJob. Ensure the response JSON includes the new cultural_notes field. No changes to request validation or routing.",
@@ -7616,7 +7616,7 @@
         "updatedAt": "2025-10-25T02:35:49.945Z"
       },
       {
-        "id": "6",
+        "id": 6,
         "title": "Integrate Caching for Idiom Analysis",
         "description": "Add caching for idiom analysis results to reduce latency and cost.",
         "details": "Use TranslationCache with key as hash(text + source + target), TTL 7 days. Cache the cultural_notes array. Modify IdiomAnalyzerAgent to check cache first before calling LLM.",
@@ -7693,7 +7693,7 @@
         "expansionPrompt": "No expansion needed as caching integration is focused."
       },
       {
-        "id": "7",
+        "id": 7,
         "title": "Integrate Cost Tracking for Idiom Analysis",
         "description": "Track costs for the idiom analysis operation using CostTracker, enhanced to include cache hit ratio for measuring cost savings. Track model name (llama-3.1-70b-versatile), token count, cache_hit boolean, calculated cost, and timestamp to enable measurement of cost per idiom analysis, cache effectiveness (% saved), Groq cost vs theoretical OpenAI cost comparison, and ROI of caching implementation.",
         "status": "pending",
@@ -7781,7 +7781,7 @@
         "expansionPrompt": "No expansion needed as cost tracking is a targeted addition."
       },
       {
-        "id": "8",
+        "id": 8,
         "title": "Add Telemetry Logging for New Workflow",
         "description": "Implement telemetry logging for latency, confidence, errors, and business metrics in the idiom analysis step, including technical events and metrics like idioms_found count, duration_ms, source_language, target_language, and cache_hit boolean.",
         "status": "pending",
@@ -7856,7 +7856,7 @@
         "expansionPrompt": "No expansion needed as logging is additive."
       },
       {
-        "id": "9",
+        "id": 9,
         "title": "Enhance Input Validation and Error Handling",
         "description": "Update validation and error handling for the new cultural_notes in responses and agent failures, incorporating specific requirements such as text length limits, language pair validation, text quality checks, retry logic with exponential backoff for Groq API failures, circuit breaker pattern for outages, and handling of specific error scenarios like timeouts, rate limits, invalid JSON, empty responses, and partial idiom data.",
         "status": "pending",
@@ -7935,7 +7935,7 @@
         "expansionPrompt": "No expansion needed as validation updates are specific."
       },
       {
-        "id": "10",
+        "id": 10,
         "title": "Develop Unit and Integration Tests",
         "description": "Create comprehensive tests for the new workflow, including unit tests for agents and integration tests for the full translation process, expanded with a detailed test plan covering unit, integration, and performance tests.",
         "status": "pending",
@@ -7990,7 +7990,7 @@
         "expansionPrompt": "Break down into subtasks: 1) Write unit tests for IdiomAnalyzerAgent and new functions, 2) Develop integration tests for TranslationJob workflow and API endpoint, 3) Create performance and E2E tests for latency and accuracy."
       },
       {
-        "id": "11",
+        "id": 11,
         "title": "Create Documentation and Monitoring for IdiomAnalyzerAgent Launch",
         "description": "Develop comprehensive documentation and monitoring infrastructure to support the launch of the IdiomAnalyzerAgent feature, including API updates, user guides, dashboards, alerts, and operational runbooks.",
         "details": "(1) Update API documentation: Revise the API docs for the /api/ai/translate endpoint to include the new cultural_notes field in the response schema. Provide detailed specification with field types (array of objects), required properties (phrase, explanation, equivalent_in_target), examples of responses with and without idioms, and JSON schema validation. Ensure docs are in Markdown format and hosted in the project's docs repository. (2) Create user-facing guide: Develop a user guide in Markdown explaining the cultural notes feature, including how idioms are detected, what equivalents mean, and practical examples in multiple language pairs (e.g., English to Spanish). Include screenshots or code snippets for API usage and place it in the docs/user-guides directory. (3) Set up monitoring dashboards: Using tools like Grafana or Prometheus, create dashboards to visualize metrics such as idiom analysis latency (average and percentiles), error rates (by type), cache hit ratio (percentage), cost per analysis (in USD), and idioms found per language pair (counts). Pull data from telemetry logs and cost tracking implemented in previous tasks. Ensure dashboards are accessible via the project's monitoring portal. (4) Configure alerts: Set up alerting rules in the monitoring system (e.g., Prometheus Alertmanager) for thresholds: error rate exceeding 5% over 5 minutes, latency greater than 2 seconds for 95th percentile, cache hit rate below 50%, and Groq API failures (e.g., timeouts or 5xx errors). Configure notifications to Slack or email for the devops team. (5) Create operational runbook: Write a runbook in Markdown covering common issues like high latency (check cache/LLM), API failures (retry logic, circuit breaker), low cache hit rates (adjust TTL or key hashing), and troubleshooting steps including log queries, metric checks, and escalation procedures. Store it in docs/operations/runbooks.",
@@ -8012,7 +8012,7 @@
         "subtasks": []
       },
       {
-        "id": "12",
+        "id": 12,
         "title": "Implement Gradual Rollout and A/B Testing for IdiomAnalyzerAgent",
         "description": "Implement the IdiomAnalyzerAgent as an always-on feature in the TranslationJob workflow, with production monitoring dashboards, a rollback plan for critical issues, and documentation for operational procedures and troubleshooting.",
         "status": "pending",
@@ -8073,7 +8073,461 @@
       "completedCount": 5,
       "tags": [
         "agent-update"
-      ]
+      ],
+      "created": "2025-10-25T23:10:45.236Z",
+      "description": "Tasks for agent-update context"
+    }
+  },
+  "ai-ios": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Create SmartReplySuggestion Model",
+        "description": "Define the SmartReplySuggestion struct with properties for id, type, content, confidence, position, context, and timestamp as specified in the PRD.",
+        "details": "Implement SmartReplySuggestion.swift with Codable conformance. Include computed property isProactive. Use UUID for id, String for type, Double for confidence, etc. Ensure it matches the PRD structure.",
+        "testStrategy": "Unit test serialization/deserialization with JSONEncoder/Decoder. Verify computed properties and edge cases like confidence bounds.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Create UserStyleProfile Model",
+        "description": "Define the UserStyleProfile struct with properties for userId, formalityLevel, emojiFrequency, avgSentenceLength, messagesAnalyzed, confidenceScore, and lastUpdatedAt.",
+        "details": "Implement UserStyleProfile.swift with Codable. Include computed property isHighConfidence. Use UUID for userId, Double for metrics, Date for timestamps.",
+        "testStrategy": "Unit test model initialization and computed properties. Test confidence score thresholds.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Create TranslationPreferences Model",
+        "description": "Define the TranslationPreferences struct with properties for preferredLanguage, autoTranslateEnabled, contactOverrides, and threadOverrides.",
+        "details": "Implement TranslationPreferences.swift with Codable. Include static default property. Use String for language codes, Bool for toggles, dictionaries for overrides.",
+        "testStrategy": "Unit test default initialization and override logic. Verify dictionary handling.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Create SuggestionFeedback Model",
+        "description": "Define the SuggestionFeedback struct with properties for suggestionId, accepted, modifiedContent, rejectionReason, timeToResponseMs, and timestamp.",
+        "details": "Implement SuggestionFeedback.swift with Codable. Use UUID for suggestionId, Bool for accepted, optional Strings for content/reason, optional Int for time, Date for timestamp.",
+        "testStrategy": "Unit test optional fields and serialization.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Extend AppState for AI Features",
+        "description": "Add new properties to AppState for smart reply suggestions, loading states, errors, style profile, translation preferences, and monitoring.",
+        "details": "Update AppState.swift to include dictionaries for suggestions, loading, errors; optional UserStyleProfile; TranslationPreferences; messageTranslations; monitoredThreads; aiInsightsVisible and threadId.",
+        "testStrategy": "Unit test state initialization and equality checks. Integration test with reducer.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Extend AppAction for AI Features",
+        "description": "Add new cases to AppAction enum for smart replies, monitoring, translation, style profile, and insights.",
+        "details": "Update AppAction.swift with cases like fetchSmartReplies, smartRepliesReceived, aiSuggestionBroadcast, translateMessage, styleProfileUpdated, etc., matching PRD specifications.",
+        "testStrategy": "Unit test action creation and pattern matching.",
+        "priority": "high",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Implement SmartReplyService",
+        "description": "Create SmartReplyService.swift with methods to fetch suggestions, record feedback, and get user style profile via backend APIs.",
+        "details": "Implement fetchSuggestions async method calling POST /api/v1/ai/suggest_replies. Include caching with 60s TTL. Record feedback via POST /api/v1/ai/record_feedback. Handle errors with AIServiceError.",
+        "testStrategy": "Unit test API calls with mock responses. Integration test caching and error handling.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2,
+          5,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Implement ConversationMonitorService",
+        "description": "Create ConversationMonitorService.swift to subscribe to Phoenix events and handle AI suggestion broadcasts. Note: This is Phase 3 (after MVP) for real-time proactive suggestions - not needed for basic smart reply MVP.",
+        "status": "pending",
+        "dependencies": [
+          1,
+          5,
+          6
+        ],
+        "priority": "medium",
+        "details": "Implement startMonitoring and stopMonitoring methods. Handle {:ai_suggestions, suggestions} events. Maintain sliding window of last 20 messages. Dispatch to UI via actions.",
+        "testStrategy": "Unit test event handling. Integration test with PhoenixChannelManager.",
+        "subtasks": null
+      },
+      {
+        "id": 9,
+        "title": "Implement SmartTranslationService",
+        "description": "Create SmartTranslationService.swift for translating messages and managing preferences.",
+        "status": "pending",
+        "dependencies": [
+          3,
+          5,
+          6
+        ],
+        "priority": "low",
+        "details": "Implement translateMessage and batchTranslateSuggestions async methods calling POST /api/v1/ai/translate. Include caching with 3600s TTL. Handle preferences and auto-detect logic. Note: This is Phase 4, not needed for MVP smart reply feature.",
+        "testStrategy": "Unit test translation logic and caching. Integration test with backend.",
+        "subtasks": null
+      },
+      {
+        "id": 10,
+        "title": "Update AppReducer for AI Logic",
+        "description": "Add reducer logic in AppReducer.swift for handling SmartReply actions like fetching suggestions and updating state.",
+        "status": "pending",
+        "dependencies": [
+          5,
+          6,
+          7
+        ],
+        "priority": "high",
+        "details": "Implement cases for fetchSmartReplies, smartRepliesReceived, etc. Use .run for async operations. Ensure state updates correctly, e.g., setting loading states.",
+        "testStrategy": "Unit test reducer functions. Integration test state transitions.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "AppReducer for Monitoring actions",
+            "description": "Add reducer logic in AppReducer.swift for handling Monitoring actions.",
+            "dependencies": [],
+            "details": "Implement cases for monitoring related actions. Use .run for async operations. Ensure state updates correctly.",
+            "status": "pending",
+            "testStrategy": "Unit test reducer functions. Integration test state transitions."
+          },
+          {
+            "id": 2,
+            "title": "AppReducer for Translation actions",
+            "description": "Add reducer logic in AppReducer.swift for handling Translation actions.",
+            "dependencies": [],
+            "details": "Implement cases for translation related actions. Use .run for async operations. Ensure state updates correctly.",
+            "status": "pending",
+            "testStrategy": "Unit test reducer functions. Integration test state transitions."
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Extend PhoenixChannelManager for AI",
+        "description": "Add AI-specific methods to PhoenixChannelManager+AI.swift for subscribing to suggestions and triggering style learning.",
+        "details": "Implement subscribeToAISuggestions to join thread channel and listen for ai_suggestions events. Implement triggerStyleLearning as fire-and-forget on message send.",
+        "testStrategy": "Unit test channel subscription. Integration test event dispatching.",
+        "priority": "high",
+        "dependencies": [
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Build SmartReplyComposerView",
+        "description": "Create SmartReplyComposerView.swift to display suggestion chips inline above the composer.",
+        "details": "Use SwiftUI to render 1-3 chips with loading shimmer. Handle tap-to-insert. Include translation toggle. Position above text field as per PRD design.",
+        "testStrategy": "UI test tap interactions and loading states. Accessibility test with VoiceOver.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          5,
+          10
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Build SuggestionChipView",
+        "description": "Create SuggestionChipView.swift for individual tappable suggestion chips.",
+        "details": "Implement chip with confidence indicator, proactive distinction (icon/color), haptic feedback on tap, swipe-to-dismiss gesture.",
+        "testStrategy": "UI test gestures and feedback. Unit test visual states.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Implement Tap-to-Insert Behavior",
+        "description": "Add logic to insert tapped suggestion into the message composer.",
+        "details": "In SmartReplyComposerView, on chip tap, append content to text field. Record acceptance feedback asynchronously.",
+        "testStrategy": "UI test insertion. Integration test feedback recording.",
+        "priority": "high",
+        "dependencies": [
+          12,
+          13,
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Add Loading and Error States",
+        "description": "Implement loading shimmer and error handling in SmartReplyComposerView.",
+        "details": "Show shimmer while fetching. Display error toast on failure. Retry logic if applicable.",
+        "testStrategy": "UI test loading animations and error displays.",
+        "priority": "medium",
+        "dependencies": [
+          12,
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Implement Feedback Recording",
+        "description": "Add logic to record acceptance, rejection, and modification of suggestions.",
+        "details": "On tap: record accepted. On swipe: record rejected with optional reason. On modify: record modified content. Use SmartReplyService.recordFeedback.",
+        "testStrategy": "Unit test feedback logic. Integration test API calls.",
+        "priority": "high",
+        "dependencies": [
+          7,
+          13,
+          14
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Auto-Trigger Style Learning",
+        "description": "Trigger style learning on every message send.",
+        "details": "In message send handler, call PhoenixChannelManager.triggerStyleLearning with userId, message, threadId. Fire-and-forget.",
+        "testStrategy": "Integration test triggering on send. Mock backend response.",
+        "priority": "medium",
+        "dependencies": [
+          11,
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Build AIStyleProfileView",
+        "description": "Create a settings view to display user style profile metrics.",
+        "details": "Use SwiftUI to show formalityLevel, emojiFrequency, etc., confidenceScore, and options to disable/clear profile.",
+        "testStrategy": "UI test display and interactions. Unit test data binding.",
+        "priority": "medium",
+        "dependencies": [
+          2,
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "Show Confidence Scores in Chips",
+        "description": "Display confidence indicators in SuggestionChipView.",
+        "details": "Add subtle visual indicator (e.g., opacity or badge) based on confidence Double.",
+        "testStrategy": "UI test confidence display. Unit test threshold logic.",
+        "priority": "low",
+        "dependencies": [
+          13
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "Track Time-to-Response for Feedback",
+        "description": "Measure and record time from suggestion display to acceptance/rejection.",
+        "details": "In SuggestionChipView, track timestamp on display. On interaction, calculate timeToResponseMs and include in feedback.",
+        "testStrategy": "Unit test time calculation. Integration test feedback inclusion.",
+        "priority": "medium",
+        "dependencies": [
+          16
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 21,
+        "title": "Implement Suggestion Modification Tracking",
+        "description": "Record when user modifies a suggestion before sending.",
+        "details": "Compare original content to sent message. If modified, record in feedback with modifiedContent.",
+        "testStrategy": "Unit test modification detection. Integration test recording.",
+        "priority": "medium",
+        "dependencies": [
+          16
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 22,
+        "title": "Add Learning Indicator",
+        "description": "Display indicator when style learning is active.",
+        "details": "In composer or settings, show 'Learning from your messages' text or icon when enabled.",
+        "testStrategy": "UI test visibility toggle.",
+        "priority": "low",
+        "dependencies": [
+          18
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 23,
+        "title": "Subscribe to AI Suggestion Broadcasts",
+        "description": "Enable subscription to Phoenix AI events for active threads.",
+        "details": "In thread open, call ConversationMonitorService.startMonitoring. Handle broadcasts via PhoenixChannelManager.",
+        "testStrategy": "Integration test event subscription and handling.",
+        "priority": "high",
+        "dependencies": [
+          8,
+          11
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 24,
+        "title": "Visual Distinction for Proactive Suggestions",
+        "description": "Differentiate proactive suggestions with icon or color in SuggestionChipView.",
+        "details": "Check isProactive, apply different style (e.g., blue tint for proactive).",
+        "testStrategy": "UI test visual differences.",
+        "priority": "medium",
+        "dependencies": [
+          13
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "Add Dismissal for Proactive Suggestions",
+        "description": "Implement dismissal interaction for proactive suggestions.",
+        "details": "Allow tap or swipe to dismiss without recording rejection. Update UI state.",
+        "testStrategy": "UI test dismissal gestures.",
+        "priority": "medium",
+        "dependencies": [
+          13,
+          24
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 26,
+        "title": "Per-Thread Monitoring Toggle",
+        "description": "Add setting to enable/disable monitoring per thread.",
+        "details": "In thread settings, toggle to start/stop monitoring. Persist in AppState.monitoredThreads.",
+        "testStrategy": "UI test toggle. Integration test state update.",
+        "priority": "medium",
+        "dependencies": [
+          5,
+          23
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 27,
+        "title": "Build TranslationBubbleView",
+        "description": "Create TranslationBubbleView.swift for overlaying translations below messages.",
+        "details": "Use SwiftUI to show original and translated text with toggle. Include confidence badge if <80%. Fade-in animation.",
+        "testStrategy": "UI test toggle and animations. Accessibility test.",
+        "priority": "low",
+        "dependencies": [
+          9
+        ],
+        "status": "deferred",
+        "subtasks": []
+      },
+      {
+        "id": 28,
+        "title": "Implement Auto-Translate on Message Receive",
+        "description": "Auto-detect language and translate if needed using SmartTranslationService.",
+        "details": "On message receive, check shouldAutoTranslate. Call translateMessage if true. Display in TranslationBubbleView.",
+        "testStrategy": "Integration test detection and translation. Unit test preference logic.",
+        "priority": "low",
+        "dependencies": [
+          9,
+          27
+        ],
+        "status": "deferred",
+        "subtasks": []
+      },
+      {
+        "id": 29,
+        "title": "Build TranslationPreferencesView",
+        "description": "Create settings view for managing translation preferences.",
+        "details": "Use SwiftUI to set preferredLanguage, autoTranslateEnabled, contactOverrides, threadOverrides.",
+        "testStrategy": "UI test preference updates. Unit test storage.",
+        "priority": "low",
+        "dependencies": [
+          3,
+          5
+        ],
+        "status": "deferred",
+        "subtasks": []
+      },
+      {
+        "id": 30,
+        "title": "Implement Batch Translate for Suggestions",
+        "description": "Translate multiple suggestions in one API call.",
+        "details": "In SmartTranslationService, implement batchTranslateSuggestions calling POST /api/v1/ai/translate with array. Cache results.",
+        "testStrategy": "Unit test batch logic. Integration test API call.",
+        "priority": "low",
+        "dependencies": [
+          9,
+          7
+        ],
+        "status": "deferred",
+        "subtasks": []
+      },
+      {
+        "id": 31,
+        "title": "Wire SmartReplyComposerView to ChatScreen",
+        "description": "Replace MessageComposerView with SmartReplyComposerView in ChatScreen, pass AI suggestion state from the Store, and trigger fetchSmartReplies when a thread opens. Ensure suggestion updates flow from AppReducer to the view.",
+        "details": "Codebase alignment (current state):\n- Store pattern: Swiftea-style Store<AppState, AppAction> with Command runner (clients/ios/GlobalBridge/Core/State/Swiftea/*). AppReducer handles side effects; views dispatch actions and bind to state.\n- Chat UI: ChatScreen renders messages and the composer; composer is currently MessageComposerView with text binding and send action (clients/ios/GlobalBridge/Features/Chat/ChatScreen.swift:119).\n- Thread lifecycle: AppReducer .threadSelected performs loadMessages, realtime.connect, and backend fetch (clients/ios/GlobalBridge/Core/State/AppReducer.swift, case .threadSelected).\n- AI feature tasks: Task 5/6/7/10 introduce AppState+AppAction+SmartReplyService; Task 12 builds SmartReplyComposerView.\n\nWhat to implement:\n1) Replace composer in ChatScreen\n- File: clients/ios/GlobalBridge/Features/Chat/ChatScreen.swift.\n- Replace the existing call at ~line 119:\n  MessageComposerView(\n      text: store.binding(get: { $0.chat.composer.text }, send: AppAction.composerTextChanged),\n      isSending: chatState.composer.isSending,\n      onSend: { store.send(.sendMessage); composerFocused = true },\n      isFocused: $composerFocused\n  )\n- With SmartReplyComposerView that includes suggestion chips + the same text field and send button. Pass AI state keyed by current thread:\n  SmartReplyComposerView(\n      text: store.binding(get: { $0.chat.composer.text }, send: AppAction.composerTextChanged),\n      isSending: chatState.composer.isSending,\n      suggestions: store.state.ai.suggestionsByThread[thread.id] ?? [],\n      isLoading: store.state.ai.suggestionsLoadingByThread[thread.id] ?? false,\n      error: store.state.ai.suggestionsErrorByThread[thread.id],\n      onSend: { store.send(.sendMessage); composerFocused = true },\n      onRefresh: { store.send(.fetchSmartReplies(thread.id)) },\n      isFocused: $composerFocused\n  )\n- Notes:\n  - This assumes Task 5 extended AppState with ai.suggestionsByThread / suggestionsLoadingByThread / suggestionsErrorByThread and Task 10 wired their updates.\n  - Keep the existing padding and focus management so ChatScreen behavior remains unchanged.\n\n2) Trigger fetchSmartReplies when a thread opens\n- Primary (Reducer-centric, preferred): In clients/ios/GlobalBridge/Core/State/AppReducer.swift, inside the .threadSelected branch where other commands are queued, append a new command:\n  commands.append(\n    .run(priority: nil) { send in\n      send(.fetchSmartReplies(threadID))\n    }\n  )\n  Place this after realtime.connect and initial sync scheduling so the thread context is available. AppReducer (Task 10) should handle .fetchSmartReplies by setting loading flags and invoking SmartReplyService.fetchSuggestions.\n- Optional view fallback (idempotent): In ChatScreen, also add:\n  .task(id: chatState.currentThread?.id) { id in\n      if let id { store.send(.fetchSmartReplies(id)) }\n  }\n  This pattern avoids duplicate onAppear fetches and re-runs only when the thread id changes. Keep only if reducer-level trigger isn’t guaranteed.\n\n3) Handle suggestion state updates and tap-to-insert\n- SmartReplyComposerView (from Task 12) should:\n  - Render 1–3 SmartReplySuggestion chips above the text field, with a shimmer when isLoading is true and an inline retry on error.\n  - On chip tap: insert suggestion text into the bound composer text (leveraging Task 14) and optionally send AppAction.smartReplyAccepted(threadId:suggestion:) for feedback recording (Task 16).\n  - Provide accessibility labels and traits for chips (e.g., \"Suggestion, ‘Sounds great!’\").\n- ChatScreen receives updates automatically via Store publishing; no additional glue is required beyond the new props.\n\n4) State hygiene and UX details\n- Clear per-thread suggestion UI on thread switch by deriving suggestions from thread.id (passing [] when thread is nil). Optionally add .id(thread.id) to SmartReplyComposerView to reset animations on thread change.\n- Do not fetch on every keystroke at the view; debounce and caching belong in AppReducer/SmartReplyService (Task 10/7). The view should only trigger refresh explicitly (pull-to-refresh or retry button) and on thread open.\n- Keep composer focus behavior unchanged and ensure suggestions don’t steal focus from the text field.\n\nRecommended SmartReplyComposerView signature (for Task 12 alignment):\nstruct SmartReplyComposerView: View {\n    @Binding var text: String\n    let isSending: Bool\n    let suggestions: [SmartReplySuggestion]\n    let isLoading: Bool\n    let error: String?\n    let onSend: () -> Void\n    let onRefresh: () -> Void\n    let isFocused: FocusState<Bool>.Binding\n}\n\nBest-practice notes applied:\n- Use .task(id:) for fetch-on-identity-change to avoid duplicate onAppear triggers.\n- Keep side effects in the reducer (single source of truth) and make the view dumb; the optional .task is a safety net.\n- Key AI state by thread id to avoid cross-thread bleed, and prefer immutable value flows into the view for predictable SwiftUI updates.\n- Maintain accessibility (VoiceOver labels) and performance (LazyVStack remains for message list; chips are lightweight).\n",
+        "testStrategy": "Unit/Reducer tests (AppReducerTests):\n- Given AppState with threads and no AI suggestions loaded, when sending .threadSelected(threadID) then expect:\n  - State transitions for selecting the thread unchanged from current behavior.\n  - A fetchSmartReplies action to be dispatched (verify by observing that ai.suggestionsLoadingByThread[threadID] becomes true after commands perform, or by instrumenting a test AppEnvironment/Store to capture the action flow).\n- Given AppAction.smartRepliesReceived(threadID, suggestions), AppReducer updates ai.suggestionsByThread[threadID] and clears loading/error.\n\nView tests (SwiftUI):\n- Render ChatScreen with a Store whose state has:\n  - ai.suggestionsByThread[currentThread.id] = [sample suggestions], isLoading=false, error=nil → verify SmartReplyComposerView is present and chips are visible; MessageComposerView is not in the hierarchy.\n  - isLoading=true → verify shimmer placeholders appear.\n  - error non-nil → verify retry UI, and tapping retry dispatches .fetchSmartReplies(currentThread.id).\n- Interaction: tap a suggestion chip → text binding updates (tap-to-insert from Task 14) and no focus loss; send button remains enabled when text non-empty.\n\nIntegration tests:\n- Switch between two threads rapidly; verify only the active thread’s suggestions are shown and any prior loading indicators are reset by state keyed to thread id.\n- After .sendMessage, verify SmartReplyComposerView continues to display suggestions and focus returns to the text field.\n\nAccessibility checks:\n- Chips expose accessible labels and traits; VoiceOver can focus chips and composer; dynamic type does not truncate.\n",
+        "status": "pending",
+        "dependencies": [
+          10,
+          12
+        ],
+        "priority": "medium",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-10-25T23:03:58.521Z",
+      "updated": "2025-10-25T23:23:40.397Z",
+      "description": "Tasks for ai-ios context"
     }
   }
 }

@@ -22,6 +22,7 @@
   "global": {
     "logLevel": "info",
     "debug": false,
+    "AI_SDK_LOG_WARNINGS": false,
     "defaultNumTasks": 10,
     "defaultSubtasks": 5,
     "defaultPriority": "medium",

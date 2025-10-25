@@ -8,6 +8,7 @@ defmodule GlobalbridgeBackend.AI.TranslationIntegrationTest do
   }
   alias GlobalbridgeBackend.Schemas.{User, Message}
   alias GlobalbridgeBackend.{Repo, Chat}
+  alias GlobalbridgeBackend.Contexts.Threads
   alias GlobalbridgeBackend.Repos.ThreadRepo
 
   setup do
@@ -28,7 +29,7 @@ defmodule GlobalbridgeBackend.AI.TranslationIntegrationTest do
     })
 
     # Create test thread
-    {:ok, thread} = Chat.create_thread(%{
+    {:ok, thread} = Threads.create_thread(%{
       title: "Multilingual Test Thread",
       created_by: english_user.id
     })

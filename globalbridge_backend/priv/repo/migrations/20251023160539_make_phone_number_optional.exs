@@ -21,6 +21,9 @@ defmodule GlobalbridgeBackend.Repo.Migrations.MakePhoneNumberOptional do
       add(:tier, :string, default: "free")
       add(:auth0_id, :string)
       add(:email, :string)
+      # Auth0 fields from previous migration
+      add(:auth0_metadata, :text, default: "{}")
+      add(:auth0_refresh_token, :text)
 
       timestamps(type: :utc_datetime)
     end
@@ -31,7 +34,7 @@ defmodule GlobalbridgeBackend.Repo.Migrations.MakePhoneNumberOptional do
       INSERT INTO users_new (
         id, username, phone_number, password_hash, display_name, avatar_url,
         status_message, public_key, last_seen_at, is_online, tier, auth0_id,
-        email, inserted_at, updated_at
+        email, auth0_metadata, auth0_refresh_token, inserted_at, updated_at
       )
       SELECT
         id, username,
@@ -41,7 +44,7 @@ defmodule GlobalbridgeBackend.Repo.Migrations.MakePhoneNumberOptional do
         END,
         password_hash, display_name, avatar_url,
         status_message, public_key, last_seen_at, is_online, tier, auth0_id,
-        email, inserted_at, updated_at
+        email, auth0_metadata, auth0_refresh_token, inserted_at, updated_at
       FROM users
     """)
 
@@ -76,6 +79,9 @@ defmodule GlobalbridgeBackend.Repo.Migrations.MakePhoneNumberOptional do
       add(:tier, :string, default: "free")
       add(:auth0_id, :string)
       add(:email, :string)
+      # Auth0 fields from previous migration
+      add(:auth0_metadata, :text, default: "{}")
+      add(:auth0_refresh_token, :text)
 
       timestamps(type: :utc_datetime)
     end
@@ -85,14 +91,14 @@ defmodule GlobalbridgeBackend.Repo.Migrations.MakePhoneNumberOptional do
       INSERT INTO users_old (
         id, username, phone_number, password_hash, display_name, avatar_url,
         status_message, public_key, last_seen_at, is_online, tier, auth0_id,
-        email, inserted_at, updated_at
+        email, auth0_metadata, auth0_refresh_token, inserted_at, updated_at
       )
       SELECT
         id, username,
         COALESCE(phone_number, '+10000000000'),
         password_hash, display_name, avatar_url,
         status_message, public_key, last_seen_at, is_online, tier, auth0_id,
-        email, inserted_at, updated_at
+        email, auth0_metadata, auth0_refresh_token, inserted_at, updated_at
       FROM users
     """)
 
