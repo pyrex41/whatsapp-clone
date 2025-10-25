@@ -121,7 +121,7 @@ defmodule GlobalbridgeBackend.AI.Agents.TranslatorAgent do
 
         #{config().prompt.constraints}
         """
-        # Call the serving (assumes :openai_serving is running; in prod, handle via supervision)
+        # Call the serving (will use TRANSLATION_MODEL or OPENAI_MODEL from env)
         case GenServer.call(:openai_serving, {:run, %Agens.Message{input: text, prompt: full_prompt}}) do
           {:ok, result} when is_binary(result) ->
             parse_result(result)

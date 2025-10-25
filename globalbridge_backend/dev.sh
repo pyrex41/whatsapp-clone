@@ -28,6 +28,12 @@ fi
 echo "🔧 Loading environment variables from .env..."
 export $(grep -v '^#' .env | xargs)
 
+# Optional: Set SQLITE_VEC_PATH if you have the sqlite-vec extension installed
+# Uncomment and set the path to your vec0 shared library (e.g., libvec0.dylib on macOS, libvec0.so on Linux)
+# export SQLITE_VEC_PATH="/path/to/vec0.dylib"
+# Or if installed via Homebrew on macOS:
+# export SQLITE_VEC_PATH="$(brew --prefix)/lib/vec0.dylib"
+
 # Verify Auth0 variables are set
 if [ -z "$AUTH0_DOMAIN" ]; then
     echo "❌ AUTH0_DOMAIN not set in .env"

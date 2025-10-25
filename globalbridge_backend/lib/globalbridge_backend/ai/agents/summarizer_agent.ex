@@ -96,10 +96,11 @@ defmodule GlobalbridgeBackend.AI.Agents.SummarizerAgent do
   @spec summarize(String.t(), String.t() | nil, keyword()) ::
           {:ok, summary_result} | {:error, String.t()}
   def summarize(context, thread_id \\ nil, opts \\ []) do
-    model = Keyword.get(opts, :model, System.get_env("OPENAI_MODEL") || "claude-3-haiku-20240307")
+    # Use Grok for summarization (fast and high-quality)
+    model = Keyword.get(opts, :model, System.get_env("SUMMARIZER_MODEL") || "grok-2-1212")
     temperature = Keyword.get(opts, :temperature, 0.1)
 
-    Logger.info("SummarizerAgent: Generating summary for thread #{thread_id || "unknown"}")
+    Logger.info("SummarizerAgent: Generating summary for thread #{thread_id || "unknown"} using model: #{model}")
 
     if String.trim(context) == "" do
       Logger.warning("Empty context provided to summarizer")
@@ -116,20 +117,21 @@ defmodule GlobalbridgeBackend.AI.Agents.SummarizerAgent do
       #{config().prompt.constraints}
       """
 
-      # Call the OpenAI serving directly
+      # Call the OpenAI serving directly (will use SUMMARIZER_MODEL from env)
       case GenServer.call(
              :openai_serving,
              {:run,
               %Agens.Message{
                 input: context,
                 prompt: full_prompt
-              }}
+              }},
+             60_000
            ) do
         {:ok, result} when is_binary(result) ->
           parse_summary_result(result)
 
         {:error, reason} ->
-          Logger.error("SummarizerAgent: OpenAI API call failed: #{inspect(reason)}")
+          Logger.error("SummarizerAgent: API call failed: #{inspect(reason)}")
           {:error, "Summary generation failed: #{inspect(reason)}"}
 
         unexpected ->
