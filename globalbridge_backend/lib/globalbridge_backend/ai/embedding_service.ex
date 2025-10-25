@@ -133,56 +133,36 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
   """
   def store_embedding(thread_id, message_id, embedding) do
     # Backwards-compatible: treat thread_id as repo key
-    VectorStore.insert(thread_id, message_id, embedding)
-
+    # Update message row metadata first (non-fatal if it fails)
     repo = ThreadRepo.get_repo(thread_id)
+    update_message_embedding(repo, message_id, embedding)
 
-    sql = """
-    UPDATE messages
-    SET embedding = ?, embedding_model = ?, embedding_generated_at = ?
-    WHERE id = ?
-    """
-
-    embedding_binary = embedding_to_binary(embedding)
-    timestamp = DateTime.utc_now() |> DateTime.to_unix(:millisecond)
-
-    Ecto.Adapters.SQL.query!(repo, sql, [
-      embedding_binary,
-      @embedding_model,
-      timestamp,
-      message_id
-    ])
-
-    :ok
+    # Best-effort insert into vec0 table; log but don't crash job
+    case VectorStore.insert(thread_id, message_id, embedding) do
+      :ok -> :ok
+      {:error, reason} ->
+        require Logger
+        Logger.warning("Skipping vec0 insert for #{message_id}: #{inspect(reason)}")
+        :ok
+    end
   end
 
   @doc """
   Stores an embedding using an explicit shard (repo key).
   """
   def store_embedding_in_shard(shard_id, message_id, embedding) do
-    # Store in vector database keyed by shard
-    VectorStore.insert(shard_id, message_id, embedding)
-
     # Update the message record with embedding metadata
     repo = ThreadRepo.get_repo(shard_id)
+    update_message_embedding(repo, message_id, embedding)
 
-    sql = """
-    UPDATE messages
-    SET embedding = ?, embedding_model = ?, embedding_generated_at = ?
-    WHERE id = ?
-    """
-
-    embedding_binary = embedding_to_binary(embedding)
-    timestamp = DateTime.utc_now() |> DateTime.to_unix(:millisecond)
-
-    Ecto.Adapters.SQL.query!(repo, sql, [
-      embedding_binary,
-      @embedding_model,
-      timestamp,
-      message_id
-    ])
-
-    :ok
+    # Try vec0 insert; do not fail the job if vec0 isn't available
+    case VectorStore.insert(shard_id, message_id, embedding) do
+      :ok -> :ok
+      {:error, reason} ->
+        require Logger
+        Logger.warning("Skipping vec0 insert for #{message_id} on shard #{shard_id}: #{inspect(reason)}")
+        :ok
+    end
   end
 
   @doc """
@@ -354,6 +334,25 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
     # Convert list of floats to binary for storage
     for float <- embedding, into: <<>> do
       <<float::float-32-little>>
+    end
+  end
+
+  defp update_message_embedding(repo, message_id, embedding) do
+    sql = """
+    UPDATE messages
+    SET embedding = ?, embedding_model = ?, embedding_generated_at = ?
+    WHERE id = ?
+    """
+
+    embedding_binary = embedding_to_binary(embedding)
+    timestamp = DateTime.utc_now() |> DateTime.to_unix(:millisecond)
+
+    case Ecto.Adapters.SQL.query(repo, sql, [embedding_binary, @embedding_model, timestamp, message_id]) do
+      {:ok, _} -> :ok
+      {:error, err} ->
+        require Logger
+        Logger.error("Failed to update message embedding metadata for #{message_id}: #{inspect(err)}")
+        :ok
     end
   end
 
