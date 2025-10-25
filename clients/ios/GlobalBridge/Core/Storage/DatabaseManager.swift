@@ -688,6 +688,23 @@ final class DatabaseManager {
 
             try db.run(insert)
 
+            // Persist participants if provided
+            if let participantIds = thread.participantIds, !participantIds.isEmpty {
+                let now = Date()
+                for uid in participantIds {
+                    let row = participantsTable.insert(or: .ignore,
+                                                       participantId <- UUID().uuidString,
+                                                       participantThreadId <- thread.id.uuidString,
+                                                       participantUserId <- uid,
+                                                       participantRole <- "member",
+                                                       participantJoinedAt <- now,
+                                                       participantIsActive <- true,
+                                                       participantCreatedAt <- now,
+                                                       participantUpdatedAt <- now)
+                    _ = try? db.run(row)
+                }
+            }
+
             // Initialize thread-specific database
             _ = try await getThreadDatabase(shardId: thread.databaseShardId)
 
@@ -730,6 +747,10 @@ final class DatabaseManager {
                     continue
                 }
                 
+                // Load participant IDs for this thread (for DM display names)
+                let participantRows = try db.prepare(participantsTable.filter(participantThreadId == idStr))
+                let participantIds = try participantRows.map { try $0.get(participantUserId) }
+
                 let thread = Thread(
                     id: id,
                     threadType: type,
@@ -739,6 +760,7 @@ final class DatabaseManager {
                     isArchived: (try? row.get(threadIsArchived)) ?? false,
                     isMuted: (try? row.get(threadIsMuted)) ?? false,
                     databaseShardId: shardId,
+                    participantIds: participantIds,
                     createdAt: createdAt,
                     updatedAt: updatedAt
                 )
@@ -846,6 +868,23 @@ final class DatabaseManager {
         )
 
         try db.run(insert)
+
+        // Persist participants so we can derive DM titles locally
+        if let participantIds = thread.participantIds, !participantIds.isEmpty {
+            let now = Date()
+            for uid in participantIds {
+                let row = participantsTable.insert(or: .ignore,
+                                                   participantId <- UUID().uuidString,
+                                                   participantThreadId <- thread.id.uuidString,
+                                                   participantUserId <- uid,
+                                                   participantRole <- "member",
+                                                   participantJoinedAt <- now,
+                                                   participantIsActive <- true,
+                                                   participantCreatedAt <- now,
+                                                   participantUpdatedAt <- now)
+                _ = try? db.run(row)
+            }
+        }
         // Ensure shard DB exists
         _ = try await getThreadDatabase(shardId: thread.databaseShardId)
         let shardPath = databasesDirectory.appendingPathComponent("thread_\(thread.databaseShardId).db").path
@@ -860,6 +899,7 @@ final class DatabaseManager {
             throw DatabaseError.connectionFailed("Main connection not available")
         }
         try db.run(threadsTable.delete())
+        _ = try? db.run(participantsTable.delete())
         print("🗑️ [CLEAR] Cleared all local threads")
     }
 
@@ -1226,6 +1266,10 @@ final class DatabaseManager {
                     if let seconds: Double = try? row.get(Expression<Double>(columnName)) {
                         return Date(timeIntervalSinceReferenceDate: seconds)
                     }
+                    // Try INTEGER seconds
+                    if let secsInt: Int64 = try? row.get(Expression<Int64>(columnName)) {
+                        return Date(timeIntervalSinceReferenceDate: Double(secsInt))
+                    }
                     // Try TEXT numeric seconds (as string)
                     if let secondsStr: String = try? row.get(Expression<String>(columnName)),
                        let seconds = Double(secondsStr) {
@@ -1242,9 +1286,30 @@ final class DatabaseManager {
                     return nil
                 }
 
-                guard let timestamp = parseDate(columnName: "timestamp"),
-                      let createdAt = parseDate(columnName: "created_at") else {
-                    print("⚠️ [CDC] Skipping CDC log with invalid dates (id=\(logId))")
+                var timestamp = parseDate(columnName: "timestamp")
+                var createdAt = parseDate(columnName: "created_at")
+
+                if timestamp == nil && createdAt != nil { timestamp = createdAt }
+                if createdAt == nil && timestamp != nil { createdAt = timestamp }
+
+                if timestamp == nil && createdAt == nil {
+                    // As a last resort, repair both to now and persist once
+                    let now = Date()
+                    timestamp = now
+                    createdAt = now
+                    let rowFilter = cdcLogsTable.filter(cdcId == logId)
+                    do {
+                        try db.run(rowFilter.update(
+                            cdcTimestamp <- now,
+                            cdcCreatedAt <- now
+                        ))
+                    } catch {
+                        print("ℹ️ [CDC] Failed to repair dates for id=\(logId): \(error)")
+                    }
+                }
+
+                guard let timestamp = timestamp, let createdAt = createdAt else {
+                    print("⚠️ [CDC] Skipping CDC log with invalid dates after repair (id=\(logId))")
                     continue
                 }
 
@@ -1370,6 +1435,10 @@ final class DatabaseManager {
             return nil
         }
 
+        // Load participant IDs for this thread
+        let participants = try db.prepare(participantsTable.filter(participantThreadId == idStr))
+        let participantIds = try participants.map { try $0.get(participantUserId) }
+
         return Thread(
             id: id,
             threadType: threadType,
@@ -1379,6 +1448,7 @@ final class DatabaseManager {
             isArchived: (try? row.get(threadIsArchived)) ?? false,
             isMuted: (try? row.get(threadIsMuted)) ?? false,
             databaseShardId: shardId,
+            participantIds: participantIds,
             createdAt: createdAt,
             updatedAt: updatedAt
         )
