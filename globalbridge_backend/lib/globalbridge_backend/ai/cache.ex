@@ -193,6 +193,10 @@ defmodule GlobalbridgeBackend.AI.Cache do
     put(key, embedding, ttl: div(@embeddings_ttl, 1000))
   end
 
+  def embedding_exists?(text, model) do
+    get_embedding(text, model) != nil
+  end
+
   def get_search_result(thread_id, query, opts \\ []) do
     limit = Keyword.get(opts, :limit)
     key = "search:#{thread_id}:" <> hash_downcased(query) <> if(limit, do: ":l=#{limit}", else: "")

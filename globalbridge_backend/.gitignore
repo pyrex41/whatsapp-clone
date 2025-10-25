@@ -50,4 +50,8 @@ node_modules/
 
 # Task files
 # tasks.json
-# tasks/ 
+# tasks/
+
+# SQLite temporary files
+*.db-shm
+*.db-wal 
