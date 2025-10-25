@@ -13,6 +13,7 @@ import Combine
 protocol BridgeServiceProtocol {
     func getBridges() -> AnyPublisher<[Bridge], Error>
     func createBridge(type: String, phoneNumber: String) -> AnyPublisher<Bridge, Error>
+    func updateBridgeStatus(id: String, isActive: Bool) -> AnyPublisher<Bridge, Error>
     func deleteBridge(id: String) -> AnyPublisher<Void, Error>
     func getBridgeForThread(threadId: String, bridgeType: String) -> AnyPublisher<Bridge?, Error>
 }
@@ -70,6 +71,27 @@ class BridgeService: BridgeServiceProtocol {
             .eraseToAnyPublisher()
     }
 
+    func updateBridgeStatus(id: String, isActive: Bool) -> AnyPublisher<Bridge, Error> {
+        guard let token = authManager.getAccessToken() else {
+            return Fail(error: BridgeServiceError.unauthorized).eraseToAnyPublisher()
+        }
+
+        let url = baseURL.appendingPathComponent("v1/bridges/\(id)")
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = UpdateBridgeRequest(isActive: isActive)
+        request.httpBody = try? JSONEncoder().encode(body)
+
+        return session.dataTaskPublisher(for: request)
+            .map(\.data)
+            .decode(type: UpdateBridgeResponse.self, decoder: JSONDecoder())
+            .map(\.bridge)
+            .eraseToAnyPublisher()
+    }
+
     func deleteBridge(id: String) -> AnyPublisher<Void, Error> {
         guard let token = authManager.getAccessToken() else {
             return Fail(error: BridgeServiceError.unauthorized).eraseToAnyPublisher()
@@ -81,6 +103,7 @@ class BridgeService: BridgeServiceProtocol {
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
         return session.dataTaskPublisher(for: request)
+            .mapError { $0 as Error }
             .map { _ in () }
             .eraseToAnyPublisher()
     }
@@ -142,6 +165,23 @@ class MockBridgeService: BridgeServiceProtocol {
             .eraseToAnyPublisher()
     }
 
+    func updateBridgeStatus(id: String, isActive: Bool) -> AnyPublisher<Bridge, Error> {
+        if shouldFail {
+            return Fail(error: BridgeServiceError.validationError).eraseToAnyPublisher()
+        }
+
+        guard let index = mockBridges.firstIndex(where: { $0.id == id }) else {
+            return Fail(error: BridgeServiceError.notFound).eraseToAnyPublisher()
+        }
+
+        mockBridges[index].isActive = isActive
+
+        return Just(mockBridges[index])
+            .delay(for: .seconds(delay), scheduler: DispatchQueue.main)
+            .setFailureType(to: Error.self)
+            .eraseToAnyPublisher()
+    }
+
     func deleteBridge(id: String) -> AnyPublisher<Void, Error> {
         if shouldFail {
             return Fail(error: BridgeServiceError.notFound).eraseToAnyPublisher()
@@ -187,6 +227,14 @@ private struct BridgeResponse: Decodable {
 }
 
 private struct CreateBridgeResponse: Decodable {
+    let bridge: Bridge
+}
+
+private struct UpdateBridgeRequest: Encodable {
+    let isActive: Bool
+}
+
+private struct UpdateBridgeResponse: Decodable {
     let bridge: Bridge
 }
 

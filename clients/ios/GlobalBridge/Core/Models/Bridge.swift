@@ -60,7 +60,7 @@ struct BridgeStatus: Sendable {
     let errorMessage: String?
     let timestamp: Date
 
-    enum Status: String, Sendable {
+    enum Status: String, Sendable, Codable {
         case connected = "connected"
         case disconnected = "disconnected"
         case error = "error"
