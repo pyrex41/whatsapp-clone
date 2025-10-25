@@ -411,18 +411,14 @@ extension AppEnvironment {
             initialSync: {
                 _ = try? await initializationTask.value
                 do {
-                    let remoteThreads = try await threadService.fetchThreads()
-                    for thread in remoteThreads {
-                        try await databaseManager.upsertThread(thread)
-                    }
+                    // Use Phoenix bootstrap so DM titles are resolved per-user server-side
+                    let (syncedThreads, _) = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
+                    print("✅ Initial bootstrap sync applied (\(syncedThreads.count) threads)")
                 } catch {
-                    print("⚠️ Failed to fetch remote threads: \\(error.localizedDescription)")
+                    print("⚠️ Failed initial bootstrap sync: \\(error.localizedDescription)")
                 }
-                // Note: syncAllThreads() is NOT called here because thread channels aren't joined yet
-                // Sync will be triggered automatically when:
-                // 1. User taps on a thread → channel joins → sync happens
-                // 2. Connectivity monitoring detects connection → syncs all threads
-                print("✅ Initial sync preparation complete (channels will sync when joined)")
+                // Note: thread channel-specific sync runs after joins; this just refreshes titles/metadata
+                print("✅ Initial sync preparation complete (bootstrap)")
             },
             startMonitoring: {
                 let actor = await syncActorTask.value
