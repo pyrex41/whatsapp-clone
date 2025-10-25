@@ -2,13 +2,15 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 
 import { useSession } from '~/hooks/use-session';
-import { RealtimeService, type ConnectionStatus, type ThreadChannelClient } from '~/services/realtime-service';
+import { RealtimeService, type ConnectionStatus, type ThreadChannelClient, type UserChannelClient } from '~/services/realtime-service';
 
 interface RealtimeContextValue {
   service: RealtimeService;
   status: ConnectionStatus;
   joinThread: (threadId: string) => ThreadChannelClient;
   leaveThread: (threadId: string) => Promise<void>;
+  joinUserChannel: (userId: string) => UserChannelClient;
+  leaveUserChannel: () => void;
 }
 
 const RealtimeContext = createContext<RealtimeContextValue | null>(null);
@@ -54,6 +56,8 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       status,
       joinThread: (threadId: string) => service.joinThread(threadId),
       leaveThread: (threadId: string) => service.leaveThread(threadId),
+      joinUserChannel: (userId: string) => service.joinUserChannel(userId),
+      leaveUserChannel: () => service.leaveUserChannel(),
     }),
     [service, status],
   );

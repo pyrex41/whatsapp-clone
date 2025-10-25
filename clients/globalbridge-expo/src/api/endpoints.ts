@@ -268,11 +268,16 @@ export async function getBridgeStats(client: ApiClient): Promise<ApiBridgeStats[
   return response.data;
 }
 
-export async function getTelegramBridgeForThread(client: ApiClient, threadId: string): Promise<ApiBridge> {
-  const response = await client.request({
-    path: `/v1/bridges/${threadId}/telegram`,
-    method: 'GET',
-    schema: SingleBridgeSchema,
-  });
-  return response.data;
+export async function getTelegramBridgeForThread(client: ApiClient, threadId: string): Promise<ApiBridge | null> {
+  try {
+    const response = await client.request({
+      path: `/v1/bridges/${threadId}/telegram`,
+      method: 'GET',
+      schema: SingleBridgeSchema,
+    });
+    return response.data;
+  } catch (error) {
+    // Return null if no bridge found for this thread
+    return null;
+  }
 }

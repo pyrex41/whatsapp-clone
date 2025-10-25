@@ -78,6 +78,9 @@ defmodule GlobalbridgeBackendWeb.Router do
     pipe_through(:browser)
 
     live("/", AuthLive, :index)
+
+    # Health check endpoint (public)
+    get("/health", HealthController, :index)
   end
 
   scope "/auth", GlobalbridgeBackendWeb do

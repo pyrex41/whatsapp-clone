@@ -16,6 +16,8 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
 
   alias GlobalbridgeBackend.Bridges.Telegram.API
   alias GlobalbridgeBackend.Contexts.Messaging
+  alias GlobalbridgeBackend.Notifications
+  alias GlobalbridgeBackendWeb.Endpoint
 
   # Client API
 
@@ -78,6 +80,43 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
   end
 
   # Server Callbacks
+
+  # Helper function to send bridge status notifications
+  defp send_bridge_status_notification(state, new_status, error_message \\ nil) do
+    if state.status != new_status do
+      Logger.info(
+        "Bridge #{state.bridge.id} status changed from #{state.status} to #{new_status}"
+      )
+
+      # Send push notification asynchronously
+      Task.start(fn ->
+        Notifications.send_bridge_notification(%{
+          user_id: state.bridge.user_id,
+          bridge_id: state.bridge.id,
+          bridge_type: "telegram",
+          status: Atom.to_string(new_status),
+          phone_number: state.bridge.phone_number,
+          error_message: error_message
+        })
+      end)
+
+      # Broadcast status change to user's Phoenix channel
+      bridge_status_payload = %{
+        bridge_id: state.bridge.id,
+        bridge_type: "telegram",
+        status: Atom.to_string(new_status),
+        phone_number: state.bridge.phone_number,
+        error_message: error_message,
+        timestamp: DateTime.utc_now()
+      }
+
+      Endpoint.broadcast(
+        "user:#{state.bridge.user_id}",
+        "bridge_status_changed",
+        bridge_status_payload
+      )
+    end
+  end
 
   @impl true
   def init(bridge) do
@@ -193,6 +232,9 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
             status: :connected
         }
 
+        # Send connection notification
+        send_bridge_status_notification(new_state, :connected)
+
         {:reply, {:ok, result}, new_state}
 
       {:error, reason} ->
@@ -242,7 +284,12 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
     # Set up recurring poll timer (every 2 seconds)
     timer = Process.send_after(self(), :poll, 2000)
 
-    {:noreply, %{state | status: :connected, polling_timer: timer}}
+    new_state = %{state | status: :connected, polling_timer: timer}
+
+    # Send connection notification
+    send_bridge_status_notification(new_state, :connected)
+
+    {:noreply, new_state}
   end
 
   @impl true
@@ -375,6 +422,15 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
   def terminate(reason, state) do
     Logger.info("Terminating Telegram server for bridge #{state.bridge.id}: #{inspect(reason)}")
 
+    # Send disconnection notification if we were connected
+    if state.status == :connected do
+      send_bridge_status_notification(
+        state,
+        :disconnected,
+        "Bridge server terminated: #{inspect(reason)}"
+      )
+    end
+
     # Cancel timers
     if state.polling_timer do
       Process.cancel_timer(state.polling_timer)
@@ -410,12 +466,23 @@ defmodule GlobalbridgeBackend.Bridges.Telegram.Server do
           "Failed to poll Telegram API for bridge #{state.bridge.id}: #{inspect(reason)}"
         )
 
+        new_status = if(state.error_count >= 5, do: :error, else: state.status)
+
         new_state = %{
           state
           | last_poll: DateTime.utc_now(),
             error_count: state.error_count + 1,
-            status: if(state.error_count >= 5, do: :error, else: state.status)
+            status: new_status
         }
+
+        # Send error notification if status changed to error
+        if new_status == :error do
+          send_bridge_status_notification(
+            new_state,
+            :error,
+            "Too many consecutive errors (#{new_state.error_count})"
+          )
+        end
 
         {{:error, reason}, new_state}
     end

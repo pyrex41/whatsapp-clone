@@ -46,15 +46,10 @@ defmodule GlobalbridgeBackend.Bridges.MessageRouter do
                     # Broadcast the message to Phoenix channels
                     broadcast_message_to_channels(message, thread.id)
 
-                    Logger.info("Created GlobalBridge message #{message.id} from bridge #{bridge_id}")
-                    {:ok, message}
+                    Logger.info(
+                      "Created GlobalBridge message #{message.id} from bridge #{bridge_id}"
+                    )
 
-                  {:error, reason} ->
-                    Logger.error("Failed to create GlobalBridge message: #{inspect(reason)}")
-                    {:error, {:message_creation_failed, reason}}
-                end
-
-                    Logger.info("Created GlobalBridge message #{message.id} from bridge #{bridge_id}")
                     {:ok, message}
 
                   {:error, reason} ->
@@ -71,22 +66,6 @@ defmodule GlobalbridgeBackend.Bridges.MessageRouter do
             Logger.error("Failed to convert message format: #{inspect(reason)}")
             {:error, {:conversion_error, reason}}
         end
-      end
-    rescue
-      error ->
-        Logger.error("Exception in message routing: #{inspect(error)}")
-        {:error, {:routing_exception, error}}
-    end
-  end
-
-            {:error, reason} ->
-              Logger.error("Failed to find/create thread: #{inspect(reason)}")
-              {:error, {:thread_error, reason}}
-          end
-
-        {:error, reason} ->
-          Logger.error("Failed to convert message format: #{inspect(reason)}")
-          {:error, {:conversion_error, reason}}
       end
     rescue
       error ->
@@ -332,7 +311,8 @@ defmodule GlobalbridgeBackend.Bridges.MessageRouter do
   defp get_telegram_chat_id(gb_message) do
     # Extract Telegram chat ID from message metadata
     # This would need proper implementation
-    nil  # Placeholder
+    # Placeholder
+    nil
   end
 
   defp get_external_message_id(parsed_message) do
@@ -347,6 +327,7 @@ defmodule GlobalbridgeBackend.Bridges.MessageRouter do
     # Check if message was already processed
     # Use a simple cache with TTL
     cache_key = "processed_message:#{external_message_id}"
+
     case :persistent_term.get(cache_key, nil) do
       nil -> false
       _ -> true
@@ -375,7 +356,8 @@ defmodule GlobalbridgeBackend.Bridges.MessageRouter do
       created_at: message.inserted_at,
       updated_at: message.updated_at,
       external_message_id: message.external_message_id,
-      bridge_source: true  # Mark as coming from a bridge
+      # Mark as coming from a bridge
+      bridge_source: true
     }
 
     # Broadcast to the thread channel
@@ -390,5 +372,4 @@ defmodule GlobalbridgeBackend.Bridges.MessageRouter do
         Logger.error("Failed to broadcast message #{message.id}: #{inspect(error)}")
     end
   end
-end
 end

@@ -31,6 +31,12 @@ public struct PhoenixMessage: Codable, Sendable, Identifiable {
         public let edited: Bool?
         public let editedAt: Date?
         public let attachments: [Attachment]?
+        public let bridgeId: String?
+        public let platform: String?
+
+        public var bridgePlatform: String? {
+            return platform
+        }
 
         public struct Attachment: Codable, Sendable {
             public let id: String
@@ -38,6 +44,15 @@ public struct PhoenixMessage: Codable, Sendable, Identifiable {
             public let url: String
             public let name: String
             public let size: Int?
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case replyToId = "reply_to_id"
+            case edited
+            case editedAt = "edited_at"
+            case attachments
+            case bridgeId = "bridge_id"
+            case platform
         }
     }
 

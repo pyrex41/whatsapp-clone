@@ -193,13 +193,14 @@ defmodule GlobalbridgeBackend.Bridges.UserMapper do
 
   defp generate_unique_username_from_telegram_user(telegram_user) do
     # Generate a unique username from Telegram user info
-    base_username = if telegram_user.username do
-      telegram_user.username
-    else
-      "#{telegram_user.first_name || "user"}#{telegram_user.last_name || ""}"
-      |> String.downcase()
-      |> String.replace(~r/[^a-z0-9]/, "")
-    end
+    base_username =
+      if telegram_user.username do
+        telegram_user.username
+      else
+        "#{telegram_user.first_name || "user"}#{telegram_user.last_name || ""}"
+        |> String.downcase()
+        |> String.replace(~r/[^a-z0-9]/, "")
+      end
 
     # Ensure uniqueness
     ensure_unique_username(base_username, telegram_user.id)
@@ -219,13 +220,10 @@ defmodule GlobalbridgeBackend.Bridges.UserMapper do
         # Double-check uniqueness (though very unlikely to collide)
         case Repo.get_by(User, username: unique_username) do
           nil -> unique_username
-          _ -> "#{unique_username}_#{:rand.uniform(1000)}"  # Add random number if still collision
+          # Add random number if still collision
+          _ -> "#{unique_username}_#{:rand.uniform(1000)}"
         end
     end
-  end
-
-    # Ensure uniqueness by appending Telegram ID if needed
-    "#{base_username}_tg#{telegram_user.id}"
   end
 
   defp generate_email_from_telegram_user(telegram_user) do

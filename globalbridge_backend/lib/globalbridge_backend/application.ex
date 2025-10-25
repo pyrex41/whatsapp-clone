@@ -50,6 +50,7 @@ defmodule GlobalbridgeBackend.Application do
              fn ->
                GlobalbridgeBackend.AI.AgensSetup.start_components()
                GlobalbridgeBackend.AI.Telemetry.setup()
+               GlobalbridgeBackend.Bridges.Telemetry.setup()
              end},
             id: :ai_components_setup_task
           ),

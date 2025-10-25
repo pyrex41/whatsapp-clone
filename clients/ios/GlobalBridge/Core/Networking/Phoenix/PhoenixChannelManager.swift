@@ -13,6 +13,7 @@ public typealias MessageHandler = @Sendable (PhoenixMessage) -> Void
 public typealias PresenceHandler = @Sendable (String, UserPresence) -> Void
 public typealias TypingHandler = @Sendable (TypingIndicator) -> Void
 public typealias ReadReceiptHandler = @Sendable (ReadReceipt) -> Void
+public typealias BridgeStatusHandler = @Sendable (BridgeStatus) -> Void
 
 /// Connection state for Phoenix channels
 public enum PhoenixConnectionState: Sendable {
@@ -38,6 +39,7 @@ public actor PhoenixChannelManager {
     private var globalMessageHandlers: [MessageHandler] = []
     private var typingHandlers: [String: [TypingHandler]] = [:]
     private var readReceiptHandlers: [String: [ReadReceiptHandler]] = [:]
+    private var bridgeStatusHandlers: [BridgeStatusHandler] = []
     private var typingTimers: [String: Task<Void, Never>] = [:]
     private var currentUserId: String?
 
@@ -744,6 +746,12 @@ public actor PhoenixChannelManager {
         }
     }
 
+    private func deliverBridgeStatus(_ bridgeStatus: BridgeStatus) async {
+        bridgeStatusHandlers.forEach { handler in
+            handler(bridgeStatus)
+        }
+    }
+
     /// Leave a conversation channel
     public func leaveConversation(_ conversationId: String) {
         let topic = topic(for: conversationId)
@@ -939,6 +947,11 @@ public actor PhoenixChannelManager {
         readReceiptHandlers[conversationId]?.append(handler)
     }
 
+    /// Register handler for bridge status updates
+    public func onBridgeStatus(handler: @escaping BridgeStatusHandler) {
+        bridgeStatusHandlers.append(handler)
+    }
+
     /// Send typing indicator
     public func sendTypingIndicator(conversationId: String, isTyping: Bool) async {
         // Wait for channel to be joined (with a shorter timeout for typing)
@@ -1100,6 +1113,8 @@ public actor PhoenixChannelManager {
             let replyToId = metadataPayload["reply_to_id"] as? String
             let edited = metadataPayload["edited"] as? Bool
             let editedAt = (metadataPayload["edited_at"] as? String).flatMap(parseISO8601Date)
+            let bridgeId = metadataPayload["bridge_id"] as? String
+            let platform = metadataPayload["platform"] as? String
 
             var attachments: [PhoenixMessage.MessageMetadata.Attachment]?
             if let attachmentsPayload = metadataPayload["attachments"] as? [[String: Any]] {
@@ -1136,7 +1151,9 @@ public actor PhoenixChannelManager {
                 replyToId: replyToId,
                 edited: edited,
                 editedAt: editedAt,
-                attachments: attachments
+                attachments: attachments,
+                bridgeId: bridgeId,
+                platform: platform
             )
         }
 
@@ -1202,6 +1219,34 @@ public actor PhoenixChannelManager {
             conversationId: conversationId,
             messageId: messageId,
             readAt: readAt
+        )
+    }
+
+    nonisolated private func parseBridgeStatus(from payload: [String: Any]) throws -> BridgeStatus {
+        guard
+            let bridgeId = payload["bridge_id"] as? String,
+            let bridgeType = payload["bridge_type"] as? String,
+            let statusString = payload["status"] as? String
+        else {
+            throw PhoenixError.decodingFailed(PhoenixDecodingError.missingRequiredFields)
+        }
+
+        guard let status = BridgeStatus.Status(rawValue: statusString) else {
+            throw PhoenixError.decodingFailed(PhoenixDecodingError.unknownStatus(statusString))
+        }
+
+        let phoneNumber = payload["phone_number"] as? String
+        let errorMessage = payload["error_message"] as? String
+        let timestampString = payload["timestamp"] as? String
+        let timestamp = timestampString.flatMap(parseISO8601Date) ?? Date()
+
+        return BridgeStatus(
+            bridgeId: bridgeId,
+            bridgeType: bridgeType,
+            status: status,
+            phoneNumber: phoneNumber,
+            errorMessage: errorMessage,
+            timestamp: timestamp
         )
     }
 
@@ -1294,6 +1339,17 @@ public actor PhoenixChannelManager {
                 Task { await self.deliverNewMessage(message, conversationId: message.conversationId) }
             } catch {
                 print("[Phoenix] Failed to decode user-channel message: \(error)")
+            }
+        }
+
+        // Handle bridge status changes
+        channel.on("bridge_status_changed") { [weak self] socketMessage in
+            guard let self else { return }
+            do {
+                let bridgeStatus = try self.parseBridgeStatus(from: socketMessage.payload)
+                Task { await self.deliverBridgeStatus(bridgeStatus) }
+            } catch {
+                print("[Phoenix] Failed to decode bridge status: \(error)")
             }
         }
     }

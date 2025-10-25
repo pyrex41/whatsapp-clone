@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -13,16 +13,58 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Notifications from 'expo-notifications';
 
 import { useBridges } from '~/hooks/use-bridges';
+import { useNotifications } from '~/services/notification-service';
+import { useRealtime } from '~/providers/realtime-provider';
+import { useSession } from '~/hooks/use-session';
 
 export default function BridgeSetupScreen() {
   const router = useRouter();
   const { bridges, isLoading, error, refetch, createBridge, toggleBridgeActive, deleteBridge } = useBridges();
+  const notifications = useNotifications();
+  const { joinUserChannel, leaveUserChannel } = useRealtime();
+  const user = useSession((state) => state.tokens?.user);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+
+  // Listen for push notifications about bridge status changes
+  useEffect(() => {
+    const subscription = Notifications.addNotificationReceivedListener(notification => {
+      const data = notification.request.content.data;
+      if (data?.type?.startsWith('bridge_')) {
+        // Refresh bridge list when we receive a bridge notification
+        refetch().catch(console.error);
+      }
+    });
+
+    return () => {
+      Notifications.removeNotificationSubscription(subscription);
+    };
+  }, [refetch]);
+
+  // Listen for real-time bridge status changes
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const userChannel = joinUserChannel(user.id);
+
+    const handleBridgeStatusChange = (event: any) => {
+      console.log('Real-time bridge status change:', event);
+      // Refresh bridge list when we receive a real-time status update
+      refetch().catch(console.error);
+    };
+
+    userChannel.on('bridge_status_changed', handleBridgeStatusChange);
+
+    return () => {
+      userChannel.off('bridge_status_changed', handleBridgeStatusChange);
+      leaveUserChannel();
+    };
+  }, [user?.id, joinUserChannel, leaveUserChannel, refetch]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -45,13 +87,20 @@ export default function BridgeSetupScreen() {
 
     setIsCreating(true);
     try {
-      await createBridge({
+      const newBridge = await createBridge({
         bridge_type: 'telegram',
         phone_number: phoneNumber.trim(),
       });
 
       setPhoneNumber('');
       setShowCreateForm(false);
+
+      // Show success notification
+      await notifications.showLocalNotification(
+        'Bridge Created',
+        `Telegram bridge for ${phoneNumber.trim()} has been created successfully.`
+      );
+
       Alert.alert('Success', 'Bridge created successfully! Check your Telegram app for the verification code.');
     } catch (error: any) {
       const errorMessage = error?.message || 'Failed to create bridge';
@@ -65,11 +114,18 @@ export default function BridgeSetupScreen() {
   const handleToggleActive = useCallback(async (bridge: ApiBridge) => {
     try {
       await toggleBridgeActive(bridge.id, !bridge.is_active);
+
+      // Show status change notification
+      const statusText = !bridge.is_active ? 'enabled' : 'disabled';
+      await notifications.showLocalNotification(
+        'Bridge Updated',
+        `${bridge.bridge_type.charAt(0).toUpperCase() + bridge.bridge_type.slice(1)} bridge for ${bridge.phone_number} has been ${statusText}.`
+      );
     } catch (error) {
       Alert.alert('Error', 'Failed to update bridge status');
       console.error('Failed to toggle bridge active:', error);
     }
-  }, [toggleBridgeActive]);
+  }, [toggleBridgeActive, notifications]);
 
   const handleDeleteBridge = useCallback((bridge: ApiBridge) => {
     Alert.alert(
@@ -83,6 +139,13 @@ export default function BridgeSetupScreen() {
           onPress: async () => {
             try {
               await deleteBridge(bridge.id);
+
+              // Show deletion notification
+              await notifications.showLocalNotification(
+                'Bridge Deleted',
+                `${bridge.bridge_type.charAt(0).toUpperCase() + bridge.bridge_type.slice(1)} bridge for ${bridge.phone_number} has been deleted.`
+              );
+
               Alert.alert('Success', 'Bridge deleted successfully');
             } catch (error) {
               Alert.alert('Error', 'Failed to delete bridge');

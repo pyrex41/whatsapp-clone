@@ -10,7 +10,7 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
   alias GlobalbridgeBackend.Repo
 
   # Intercept outgoing broadcasts
-  intercept(["thread_created"])
+  intercept(["thread_created", "bridge_status_changed"])
 
   @impl true
   def join("user:" <> identifier, _payload, socket) do
@@ -274,6 +274,16 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
     )
 
     push(socket, "thread_created", payload)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_out("bridge_status_changed", payload, socket) do
+    Logger.debug(
+      "📨 [USER_CHANNEL] Pushing bridge_status_changed event to user: #{socket.assigns.user_id}"
+    )
+
+    push(socket, "bridge_status_changed", payload)
     {:noreply, socket}
   end
 
