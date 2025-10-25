@@ -9,6 +9,7 @@ defmodule GlobalbridgeBackend.AI.VectorStore do
   - Managing per-thread vector databases
   """
 
+  require Logger
   alias GlobalbridgeBackend.Repos.ThreadRepo
 
   @doc """
@@ -24,7 +25,20 @@ defmodule GlobalbridgeBackend.AI.VectorStore do
     );
     """
 
-    Ecto.Adapters.SQL.query!(repo, sql)
+    case Ecto.Adapters.SQL.query(repo, sql) do
+      {:ok, _} -> :ok
+      {:error, %Exqlite.Error{message: message} = err} ->
+        if String.contains?(String.downcase(message), "no such module: vec0") do
+          Logger.warning("sqlite-vec (vec0) not available; skipping vector table creation")
+          :ok
+        else
+          Logger.error("Failed to create message_embeddings vec table: #{inspect(err)}")
+          :ok
+        end
+      {:error, err} ->
+        Logger.error("Failed to create message_embeddings vec table: #{inspect(err)}")
+        :ok
+    end
   end
 
   @doc """

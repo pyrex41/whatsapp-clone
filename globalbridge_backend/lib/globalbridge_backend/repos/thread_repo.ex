@@ -54,19 +54,36 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
     db_path = database_path(shard_id)
 
     # Define the dynamic repo module
-    repo_config = %{
-      adapter: Ecto.Adapters.SQLite3,
-      database: db_path,
-      # Single connection per thread DB
-      pool_size: 1,
-      show_sensitive_data_on_connection_error: false,
-      after_connect: {__MODULE__, :load_vec_extension, []}
+    # Prefer loading sqlite-vec via Exqlite's built-in load_extensions hook so the
+    # extension is available before any schema initialization or queries run.
+    vec_extension_path = get_vec_extension_path()
+
+    load_extension_opts =
+      if File.exists?(vec_extension_path) do
+        [load_extensions: [vec_extension_path]]
+      else
+        []
+      end
+
+    repo_config =
+      [
+        adapter: Ecto.Adapters.SQLite3,
+        database: db_path,
+        # Single connection per thread DB
+        pool_size: 1,
+        show_sensitive_data_on_connection_error: false
+      ] ++ load_extension_opts
+
+    # Create child spec with the repo module and config as two separate arguments
+    child_spec = %{
+      id: repo_module,
+      start: {repo_module, :start_link, [repo_config]},
+      type: :supervisor
     }
 
-    # Start the dynamic repo
     case DynamicSupervisor.start_child(
            GlobalbridgeBackend.DynamicRepoSupervisor,
-           {Ecto.Repo.Supervisor, {repo_module, repo_config}}
+           child_spec
          ) do
       {:ok, _pid} ->
         # Add to active repos list
@@ -170,19 +187,12 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
 
     # Load the extension if the file exists
     if File.exists?(vec_extension_path) do
-      case Ecto.Adapters.SQL.query(conn, "SELECT load_extension(?)", [vec_extension_path]) do
-        {:ok, _result} ->
-          # Extension loaded successfully
-          :ok
-
-        {:error, error} ->
-          # Log the error but don't fail - vector operations may still work with basic SQLite
-          Logger.warning(
-            "Failed to load sqlite-vec extension from #{vec_extension_path}: #{inspect(error)}"
-          )
-
-          :ok
-      end
+      # Note: This function can be kept as a fallback, but Exqlite's
+      # load_extensions option now handles loading at connect time.
+      # We avoid issuing SQL through Ecto.Adapters.SQL with the raw
+      # DBConnection struct (which previously caused a MatchError).
+      Logger.debug("sqlite-vec path detected at #{vec_extension_path}; relying on load_extensions option")
+      :ok
     else
       # Extension not found - log warning but continue
       Logger.warning(
@@ -205,6 +215,7 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
             [
               "/opt/homebrew/lib/vec0.dylib",
               "/usr/local/lib/vec0.dylib",
+              "/opt/me/lib/vec0.dylib",
               "/usr/lib/vec0.dylib"
             ]
             |> Enum.find(&File.exists?/1)
@@ -244,13 +255,13 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
     # Create a unique module name for this shard
     # Convert shard_id to valid Elixir module name
     clean_shard_id = String.replace(shard_id, ~r/[^a-zA-Z0-9_]/, "_")
-    module_name = "GlobalbridgeBackend.Repos.ThreadRepo.Shard_#{clean_shard_id}"
+    module_name = Module.concat([GlobalbridgeBackend.Repos.ThreadRepo, "Shard_#{clean_shard_id}"])
 
     # Define the module dynamically if it doesn't exist
-    unless Code.ensure_loaded?(String.to_atom(module_name)) do
+    unless Code.ensure_loaded?(module_name) do
       {:module, _module, _binary, _term} =
         Module.create(
-          String.to_atom(module_name),
+          module_name,
           quote do
             use Ecto.Repo,
               otp_app: :globalbridge_backend,
@@ -260,7 +271,7 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
         )
     end
 
-    String.to_atom(module_name)
+    module_name
   end
 
   defp run_thread_migrations(repo) do
@@ -285,6 +296,87 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
     # Always create vector table for embeddings
     GlobalbridgeBackend.AI.VectorStore.create_embeddings_table(repo)
   end
+
+  @doc """
+  If a per-thread database has zero messages but the main shared DB has
+  historical messages for the thread, backfill them into the shard DB.
+
+  Idempotent: uses INSERT OR IGNORE on message id to avoid duplicates.
+  """
+  def maybe_backfill_from_main(repo, thread_id) do
+    with {:ok, %{rows: [[count]]}} <- Ecto.Adapters.SQL.query(repo, "SELECT COUNT(*) FROM messages", []),
+         true <- count == 0 do
+      backfill_messages(repo, thread_id)
+    else
+      _ -> :ok
+    end
+  end
+
+  defp backfill_messages(repo, thread_id) do
+    require Logger
+    alias GlobalbridgeBackend.{Repo, Schemas.Message}
+    import Ecto.Query
+
+    messages =
+      Repo.all(
+        from m in Message,
+          where: m.thread_id == ^thread_id,
+          order_by: [asc: m.inserted_at]
+      )
+
+    if messages == [] do
+      :ok
+    else
+      Logger.info("Backfilling #{length(messages)} messages into shard DB for thread #{thread_id}")
+
+      Enum.each(messages, fn m ->
+        sql = """
+        INSERT OR IGNORE INTO messages (
+          id, thread_id, sender_id, content, content_type,
+          media_url, media_size, media_mime_type,
+          is_encrypted, encryption_key_id, reply_to_id,
+          is_deleted, deleted_at, edited_at, client_created_at,
+          inserted_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+
+        params = [
+          m.id,
+          m.thread_id,
+          m.sender_id,
+          m.content,
+          m.content_type,
+          m.media_url,
+          m.media_size,
+          m.media_mime_type,
+          bool_to_int(m.is_encrypted),
+          m.encryption_key_id,
+          m.reply_to_id,
+          bool_to_int(m.is_deleted),
+          dt_to_text(m.deleted_at),
+          dt_to_text(m.edited_at),
+          dt_to_text(m.client_created_at),
+          dt_to_text(m.inserted_at) || DateTime.to_iso8601(DateTime.utc_now()),
+          dt_to_text(m.updated_at) || DateTime.to_iso8601(DateTime.utc_now())
+        ]
+
+        case Ecto.Adapters.SQL.query(repo, sql, params) do
+          {:ok, _} -> :ok
+          {:error, err} -> Logger.error("Backfill insert failed: #{inspect(err)}")
+        end
+      end)
+
+      :ok
+    end
+  end
+
+  defp bool_to_int(nil), do: 0
+  defp bool_to_int(true), do: 1
+  defp bool_to_int(false), do: 0
+
+  defp dt_to_text(nil), do: nil
+  defp dt_to_text(%NaiveDateTime{} = ndt), do: NaiveDateTime.to_iso8601(ndt) <> "Z"
+  defp dt_to_text(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
 
   defp create_messages_table(repo) do
     # SQL to create messages table

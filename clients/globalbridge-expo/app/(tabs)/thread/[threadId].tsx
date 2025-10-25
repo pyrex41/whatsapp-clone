@@ -27,12 +27,41 @@ export default function ThreadScreen() {
   const listRef = useRef<FlatList<(typeof items)[number]> | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const composerDisabled = sending || !draft.trim();
+  const [hasAutoScrolled, setHasAutoScrolled] = useState(false);
+  const [isNearBottom, setIsNearBottom] = useState(true);
+  const latestIdRef = useRef<string | null>(null);
 
+  // UI list should render oldest -> newest so that the bottom is the latest message
+  // (chat UX expectation). The data from the hook is newest-first, so reverse it for UI.
+  const uiItems = useMemo(() => {
+    return [...items].reverse();
+  }, [items]);
+
+  // On first load of messages, mark the latest as read and scroll to the bottom.
   useEffect(() => {
-    if (!items.length) return;
+    if (!items.length || hasAutoScrolled) return;
+    // items[0] is newest (source data is newest-first)
     void markRead(items[0].id);
-    listRef.current?.scrollToOffset({ offset: 0, animated: true });
-  }, [items, markRead]);
+    // Ensure we start at the bottom (latest message)
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToEnd?.({ animated: false });
+      setHasAutoScrolled(true);
+    });
+  }, [items, markRead, hasAutoScrolled]);
+
+  // When a new message arrives and the user is already at/near the bottom,
+  // auto-scroll to reveal it. Do not jump if the user is reading history.
+  useEffect(() => {
+    if (!items.length || !hasAutoScrolled) return;
+    const newestId = items[0].id;
+    const prevId = latestIdRef.current;
+    if (prevId && newestId !== prevId && isNearBottom) {
+      requestAnimationFrame(() => {
+        listRef.current?.scrollToEnd?.({ animated: true });
+      });
+    }
+    latestIdRef.current = newestId;
+  }, [items, hasAutoScrolled, isNearBottom]);
 
   const renderItem = useCallback(
     ({ item }: { item: (typeof items)[number] }) => {
@@ -144,11 +173,25 @@ export default function ThreadScreen() {
       <FlatList
         ref={listRef}
         style={styles.list}
-        data={items}
+        data={uiItems}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         refreshControl={<RefreshControl refreshing={isRefetching || isLoading} onRefresh={refetch} />}
         contentContainerStyle={styles.contentContainer}
+        // Extra guard to land at bottom once content measures
+        onContentSizeChange={() => {
+          if (!hasAutoScrolled && uiItems.length > 0) {
+            listRef.current?.scrollToEnd?.({ animated: false });
+            setHasAutoScrolled(true);
+          }
+        }}
+        onScroll={(e) => {
+          const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+          const bottomGap = contentSize.height - (contentOffset.y + layoutMeasurement.height);
+          // consider within 80px of bottom as "near bottom"
+          setIsNearBottom(bottomGap <= 80);
+        }}
+        scrollEventThrottle={16}
         ListEmptyComponent={
           !isLoading ? (
             <View style={styles.emptyState}>

@@ -8,6 +8,8 @@ import SwiftUI
 struct ChatScreen: View {
     @ObservedObject var store: Store<AppState, AppAction>
     @FocusState private var composerFocused: Bool
+    @State private var hasAutoScrolled = false
+    @State private var isAtBottom = true
 
     private var chatState: ChatState { store.state.chat }
 
@@ -18,8 +20,9 @@ struct ChatScreen: View {
                 let _ = print("✅ [CHAT_VIEW] Showing chat for thread: \(thread.id) - \(thread.title ?? "Untitled")")
                 VStack(spacing: 0) {
                     ScrollViewReader { proxy in
-                        ScrollView {
-                            LazyVStack(spacing: 12) {
+                        ZStack(alignment: .bottomTrailing) {
+                            ScrollView {
+                                LazyVStack(spacing: 12) {
                                 // Load more button at top (for pagination)
                                 if chatState.hasMoreMessages && !chatState.messages.isEmpty {
                                     Button {
@@ -50,15 +53,54 @@ struct ChatScreen: View {
                                         userCache: store.state.userCache
                                     )
                                     .id(message.id)
+                                    // Track bottom visibility using last item
+                                    .onAppear {
+                                        if message.id == chatState.messages.last?.id {
+                                            isAtBottom = true
+                                        }
+                                    }
+                                    .onDisappear {
+                                        if message.id == chatState.messages.last?.id {
+                                            isAtBottom = false
+                                        }
+                                    }
                                 }
+                                }
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 8)
                             }
-                            .padding(.vertical, 12)
-                            .padding(.horizontal, 8)
+                            // Jump-to-latest floating button when not at bottom
+                            if !isAtBottom {
+                                Button {
+                                    if let lastId = chatState.messages.last?.id {
+                                        withAnimation {
+                                            proxy.scrollTo(lastId, anchor: .bottom)
+                                        }
+                                    }
+                                } label: {
+                                    Image(systemName: "arrow.down.circle.fill")
+                                        .font(.system(size: 28))
+                                        .foregroundColor(.white)
+                                        .shadow(radius: 2)
+                                        .padding(10)
+                                        .background(Color.blue.opacity(0.92))
+                                        .clipShape(Circle())
+                                }
+                                .padding(.trailing, 12)
+                                .padding(.bottom, 12)
+                            }
                         }
                         .onChange(of: chatState.messages.count) { _, _ in
                             guard let lastMessage = chatState.messages.last else { return }
-                            withAnimation {
+                            if !hasAutoScrolled {
+                                hasAutoScrolled = true
+                                // Initial snap to bottom without animation
                                 proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                            } else if isAtBottom {
+                                // Only auto-scroll on new messages if user is already at bottom
+                                withAnimation {
+                                    proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                }
                             }
                         }
                     }
@@ -102,6 +144,12 @@ struct ChatScreen: View {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         print("⌨️ [COMPOSER] Delayed focus attempt")
                         composerFocused = true
+                        // Fallback: ensure we start at bottom when view appears
+                        if !hasAutoScrolled, let last = chatState.messages.last?.id {
+                            hasAutoScrolled = true
+                            // We cannot access proxy here; initial scroll occurs in onChange above when messages load
+                            _ = last // no-op to silence warning if optimized out
+                        }
                     }
                 }
                 .onChange(of: chatState.currentThread?.id) { _, newId in
