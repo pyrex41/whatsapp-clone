@@ -203,12 +203,16 @@ struct ThreadRow: View {
     }
 
     private func initials(for thread: Thread) -> String {
-        thread.title?
-            .split(separator: " ")
-            .prefix(2)
-            .map { $0.first.map(String.init) ?? "" }
-            .joined()
-            .uppercased() ?? "GB"
+        // Prefer the resolved display name (DM: other participant; Group: title)
+        let name = thread.displayName(currentUserId: currentUserId, userCache: userCache)
+        let parts = name.split(whereSeparator: { $0.isWhitespace })
+        if parts.count >= 2,
+           let first = parts.first?.first,
+           let second = parts.dropFirst().first?.first {
+            return String([first, second]).uppercased()
+        }
+        // Fallback to first two visible characters
+        return String(name.prefix(2)).uppercased()
     }
 }
 
