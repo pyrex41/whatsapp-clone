@@ -40,8 +40,6 @@ defmodule GlobalbridgeBackend.Application do
           []
         end ++
         [
-          # Caching with Cachex
-          {Cachex, name: :ai_cache},
           # AI Components Setup (runs after other supervisors are started)
           Supervisor.child_spec(
             {Task,
