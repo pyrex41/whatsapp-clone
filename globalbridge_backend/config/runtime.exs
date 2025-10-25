@@ -258,3 +258,32 @@ if config_env() in [:dev, :prod] do
     auth0_client_secret: auth0_client_secret,
     auth0_audience: auth0_audience
 end
+
+# Bridge Configuration (Telegram, WhatsApp, etc.)
+if config_env() in [:dev, :prod] do
+  # Telegram Bot Configuration
+  telegram_bot_token = System.get_env("TELEGRAM_BOT_TOKEN")
+
+  # Bridge Security Settings
+  webhook_ssl_verification = System.get_env("WEBHOOK_SSL_VERIFICATION", "true") == "true"
+
+  # In production, enforce SSL verification for webhooks
+  if config_env() == :prod do
+    unless webhook_ssl_verification do
+      raise """
+      SSL verification MUST be enabled in production for security.
+      Set WEBHOOK_SSL_VERIFICATION=true or remove the environment variable.
+      This prevents man-in-the-middle attacks on webhook endpoints.
+      """
+    end
+  end
+
+  # Bridge configuration
+  config :globalbridge_backend, :bridge,
+    telegram_bot_token: telegram_bot_token,
+    webhook_ssl_verification: webhook_ssl_verification,
+    poll_interval: String.to_integer(System.get_env("POLL_INTERVAL") || "2000"),
+    max_failures: String.to_integer(System.get_env("MAX_FAILURES") || "5"),
+    health_check_interval: String.to_integer(System.get_env("HEALTH_CHECK_INTERVAL") || "30000"),
+    rate_limit_per_minute: String.to_integer(System.get_env("BRIDGE_MESSAGE_RATE_LIMIT") || "100")
+end

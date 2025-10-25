@@ -38,6 +38,21 @@ export interface ThreadPresenceState {
   };
 }
 
+export interface BridgeStatusEvent {
+  bridge_id: string;
+  bridge_type: string;
+  status: string;
+  phone_number: string;
+  error_message?: string;
+  timestamp: string;
+}
+
+interface UserChannelEvents {
+  thread_created: (payload: any) => void;
+  bridge_status_changed: (event: BridgeStatusEvent) => void;
+  error: (error: Error) => void;
+}
+
 interface ThreadChannelEvents {
   message: (message: ApiMessage) => void;
   message_updated: (message: ApiMessage) => void;
@@ -267,6 +282,103 @@ class ThreadChannelClient extends EventEmitter<ThreadChannelEvents> {
   }
 }
 
+class UserChannelClient extends EventEmitter<UserChannelEvents> {
+  private joined = false;
+  private joinPromise: Promise<void> | null = null;
+
+  constructor(private readonly channel: Channel, public readonly userId: string) {
+    super();
+    this.attachChannelHandlers();
+  }
+
+  private attachChannelHandlers() {
+    this.channel.on('thread_created', (payload) => {
+      this.emit('thread_created', payload);
+    });
+
+    this.channel.on('bridge_status_changed', (payload) => {
+      const event: BridgeStatusEvent = {
+        bridge_id: String(payload.bridge_id),
+        bridge_type: String(payload.bridge_type),
+        status: String(payload.status),
+        phone_number: String(payload.phone_number),
+        error_message: payload.error_message ? String(payload.error_message) : undefined,
+        timestamp: String(payload.timestamp),
+      };
+      this.emit('bridge_status_changed', event);
+    });
+
+    this.channel.onError((error) => {
+      this.emit('error', normalizeError(error));
+    });
+
+    this.channel.onClose(() => {
+      this.joined = false;
+    });
+  }
+
+  async ensureJoined(): Promise<void> {
+    if (this.joined) return;
+    if (this.joinPromise) return this.joinPromise;
+
+    this.joinPromise = new Promise((resolve, reject) => {
+      this.channel
+        .join()
+        .receive('ok', () => {
+          this.joined = true;
+          this.joinPromise = null;
+          resolve();
+        })
+        .receive('error', (error) => {
+          this.joined = false;
+          this.joinPromise = null;
+          reject(normalizeError(error));
+        })
+        .receive('timeout', () => {
+          this.joined = false;
+          this.joinPromise = null;
+          reject(new Error('Timed out joining user channel'));
+        });
+    });
+  }
+
+  async createThread(options: {
+    title?: string;
+    participantIds: string[];
+    threadType?: 'direct' | 'group';
+  }): Promise<{ threadId: string }> {
+    await this.ensureJoined();
+
+    return new Promise((resolve, reject) => {
+      this.channel
+        .push('create_thread', {
+          title: options.title,
+          participant_ids: options.participantIds,
+          thread_type: options.threadType ?? 'direct',
+        })
+        .receive('ok', (response) => {
+          resolve({
+            threadId: String(response?.id ?? ''),
+          });
+        })
+        .receive('error', (error) => {
+          reject(normalizeError(error));
+        })
+        .receive('timeout', () => {
+          reject(new Error('Timed out creating thread'));
+        });
+    });
+  }
+
+  leave() {
+    if (this.channel) {
+      this.channel.leave();
+    }
+    this.joined = false;
+    this.joinPromise = null;
+  }
+}
+
 interface ThreadRegistryEntry {
   client: ThreadChannelClient;
   refCount: number;
@@ -282,6 +394,7 @@ export class RealtimeService extends EventEmitter<RealtimeEvents> {
   private status: ConnectionStatus = 'disconnected';
   private accessToken: string | null = null;
   private threadRegistry = new Map<string, ThreadRegistryEntry>();
+  private userChannel: UserChannelClient | null = null;
 
   constructor() {
     super();
@@ -379,6 +492,37 @@ export class RealtimeService extends EventEmitter<RealtimeEvents> {
     if (entry.refCount <= 0) {
       await entry.client.leave();
       this.threadRegistry.delete(threadId);
+    }
+  }
+
+  joinUserChannel(userId: string): UserChannelClient {
+    if (!userId) {
+      throw new Error('User ID is required to join user channel.');
+    }
+
+    if (!this.socket) {
+      if (!this.accessToken) {
+        throw new Error('Realtime service not connected: missing access token');
+      }
+      this.connect(this.accessToken);
+    }
+
+    if (this.userChannel) {
+      void this.userChannel.ensureJoined();
+      return this.userChannel;
+    }
+
+    const channel = this.socket!.channel(`user:${userId}`);
+    const client = new UserChannelClient(channel, userId);
+    this.userChannel = client;
+    void client.ensureJoined();
+    return client;
+  }
+
+  leaveUserChannel() {
+    if (this.userChannel) {
+      this.userChannel.leave();
+      this.userChannel = null;
     }
   }
 }

@@ -92,6 +92,53 @@ export type ApiThreadParticipant = z.infer<typeof ThreadParticipantSchema>;
 export type ApiMessage = z.infer<typeof MessageSchema>;
 export type ApiAttachment = z.infer<typeof AttachmentSchema>;
 export type ApiCDCEntry = z.infer<typeof CDCEntrySchema>;
+export const BridgeSchema = z.object({
+  id: z.string(),
+  user_id: z.string(),
+  bridge_type: z.enum(['whatsapp', 'telegram']),
+  phone_number: z.string(),
+  status: z.enum(['connected', 'disconnected', 'error', 'connecting']),
+  last_connected_at: isoDateString.optional().nullable(),
+  error_message: z.string().optional().nullable(),
+  qr_code: z.string().optional().nullable(),
+  is_active: z.boolean(),
+  created_at: isoDateString,
+  updated_at: isoDateString,
+});
+
+export const BridgesResponseSchema = z.object({
+  data: z.array(BridgeSchema),
+});
+
+export const SingleBridgeSchema = z.object({
+  data: BridgeSchema,
+});
+
+export const CreateBridgePayloadSchema = z.object({
+  bridge_type: z.enum(['whatsapp', 'telegram']),
+  phone_number: z.string(),
+});
+
+export const UpdateBridgePayloadSchema = z.object({
+  phone_number: z.string().optional(),
+  is_active: z.boolean().optional(),
+});
+
+export const BridgeStatsSchema = z.object({
+  data: z.object({
+    total_bridges: z.number(),
+    active_bridges: z.number(),
+    bridges_by_status: z.record(z.number()),
+  }),
+});
+
+export type ApiBridge = z.infer<typeof BridgeSchema>;
+export type ApiBridgesResponse = z.infer<typeof BridgesResponseSchema>;
+export type ApiSingleBridge = z.infer<typeof SingleBridgeSchema>;
+export type CreateBridgePayload = z.infer<typeof CreateBridgePayloadSchema>;
+export type UpdateBridgePayload = z.infer<typeof UpdateBridgePayloadSchema>;
+export type ApiBridgeStats = z.infer<typeof BridgeStatsSchema>;
+
 export type ApiPaginated<T> = {
   data: T[];
   nextCursor?: string | null;

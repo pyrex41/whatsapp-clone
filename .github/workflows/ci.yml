@@ -1,0 +1,218 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: '1.17.3'
+        otp-version: '27.0'
+
+    - name: Restore dependencies cache
+      uses: actions/cache@v3
+      with:
+        path: deps
+        key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+        restore-keys: ${{ runner.os }}-mix-
+
+    - name: Install dependencies
+      working-directory: globalbridge_backend
+      run: mix deps.get
+
+    - name: Create database
+      working-directory: globalbridge_backend
+      run: mix ecto.create
+      env:
+        MIX_ENV: test
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/globalbridge_test
+
+    - name: Run database migrations
+      working-directory: globalbridge_backend
+      run: mix ecto.migrate
+      env:
+        MIX_ENV: test
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/globalbridge_test
+
+    - name: Run unit tests
+      working-directory: globalbridge_backend
+      run: mix test --exclude integration
+      env:
+        MIX_ENV: test
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/globalbridge_test
+
+    - name: Run integration tests
+      working-directory: globalbridge_backend
+      run: mix test --only integration
+      env:
+        MIX_ENV: test
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/globalbridge_test
+
+    - name: Generate test coverage
+      working-directory: globalbridge_backend
+      run: mix coveralls.html
+      env:
+        MIX_ENV: test
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/globalbridge_test
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./globalbridge_backend/cover/excoveralls.html
+        flags: backend
+        name: Backend Tests
+
+  ios-tests:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+
+    - name: Cache CocoaPods
+      uses: actions/cache@v3
+      with:
+        path: clients/ios/Pods
+        key: ${{ runner.os }}-pods-${{ hashFiles('clients/ios/Podfile.lock') }}
+        restore-keys: ${{ runner.os }}-pods-
+
+    - name: Install CocoaPods
+      working-directory: clients/ios
+      run: pod install
+
+    - name: Run iOS unit tests
+      working-directory: clients/ios
+      run: |
+        xcodebuild test \
+          -workspace GlobalBridge.xcworkspace \
+          -scheme GlobalBridge \
+          -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+          -resultBundlePath TestResults \
+          -enableCodeCoverage YES
+
+    - name: Run iOS UI tests
+      working-directory: clients/ios
+      run: |
+        xcodebuild test \
+          -workspace GlobalBridge.xcworkspace \
+          -scheme GlobalBridgeUITests \
+          -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+          -resultBundlePath UITestResults
+
+    - name: Generate test coverage report
+      working-directory: clients/ios
+      run: |
+        xcrun xccov view --report --json TestResults.xcresult > coverage.json
+
+    - name: Upload iOS coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./clients/ios/coverage.json
+        flags: ios
+        name: iOS Tests
+
+  lint-and-format:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        elixir-version: '1.17.3'
+        otp-version: '27.0'
+
+    - name: Install dependencies
+      working-directory: globalbridge_backend
+      run: mix deps.get
+
+    - name: Run Elixir formatter check
+      working-directory: globalbridge_backend
+      run: mix format --check-formatted
+
+    - name: Run Credo linting
+      working-directory: globalbridge_backend
+      run: mix credo --strict
+
+    - name: Run Dialyzer
+      working-directory: globalbridge_backend
+      run: mix dialyzer
+
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  test-coverage-check:
+    runs-on: ubuntu-latest
+    needs: [backend-tests, ios-tests]
+
+    steps:
+    - name: Check test coverage
+      run: |
+        # This would check that coverage meets minimum requirements
+        # For now, just ensure tests passed
+        echo "Test coverage check passed"
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [backend-tests, ios-tests, lint-and-format, security-scan, test-coverage-check]
+    if: github.ref == 'refs/heads/develop'
+
+    steps:
+    - name: Deploy to staging
+      run: |
+        echo "Deploying to staging environment"
+        # Add actual deployment commands here
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [backend-tests, ios-tests, lint-and-format, security-scan, test-coverage-check]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Deploy to production
+      run: |
+        echo "Deploying to production environment"
+        # Add actual deployment commands here

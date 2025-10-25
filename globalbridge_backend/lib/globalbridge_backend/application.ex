@@ -10,6 +10,9 @@ defmodule GlobalbridgeBackend.Application do
     # Validate sqlite-vec extension before starting
     validate_sqlite_vec()
 
+    # Validate production security settings
+    validate_production_security()
+
     # Background job processing with Oban (not in test)
     children =
       [
@@ -50,6 +53,7 @@ defmodule GlobalbridgeBackend.Application do
              fn ->
                GlobalbridgeBackend.AI.AgensSetup.start_components()
                GlobalbridgeBackend.AI.Telemetry.setup()
+               GlobalbridgeBackend.Bridges.Telemetry.setup()
              end},
             id: :ai_components_setup_task
           ),
@@ -58,6 +62,9 @@ defmodule GlobalbridgeBackend.Application do
           GlobalbridgeBackend.AI.BudgetMonitor,
           # AI Rate Limit Monitoring
           GlobalbridgeBackend.Monitoring.RateLimitMonitor,
+          # Bridge Registry and Supervisor for managing bridge processes
+          GlobalbridgeBackend.Bridges.Registry,
+          GlobalbridgeBackend.Bridges.Supervisor,
           # Start a worker by calling: GlobalbridgeBackend.Worker.start_link(arg)
           # {GlobalbridgeBackend.Worker, arg},
           # Start to serve requests, typically the last entry
@@ -96,6 +103,7 @@ defmodule GlobalbridgeBackend.Application do
 
         # Verify file exists
         expanded_path = Path.expand(path)
+
         if File.exists?(expanded_path) do
           Logger.info("sqlite-vec extension found at #{expanded_path}")
         else
@@ -120,6 +128,7 @@ defmodule GlobalbridgeBackend.Application do
 
     # Validate filename matches expected vec0 library pattern
     filename = Path.basename(path)
+
     unless Regex.match?(~r/^vec0\.(so|dylib|dll)$/i, filename) do
       raise """
       Invalid SQLITE_VEC_PATH: filename must be vec0.so, vec0.dylib, or vec0.dll
@@ -130,6 +139,7 @@ defmodule GlobalbridgeBackend.Application do
 
     # Ensure expanded path is within expected system library directories
     expanded_path = Path.expand(path)
+
     allowed_prefixes = [
       "/opt/homebrew/lib",
       "/usr/local/lib",
@@ -138,9 +148,10 @@ defmodule GlobalbridgeBackend.Application do
       "C:/sqlite-vec"
     ]
 
-    is_in_allowed_dir = Enum.any?(allowed_prefixes, fn prefix ->
-      String.starts_with?(expanded_path, prefix)
-    end)
+    is_in_allowed_dir =
+      Enum.any?(allowed_prefixes, fn prefix ->
+        String.starts_with?(expanded_path, prefix)
+      end)
 
     unless is_in_allowed_dir do
       raise """
@@ -149,6 +160,32 @@ defmodule GlobalbridgeBackend.Application do
       Expanded path: #{expanded_path}
       Allowed directories: #{Enum.join(allowed_prefixes, ", ")}
       """
+    end
+  end
+
+  defp validate_production_security do
+    require Logger
+
+    # Only enforce in production
+    if Mix.env() == :prod do
+      # Verify SSL verification is enabled for webhooks
+      bridge_config = Application.get_env(:globalbridge_backend, :bridge, [])
+      webhook_ssl_verification = Keyword.get(bridge_config, :webhook_ssl_verification, true)
+
+      unless webhook_ssl_verification do
+        raise """
+        CRITICAL SECURITY ERROR: SSL verification for webhooks is disabled in production!
+        This exposes your application to man-in-the-middle attacks.
+
+        To fix this:
+        1. Remove or set WEBHOOK_SSL_VERIFICATION=true in your environment
+        2. Ensure all webhook endpoints use HTTPS with valid certificates
+
+        This check cannot be bypassed in production for security reasons.
+        """
+      end
+
+      Logger.info("✓ Production security validation passed: SSL verification enabled")
     end
   end
 end

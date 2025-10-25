@@ -75,6 +75,70 @@ defmodule GlobalbridgeBackend.Notifications do
   end
 
   @doc """
+  Send push notification for bridge status changes.
+
+  Automatically handles:
+  - Fetching user's devices
+  - Determining platform (APNS/FCM)
+  - Creating notification records
+  - Queueing delivery
+  """
+  def send_bridge_notification(attrs) do
+    user_id = attrs[:user_id]
+    bridge_id = attrs[:bridge_id]
+    bridge_type = attrs[:bridge_type] || "bridge"
+    status = attrs[:status] || "unknown"
+    phone_number = attrs[:phone_number] || ""
+    error_message = attrs[:error_message]
+
+    # Determine notification type and content based on status
+    {notification_type, title, body} =
+      case status do
+        "connected" ->
+          {"bridge_connected", "#{String.capitalize(bridge_type)} Connected",
+           "#{String.capitalize(bridge_type)} bridge for #{phone_number} is now connected and syncing messages."}
+
+        "disconnected" ->
+          {"bridge_disconnected", "#{String.capitalize(bridge_type)} Disconnected",
+           "#{String.capitalize(bridge_type)} bridge for #{phone_number} has been disconnected."}
+
+        "error" ->
+          {"bridge_error", "#{String.capitalize(bridge_type)} Error",
+           "#{String.capitalize(bridge_type)} bridge for #{phone_number} encountered an error: #{error_message || "Unknown error"}"}
+
+        _ ->
+          {"bridge_disconnected", "#{String.capitalize(bridge_type)} Status",
+           "#{String.capitalize(bridge_type)} bridge for #{phone_number} status changed to #{status}."}
+      end
+
+    # Get all devices for the user
+    case get_user_devices(user_id) do
+      [] ->
+        Logger.info("No devices registered for user #{user_id}")
+        {:ok, []}
+
+      devices ->
+        # Create notification for each device
+        notifications =
+          Enum.map(devices, fn device ->
+            create_and_send_notification(%{
+              user_id: user_id,
+              bridge_id: bridge_id,
+              device_token: device.device_token,
+              platform: device.platform,
+              notification_type: notification_type,
+              title: title,
+              body: body,
+              badge_count: get_user_badge_count(user_id),
+              sound: "default"
+            })
+          end)
+
+        {:ok, notifications}
+    end
+  end
+
+  @doc """
   Create a notification record and queue it for delivery.
   """
   def create_and_send_notification(attrs) do

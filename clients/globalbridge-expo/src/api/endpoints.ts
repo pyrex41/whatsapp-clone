@@ -2,13 +2,20 @@ import { z } from 'zod';
 
 import { ApiClient } from '~/api/client';
 import {
+  ApiBridge,
+  ApiBridgeStats,
   ApiCDCEntry,
   ApiMessage,
   ApiPaginated,
   ApiThread,
   ApiUser,
+  BridgeSchema,
+  BridgesResponseSchema,
+  CreateBridgePayload,
   MessageSchema,
+  SingleBridgeSchema,
   ThreadSchema,
+  UpdateBridgePayload,
   UserSchema,
   createPaginatedSchema,
   CDCEntrySchema,
@@ -178,4 +185,99 @@ export async function pushCdcChanges(client: ApiClient, payload: PushCdcPayload)
       })),
     },
   });
+}
+
+// Bridge endpoints
+export async function listBridges(client: ApiClient): Promise<ApiBridge[]> {
+  const response = await client.request({
+    path: '/v1/bridges',
+    method: 'GET',
+    schema: BridgesResponseSchema,
+  });
+  return response.data;
+}
+
+export async function getBridge(client: ApiClient, bridgeId: string): Promise<ApiBridge> {
+  const response = await client.request({
+    path: `/v1/bridges/${bridgeId}`,
+    method: 'GET',
+    schema: SingleBridgeSchema,
+  });
+  return response.data;
+}
+
+export async function createBridge(client: ApiClient, payload: CreateBridgePayload): Promise<ApiBridge> {
+  const response = await client.request({
+    path: '/v1/bridges',
+    method: 'POST',
+    body: { bridge: payload },
+    schema: SingleBridgeSchema,
+  });
+  return response.data;
+}
+
+export async function createTelegramBridge(client: ApiClient, payload: CreateBridgePayload): Promise<ApiBridge> {
+  const response = await client.request({
+    path: '/v1/bridges/telegram',
+    method: 'POST',
+    body: { bridge: payload },
+    schema: SingleBridgeSchema,
+  });
+  return response.data;
+}
+
+export async function updateBridge(client: ApiClient, bridgeId: string, payload: UpdateBridgePayload): Promise<ApiBridge> {
+  const response = await client.request({
+    path: `/v1/bridges/${bridgeId}`,
+    method: 'PUT',
+    body: { bridge: payload },
+    schema: SingleBridgeSchema,
+  });
+  return response.data;
+}
+
+export async function toggleBridgeActive(client: ApiClient, bridgeId: string, isActive: boolean): Promise<ApiBridge> {
+  const response = await client.request({
+    path: `/v1/bridges/${bridgeId}/toggle_active`,
+    method: 'PATCH',
+    body: { bridge: { is_active: isActive } },
+    schema: SingleBridgeSchema,
+  });
+  return response.data;
+}
+
+export async function deleteBridge(client: ApiClient, bridgeId: string): Promise<void> {
+  await client.request({
+    path: `/v1/bridges/${bridgeId}`,
+    method: 'DELETE',
+  });
+}
+
+export async function getBridgeStats(client: ApiClient): Promise<ApiBridgeStats['data']> {
+  const response = await client.request({
+    path: '/v1/bridges/stats',
+    method: 'GET',
+    schema: z.object({
+      data: z.object({
+        total_bridges: z.number(),
+        active_bridges: z.number(),
+        bridges_by_status: z.record(z.number()),
+      }),
+    }),
+  });
+  return response.data;
+}
+
+export async function getTelegramBridgeForThread(client: ApiClient, threadId: string): Promise<ApiBridge | null> {
+  try {
+    const response = await client.request({
+      path: `/v1/bridges/${threadId}/telegram`,
+      method: 'GET',
+      schema: SingleBridgeSchema,
+    });
+    return response.data;
+  } catch (error) {
+    // Return null if no bridge found for this thread
+    return null;
+  }
 }

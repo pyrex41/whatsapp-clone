@@ -31,6 +31,14 @@ struct MessageCellView: View {
                     )
                     .foregroundColor(isOwnMessage ? .white : .primary)
 
+                // Bridge attribution label (only for bridged messages)
+                if let bridgeLabel = bridgeAttributionLabel {
+                    Text(bridgeLabel)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 4)
+                }
+
                 // Message status and time
                 HStack(spacing: 4) {
                     // Timestamp
@@ -55,6 +63,22 @@ struct MessageCellView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 4)
+    }
+
+    private var bridgeAttributionLabel: String? {
+        guard let metadata = message.metadata else { return nil }
+
+        // Check if this is a bridged message
+        if let platform = metadata.bridgePlatform {
+            switch platform {
+            case "telegram":
+                return "via Telegram"
+            default:
+                return "via \(platform.capitalized)"
+            }
+        }
+
+        return nil
     }
 
     private func formatTimestamp(_ date: Date) -> String {

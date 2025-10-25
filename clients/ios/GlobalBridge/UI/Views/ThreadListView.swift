@@ -29,7 +29,8 @@ struct ThreadListView: View {
                         NavigationLink(destination: destinationView(for: thread)) {
                             ThreadRowView(
                                 thread: thread,
-                                presence: phoenixState.getPresence(for: thread.id).values.first
+                                presence: phoenixState.getPresence(for: thread.id).values.first,
+                                bridge: bridgeForThread(thread)
                             )
                         }
                     }
@@ -129,6 +130,13 @@ struct ThreadListView: View {
             currentUserId: "current_user" // TODO: Get from auth
         )
     }
+
+    private func bridgeForThread(_ thread: ThreadViewModel) -> Bridge? {
+        // For now, return nil - this would need to be implemented based on
+        // thread metadata or a mapping from thread to bridge
+        // TODO: Implement bridge-thread association logic
+        return nil
+    }
 }
 
 /// View model for thread list item
@@ -145,6 +153,7 @@ struct ThreadViewModel: Identifiable {
 struct ThreadRowView: View {
     let thread: ThreadViewModel
     let presence: UserPresence?
+    let bridge: Bridge?
 
     var body: some View {
         HStack(spacing: 12) {
@@ -165,6 +174,10 @@ struct ThreadRowView: View {
                     Text(thread.title)
                         .font(.headline)
                         .lineLimit(1)
+
+                    if let bridge = bridge {
+                        BridgeStatusIndicator(bridge: bridge)
+                    }
 
                     Spacer()
 
@@ -244,16 +257,76 @@ struct ThreadRowView: View {
     }
 }
 
+/// Bridge status indicator
+struct BridgeStatusIndicator: View {
+    let bridge: Bridge?
+
+    var body: some View {
+        if let bridge = bridge {
+            HStack(spacing: 4) {
+                Image(systemName: statusIcon)
+                    .font(.caption)
+                    .foregroundColor(statusColor)
+
+                Text(displayText)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+
+    private var statusIcon: String {
+        guard let bridge = bridge else { return "circle.slash" }
+
+        switch bridge.status {
+        case .connected:
+            return "antenna.radiowaves.left.and.right"
+        case .disconnected:
+            return "antenna.radiowaves.left.and.right.slash"
+        case .error:
+            return "exclamationmark.triangle"
+        case .connecting:
+            return "antenna.radiowaves.left.and.right"
+        }
+    }
+
+    private var statusColor: Color {
+        guard let bridge = bridge else { return .gray }
+
+        switch bridge.status {
+        case .connected:
+            return .green
+        case .disconnected:
+            return .gray
+        case .error:
+            return .red
+        case .connecting:
+            return .orange
+        }
+    }
+
+    private var displayText: String {
+        guard let bridge = bridge else { return "" }
+
+        switch bridge.bridgeType {
+        case .telegram:
+            return "Telegram"
+        case .whatsapp:
+            return "WhatsApp"
+        }
+    }
+}
+
 /// Phoenix connection status indicator
 struct PhoenixConnectionIndicator: View {
     let state: PhoenixConnectionState
-    
+
     var body: some View {
         HStack(spacing: 6) {
             Circle()
                 .fill(statusColor)
                 .frame(width: 8, height: 8)
-            
+
             if case .connecting = state {
                 ProgressView()
                     .scaleEffect(0.7)
@@ -262,7 +335,7 @@ struct PhoenixConnectionIndicator: View {
         }
         .accessibilityLabel(statusText)
     }
-    
+
     private var statusColor: Color {
         switch state {
         case .disconnected:
@@ -275,7 +348,7 @@ struct PhoenixConnectionIndicator: View {
             return .red
         }
     }
-    
+
     private var statusText: String {
         switch state {
         case .disconnected:

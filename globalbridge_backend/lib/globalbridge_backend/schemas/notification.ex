@@ -15,8 +15,9 @@ defmodule GlobalbridgeBackend.Schemas.Notification do
     field(:user_id, :binary_id)
     field(:thread_id, :binary_id)
     field(:message_id, :binary_id)
+    field(:bridge_id, :binary_id)
 
-    # Notification type: "message", "mention", "reaction"
+    # Notification type: "message", "mention", "reaction", "bridge_connected", "bridge_disconnected", "bridge_error"
     field(:notification_type, :string)
 
     # Delivery tracking
@@ -52,6 +53,7 @@ defmodule GlobalbridgeBackend.Schemas.Notification do
       :user_id,
       :thread_id,
       :message_id,
+      :bridge_id,
       :notification_type,
       :device_token,
       :platform,
@@ -62,19 +64,26 @@ defmodule GlobalbridgeBackend.Schemas.Notification do
     ])
     |> validate_required([
       :user_id,
-      :thread_id,
       :notification_type,
       :device_token,
       :platform,
       :title,
       :body
     ])
-    |> validate_inclusion(:notification_type, ["message", "mention", "reaction"])
+    |> validate_inclusion(:notification_type, [
+      "message",
+      "mention",
+      "reaction",
+      "bridge_connected",
+      "bridge_disconnected",
+      "bridge_error"
+    ])
     |> validate_inclusion(:platform, ["apns", "fcm"])
     |> put_change(:status, "pending")
     |> foreign_key_constraint(:user_id)
     |> foreign_key_constraint(:thread_id)
     |> foreign_key_constraint(:message_id)
+    |> foreign_key_constraint(:bridge_id)
   end
 
   @doc """
