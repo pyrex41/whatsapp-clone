@@ -32,7 +32,7 @@ defmodule GlobalbridgeBackend.Application do
         # Agens Multi-Agent Framework Supervisor
         Agens.Supervisor
       ] ++
-        if Mix.env() != :test do
+        if Application.get_env(:globalbridge_backend, :env) != :test do
           [{Oban, Application.fetch_env!(:globalbridge_backend, Oban)}]
         else
           []

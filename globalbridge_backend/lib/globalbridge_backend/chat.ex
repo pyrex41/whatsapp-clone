@@ -262,7 +262,7 @@ defmodule GlobalbridgeBackend.Chat do
   Enqueue an embedding generation job for a new message.
   """
   def enqueue_embedding_job(shard_id, thread_id, message_id) do
-    if Mix.env() != :test do
+    if Application.get_env(:globalbridge_backend, :env) != :test do
       %{shard_id: shard_id, thread_id: thread_id, message_id: message_id}
       |> GlobalbridgeBackend.AI.Jobs.GenerateEmbeddingJob.new()
       |> Oban.insert()
