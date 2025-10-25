@@ -1166,11 +1166,13 @@ public actor PhoenixChannelManager {
         }
 
         let clientMessageId = payload["client_message_id"] as? String
+        let senderDisplayName = payload["sender_display_name"] as? String
 
         return PhoenixMessage(
             id: id,
             conversationId: threadId,
             senderId: senderId,
+            senderDisplayName: senderDisplayName,
             content: content,
             timestamp: timestamp,
             status: status,
@@ -1316,7 +1318,16 @@ public actor PhoenixChannelManager {
             guard let self else { return }
             do {
                 let phoenixMessage = try self.parsePhoenixMessage(from: message.payload)
-                Task { await self.deliverNewMessage(phoenixMessage, conversationId: phoenixMessage.conversationId) }
+                // If the specific thread channel is already joined, it will deliver this
+                // event itself. Suppress the user-channel duplicate to avoid double-render.
+                Task {
+                    let joined = await self.isChannelJoined(for: phoenixMessage.conversationId)
+                    if joined {
+                        print("🔁 [PHOENIX] Skipping user-channel new_message for joined thread: \(phoenixMessage.conversationId)")
+                        return
+                    }
+                    await self.deliverNewMessage(phoenixMessage, conversationId: phoenixMessage.conversationId)
+                }
             } catch {
                 print("[Phoenix] Failed to decode user-channel message: \(error)")
             }
