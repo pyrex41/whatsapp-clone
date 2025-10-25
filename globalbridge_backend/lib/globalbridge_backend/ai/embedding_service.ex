@@ -279,10 +279,11 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
           Logger.debug("OpenAI embeddings API call successful")
 
           # Extract the embedding from the response
-          case response do
-            %{"data" => [%{"embedding" => embedding}]} ->
-              {:ok, embedding}
-
+          with {:ok, data} <- fetch_key(response, "data"),
+               [%{} = first | _] <- data,
+               {:ok, embedding} <- fetch_key(first, "embedding") do
+            {:ok, embedding}
+          else
             _ ->
               Logger.error("Invalid OpenAI embeddings response format: #{inspect(response)}")
               {:error, :invalid_response}
@@ -319,16 +320,17 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
           Logger.debug("OpenAI batch embeddings API call successful")
 
           # Extract embeddings from batch response
-          case response do
-            %{"data" => data} ->
-              embeddings = Enum.map(data, & &1["embedding"])
-              {:ok, embeddings}
-
+          case fetch_key(response, "data") do
+            {:ok, data} when is_list(data) ->
+              embeddings = Enum.map(data, fn item ->
+                case fetch_key(item, "embedding") do
+                  {:ok, e} -> e
+                  _ -> nil
+                end
+              end)
+              if Enum.all?(embeddings, &is_list/1), do: {:ok, embeddings}, else: {:error, :invalid_response}
             _ ->
-              Logger.error(
-                "Invalid OpenAI batch embeddings response format: #{inspect(response)}"
-              )
-
+              Logger.error("Invalid OpenAI batch embeddings response format: #{inspect(response)}")
               {:error, :invalid_response}
           end
 
@@ -336,6 +338,15 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
           Logger.error("OpenAI batch embeddings API call failed: #{inspect(reason)}")
           {:error, reason}
       end
+    end
+  end
+
+  # Fetch value by key supporting both string and atom keys
+  defp fetch_key(map, key) when is_map(map) and is_binary(key) do
+    cond do
+      Map.has_key?(map, key) -> {:ok, Map.get(map, key)}
+      Map.has_key?(map, String.to_atom(key)) -> {:ok, Map.get(map, String.to_atom(key))}
+      true -> :error
     end
   end
 

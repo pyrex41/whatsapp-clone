@@ -37,9 +37,7 @@ defmodule GlobalbridgeBackend.Contexts.Messages do
     thread = get_thread_with_shard(thread_id)
     repo = ThreadRepo.get_repo(thread.database_shard_id)
 
-    # If this thread was created before sharding, older messages live in the
-    # shared DB. Ensure the shard DB is backfilled once so fetches return history.
-    ThreadRepo.maybe_backfill_from_main(repo, thread_id)
+    # Historical backfill was temporary during migration; removed to keep fetch path lean.
 
     Message
     |> where([m], m.thread_id == ^thread_id)
