@@ -48,7 +48,7 @@ defmodule GlobalbridgeBackend.AI.TranslationIntegrationTest do
   describe "ConversationLanguageDetector" do
     test "detects Spanish as primary language", %{thread: thread, spanish_user: spanish_user} do
       # Create Spanish messages
-      repo = ThreadRepo.get_repo(thread.id)
+      repo = ThreadRepo.get_repo(thread.database_shard_id)
       messages = [
         "¿Cómo estás?",
         "Estoy bien, gracias",
@@ -59,10 +59,13 @@ defmodule GlobalbridgeBackend.AI.TranslationIntegrationTest do
       for content <- messages do
         repo.insert!(%Message{
           id: Ecto.UUID.generate(),
+          thread_id: thread.id,
           content: content,
+          content_type: "text",
           sender_id: spanish_user.id,
           detected_language: "es",
-          inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+          inserted_at: DateTime.utc_now() |> DateTime.truncate(:second),
+          updated_at: DateTime.utc_now() |> DateTime.truncate(:second)
         })
       end
 
@@ -72,23 +75,30 @@ defmodule GlobalbridgeBackend.AI.TranslationIntegrationTest do
     end
 
     test "detects mixed languages", %{thread: thread, english_user: english_user, spanish_user: spanish_user} do
-      repo = ThreadRepo.get_repo(thread.id)
+      repo = ThreadRepo.get_repo(thread.database_shard_id)
 
       # Create mixed messages
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
       repo.insert!(%Message{
         id: Ecto.UUID.generate(),
+        thread_id: thread.id,
         content: "Hello!",
+        content_type: "text",
         sender_id: english_user.id,
         detected_language: "en",
-        inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        inserted_at: now,
+        updated_at: now
       })
 
       repo.insert!(%Message{
         id: Ecto.UUID.generate(),
+        thread_id: thread.id,
         content: "¡Hola!",
+        content_type: "text",
         sender_id: spanish_user.id,
         detected_language: "es",
-        inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        inserted_at: now,
+        updated_at: now
       })
 
       # Should return mixed
@@ -102,13 +112,17 @@ defmodule GlobalbridgeBackend.AI.TranslationIntegrationTest do
 
     test "checks if translation is needed", %{thread: thread, english_user: english_user, spanish_user: spanish_user} do
       # Create Spanish messages
-      repo = ThreadRepo.get_repo(thread.id)
+      repo = ThreadRepo.get_repo(thread.database_shard_id)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
       repo.insert!(%Message{
         id: Ecto.UUID.generate(),
+        thread_id: thread.id,
         content: "¿Cómo estás?",
+        content_type: "text",
         sender_id: spanish_user.id,
         detected_language: "es",
-        inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        inserted_at: now,
+        updated_at: now
       })
 
       # English user needs translation for Spanish thread
@@ -181,21 +195,28 @@ defmodule GlobalbridgeBackend.AI.TranslationIntegrationTest do
       spanish_user: spanish_user
     } do
       # Create Spanish conversation
-      repo = ThreadRepo.get_repo(thread.id)
+      repo = ThreadRepo.get_repo(thread.database_shard_id)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
       messages = [
         %Message{
           id: Ecto.UUID.generate(),
+          thread_id: thread.id,
           content: "¿Cómo estás?",
+          content_type: "text",
           sender_id: spanish_user.id,
           detected_language: "es",
-          inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+          inserted_at: now,
+          updated_at: now
         },
         %Message{
           id: Ecto.UUID.generate(),
+          thread_id: thread.id,
           content: "Bien, ¿y tú?",
+          content_type: "text",
           sender_id: spanish_user.id,
           detected_language: "es",
-          inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+          inserted_at: now,
+          updated_at: now
         }
       ]
 
@@ -239,14 +260,18 @@ defmodule GlobalbridgeBackend.AI.TranslationIntegrationTest do
       english_user: english_user
     } do
       # Create English conversation
-      repo = ThreadRepo.get_repo(thread.id)
+      repo = ThreadRepo.get_repo(thread.database_shard_id)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
       messages = [
         %Message{
           id: Ecto.UUID.generate(),
+          thread_id: thread.id,
           content: "How are you?",
+          content_type: "text",
           sender_id: english_user.id,
           detected_language: "en",
-          inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+          inserted_at: now,
+          updated_at: now
         }
       ]
 
@@ -274,14 +299,18 @@ defmodule GlobalbridgeBackend.AI.TranslationIntegrationTest do
       spanish_user: spanish_user
     } do
       # Create Spanish conversation
-      repo = ThreadRepo.get_repo(thread.id)
+      repo = ThreadRepo.get_repo(thread.database_shard_id)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
       messages = [
         %Message{
           id: Ecto.UUID.generate(),
+          thread_id: thread.id,
           content: "¿Vamos a comer?",
+          content_type: "text",
           sender_id: spanish_user.id,
           detected_language: "es",
-          inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
+          inserted_at: now,
+          updated_at: now
         }
       ]
 

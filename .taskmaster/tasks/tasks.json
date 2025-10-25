@@ -8939,7 +8939,62 @@
           5
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design AIStyleProfileView Layout",
+            "description": "Design the SwiftUI layout for the settings view, including sections for displaying style profile metrics and action buttons.",
+            "dependencies": [],
+            "details": "Create a SwiftUI View struct named AIStyleProfileView with a VStack containing sections for metrics display and buttons for disable/clear options. Use appropriate SwiftUI components like Text, HStack, VStack, and Button to structure the view.",
+            "status": "pending",
+            "testStrategy": "UI snapshot tests to verify layout structure."
+          },
+          {
+            "id": 2,
+            "title": "Implement Metrics Display",
+            "description": "Add code to display user style profile metrics such as formalityLevel, emojiFrequency, and other relevant properties.",
+            "dependencies": [
+              1
+            ],
+            "details": "Bind the view to AppState properties for style profile. Use Text views to show each metric with labels, ensuring data is fetched and displayed correctly. Handle cases where metrics might be nil or loading.",
+            "status": "pending",
+            "testStrategy": "Unit tests for data binding and UI tests for metric display accuracy."
+          },
+          {
+            "id": 3,
+            "title": "Add Confidence Score Visualization",
+            "description": "Implement a visual representation of the confidenceScore in the view.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Add a ProgressView or custom indicator to show the confidenceScore as a percentage or bar. Ensure it updates reactively with state changes and includes accessibility labels.",
+            "status": "pending",
+            "testStrategy": "UI tests for confidence score rendering and unit tests for score calculation."
+          },
+          {
+            "id": 4,
+            "title": "Implement Disable Profile Option",
+            "description": "Add a toggle or button to disable the AI style profile.",
+            "dependencies": [
+              1
+            ],
+            "details": "Include a Toggle or Button in the view that updates the AppState to disable the profile. Ensure the action persists and affects related features, with confirmation dialog if needed.",
+            "status": "pending",
+            "testStrategy": "UI tests for toggle interaction and integration tests for state changes."
+          },
+          {
+            "id": 5,
+            "title": "Implement Clear Profile Option",
+            "description": "Add functionality to clear the user's style profile data.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add a Button that, when tapped, clears the style profile from AppState and possibly resets related metrics. Include a confirmation alert to prevent accidental clears.",
+            "status": "pending",
+            "testStrategy": "UI tests for button tap and alert, unit tests for data clearing logic."
+          }
+        ]
       },
       {
         "id": 19,
@@ -8952,7 +9007,61 @@
           13
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Analyze SuggestionChipView Structure",
+            "description": "Examine the current SuggestionChipView implementation to understand how confidence scores are handled and where visual indicators can be added.",
+            "dependencies": [],
+            "details": "Review the SuggestionChipView code to identify the confidence Double property and the view's layout. Determine the best place to integrate subtle visual indicators like opacity or badges without disrupting the existing UI.",
+            "status": "pending",
+            "testStrategy": "Manual code review to ensure understanding of the view structure."
+          },
+          {
+            "id": 2,
+            "title": "Define Confidence Thresholds",
+            "description": "Establish logic for mapping confidence Double values to visual indicator levels.",
+            "dependencies": [
+              1
+            ],
+            "details": "Define thresholds (e.g., low: 0-0.3, medium: 0.3-0.7, high: 0.7-1.0) and corresponding visual effects, such as opacity levels (e.g., 0.5 for low, 1.0 for high) or badge styles. Implement this as a helper function or computed property.",
+            "status": "pending",
+            "testStrategy": "Unit test the threshold logic with various Double inputs to verify correct mapping."
+          },
+          {
+            "id": 3,
+            "title": "Implement Visual Indicator Logic",
+            "description": "Add code to apply the chosen visual indicator (e.g., opacity) based on confidence thresholds.",
+            "dependencies": [
+              2
+            ],
+            "details": "Modify SuggestionChipView to include a modifier or property that adjusts opacity or adds a badge dynamically. Ensure the indicator is subtle and does not interfere with chip readability. Use SwiftUI modifiers for opacity or overlay for badges.",
+            "status": "pending",
+            "testStrategy": "Unit test the visual logic by simulating different confidence values and checking applied modifiers."
+          },
+          {
+            "id": 4,
+            "title": "Update SuggestionChipView UI",
+            "description": "Integrate the confidence-based visual indicator into the chip's rendering.",
+            "dependencies": [
+              3
+            ],
+            "details": "Apply the visual changes in the SuggestionChipView body, ensuring the indicator updates reactively with confidence changes. Test for smooth transitions and accessibility considerations, like ensuring text remains readable at lower opacities.",
+            "status": "pending",
+            "testStrategy": "UI test to verify the indicator appears correctly for different confidence levels in the chip view."
+          },
+          {
+            "id": 5,
+            "title": "Test Confidence Display Integration",
+            "description": "Conduct end-to-end testing of the confidence indicators in the app context.",
+            "dependencies": [
+              4
+            ],
+            "details": "Run UI tests to confirm the indicators display as expected in SuggestionChipView. Include edge cases like minimum and maximum confidence values. Verify no regressions in chip functionality or performance.",
+            "status": "pending",
+            "testStrategy": "Automated UI tests for confidence display and manual testing for visual appeal and usability."
+          }
+        ]
       },
       {
         "id": 20,
@@ -8965,7 +9074,61 @@
           16
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add timestamp tracking in SuggestionChipView on display",
+            "description": "Implement logic to record the timestamp when the suggestion chip is displayed to the user.",
+            "dependencies": [],
+            "details": "In the SuggestionChipView class, add a property to store the display timestamp (e.g., using Date.timeIntervalSince1970). Set this timestamp in the view's onAppear or equivalent method to capture when the suggestion becomes visible.",
+            "status": "pending",
+            "testStrategy": "Unit test that the timestamp is set correctly on view display using mock views."
+          },
+          {
+            "id": 2,
+            "title": "Calculate time-to-response on user interaction",
+            "description": "Compute the elapsed time from display to user action (acceptance or rejection).",
+            "dependencies": [
+              1
+            ],
+            "details": "In the interaction handler (e.g., on tap or swipe), calculate timeToResponseMs as the difference between current time and stored display timestamp, converting to milliseconds. Store this value in a local variable for inclusion in feedback.",
+            "status": "pending",
+            "testStrategy": "Unit test the calculation logic with mocked timestamps to verify accurate millisecond computation."
+          },
+          {
+            "id": 3,
+            "title": "Integrate time-to-response into feedback data structure",
+            "description": "Ensure the calculated time is included in the SuggestionFeedback object before recording.",
+            "dependencies": [
+              2
+            ],
+            "details": "Modify the feedback creation logic to populate the timeToResponseMs field in SuggestionFeedback with the computed value. This should happen right after calculation and before calling the recording service.",
+            "status": "pending",
+            "testStrategy": "Unit test that SuggestionFeedback instances include the correct timeToResponseMs value when initialized with calculated data."
+          },
+          {
+            "id": 4,
+            "title": "Update feedback recording to handle time-to-response",
+            "description": "Adjust the SmartReplyService.recordFeedback method to process and store the time-to-response metric.",
+            "dependencies": [
+              3
+            ],
+            "details": "In the feedback recording implementation (dependent on Task 16), ensure that the timeToResponseMs is passed to the service and handled appropriately, possibly logging or sending it to analytics without altering core rejection/acceptance logic.",
+            "status": "pending",
+            "testStrategy": "Integration test that feedback recording includes time-to-response and that API calls or logs reflect this data accurately."
+          },
+          {
+            "id": 5,
+            "title": "Test end-to-end time-to-response tracking",
+            "description": "Perform comprehensive testing to ensure the entire flow from display to feedback recording works correctly.",
+            "dependencies": [
+              4
+            ],
+            "details": "Conduct integration tests simulating user interactions with SuggestionChipView, verifying that timestamps are tracked, times are calculated, and feedback is recorded with accurate timeToResponseMs values across different scenarios.",
+            "status": "pending",
+            "testStrategy": "End-to-end test using UI automation or manual testing to confirm the feature in a real app environment, checking for edge cases like quick interactions or delayed responses."
+          }
+        ]
       },
       {
         "id": 21,
@@ -8978,7 +9141,63 @@
           16
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define Modification Detection Data Structures",
+            "description": "Create data models and structures to hold original suggestion content and compare it with the modified version before sending.",
+            "dependencies": [
+              16
+            ],
+            "details": "Implement structs or classes in Swift to represent suggestion data, including original content, modified content, and a flag for modification status. Ensure compatibility with existing feedback recording structures from Task 16.",
+            "status": "pending",
+            "testStrategy": "Unit test the data structures for correct initialization and property access."
+          },
+          {
+            "id": 2,
+            "title": "Implement Content Comparison Logic",
+            "description": "Develop a function to compare the original suggestion text with the user-modified text to detect if any changes were made.",
+            "dependencies": [
+              1
+            ],
+            "details": "Write a Swift function that performs string comparison, possibly using diff algorithms or simple equality checks, to identify modifications. Handle cases like whitespace changes, punctuation, and partial edits. Return a boolean indicating if modified, and optionally the diff.",
+            "status": "pending",
+            "testStrategy": "Unit test the comparison function with various inputs including identical strings, minor changes, and major edits."
+          },
+          {
+            "id": 3,
+            "title": "Integrate Modification Detection into Message Sending Flow",
+            "description": "Hook the comparison logic into the UI flow where users send messages, specifically when sending a modified suggestion.",
+            "dependencies": [
+              2
+            ],
+            "details": "Modify the message sending handler in the relevant view controller or service to call the comparison logic before sending. Capture the original suggestion and the final message content. Ensure this integrates seamlessly with the existing send message functionality.",
+            "status": "pending",
+            "testStrategy": "Integration test to verify that the detection is triggered correctly during the send action in a simulated UI flow."
+          },
+          {
+            "id": 4,
+            "title": "Record Modified Content in Feedback",
+            "description": "When a modification is detected, prepare and record the feedback including the modified content using the SmartReplyService.",
+            "dependencies": [
+              3
+            ],
+            "details": "Upon detection of modification, construct the feedback payload with the modifiedContent field as specified. Call SmartReplyService.recordFeedback asynchronously. Handle any errors gracefully and ensure the recording does not block the message sending process.",
+            "status": "pending",
+            "testStrategy": "Unit test the feedback preparation and API call. Integration test to ensure feedback is recorded correctly when modifications occur."
+          },
+          {
+            "id": 5,
+            "title": "Add Logging and Edge Case Handling",
+            "description": "Implement logging for modification events and handle edge cases such as empty suggestions or network failures during feedback recording.",
+            "dependencies": [
+              4
+            ],
+            "details": "Add logging statements to track when modifications are detected and recorded. Implement fallback logic for cases where feedback recording fails, ensuring the message still sends. Consider privacy implications and avoid logging sensitive content.",
+            "status": "pending",
+            "testStrategy": "Unit test edge cases like empty inputs and error scenarios. Integration test logging output and behavior under failure conditions."
+          }
+        ]
       },
       {
         "id": 22,
@@ -8991,7 +9210,61 @@
           18
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design the Learning Indicator UI Element",
+            "description": "Create a design specification for the 'Learning from your messages' indicator, deciding whether to use text, an icon, or both, and define its visual style.",
+            "dependencies": [],
+            "details": "Research and decide on the indicator's appearance, such as a subtle text label or an icon (e.g., a brain or learning symbol). Ensure it fits the app's design language and is non-intrusive. Document the design in a mockup or specification.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 2,
+            "title": "Determine Indicator Placement Location",
+            "description": "Evaluate and select the optimal location for displaying the learning indicator, either in the composer or settings area.",
+            "dependencies": [
+              1
+            ],
+            "details": "Analyze the user interface to choose between the composer (where messages are typed) or the settings screen. Consider user visibility, context, and minimal disruption. Update the design spec with the chosen location.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 3,
+            "title": "Implement the Indicator UI Component",
+            "description": "Develop the UI component for the learning indicator using the chosen design and location.",
+            "dependencies": [
+              2
+            ],
+            "details": "In the relevant SwiftUI or UIKit file, add a view or component that displays the indicator. Use conditional rendering based on a state variable. Ensure it integrates seamlessly with existing UI elements in the selected location.",
+            "status": "pending",
+            "testStrategy": "Unit test the UI component rendering with different states."
+          },
+          {
+            "id": 4,
+            "title": "Integrate Indicator with Style Learning State",
+            "description": "Connect the indicator's visibility to the active state of style learning functionality.",
+            "dependencies": [
+              3
+            ],
+            "details": "Bind the indicator's show/hide logic to a state variable that reflects whether style learning is enabled. This likely involves observing a property from the UserStyleProfile or a similar model, ensuring it updates in real-time when learning toggles on or off.",
+            "status": "pending",
+            "testStrategy": "Integration test to verify the indicator appears/disappears correctly when style learning state changes."
+          },
+          {
+            "id": 5,
+            "title": "Add UI Tests for Indicator Visibility",
+            "description": "Implement tests to ensure the indicator toggles correctly based on the learning state.",
+            "dependencies": [
+              4
+            ],
+            "details": "Write UI tests using XCTest or similar framework to check visibility in the composer or settings. Test both enabled and disabled states, and verify the indicator's position and appearance match the design.",
+            "status": "pending",
+            "testStrategy": "UI test for visibility toggle and integration with state changes."
+          }
+        ]
       },
       {
         "id": 23,
@@ -9005,7 +9278,64 @@
           11
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Integrate ConversationMonitorService into Thread Opening",
+            "description": "Modify the thread opening logic to incorporate ConversationMonitorService for monitoring active threads.",
+            "dependencies": [
+              8,
+              11
+            ],
+            "details": "Locate the code responsible for opening threads and ensure ConversationMonitorService is accessible. Prepare the service for starting monitoring when a thread becomes active.",
+            "status": "pending",
+            "testStrategy": "Unit test that ConversationMonitorService is properly initialized and accessible in the thread opening context."
+          },
+          {
+            "id": 2,
+            "title": "Implement Call to startMonitoring on Thread Open",
+            "description": "Add the call to ConversationMonitorService.startMonitoring when a thread is opened.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the thread open event handler, invoke startMonitoring method of ConversationMonitorService. Ensure this happens only for active threads and handle any potential errors gracefully.",
+            "status": "pending",
+            "testStrategy": "Integration test to verify startMonitoring is called upon thread open and that monitoring begins without errors."
+          },
+          {
+            "id": 3,
+            "title": "Set Up PhoenixChannelManager for Broadcast Handling",
+            "description": "Configure PhoenixChannelManager to subscribe to and handle Phoenix AI event broadcasts.",
+            "dependencies": [
+              2
+            ],
+            "details": "Initialize PhoenixChannelManager with the appropriate channel for AI suggestions. Set up event listeners to receive broadcasts when monitoring starts.",
+            "status": "pending",
+            "testStrategy": "Unit test PhoenixChannelManager initialization and event listener setup. Mock broadcasts to ensure proper subscription."
+          },
+          {
+            "id": 4,
+            "title": "Implement Broadcast Event Processing",
+            "description": "Process incoming broadcasts from PhoenixChannelManager into usable AI suggestion data.",
+            "dependencies": [
+              3
+            ],
+            "details": "Parse the broadcast messages to extract suggestion details such as content, confidence, and context. Map them to SmartReplySuggestion models for further use in the app.",
+            "status": "pending",
+            "testStrategy": "Unit test parsing logic with sample broadcast payloads. Verify correct mapping to SmartReplySuggestion structs."
+          },
+          {
+            "id": 5,
+            "title": "Integrate Processed Suggestions into UI",
+            "description": "Update the user interface to display or utilize the processed AI suggestions from broadcasts.",
+            "dependencies": [
+              4
+            ],
+            "details": "Connect the processed suggestions to the UI components, such as SuggestionChipView, ensuring they are shown proactively or on demand. Handle updates in real-time as broadcasts arrive.",
+            "status": "pending",
+            "testStrategy": "UI integration test to confirm suggestions appear correctly in the thread view after broadcasts. Test real-time updates and user interactions."
+          }
+        ]
       },
       {
         "id": 24,
@@ -9018,7 +9348,63 @@
           13
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Review SuggestionChipView Implementation",
+            "description": "Examine the existing SuggestionChipView.swift to understand its current structure, including how chips are rendered and styled.",
+            "dependencies": [
+              13
+            ],
+            "details": "Open SuggestionChipView.swift and review the code for chip rendering, styling, and any existing properties. Ensure familiarity with the view's layout and current visual elements to prepare for adding proactive distinction.",
+            "status": "pending",
+            "testStrategy": "Manual code review to verify understanding of the view structure."
+          },
+          {
+            "id": 2,
+            "title": "Add isProactive Property to SuggestionChipView",
+            "description": "Introduce an isProactive boolean property to the SuggestionChipView to indicate if the suggestion is proactive.",
+            "dependencies": [
+              1
+            ],
+            "details": "Modify SuggestionChipView.swift to include a new @State or parameter property named isProactive of type Bool. This will be used to conditionally apply different visual styles. Ensure the property is initialized appropriately in the view's initializer or body.",
+            "status": "pending",
+            "testStrategy": "Unit test to verify the property is correctly added and can be set to true or false without errors."
+          },
+          {
+            "id": 3,
+            "title": "Define Visual Styles for Proactive and Non-Proactive Chips",
+            "description": "Create style definitions for differentiating proactive suggestions, such as a blue tint or specific icon.",
+            "dependencies": [
+              2
+            ],
+            "details": "In SuggestionChipView.swift, define constants or computed properties for background color, border, or icon based on the isProactive flag. For example, use a blue tint (e.g., Color.blue.opacity(0.2)) for proactive chips and a default style for others. Optionally, add a small icon like a lightbulb for proactive suggestions.",
+            "status": "pending",
+            "testStrategy": "Unit test the style definitions to ensure they return correct colors or icons based on isProactive value."
+          },
+          {
+            "id": 4,
+            "title": "Implement Conditional Styling Logic",
+            "description": "Apply the defined styles conditionally based on the isProactive property in the chip's rendering.",
+            "dependencies": [
+              3
+            ],
+            "details": "Update the body of SuggestionChipView to use conditional modifiers. For instance, apply .background(isProactive ? proactiveBackground : defaultBackground) and add an icon overlay if isProactive. Ensure the logic integrates seamlessly with existing chip styling without breaking other features.",
+            "status": "pending",
+            "testStrategy": "UI test to verify that chips with isProactive=true display the distinct style (e.g., blue tint) and those with false use the default style."
+          },
+          {
+            "id": 5,
+            "title": "Integrate and Test Visual Distinction in UI",
+            "description": "Integrate the changes into the app's UI and perform end-to-end testing for visual differences.",
+            "dependencies": [
+              4
+            ],
+            "details": "Run the app and navigate to where SuggestionChipView is used. Test various scenarios: proactive and non-proactive chips side by side. Confirm the blue tint or icon appears only for proactive suggestions. Adjust styling if needed for better distinction and accessibility.",
+            "status": "pending",
+            "testStrategy": "UI integration test using snapshot testing or manual inspection to ensure visual differences are clear and consistent across devices."
+          }
+        ]
       },
       {
         "id": 25,
@@ -9032,7 +9418,63 @@
           24
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add Gesture Recognizers to SuggestionChipView",
+            "description": "Integrate UITapGestureRecognizer and UISwipeGestureRecognizer into SuggestionChipView to enable dismissal interactions.",
+            "dependencies": [],
+            "details": "Modify SuggestionChipView to add gesture recognizers for tap and swipe actions. Ensure they are configured to detect single taps and left/right swipes without conflicting with existing interactions. This sets up the foundation for handling dismissal gestures.",
+            "status": "pending",
+            "testStrategy": "Unit test that gesture recognizers are properly added and configured on the view."
+          },
+          {
+            "id": 2,
+            "title": "Implement Tap Dismissal Handler",
+            "description": "Create a method to handle tap gestures for dismissing proactive suggestions.",
+            "dependencies": [
+              1
+            ],
+            "details": "In SuggestionChipView, implement a tap gesture handler that triggers dismissal when the user taps on the chip. This should animate the chip's removal from the UI and update the view state accordingly, without sending any rejection feedback to the backend.",
+            "status": "pending",
+            "testStrategy": "UI test to verify that tapping the chip dismisses it and updates the UI state without recording rejection."
+          },
+          {
+            "id": 3,
+            "title": "Implement Swipe Dismissal Handler",
+            "description": "Create a method to handle swipe gestures for dismissing proactive suggestions.",
+            "dependencies": [
+              1
+            ],
+            "details": "In SuggestionChipView, implement a swipe gesture handler that detects swipe directions (left or right) and dismisses the chip upon swipe. Include smooth animation for the dismissal and ensure the UI state is updated to reflect the removal of the suggestion.",
+            "status": "pending",
+            "testStrategy": "UI test to verify that swiping the chip dismisses it with animation and updates the UI state without recording rejection."
+          },
+          {
+            "id": 4,
+            "title": "Update UI State on Dismissal",
+            "description": "Ensure the parent view or controller updates its state when a suggestion is dismissed.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "After dismissal via tap or swipe, notify the parent view controller or data source to remove the dismissed suggestion from the list or array. Update any relevant UI elements, such as hiding the suggestion list if all are dismissed, to maintain a consistent interface state.",
+            "status": "pending",
+            "testStrategy": "UI integration test to confirm that dismissing a suggestion removes it from the view and updates the overall UI state correctly."
+          },
+          {
+            "id": 5,
+            "title": "Prevent Rejection Recording on Dismissal",
+            "description": "Modify dismissal logic to avoid logging or sending rejection feedback.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "In the dismissal handlers, explicitly avoid triggering any feedback mechanisms that record rejections. Ensure that proactive suggestions can be dismissed silently, preserving user privacy and not influencing future suggestions based on dismissal actions.",
+            "status": "pending",
+            "testStrategy": "Unit test to verify that no rejection data is sent or logged when dismissal occurs, and integration test to confirm backend does not receive rejection signals."
+          }
+        ]
       },
       {
         "id": 26,
@@ -9046,7 +9488,61 @@
           23
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add Toggle UI to Thread Settings",
+            "description": "Implement a SwiftUI Toggle component in the thread settings view to allow users to enable or disable monitoring for individual threads.",
+            "dependencies": [],
+            "details": "Locate the thread settings view (assuming it exists from prior tasks like 23), and add a Toggle view labeled 'Enable Monitoring' or similar. Bind it to a local state variable for the thread's monitoring status.",
+            "status": "pending",
+            "testStrategy": "UI test to verify the toggle is present and interactive in the thread settings view."
+          },
+          {
+            "id": 2,
+            "title": "Implement Toggle Action Logic",
+            "description": "Add logic to the toggle action that starts or stops monitoring the thread based on the toggle state.",
+            "dependencies": [
+              1
+            ],
+            "details": "In the toggle's action closure, check the toggle's state: if true, call a function to start monitoring (e.g., add to monitored list and initiate monitoring process); if false, stop monitoring and remove from list. Ensure this interacts with the app's monitoring system.",
+            "status": "pending",
+            "testStrategy": "Unit test the toggle action to ensure it correctly calls start/stop monitoring functions."
+          },
+          {
+            "id": 3,
+            "title": "Update AppState for Monitored Threads",
+            "description": "Modify the AppState to reflect changes in monitored threads when the toggle is switched.",
+            "dependencies": [
+              2
+            ],
+            "details": "Dispatch an action to the reducer to update AppState.monitoredThreads (added in Task 5). Add the thread ID to the monitored list if enabled, remove if disabled. Ensure the state persists across app sessions if needed.",
+            "status": "pending",
+            "testStrategy": "Integration test to verify that toggling updates the AppState.monitoredThreads correctly."
+          },
+          {
+            "id": 4,
+            "title": "Bind Toggle to AppState",
+            "description": "Connect the toggle's state to the AppState so it reflects the current monitoring status and updates accordingly.",
+            "dependencies": [
+              3
+            ],
+            "details": "Use a binding or observed object to link the toggle to AppState.monitoredThreads. On view load, set the toggle based on whether the thread is in the monitored list. Ensure changes propagate back to state.",
+            "status": "pending",
+            "testStrategy": "UI test to check that the toggle state matches the AppState and updates in real-time."
+          },
+          {
+            "id": 5,
+            "title": "Test Per-Thread Monitoring Toggle",
+            "description": "Conduct comprehensive testing of the toggle feature including UI interactions and state persistence.",
+            "dependencies": [
+              4
+            ],
+            "details": "Perform UI tests for toggle visibility and interaction, unit tests for logic, and integration tests for state updates. Verify that monitoring starts/stops as expected and persists in AppState.",
+            "status": "pending",
+            "testStrategy": "UI test for toggle functionality and integration test for state persistence and monitoring behavior."
+          }
+        ]
       },
       {
         "id": 27,
@@ -9115,7 +9611,40 @@
           16
         ],
         "priority": "medium",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Unit and Integration Tests for Smart Reply Service",
+            "description": "Create unit tests for SmartReplyService and integration tests with mocked backend to validate fetching suggestions, caching, feedback recording, and error handling.",
+            "dependencies": [],
+            "details": "Add SmartReplyServiceTests.swift and SmartReplyIntegrationTests.swift in clients/ios/GlobalBridge/Tests/AI/SmartReply/. Use MockURLProtocol and ephemeral URLSession for mocking. Test suggestion fetching with JSON stubs, caching TTL with mock clock, feedback POST validation, and error mappings. Ensure determinism with injected Clock.",
+            "status": "pending",
+            "testStrategy": "XCTest with mocked backend using MockURLProtocol, verify network calls, caching, and error handling."
+          },
+          {
+            "id": 2,
+            "title": "Develop UI Tests for Smart Reply Happy Path",
+            "description": "Implement XCUITest for the happy path of Smart Reply flow, including opening chat, tapping chips, inserting into composer, and sending messages.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add SmartReplyUITests.swift in clients/ios/GlobalBridge/Tests/UI/. Follow MessageBubbleUITests pattern with launch arg 'UI-Testing'. Use accessibility identifiers like 'ChatView', 'SmartReplyBar', 'SmartReplyChip-0', 'ComposerTextField', 'ComposerSendButton'. Assert chip tap populates composer, send adds message bubble.",
+            "status": "pending",
+            "testStrategy": "XCUITest for happy path, asserting UI elements and interactions using accessibility IDs."
+          },
+          {
+            "id": 3,
+            "title": "Validate Manual Test Script for Smart Reply MVP",
+            "description": "Execute and validate the manual test script covering suggestion appearance, chip tapping, sending, feedback recording, error paths, and caching behavior.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Perform manual testing: launch app, open thread, check Smart Reply bar with chips, tap chip to populate composer, send and verify feedback. Test modify flow, offline errors with retry, and cache repopulation. Use NetworkMonitor.shared.simulateOffline() for errors. Ensure all steps match the script and record results.",
+            "status": "pending",
+            "testStrategy": "Manual testing script execution, verifying UI behavior, feedback recording, error states, and caching within 60s."
+          }
+        ]
       }
     ],
     "metadata": {
