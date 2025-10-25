@@ -130,10 +130,12 @@ final class PhoenixStateManagerTests: XCTestCase {
             id: "1",
             conversationId: "test",
             senderId: "user1",
+            senderDisplayName: nil,
             content: "Test",
             timestamp: Date(),
             status: .sent,
-            metadata: nil
+            metadata: nil,
+            clientMessageId: nil
         )
 
         stateManager.messages["test"] = [mockMessage]
@@ -149,30 +151,36 @@ final class PhoenixStateManagerTests: XCTestCase {
             id: "1",
             conversationId: "test",
             senderId: "user1",
+            senderDisplayName: nil,
             content: "First",
             timestamp: now.addingTimeInterval(-100),
             status: .sent,
-            metadata: nil
+            metadata: nil,
+            clientMessageId: nil
         )
 
         let message2 = PhoenixMessage(
             id: "2",
             conversationId: "test",
             senderId: "user1",
+            senderDisplayName: nil,
             content: "Second",
             timestamp: now.addingTimeInterval(-50),
             status: .sent,
-            metadata: nil
+            metadata: nil,
+            clientMessageId: nil
         )
 
         let message3 = PhoenixMessage(
             id: "3",
             conversationId: "test",
             senderId: "user1",
+            senderDisplayName: nil,
             content: "Third",
             timestamp: now,
             status: .sent,
-            metadata: nil
+            metadata: nil,
+            clientMessageId: nil
         )
 
         // Add messages in random order

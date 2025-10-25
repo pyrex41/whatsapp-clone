@@ -293,8 +293,9 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
       create_read_receipts_table(repo)
     end
 
-    # Always create vector table for embeddings
+    # Always create vector tables for embeddings and feedback
     GlobalbridgeBackend.AI.VectorStore.create_embeddings_table(repo)
+    GlobalbridgeBackend.AI.VectorStore.create_feedback_table(repo)
   end
 
   @doc """

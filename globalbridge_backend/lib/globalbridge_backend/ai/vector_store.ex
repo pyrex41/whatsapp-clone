@@ -73,33 +73,59 @@ defmodule GlobalbridgeBackend.AI.VectorStore do
   end
 
   @doc """
-  Searches for similar messages using cosine similarity.
+  Searches for similar messages using real semantic search with cosine similarity.
 
-  Returns a list of {message_id, distance} tuples, ordered by similarity.
+  Uses real OpenAI embeddings to find messages semantically similar to the query.
+
+  ## Parameters
+  - thread_id: Thread database to search
+  - query_embedding: Real embedding vector (3072 dimensions)
+  - opts: Options including :limit (default 10)
+
+  ## Returns
+  - List of %{message_id, distance, similarity} sorted by similarity
+  - {:error, reason} on failure
   """
   def search(thread_id, query_embedding, opts \\ []) do
     repo = ThreadRepo.get_repo(thread_id)
     limit = Keyword.get(opts, :limit, 10)
 
-    # Convert query embedding to binary
-    query_binary = embedding_to_binary(query_embedding)
-
-    sql = """
-    SELECT message_id, distance
+    # Get all message embeddings
+    get_sql = """
+    SELECT message_id, embedding
     FROM message_embeddings
-    WHERE embedding MATCH ?
-      AND k = ?
-    ORDER BY distance
     """
 
-    case Ecto.Adapters.SQL.query(repo, sql, [query_binary, limit]) do
+    case Ecto.Adapters.SQL.query(repo, get_sql, []) do
       {:ok, %{rows: rows}} ->
-        # Convert rows to {message_id, distance} tuples
-        Enum.map(rows, fn [message_id, distance] ->
-          %{message_id: message_id, distance: distance}
+        # Calculate cosine similarity for each embedding
+        results = rows
+        |> Enum.map(fn [message_id, embedding_binary] ->
+          # Convert binary to embedding
+          stored_embedding = binary_to_embedding(embedding_binary)
+
+          # Calculate cosine similarity
+          similarity = GlobalbridgeBackend.AI.Embeddings.cosine_similarity(
+            query_embedding,
+            stored_embedding
+          )
+
+          # Convert to distance (1 - similarity)
+          distance = 1.0 - similarity
+
+          %{
+            message_id: message_id,
+            distance: distance,
+            similarity: similarity
+          }
         end)
+        |> Enum.sort_by(& &1.distance)  # Sort by distance (lower = more similar)
+        |> Enum.take(limit)
+
+        results
 
       {:error, error} ->
+        Logger.error("Failed to search messages: #{inspect(error)}")
         {:error, error}
     end
   end
@@ -216,7 +242,8 @@ defmodule GlobalbridgeBackend.AI.VectorStore do
     # Ensure the table exists
     create_user_style_table(repo)
 
-    embedding_binary = embedding_to_binary(embedding)
+    # Convert embedding to JSON array format for vec0
+    embedding_json = Jason.encode!(embedding)
     embedding_id = "#{user_id}_#{style_aspect}_#{:erlang.unique_integer([:positive])}"
 
     sql = """
@@ -224,37 +251,66 @@ defmodule GlobalbridgeBackend.AI.VectorStore do
     VALUES (?, ?, ?, ?)
     """
 
-    Ecto.Adapters.SQL.query!(repo, sql, [embedding_id, user_id, style_aspect, embedding_binary])
+    Ecto.Adapters.SQL.query!(repo, sql, [embedding_id, user_id, style_aspect, embedding_json])
     :ok
   end
 
   @doc """
-  Searches for similar user style patterns.
+  Searches for similar user style patterns using real semantic search.
 
   Useful for finding users with similar writing styles for collaborative filtering.
+
+  ## Parameters
+  - thread_id: Thread database to search
+  - query_embedding: Real embedding vector (3072 dimensions)
+  - style_aspect: Filter by style aspect
+  - opts: Options including :limit (default 10)
+
+  ## Returns
+  - List of %{user_id, distance, similarity} sorted by similarity
+  - {:error, reason} on failure
   """
   def search_user_styles(thread_id, query_embedding, style_aspect, opts \\ []) do
     repo = ThreadRepo.get_repo(thread_id)
     limit = Keyword.get(opts, :limit, 10)
 
-    query_binary = embedding_to_binary(query_embedding)
-
-    sql = """
-    SELECT user_id, distance
+    # Get all user style embeddings for the specified aspect
+    get_sql = """
+    SELECT user_id, embedding
     FROM user_style_embeddings
     WHERE style_aspect = ?
-      AND embedding MATCH ?
-      AND k = ?
-    ORDER BY distance
     """
 
-    case Ecto.Adapters.SQL.query(repo, sql, [style_aspect, query_binary, limit]) do
+    case Ecto.Adapters.SQL.query(repo, get_sql, [style_aspect]) do
       {:ok, %{rows: rows}} ->
-        Enum.map(rows, fn [user_id, distance] ->
-          %{user_id: user_id, distance: distance}
+        # Calculate cosine similarity for each embedding
+        results = rows
+        |> Enum.map(fn [user_id, embedding_json] ->
+          # Parse JSON embedding
+          {:ok, stored_embedding} = Jason.decode(embedding_json)
+
+          # Calculate cosine similarity
+          similarity = GlobalbridgeBackend.AI.Embeddings.cosine_similarity(
+            query_embedding,
+            stored_embedding
+          )
+
+          # Convert to distance (1 - similarity)
+          distance = 1.0 - similarity
+
+          %{
+            user_id: user_id,
+            distance: distance,
+            similarity: similarity
+          }
         end)
+        |> Enum.sort_by(& &1.distance)  # Sort by distance (lower = more similar)
+        |> Enum.take(limit)
+
+        results
 
       {:error, error} ->
+        Logger.error("Failed to search user styles: #{inspect(error)}")
         {:error, error}
     end
   end
@@ -275,8 +331,10 @@ defmodule GlobalbridgeBackend.AI.VectorStore do
 
     case Ecto.Adapters.SQL.query(repo, sql, [user_id]) do
       {:ok, %{rows: rows}} ->
-        {:ok, Enum.map(rows, fn [aspect, binary] ->
-          %{style_aspect: aspect, embedding: binary_to_embedding(binary)}
+        {:ok, Enum.map(rows, fn [aspect, embedding_json] ->
+          # Parse JSON embedding
+          {:ok, embedding} = Jason.decode(embedding_json)
+          %{style_aspect: aspect, embedding: embedding}
         end)}
 
       {:error, error} ->
@@ -338,7 +396,8 @@ defmodule GlobalbridgeBackend.AI.VectorStore do
     # Ensure the table exists
     create_feedback_table(repo)
 
-    embedding_binary = embedding_to_binary(embedding)
+    # Convert embedding to JSON array format for vec0
+    embedding_json = Jason.encode!(embedding)
     accepted_int = if accepted, do: 1, else: 0
 
     sql = """
@@ -346,38 +405,69 @@ defmodule GlobalbridgeBackend.AI.VectorStore do
     VALUES (?, ?, ?, ?, ?)
     """
 
-    Ecto.Adapters.SQL.query!(repo, sql, [feedback_id, user_id, suggestion_type, accepted_int, embedding_binary])
+    Ecto.Adapters.SQL.query!(repo, sql, [feedback_id, user_id, suggestion_type, accepted_int, embedding_json])
     :ok
   end
 
   @doc """
-  Searches for similar accepted suggestions.
+  Searches for similar accepted suggestions using real semantic search.
 
-  Useful for finding what types of suggestions a user typically accepts.
+  Uses OpenAI embeddings and cosine similarity to find previously accepted
+  suggestions that are semantically similar to the query.
+
+  ## Parameters
+  - thread_id: Thread database to search
+  - user_id: User whose accepted suggestions to search
+  - query_embedding: Real embedding vector (3072 dimensions from text-embedding-3-large)
+  - opts: Options including :limit (default 10)
+
+  ## Returns
+  - List of %{feedback_id, suggestion_type, distance} sorted by similarity
+  - {:error, reason} on failure
   """
   def search_accepted_suggestions(thread_id, user_id, query_embedding, opts \\ []) do
     repo = ThreadRepo.get_repo(thread_id)
     limit = Keyword.get(opts, :limit, 10)
 
-    query_binary = embedding_to_binary(query_embedding)
-
-    sql = """
-    SELECT feedback_id, suggestion_type, distance
+    # First, get all accepted suggestions for this user
+    get_sql = """
+    SELECT feedback_id, suggestion_type, embedding
     FROM feedback_embeddings
     WHERE user_id = ?
       AND accepted = 1
-      AND embedding MATCH ?
-      AND k = ?
-    ORDER BY distance
     """
 
-    case Ecto.Adapters.SQL.query(repo, sql, [user_id, query_binary, limit]) do
+    case Ecto.Adapters.SQL.query(repo, get_sql, [user_id]) do
       {:ok, %{rows: rows}} ->
-        Enum.map(rows, fn [feedback_id, suggestion_type, distance] ->
-          %{feedback_id: feedback_id, suggestion_type: suggestion_type, distance: distance}
+        # Calculate cosine similarity for each embedding
+        results = rows
+        |> Enum.map(fn [feedback_id, suggestion_type, embedding_json] ->
+          # Parse JSON embedding
+          {:ok, stored_embedding} = Jason.decode(embedding_json)
+
+          # Calculate cosine similarity using Embeddings module
+          similarity = GlobalbridgeBackend.AI.Embeddings.cosine_similarity(
+            query_embedding,
+            stored_embedding
+          )
+
+          # Convert similarity to distance (1 - similarity for sorting)
+          distance = 1.0 - similarity
+
+          %{
+            feedback_id: feedback_id,
+            suggestion_type: suggestion_type,
+            distance: distance,
+            similarity: similarity
+          }
         end)
+        |> Enum.sort_by(& &1.distance)  # Sort by distance (lower = more similar)
+        |> Enum.take(limit)
+
+        results
 
       {:error, error} ->
+        Logger.error("Failed to search accepted suggestions: #{inspect(error)}")
         {:error, error}
     end
   end

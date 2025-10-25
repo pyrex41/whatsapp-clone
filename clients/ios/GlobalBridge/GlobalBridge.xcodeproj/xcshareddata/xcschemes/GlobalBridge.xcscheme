@@ -90,7 +90,7 @@
          </EnvironmentVariable>
          <EnvironmentVariable
             key = "BACKEND_ENV"
-            value = "production"
+            value = "local"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>

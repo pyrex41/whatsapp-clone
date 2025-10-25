@@ -348,7 +348,7 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
       recent_messages
       |> Enum.take(-5)
       |> Enum.map(fn msg ->
-        "#{msg.user_id}: #{msg.content}"
+        "#{msg.sender_id}: #{msg.content}"
       end)
 
     context = Enum.join(context_parts, "\n")
@@ -361,27 +361,141 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
   end
 
   defp get_similar_accepted_suggestions(thread_id, user_id, context) do
-    # Get embedding for current context
+    # Get embedding for current context using real OpenAI embeddings
     query_embedding = generate_embedding(context.context_text)
 
-    # Search for similar accepted suggestions
+    # Search for similar accepted suggestions using real RAG semantic search
     case VectorStore.search_accepted_suggestions(thread_id, user_id, query_embedding, limit: 5) do
       results when is_list(results) ->
-        results
+        # Convert feedback_ids to actual suggestion content
+        # For now, just return the metadata; later we can join with feedback table
+        Logger.debug("Found #{length(results)} similar accepted suggestions via RAG")
+        Enum.map(results, fn result ->
+          # Log similarity scores for debugging
+          Logger.debug("  - Feedback #{result.feedback_id}: similarity=#{Float.round(result.similarity, 3)}, type=#{result.suggestion_type}")
+          result
+        end)
 
-      {:error, _} ->
+      {:error, reason} ->
+        Logger.warning("RAG search failed: #{inspect(reason)}")
         []
     end
   end
 
-  defp generate_replies_with_ai(context, user_profile, _similar_suggestions, count) do
-    # For now, generate placeholder suggestions
-    # In production, this would call an AI model (llama-3.1-8b-instant)
-    # to generate context-aware replies matching the user's style
+  defp generate_replies_with_ai(context, user_profile, similar_suggestions, count) do
+    # Use llama-3.1-8b-instant for fast, context-aware suggestion generation
+    model = System.get_env("TRANSLATION_MODEL") || "llama-3.1-8b-instant"
 
+    # Build prompt with conversation context and user style
+    prompt = build_suggestion_prompt(context, user_profile, similar_suggestions, count)
+
+    # Call LLM via OpenAIServing
+    case GlobalbridgeBackend.AI.OpenAIServing.generate_completion(prompt, model) do
+      {:ok, ai_response} ->
+        # Parse AI response into suggestion objects
+        parse_ai_suggestions(ai_response, user_profile, context, count)
+
+      {:error, reason} ->
+        Logger.warning("LLM call failed: #{inspect(reason)}, using fallback templates")
+        fallback_suggestions(context, user_profile, count)
+    end
+  end
+
+  defp build_suggestion_prompt(context, user_profile, similar_suggestions, count) do
+    style_description = if user_profile do
+      """
+      User's writing style:
+      - Formality level: #{user_profile.formality_level} (0=very casual, 1=very formal)
+      - Emoji frequency: #{user_profile.emoji_frequency} emojis per message
+      - Average sentence length: #{user_profile.avg_sentence_length} words
+      - Messages analyzed: #{user_profile.messages_analyzed}
+      """
+    else
+      "No style profile available - use neutral tone."
+    end
+
+    similar_examples = if length(similar_suggestions) > 0 do
+      examples = Enum.map_join(similar_suggestions, "\n", fn s -> "- \"#{s}\"" end)
+      """
+
+      Previously accepted suggestions by this user:
+      #{examples}
+      """
+    else
+      ""
+    end
+
+    """
+    You are generating smart reply suggestions for a messaging app. Generate #{count} brief, natural reply suggestions based on this conversation.
+
+    Recent conversation:
+    #{context.context_text}
+
+    Last message received: "#{context.last_message.content}"
+
+    #{style_description}#{similar_examples}
+
+    REQUIREMENTS:
+    1. Generate exactly #{count} distinct reply suggestions
+    2. Match the user's formality level and emoji usage
+    3. Keep replies under 50 characters when possible
+    4. Make replies contextually appropriate to the last message
+    5. Return ONLY the suggestions, one per line, numbered 1., 2., 3., etc.
+    6. Do NOT include explanations or commentary
+
+    Example format:
+    1. Sounds good!
+    2. Thanks for letting me know
+    3. Got it, appreciate it
+    """
+  end
+
+  defp parse_ai_suggestions(ai_response, user_profile, context, count) do
+    # Parse numbered list from AI response
+    lines = ai_response
+      |> String.split("\n")
+      |> Enum.map(&String.trim/1)
+      |> Enum.filter(fn line ->
+        String.match?(line, ~r/^\d+\./)
+      end)
+      |> Enum.map(fn line ->
+        line
+        |> String.replace(~r/^\d+\.\s*/, "")
+        |> String.trim()
+      end)
+      |> Enum.take(count)
+
+    # If parsing fails, use fallback
+    suggestions = if length(lines) >= count do
+      lines
+    else
+      Logger.warning("AI returned insufficient suggestions, using fallback")
+      ["I understand", "That makes sense", "Thanks for sharing"][0..count-1]
+    end
+
+    # Format as suggestion objects
+    suggestions
+    |> Enum.with_index(1)
+    |> Enum.map(fn {content, position} ->
+      %{
+        type: "smart_reply",
+        content: content,
+        confidence: calculate_suggestion_confidence(user_profile, position),
+        position: position,
+        context: %{
+          matched_style: not is_nil(user_profile),
+          last_message_id: context.last_message.id,
+          formality_level: if(user_profile, do: user_profile.formality_level, else: 0.5),
+          ai_generated: true
+        }
+      }
+    end)
+  end
+
+  defp fallback_suggestions(context, user_profile, count) do
+    # Fallback to template-based suggestions if LLM fails
     last_message = context.last_message
 
-    # Base suggestions
     base_suggestions = [
       "I understand what you're saying.",
       "That makes sense to me.",
@@ -409,7 +523,8 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
         context: %{
           matched_style: not is_nil(user_profile),
           last_message_id: last_message.id,
-          formality_level: if(user_profile, do: user_profile.formality_level, else: 0.5)
+          formality_level: if(user_profile, do: user_profile.formality_level, else: 0.5),
+          ai_generated: false
         }
       }
     end)
@@ -469,25 +584,16 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
   end
 
   defp generate_embedding(text) do
-    # Placeholder: In production, this would call a real embedding model
-    # For now, generate a random 3072-dimensional vector
-    # This matches the embedding size used in VectorStore
-
-    # Check cache first
-    cache_key = "embedding:#{:erlang.phash2(text)}"
-
-    case Cache.get(cache_key) do
+    # Use real OpenAI text-embedding-3-large model
+    case GlobalbridgeBackend.AI.Embeddings.generate(text) do
       {:ok, embedding} ->
         embedding
 
-      _ ->
-        # Generate placeholder embedding
-        embedding = for _ <- 1..3072, do: :rand.uniform() * 2.0 - 1.0
-
-        # Cache it
-        Cache.put(cache_key, embedding)
-
-        embedding
+      {:error, reason} ->
+        Logger.warning("Embedding generation failed: #{inspect(reason)}, using fallback")
+        # Fallback to zero vector to avoid breaking the flow
+        # In production, you might want to retry or use a different strategy
+        List.duplicate(0.0, 3072)
     end
   end
 end

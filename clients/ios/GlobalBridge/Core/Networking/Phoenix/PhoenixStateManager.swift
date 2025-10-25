@@ -93,6 +93,27 @@ public class PhoenixStateManager {
                 self?.handleReadReceipt(receipt, conversationId: conversationId)
             }
         }
+
+        // Fetch historical messages if none exist locally
+        if messages[conversationId]?.isEmpty == true {
+            do {
+                print("📥 [HISTORY] No local messages, fetching from backend...")
+                let result = try await channelManager.fetchMessages(
+                    conversationId: conversationId,
+                    limit: 50
+                )
+
+                // Add fetched messages to state
+                for message in result.messages {
+                    handleMessage(message, conversationId: conversationId)
+                }
+
+                print("✅ [HISTORY] Loaded \(result.messages.count) historical messages")
+            } catch {
+                print("⚠️ [HISTORY] Failed to fetch messages: \(error)")
+                // Don't throw - allow user to continue even if history fetch fails
+            }
+        }
     }
 
     /// Leave a conversation channel
@@ -255,6 +276,7 @@ extension PhoenixStateManager {
                 id: "1",
                 conversationId: "conv1",
                 senderId: "user1",
+                senderDisplayName: "User 1",
                 content: "Hello!",
                 timestamp: Date().addingTimeInterval(-3600),
                 status: .delivered,
@@ -265,6 +287,7 @@ extension PhoenixStateManager {
                 id: "2",
                 conversationId: "conv1",
                 senderId: "user2",
+                senderDisplayName: "User 2",
                 content: "Hi there!",
                 timestamp: Date().addingTimeInterval(-1800),
                 status: .read,

@@ -22,6 +22,14 @@ struct MessageCellView: View {
             }
 
             VStack(alignment: isOwnMessage ? .trailing : .leading, spacing: 4) {
+                // Show sender name for other's messages
+                if !isOwnMessage, let displayName = message.senderDisplayName {
+                    Text(displayName)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.leading, 12)
+                }
+
                 // Message bubble
                 Text(message.content)
                     .padding(.horizontal, 12)
@@ -111,6 +119,7 @@ struct ReadReceiptIndicatorView: View {
                 id: "1",
                 conversationId: "conv1",
                 senderId: "me",
+                senderDisplayName: nil,
                 content: "Hello!",
                 timestamp: Date(),
                 status: .sent,
@@ -128,6 +137,7 @@ struct ReadReceiptIndicatorView: View {
                 id: "2",
                 conversationId: "conv1",
                 senderId: "me",
+                senderDisplayName: nil,
                 content: "How are you?",
                 timestamp: Date().addingTimeInterval(-60),
                 status: .read,
@@ -144,7 +154,8 @@ struct ReadReceiptIndicatorView: View {
             message: PhoenixMessage(
                 id: "3",
                 conversationId: "conv1",
-                senderId: "other",
+                senderId: "user_abc123",
+                senderDisplayName: "Alice Johnson",
                 content: "I'm doing great, thanks!",
                 timestamp: Date().addingTimeInterval(-120),
                 status: .delivered,
@@ -162,6 +173,7 @@ struct ReadReceiptIndicatorView: View {
                 id: "4",
                 conversationId: "conv1",
                 senderId: "me",
+                senderDisplayName: nil,
                 content: "Hello everyone!",
                 timestamp: Date().addingTimeInterval(-180),
                 status: .read,

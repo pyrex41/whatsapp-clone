@@ -377,41 +377,110 @@ defmodule GlobalbridgeBackend.AI.ConversationMonitor do
     long_message_count >= 1 or avg_word_count > 30
   end
 
-  defp generate_confusion_suggestions(_thread_id, unanalyzed_messages, _all_messages) do
-    # For now, return placeholder suggestions
-    # Will be implemented with SmartReplyGenerator in Phase 3
-    Logger.debug("Generating confusion clarification suggestions")
+  defp generate_confusion_suggestions(_thread_id, unanalyzed_messages, all_messages) do
+    # Use LLM to generate helpful clarification suggestions
+    Logger.debug("🚨 Generating confusion clarification suggestions with LLM")
 
     last_message = List.first(unanalyzed_messages)
+    recent_context = Enum.take(all_messages, -5)
+      |> Enum.map(fn msg -> "- #{msg.content}" end)
+      |> Enum.join("\n")
 
-    {:ok,
-     [
-       %{
-         type: "confusion_clarification",
-         content: "Could you clarify what you mean?",
-         confidence: 0.8,
-         position: 1,
-         context: %{trigger: "confusion_detected", message_id: last_message.id}
-       }
-     ]}
+    prompt = """
+    The user seems confused in this conversation. Generate 2 helpful clarifying questions or responses.
+
+    Recent conversation:
+    #{recent_context}
+
+    Last message (confused): "#{last_message.content}"
+
+    Generate 2 brief, empathetic responses that help clarify the confusion. Format as:
+    1. [first suggestion]
+    2. [second suggestion]
+
+    Keep each under 60 characters.
+    """
+
+    model = System.get_env("TRANSLATION_MODEL") || "llama-3.1-8b-instant"
+
+    case GlobalbridgeBackend.AI.OpenAIServing.generate_completion(prompt, model) do
+      {:ok, ai_response} ->
+        suggestions = parse_numbered_suggestions(ai_response, "confusion_clarification", last_message.id)
+        {:ok, suggestions}
+
+      {:error, _reason} ->
+        # Fallback to template
+        {:ok, [
+          %{
+            type: "confusion_clarification",
+            content: "Could you clarify what you mean?",
+            confidence: 0.8,
+            position: 1,
+            context: %{trigger: "confusion_detected", message_id: last_message.id, ai_generated: false}
+          }
+        ]}
+    end
   end
 
   defp generate_complexity_suggestions(_thread_id, unanalyzed_messages) do
-    # Placeholder - will be implemented in Phase 3
-    Logger.debug("Generating complexity simplification suggestions")
+    # Use LLM to generate simplification suggestions
+    Logger.debug("🔧 Generating complexity simplification suggestions with LLM")
 
     last_message = List.first(unanalyzed_messages)
 
-    {:ok,
-     [
-       %{
-         type: "complexity_simplification",
-         content: "Let me break that down...",
-         confidence: 0.75,
-         position: 1,
-         context: %{trigger: "complexity_detected", message_id: last_message.id}
-       }
-     ]}
+    prompt = """
+    The user just sent a complex message. Generate 2 brief responses that acknowledge understanding or offer to simplify.
+
+    Complex message: "#{last_message.content}"
+
+    Generate 2 helpful responses. Format as:
+    1. [first suggestion]
+    2. [second suggestion]
+
+    Keep each under 60 characters.
+    """
+
+    model = System.get_env("TRANSLATION_MODEL") || "llama-3.1-8b-instant"
+
+    case GlobalbridgeBackend.AI.OpenAIServing.generate_completion(prompt, model) do
+      {:ok, ai_response} ->
+        suggestions = parse_numbered_suggestions(ai_response, "complexity_simplification", last_message.id)
+        {:ok, suggestions}
+
+      {:error, _reason} ->
+        # Fallback to template
+        {:ok, [
+          %{
+            type: "complexity_simplification",
+            content: "Let me break that down...",
+            confidence: 0.75,
+            position: 1,
+            context: %{trigger: "complexity_detected", message_id: last_message.id, ai_generated: false}
+          }
+        ]}
+    end
+  end
+
+  defp parse_numbered_suggestions(ai_response, suggestion_type, message_id) do
+    ai_response
+    |> String.split("\n")
+    |> Enum.map(&String.trim/1)
+    |> Enum.filter(fn line -> String.match?(line, ~r/^\d+\./) end)
+    |> Enum.map(fn line ->
+      line
+      |> String.replace(~r/^\d+\.\s*/, "")
+      |> String.trim()
+    end)
+    |> Enum.with_index(1)
+    |> Enum.map(fn {content, position} ->
+      %{
+        type: suggestion_type,
+        content: content,
+        confidence: 0.9 - (position * 0.05),
+        position: position,
+        context: %{trigger: "#{suggestion_type}_detected", message_id: message_id, ai_generated: true}
+      }
+    end)
   end
 
   defp broadcast_suggestions(thread_id, suggestions) do

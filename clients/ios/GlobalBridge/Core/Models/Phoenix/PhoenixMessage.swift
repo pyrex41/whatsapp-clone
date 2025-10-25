@@ -12,6 +12,7 @@ public struct PhoenixMessage: Codable, Sendable, Identifiable {
     public let id: String
     public let conversationId: String
     public let senderId: String
+    public let senderDisplayName: String? // Display name for the sender
     public let content: String
     public let timestamp: Date
     public let status: MessageStatus
@@ -45,6 +46,7 @@ public struct PhoenixMessage: Codable, Sendable, Identifiable {
         case id
         case conversationId = "conversation_id"
         case senderId = "sender_id"
+        case senderDisplayName = "sender_display_name"
         case content
         case timestamp
         case status

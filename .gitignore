@@ -69,3 +69,7 @@ repomix-output.xml
 # Backend shared DB files
 globalbridge_backend/priv/shared_dbs/*.db-shm
 globalbridge_backend/priv/shared_dbs/*.db-wal
+
+# temp
+temp/
+temp

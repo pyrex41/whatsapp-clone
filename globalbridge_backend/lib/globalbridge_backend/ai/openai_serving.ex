@@ -47,6 +47,22 @@ defmodule GlobalbridgeBackend.AI.OpenAIServing do
     end
   end
 
+  @doc """
+  Public API for generating completions directly.
+
+  Used by SmartReplyGenerator and other AI modules.
+  """
+  def generate_completion(prompt, model) do
+    provider = determine_provider(model)
+    Logger.debug("Calling #{provider} API with model: #{model}")
+
+    case provider do
+      :groq -> call_groq(prompt, model)
+      :xai -> call_xai(prompt, model)
+      :openai -> call_openai(prompt, model)
+    end
+  end
+
   # Private functions
 
   defp determine_model_for_message(message) do
@@ -67,17 +83,6 @@ defmodule GlobalbridgeBackend.AI.OpenAIServing do
       # Default
       true ->
         System.get_env("OPENAI_MODEL") || "llama-3.1-70b-versatile"
-    end
-  end
-
-  defp generate_completion(prompt, model) do
-    provider = determine_provider(model)
-    Logger.debug("Calling #{provider} API with model: #{model}")
-
-    case provider do
-      :groq -> call_groq(prompt, model)
-      :xai -> call_xai(prompt, model)
-      :openai -> call_openai(prompt, model)
     end
   end
 
