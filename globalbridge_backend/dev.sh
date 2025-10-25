@@ -28,11 +28,35 @@ fi
 echo "🔧 Loading environment variables from .env..."
 export $(grep -v '^#' .env | xargs)
 
-# Optional: Set SQLITE_VEC_PATH if you have the sqlite-vec extension installed
-# Uncomment and set the path to your vec0 shared library (e.g., libvec0.dylib on macOS, libvec0.so on Linux)
-# export SQLITE_VEC_PATH="/path/to/vec0.dylib"
-# Or if installed via Homebrew on macOS:
-# export SQLITE_VEC_PATH="$(brew --prefix)/lib/vec0.dylib"
+# sqlite-vec: auto-detect local path or disable if missing (prevents boot failures)
+detect_vec() {
+  # If explicitly set but missing, warn and unset to avoid crashing in dev
+  if [ -n "$SQLITE_VEC_PATH" ] && [ ! -f "$SQLITE_VEC_PATH" ]; then
+    echo "⚠️  SQLITE_VEC_PATH set but file not found: $SQLITE_VEC_PATH — unsetting for dev"
+    unset SQLITE_VEC_PATH
+  fi
+
+  # If not set, try common locations
+  if [ -z "$SQLITE_VEC_PATH" ]; then
+    CANDIDATES=(
+      "/opt/homebrew/lib/vec0.dylib"    # macOS Apple Silicon
+      "/usr/local/lib/vec0.dylib"       # macOS Intel/Homebrew
+      "/opt/me/lib/vec0.dylib"          # custom local macOS install
+      "/usr/local/lib/vec0.so"          # Linux
+      "/usr/lib/x86_64-linux-gnu/vec0.so"
+    )
+    for p in "${CANDIDATES[@]}"; do
+      if [ -f "$p" ]; then
+        export SQLITE_VEC_PATH="$p"
+        echo "✅ sqlite-vec detected at $SQLITE_VEC_PATH"
+        return
+      fi
+    done
+    echo "ℹ️  sqlite-vec not found locally; vector features disabled in dev"
+  fi
+}
+
+detect_vec
 
 # Verify Auth0 variables are set
 if [ -z "$AUTH0_DOMAIN" ]; then

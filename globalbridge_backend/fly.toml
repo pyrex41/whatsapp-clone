@@ -15,6 +15,8 @@ kill_signal = 'SIGTERM'
   BRIDGE_DATABASE_PATH = '/mnt/data/bridges.db'
   SYNC_STATE_DATABASE_PATH = '/mnt/data/sync_state.db'
   THREAD_DATABASE_DIR = '/mnt/data/threads'
+  # sqlite-vec shared library path inside the container (Linux ARM64/x86_64)
+  SQLITE_VEC_PATH = '/usr/local/lib/vec0.so'
   PHX_HOST = 'globalbridge-backend.fly.dev'
   PORT = '8080'
   DEV_MODE = 'true'

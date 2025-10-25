@@ -10,6 +10,10 @@ defmodule GlobalbridgeBackend.Application do
     # Validate sqlite-vec extension before starting
     validate_sqlite_vec()
 
+    # Initialize ETS table for thread repo cache BEFORE starting supervisor tree
+    # This ensures the table persists throughout application lifetime
+    GlobalbridgeBackend.AI.Cache.init()
+
     # Background job processing with Oban (not in test)
     children =
       [
@@ -40,10 +44,6 @@ defmodule GlobalbridgeBackend.Application do
         [
           # Caching with Cachex
           {Cachex, name: :ai_cache},
-          # Initialize unified cache layer (ETS table)
-          Supervisor.child_spec({Task, fn -> GlobalbridgeBackend.AI.Cache.init() end},
-            id: :ai_cache_init_task
-          ),
           # AI Components Setup (runs after other supervisors are started)
           Supervisor.child_spec(
             {Task,
@@ -58,6 +58,8 @@ defmodule GlobalbridgeBackend.Application do
           GlobalbridgeBackend.AI.BudgetMonitor,
           # AI Rate Limit Monitoring
           GlobalbridgeBackend.Monitoring.RateLimitMonitor,
+          # AI Conversation Monitor for real-time suggestions
+          GlobalbridgeBackend.AI.ConversationMonitor,
           # Start a worker by calling: GlobalbridgeBackend.Worker.start_link(arg)
           # {GlobalbridgeBackend.Worker, arg},
           # Start to serve requests, typically the last entry
@@ -134,6 +136,7 @@ defmodule GlobalbridgeBackend.Application do
       "/opt/homebrew/lib",
       "/usr/local/lib",
       "/usr/lib",
+      "/opt/me/lib", # user-specific override for local macOS installs
       "C:/Program Files/sqlite-vec",
       "C:/sqlite-vec"
     ]

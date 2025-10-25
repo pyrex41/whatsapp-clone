@@ -150,6 +150,11 @@ defmodule GlobalbridgeBackendWeb.Router do
       post("/search_semantic", AIController, :search_semantic)
       post("/extract_tasks", AIController, :extract_tasks)
       post("/vec_health", AIController, :vec_health)
+
+      # Smart reply and conversation insights endpoints
+      post("/suggest_replies", AIController, :suggest_replies)
+      post("/record_feedback", AIController, :record_feedback)
+      get("/conversation_insights", AIController, :conversation_insights)
     end
 
     # Protected API routes will go here

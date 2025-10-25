@@ -230,6 +230,33 @@ defmodule GlobalbridgeBackendWeb.Validators.AIValidatorTest do
     end
   end
 
+  describe "validate_optional_target_language/1" do
+    test "accepts valid language codes" do
+      assert {:ok, "es"} = AIValidator.validate_optional_target_language("es")
+      assert {:ok, "fr"} = AIValidator.validate_optional_target_language("fr")
+      assert {:ok, "de"} = AIValidator.validate_optional_target_language("de")
+    end
+
+    test "returns {:ok, nil} for nil (triggers auto-detection)" do
+      assert {:ok, nil} = AIValidator.validate_optional_target_language(nil)
+    end
+
+    test "converts to lowercase" do
+      assert {:ok, "en"} = AIValidator.validate_optional_target_language("EN")
+      assert {:ok, "es"} = AIValidator.validate_optional_target_language("Es")
+    end
+
+    test "rejects invalid language code" do
+      assert {:error, msg} = AIValidator.validate_optional_target_language("invalid")
+      assert msg =~ "Language must be one of"
+    end
+
+    test "rejects non-string non-nil values" do
+      assert {:error, "Language must be a string"} =
+               AIValidator.validate_optional_target_language(123)
+    end
+  end
+
   describe "validate_tone/1" do
     test "accepts valid tones" do
       assert {:ok, "formal"} = AIValidator.validate_tone("formal")

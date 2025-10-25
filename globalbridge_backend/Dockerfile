@@ -20,9 +20,9 @@ ARG RUNNER_IMAGE="docker.io/debian:${DEBIAN_VERSION}"
 
 FROM ${BUILDER_IMAGE} AS builder
 
-# install build dependencies
+# install build dependencies (Elixir build + sqlite-vec from source)
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends build-essential git \
+  && apt-get install -y --no-install-recommends build-essential git curl ca-certificates unzip \
   && rm -rf /var/lib/apt/lists/*
 
 # prepare build dir
@@ -53,6 +53,12 @@ COPY lib lib
 # Compile the release
 RUN mix compile
 
+# Build sqlite-vec (loadable extension) from source so we have the right arch
+RUN git clone --depth=1 https://github.com/asg017/sqlite-vec /tmp/sqlite-vec \
+  && cd /tmp/sqlite-vec \
+  && ./scripts/vendor.sh \
+  && make loadable
+
 # Changes to config/runtime.exs don't require recompiling the code
 COPY config/runtime.exs config/
 
@@ -78,8 +84,13 @@ ENV LC_ALL=en_US.UTF-8
 WORKDIR "/app"
 RUN chown nobody /app
 
-# set runner ENV
+// set runner ENV
 ENV MIX_ENV="prod"
+
+# Bring the compiled sqlite-vec into the runtime image and expose path
+COPY --from=builder /tmp/sqlite-vec/dist/vec.so /usr/local/lib/vec0.so
+RUN chmod +x /usr/local/lib/vec0.so
+ENV SQLITE_VEC_PATH=/usr/local/lib/vec0.so
 
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/globalbridge_backend ./

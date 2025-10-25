@@ -39,7 +39,7 @@ defmodule GlobalbridgeBackend.AI.Cache do
   """
   def init do
     # Create ETS table if it doesn't exist
-    unless :ets.info(@ets_table) != :undefined do
+    if :ets.info(@ets_table) == :undefined do
       :ets.new(@ets_table, [:named_table, :public, :set, read_concurrency: true])
     end
 

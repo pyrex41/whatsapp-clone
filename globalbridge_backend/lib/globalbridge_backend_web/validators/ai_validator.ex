@@ -234,6 +234,13 @@ defmodule GlobalbridgeBackendWeb.Validators.AIValidator do
   def validate_optional_language(language), do: validate_language(language)
 
   @doc """
+  Validates optional target language code (allows nil for auto-detection).
+  Returns {:ok, nil} when nil is provided to trigger language detection.
+  """
+  def validate_optional_target_language(nil), do: {:ok, nil}
+  def validate_optional_target_language(language), do: validate_language(language)
+
+  @doc """
   Validates tone parameter.
 
   ## Parameters

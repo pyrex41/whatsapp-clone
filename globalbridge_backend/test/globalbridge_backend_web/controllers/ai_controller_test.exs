@@ -31,7 +31,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
   end
 
   describe "POST /api/v1/ai/translate" do
-    test "translates text successfully", %{conn: conn} do
+    test "translates text successfully with target language provided", %{conn: conn} do
       params = %{
         "text" => "Hello world",
         "target_language" => "es",
@@ -39,20 +39,93 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
       }
 
       conn = post(conn, "/api/v1/ai/translate", params)
+      response = json_response(conn, 200)
 
-      assert json_response(conn, 200)["success"] == true
-      assert json_response(conn, 200)["translation"]
-      assert json_response(conn, 200)["source_language"] == "en"
-      assert json_response(conn, 200)["target_language"] == "es"
+      assert response["success"] == true
+      assert response["translation"]
+      assert response["source_language"]
+      assert response["source_language_code"]
+      assert response["target_language"]
+      assert response["target_language_code"] == "es"
+      assert response["detection_strategy"] == "none"
+      assert is_float(response["confidence"])
+      assert is_list(response["cultural_notes"])
     end
 
-    test "returns error for missing parameters", %{conn: conn} do
-      # Missing target_language
-      params = %{"text" => "Hello world"}
+    test "auto-detects language with combined strategy when target_language not provided", %{
+      conn: conn
+    } do
+      params = %{
+        "text" => "Hola mundo",
+        "detection_strategy" => "combined"
+      }
+
+      start_time = System.monotonic_time(:millisecond)
+      conn = post(conn, "/api/v1/ai/translate", params)
+      elapsed_time = System.monotonic_time(:millisecond) - start_time
+
+      response = json_response(conn, 200)
+
+      assert response["success"] == true
+      assert response["translation"]
+      assert response["source_language"]
+      assert response["source_language_code"]
+      assert response["target_language"] == "English"
+      assert response["target_language_code"] == "en"
+      assert response["detection_strategy"] == "combined"
+
+      IO.puts("\n[PERF] Combined strategy translation took: #{elapsed_time}ms")
+    end
+
+    test "auto-detects language with dedicated strategy when target_language not provided", %{
+      conn: conn
+    } do
+      params = %{
+        "text" => "Hola mundo",
+        "detection_strategy" => "dedicated"
+      }
+
+      start_time = System.monotonic_time(:millisecond)
+      conn = post(conn, "/api/v1/ai/translate", params)
+      elapsed_time = System.monotonic_time(:millisecond) - start_time
+
+      response = json_response(conn, 200)
+
+      assert response["success"] == true
+      assert response["translation"]
+      assert response["source_language"]
+      assert response["source_language_code"]
+      assert response["target_language"] == "English"
+      assert response["target_language_code"] == "en"
+      assert response["detection_strategy"] == "dedicated"
+
+      IO.puts("\n[PERF] Dedicated strategy translation took: #{elapsed_time}ms")
+    end
+
+    test "uses default detection strategy from env when not specified", %{conn: conn} do
+      params = %{
+        "text" => "Bonjour le monde"
+      }
 
       conn = post(conn, "/api/v1/ai/translate", params)
+      response = json_response(conn, 200)
 
-      assert json_response(conn, 400)["error"]
+      assert response["success"] == true
+      assert response["detection_strategy"] in ["combined", "dedicated"]
+    end
+
+    test "handles text with idioms and returns cultural notes", %{conn: conn} do
+      params = %{
+        "text" => "Break a leg on your exam!",
+        "target_language" => "es"
+      }
+
+      conn = post(conn, "/api/v1/ai/translate", params)
+      response = json_response(conn, 200)
+
+      assert response["success"] == true
+      # Cultural notes might be empty or populated depending on LLM response
+      assert is_list(response["cultural_notes"])
     end
 
     test "handles empty text", %{conn: conn} do
@@ -63,7 +136,19 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
 
       conn = post(conn, "/api/v1/ai/translate", params)
 
-      assert json_response(conn, 200)["success"] == true
+      # Should return validation error for empty text
+      assert json_response(conn, 400)["error"]
+    end
+
+    test "validates language codes", %{conn: conn} do
+      params = %{
+        "text" => "Hello world",
+        "target_language" => "invalid_code"
+      }
+
+      conn = post(conn, "/api/v1/ai/translate", params)
+
+      assert json_response(conn, 400)["error"] =~ "Language must be one of"
     end
   end
 

@@ -15,6 +15,7 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
   alias GlobalbridgeBackend.Notifications
   alias GlobalbridgeBackend.Sync
   alias GlobalbridgeBackend.Cache.ParticipantCache
+  alias GlobalbridgeBackend.AI.{ConversationMonitor, SmartReplyGenerator}
   alias GlobalbridgeBackendWeb.Presence
   require Logger
 
@@ -87,7 +88,26 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     # Push current presence state to newly joined user
     push(socket, "presence_state", Presence.list(socket))
 
-    Logger.debug("📊 Presence state pushed to user=#{user_id}")
+    # Start monitoring this thread for AI suggestions
+    ConversationMonitor.monitor_thread(thread_id)
+
+    Logger.debug("📊 Presence state pushed and AI monitoring started for user=#{user_id}")
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:ai_suggestions, suggestions}, socket) do
+    # Broadcast AI suggestions to all participants in real-time
+    thread_id = socket.assigns.thread_id
+
+    Logger.info("🤖 Broadcasting #{length(suggestions)} AI suggestions to thread:#{thread_id}")
+
+    # Push to all connected users in thread
+    broadcast!(socket, "ai_suggestions", %{
+      suggestions: suggestions,
+      timestamp: DateTime.utc_now()
+    })
 
     {:noreply, socket}
   end
@@ -181,6 +201,12 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
 
           # Update thread last_message_at timestamp
           Chat.update_thread_timestamp(thread_id)
+
+          # Learn user writing style from this message
+          SmartReplyGenerator.learn_user_style(user_id, message, thread_id)
+
+          # Notify ConversationMonitor of new message for analysis
+          ConversationMonitor.handle_new_message(thread_id, message)
 
           # Send push notifications to offline users
           send_push_notifications_for_message(thread_id, message, user_id)
@@ -397,6 +423,40 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
       {:error, reason} ->
         {:reply, {:error, %{reason: inspect(reason)}}, socket}
     end
+  end
+
+  @impl true
+  def handle_in("ai:feedback", payload, socket) do
+    thread_id = socket.assigns.thread_id
+    user_id = socket.assigns.user_id
+
+    # Extract feedback data
+    suggestion = payload["suggestion"]
+    accepted = payload["accepted"]
+    modified_content = payload["modified_content"]
+    rejection_reason = payload["rejection_reason"]
+    time_to_response_ms = payload["time_to_response_ms"]
+
+    Logger.info("🤖 [FEEDBACK] Received AI feedback from user #{user_id} in thread #{thread_id}: accepted=#{accepted}")
+
+    # Record feedback asynchronously
+    Task.Supervisor.start_child(GlobalbridgeBackend.TaskSupervisor, fn ->
+      opts = [
+        modified_content: modified_content,
+        rejection_reason: rejection_reason,
+        time_to_response_ms: time_to_response_ms
+      ]
+
+      case SmartReplyGenerator.record_feedback(user_id, thread_id, suggestion, accepted, opts) do
+        :ok ->
+          Logger.info("✅ [FEEDBACK] Recorded successfully for user #{user_id}")
+
+        {:error, reason} ->
+          Logger.error("❌ [FEEDBACK] Failed to record: #{inspect(reason)}")
+      end
+    end)
+
+    {:reply, {:ok, %{recorded: true}}, socket}
   end
 
   @impl true
