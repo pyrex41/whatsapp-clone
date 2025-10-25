@@ -65,14 +65,22 @@ struct Thread: Identifiable, Codable, Equatable {
         self.updatedAt = updatedAt
     }
     
-    /// Display name for the thread (for DMs, shows other participant)
+    /// Display name for the thread.
+    /// - Groups: prefer title; fallback to "Group Chat".
+    /// - Direct messages: prefer a provided title (if backend sent one),
+    ///   otherwise resolve other participant from userCache; fallback to ID prefix.
     func displayName(currentUserId: String, userCache: [String: CachedUserInfo] = [:]) -> String {
-        // For groups, use the title
+        // Groups: use title
         if threadType != .direct {
-            return title ?? "Group Chat"
+            return title?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty ?? "Group Chat"
         }
-        
-        // For DMs, show the other participant's actual name
+
+        // DMs: if backend provided a title, use it immediately (improves first-load UX)
+        if let provided = title?.trimmingCharacters(in: .whitespacesAndNewlines), !provided.isEmpty {
+            return provided
+        }
+
+        // Otherwise, show the other participant's actual name from cache
         if let participants = participantIds,
            let otherParticipant = participants.first(where: { $0 != currentUserId }) {
             print("🔍 [DISPLAY_NAME] Looking up user: \(otherParticipant) in cache (size: \(userCache.count))")
@@ -90,9 +98,13 @@ struct Thread: Identifiable, Codable, Equatable {
             let prefix = otherParticipant.prefix(8)
             return "User \(prefix)"
         }
-        
-        return title ?? "Direct Message"
+        // Last resort
+        return "Direct Message"
     }
+}
+
+private extension String {
+    var nilIfEmpty: String? { isEmpty ? nil : self }
 }
 
 /// Thread participant matching backend schema
