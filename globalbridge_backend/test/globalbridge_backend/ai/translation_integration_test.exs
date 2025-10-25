@@ -30,6 +30,7 @@ defmodule GlobalbridgeBackend.AI.TranslationIntegrationTest do
 
     # Create test thread
     {:ok, thread} = Threads.create_thread(%{
+      thread_type: "group",
       title: "Multilingual Test Thread",
       created_by: english_user.id
     })
