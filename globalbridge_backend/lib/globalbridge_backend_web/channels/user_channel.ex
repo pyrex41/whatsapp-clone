@@ -7,6 +7,7 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
   require Logger
 
   alias GlobalbridgeBackend.Contexts.{Threads, Contacts}
+  alias GlobalbridgeBackend.Schemas.User
   alias GlobalbridgeBackend.Repo
 
   # Intercept outgoing broadcasts
@@ -57,10 +58,10 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
       Logger.info("📊 [USER_CHANNEL] Found #{length(threads)} threads for user: #{user_id}")
 
       # Format response
-      response = %{
-        threads: Enum.map(threads, &format_thread/1),
-        user: format_user(socket.assigns.user)
-      }
+    response = %{
+      threads: Enum.map(threads, &format_thread_for_user(&1, user_id)),
+      user: format_user(socket.assigns.user)
+    }
 
       Logger.info("✅ [USER_CHANNEL] Bootstrap successful for user: #{user_id}")
       {:reply, {:ok, response}, socket}
@@ -154,17 +155,16 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
             Logger.info("✅ [USER_CHANNEL] New DM created: #{thread.id}")
 
             # Broadcast to both participants
-            formatted_thread = format_thread(thread)
+        Enum.each([user_id, other_user_id], fn participant_id ->
+          formatted_thread = format_thread_for_user(thread, participant_id)
+          GlobalbridgeBackendWeb.Endpoint.broadcast(
+            "user:#{participant_id}",
+            "thread_created",
+            formatted_thread
+          )
+        end)
 
-            Enum.each([user_id, other_user_id], fn participant_id ->
-              GlobalbridgeBackendWeb.Endpoint.broadcast(
-                "user:#{participant_id}",
-                "thread_created",
-                formatted_thread
-              )
-            end)
-
-            {:reply, {:ok, formatted_thread}, socket}
+            {:reply, {:ok, format_thread_for_user(thread, user_id)}, socket}
 
           {:error, changeset} ->
             errors = format_errors(changeset)
@@ -175,7 +175,7 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
       thread ->
         # Return existing DM
         Logger.info("✅ [USER_CHANNEL] Existing DM found: #{thread.id}")
-        {:reply, {:ok, format_thread(thread)}, socket}
+        {:reply, {:ok, format_thread_for_user(thread, user_id)}, socket}
     end
   end
 
@@ -292,6 +292,49 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
       is_archived: thread.is_archived,
       is_muted: thread.is_muted,
       participant_ids: Enum.map(thread.thread_participants, & &1.user_id),
+      created_at: thread.inserted_at,
+      updated_at: thread.updated_at
+    }
+  end
+
+  # Same as format_thread/1 but with a per-user resolved title for DMs
+  defp format_thread_for_user(thread, current_user_id) do
+    thread = Repo.preload(thread, [:thread_participants])
+
+    participant_ids = Enum.map(thread.thread_participants, & &1.user_id)
+
+    # Resolve a friendlier title for direct threads when none provided
+    resolved_title =
+      case {thread.thread_type, thread.title} do
+        {"direct", nil} ->
+          case Enum.find(participant_ids, fn uid -> uid != current_user_id end) do
+            nil -> nil
+            other_id ->
+              case Repo.get(User, other_id) do
+                nil -> "User #{String.slice(other_id, 0, 8)}"
+                %User{display_name: dn, username: un, email: em} ->
+                  cond do
+                    is_binary(dn) and String.trim(dn) != "" -> dn
+                    is_binary(un) and String.trim(un) != "" -> un
+                    is_binary(em) and String.trim(em) != "" -> em
+                    true -> "User #{String.slice(other_id, 0, 8)}"
+                  end
+              end
+          end
+
+        _ ->
+          thread.title
+      end
+
+    %{
+      id: thread.id,
+      thread_type: thread.thread_type,
+      title: resolved_title,
+      database_shard_id: thread.database_shard_id,
+      last_message_at: thread.last_message_at,
+      is_archived: thread.is_archived,
+      is_muted: thread.is_muted,
+      participant_ids: participant_ids,
       created_at: thread.inserted_at,
       updated_at: thread.updated_at
     }
