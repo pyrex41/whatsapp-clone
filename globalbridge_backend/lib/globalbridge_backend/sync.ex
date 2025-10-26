@@ -188,7 +188,8 @@ defmodule GlobalbridgeBackend.Sync do
   end
 
   defp execute_cdc_operation(%Thread{} = thread, change, user_id) do
-    repo = Repo
+    # Route CDC message ops to the per-thread shard repo
+    repo = GlobalbridgeBackend.Repos.ThreadRepo.get_repo(thread.database_shard_id)
 
     case change.table_name do
       "messages" -> apply_message_operation(repo, thread, change, user_id)

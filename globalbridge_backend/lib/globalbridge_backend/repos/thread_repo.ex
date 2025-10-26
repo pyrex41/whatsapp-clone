@@ -293,6 +293,10 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
       create_read_receipts_table(repo)
     end
 
+    # Ensure runtime columns/indexes exist even when migrations were used
+    ensure_column(repo, "messages", "client_message_id", "TEXT")
+    ensure_index(repo, "messages_client_message_id_index", "CREATE INDEX IF NOT EXISTS messages_client_message_id_index ON messages(client_message_id)")
+
     # Always create vector tables for embeddings and feedback
     GlobalbridgeBackend.AI.VectorStore.create_embeddings_table(repo)
     GlobalbridgeBackend.AI.VectorStore.create_feedback_table(repo)
