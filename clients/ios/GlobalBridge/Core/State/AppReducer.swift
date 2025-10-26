@@ -974,6 +974,17 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
 
     // MARK: Conversation Monitoring Actions
 
+    case let .toggleMonitoring(threadId):
+        // Toggle thread in/out of monitored set
+        if state.monitoredThreads.contains(threadId) {
+            state.monitoredThreads.remove(threadId)
+            print("👁️  [MONITORING] Disabled monitoring for thread: \(threadId)")
+        } else {
+            state.monitoredThreads.insert(threadId)
+            print("👁️  [MONITORING] Enabled monitoring for thread: \(threadId)")
+        }
+        return .none
+
     case let .startMonitoring(threadId):
         // Add thread to monitored set
         state.monitoredThreads.insert(threadId)

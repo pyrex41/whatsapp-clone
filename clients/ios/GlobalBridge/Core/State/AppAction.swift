@@ -70,6 +70,9 @@ enum AppAction {
 
     // MARK: - AI Features: Conversation Monitoring
 
+    /// Toggle monitoring for a specific thread (adds/removes from monitored set)
+    case toggleMonitoring(threadId: String)
+
     /// Start monitoring a thread for AI suggestions
     case startMonitoring(threadId: String)
 

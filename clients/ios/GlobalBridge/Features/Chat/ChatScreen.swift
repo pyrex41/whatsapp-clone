@@ -194,6 +194,18 @@ struct ChatScreen: View {
             }
         }
         ToolbarItem(placement: .navigationBarTrailing) {
+            let isMonitored = store.state.monitoredThreads.contains(thread.id.uuidString)
+            Button {
+                store.send(.toggleMonitoring(threadId: thread.id.uuidString))
+            } label: {
+                Image(systemName: isMonitored ? "eye.fill" : "eye.slash")
+                    .font(.body)
+                    .foregroundColor(isMonitored ? .blue : .gray)
+            }
+            .accessibilityLabel(isMonitored ? "AI monitoring enabled" : "AI monitoring disabled")
+            .accessibilityHint("Double tap to toggle AI monitoring for this thread")
+        }
+        ToolbarItem(placement: .navigationBarTrailing) {
             let isLoading = (store.state.smartReplyLoading[thread.id.uuidString] ?? false)
             Button {
                 refreshSmartReplies(for: thread.id)
@@ -246,14 +258,22 @@ struct ChatScreen: View {
         composerFocused = true
         InAppBannerCenter.shared.setActiveThread(thread.id)
         fetchSmartRepliesIfNeeded(for: thread.id)
-        Task {
-            do {
-                try await ConversationMonitorService.shared.startMonitoring(threadId: thread.id)
-                print("✅ [AI_MONITOR] Started monitoring thread: \(thread.id)")
-            } catch {
-                print("⚠️ [AI_MONITOR] Failed to start monitoring: \(error)")
+
+        // Only start monitoring if enabled for this thread
+        let threadIdStr = thread.id.uuidString
+        if store.state.monitoredThreads.contains(threadIdStr) {
+            Task {
+                do {
+                    try await ConversationMonitorService.shared.startMonitoring(threadId: thread.id)
+                    print("✅ [AI_MONITOR] Started monitoring thread: \(thread.id)")
+                } catch {
+                    print("⚠️ [AI_MONITOR] Failed to start monitoring: \(error)")
+                }
             }
+        } else {
+            print("ℹ️ [AI_MONITOR] Monitoring disabled for thread: \(thread.id)")
         }
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             print("⌨️ [COMPOSER] Delayed focus attempt")
             composerFocused = true
@@ -265,12 +285,17 @@ struct ChatScreen: View {
 
     private func onDisappear(thread: Thread) {
         InAppBannerCenter.shared.setActiveThread(nil)
-        Task {
-            do {
-                try await ConversationMonitorService.shared.stopMonitoring(threadId: thread.id)
-                print("✅ [AI_MONITOR] Stopped monitoring thread: \(thread.id)")
-            } catch {
-                print("⚠️ [AI_MONITOR] Failed to stop monitoring: \(error)")
+
+        // Only stop monitoring if it was enabled for this thread
+        let threadIdStr = thread.id.uuidString
+        if store.state.monitoredThreads.contains(threadIdStr) {
+            Task {
+                do {
+                    try await ConversationMonitorService.shared.stopMonitoring(threadId: thread.id)
+                    print("✅ [AI_MONITOR] Stopped monitoring thread: \(thread.id)")
+                } catch {
+                    print("⚠️ [AI_MONITOR] Failed to stop monitoring: \(error)")
+                }
             }
         }
     }
