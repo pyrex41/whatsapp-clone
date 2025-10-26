@@ -24,10 +24,14 @@ struct SmartReplyComposerView: View {
     let onTranslationToggle: () -> Void
     let onRetry: (() -> Void)?
 
+    // MARK: - State
+
+    @State private var isExpanded: Bool = false
+
     // MARK: - Body
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             if let error = error {
                 errorView(error)
             } else if isLoading {
@@ -37,20 +41,21 @@ struct SmartReplyComposerView: View {
             }
 
             if !suggestions.isEmpty || isLoading {
-                HStack {
-                    // Learning indicator
+                HStack(spacing: 8) {
+                    // Compact learning indicator (just icon)
                     if styleLearningEnabled {
-                        learningIndicator
+                        compactLearningIndicator
                     }
 
                     Spacer()
 
-                    translationToggleView
+                    // Compact translation toggle
+                    compactTranslationToggle
                 }
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
         .background(Color(.systemBackground))
         .accessibilityIdentifier("SmartReplyBar")
     }
@@ -71,27 +76,72 @@ struct SmartReplyComposerView: View {
     // MARK: - Suggestions View
 
     private var suggestionsView: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(suggestions.prefix(3)) { suggestion in
+        VStack(alignment: .leading, spacing: 4) {
+            // Show first suggestion always
+            if let firstSuggestion = suggestions.first {
+                SuggestionChip(
+                    suggestion: firstSuggestion,
+                    onTap: { timeToResponseMs in
+                        onSuggestionTap(firstSuggestion, timeToResponseMs)
+                    },
+                    onDismiss: { dismissedSuggestion in
+                        onSuggestionDismiss?(dismissedSuggestion)
+                    },
+                    isCompact: true
+                )
+                .accessibilityIdentifier("SmartReplyChip-\(firstSuggestion.position)")
+            }
+
+            // Show remaining suggestions when expanded
+            if isExpanded {
+                ForEach(suggestions.dropFirst().prefix(2)) { suggestion in
                     SuggestionChip(
                         suggestion: suggestion,
                         onTap: { timeToResponseMs in
                             onSuggestionTap(suggestion, timeToResponseMs)
                         },
                         onDismiss: { dismissedSuggestion in
-                            // Call the dismiss callback if provided
                             onSuggestionDismiss?(dismissedSuggestion)
-                        }
+                        },
+                        isCompact: true
                     )
                     .accessibilityIdentifier("SmartReplyChip-\(suggestion.position)")
+                    .transition(.move(edge: .top).combined(with: .opacity))
                 }
+            }
+
+            // Expand/collapse button (only show if we have more than 1 suggestion)
+            if suggestions.count > 1 {
+                Button(action: {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        isExpanded.toggle()
+                    }
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                            .font(.caption2)
+                        Text(isExpanded ? "Show less" : "Show \(suggestions.count - 1) more")
+                            .font(.caption2)
+                    }
+                    .foregroundColor(.secondary)
+                }
+                .padding(.top, 2)
+                .accessibilityLabel(isExpanded ? "Hide additional suggestions" : "Show \(suggestions.count - 1) more suggestions")
             }
         }
         .accessibilityLabel("Smart reply suggestions")
     }
 
-    // MARK: - Learning Indicator
+    // MARK: - Compact Learning Indicator
+
+    private var compactLearningIndicator: some View {
+        Image(systemName: "sparkles")
+            .font(.caption)
+            .foregroundColor(.purple)
+            .accessibilityLabel("Style learning is active")
+    }
+
+    // MARK: - Learning Indicator (old, kept for compatibility)
 
     private var learningIndicator: some View {
         HStack(spacing: 4) {
@@ -105,7 +155,19 @@ struct SmartReplyComposerView: View {
         .accessibilityLabel("Style learning is active")
     }
 
-    // MARK: - Translation Toggle
+    // MARK: - Compact Translation Toggle
+
+    private var compactTranslationToggle: some View {
+        Button(action: onTranslationToggle) {
+            Image(systemName: translationEnabled ? "globe" : "globe")
+                .font(.caption)
+                .foregroundColor(translationEnabled ? .blue : .gray)
+        }
+        .accessibilityLabel(translationEnabled ? "Translation enabled" : "Translation disabled")
+        .accessibilityHint("Double tap to toggle translation")
+    }
+
+    // MARK: - Translation Toggle (old, kept for compatibility)
 
     private var translationToggleView: some View {
         Button(action: onTranslationToggle) {
@@ -176,6 +238,7 @@ private struct SuggestionChip: View {
     let suggestion: SmartReplySuggestion
     let onTap: (Int) -> Void // Now receives timeToResponseMs
     let onDismiss: (SmartReplySuggestion) -> Void
+    var isCompact: Bool = false
 
     @State private var displayTimestamp: Date = Date()
     @State private var isDismissed: Bool = false
@@ -184,18 +247,18 @@ private struct SuggestionChip: View {
 
     var body: some View {
         Button(action: handleTap) {
-            HStack(spacing: 4) {
+            HStack(spacing: isCompact ? 3 : 4) {
                 if suggestion.isProactive {
                     Image(systemName: "sparkles")
-                        .font(.caption2)
+                        .font(isCompact ? .caption : .caption2)
                         .foregroundColor(.purple)
                 }
                 Text(suggestion.content)
-                    .font(.body)
+                    .font(isCompact ? .callout : .body)
                     .lineLimit(1)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.horizontal, isCompact ? 10 : 12)
+            .padding(.vertical, isCompact ? 6 : 8)
             .background(
                 RoundedRectangle(cornerRadius: 18)
                     .fill(suggestion.isProactive ? Color.purple.opacity(0.08) : Color(.secondarySystemBackground))

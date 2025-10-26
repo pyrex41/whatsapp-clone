@@ -12,6 +12,7 @@ struct ChatScreen: View {
     @State private var isAtBottom = true
     @State private var hasFetchedSuggestions = false // Track if we've fetched for this thread
     @State private var lastFetchTime: Date? = nil // For debouncing
+    @State private var hasInteractedWithComposer = false // Track if user has focused composer
 
     private var chatState: ChatState { store.state.chat }
 
@@ -90,7 +91,10 @@ struct ChatScreen: View {
             }
 
             Divider()
-            smartReplySection(thread: thread)
+            // Only show smart reply suggestions after user has interacted with composer
+            if hasInteractedWithComposer {
+                smartReplySection(thread: thread)
+            }
             composerSection
         }
         .onAppear { onAppear(thread: thread) }
@@ -98,6 +102,7 @@ struct ChatScreen: View {
             InAppBannerCenter.shared.setActiveThread(newId)
             hasFetchedSuggestions = false
             lastFetchTime = nil
+            hasInteractedWithComposer = false // Reset for new thread
         }
         .onDisappear { onDisappear(thread: thread) }
         .toolbar { toolbar(thread: thread) }
@@ -178,6 +183,11 @@ struct ChatScreen: View {
         .padding(.vertical, 8)
         .onChange(of: composerFocused) { old, new in
             print("⌨️ [COMPOSER] Focus changed: \(old) -> \(new)")
+            // Mark that user has interacted with composer (show suggestions)
+            if new && !hasInteractedWithComposer {
+                hasInteractedWithComposer = true
+                print("✨ [SMART_REPLY] User focused composer - showing preloaded suggestions")
+            }
         }
     }
 
@@ -255,9 +265,11 @@ struct ChatScreen: View {
 
     // Side-effects extracted
     private func onAppear(thread: Thread) {
-        print("⌨️ [COMPOSER] ChatScreen appeared, setting focus to true")
-        composerFocused = true
+        print("⌨️ [COMPOSER] ChatScreen appeared")
+        // Don't auto-focus composer - wait for user interaction
+        // composerFocused = true  // Removed to prevent auto-showing suggestions
         InAppBannerCenter.shared.setActiveThread(thread.id)
+        // Start preloading suggestions in background
         fetchSmartRepliesIfNeeded(for: thread.id)
 
         // Only start monitoring if enabled for this thread
@@ -275,9 +287,9 @@ struct ChatScreen: View {
             print("ℹ️ [AI_MONITOR] Monitoring disabled for thread: \(thread.id)")
         }
 
+        // Removed delayed auto-focus to prevent auto-showing suggestions
+        // User must explicitly tap the composer to see suggestions
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            print("⌨️ [COMPOSER] Delayed focus attempt")
-            composerFocused = true
             if !hasAutoScrolled, let _ = chatState.messages.last?.id {
                 hasAutoScrolled = true
             }
