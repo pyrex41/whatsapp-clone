@@ -9149,7 +9149,7 @@
         "dependencies": [
           "13"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -9212,7 +9212,8 @@
         ],
         "complexity": 4,
         "recommendedSubtasks": 0,
-        "expansionPrompt": ""
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-26T03:31:47.127Z"
       },
       {
         "id": "20",
@@ -9388,7 +9389,7 @@
         "dependencies": [
           "18"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -9451,7 +9452,8 @@
         ],
         "complexity": 3,
         "recommendedSubtasks": 0,
-        "expansionPrompt": ""
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-26T03:31:49.230Z"
       },
       {
         "id": "23",
@@ -9711,17 +9713,18 @@
           "5",
           "23"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
             "title": "Add Toggle UI to Thread Settings",
             "description": "Implement a SwiftUI Toggle component in the thread settings view to allow users to enable or disable monitoring for individual threads.",
             "dependencies": [],
-            "details": "Locate the thread settings view (assuming it exists from prior tasks like 23), and add a Toggle view labeled 'Enable Monitoring' or similar. Bind it to a local state variable for the thread's monitoring status.",
-            "status": "pending",
+            "details": "Locate the thread settings view (assuming it exists from prior tasks like 23), and add a Toggle view labeled 'Enable Monitoring' or similar. Bind it to a local state variable for the thread's monitoring status.\n<info added on 2025-10-26T03:16:26.887Z>\n✅ Already implemented in task 26. The monitoring toggle UI was added to ChatScreen.swift toolbar (lines 196-207):\n\nImplementation:\n- ToolbarItem with eye icon button\n- Visual states: eye.fill (blue) when monitoring enabled, eye.slash (gray) when disabled  \n- Action: Dispatches toggleMonitoring(threadId:) to update AppState.monitoredThreads Set\n- Accessibility: Proper labels ('AI monitoring enabled/disabled') and hints\n- Location: .navigationBarTrailing placement in ChatScreen toolbar\n\nThis approach is more user-friendly than a separate settings view - users can toggle monitoring while actively viewing the chat thread.\n</info added on 2025-10-26T03:16:26.887Z>",
+            "status": "done",
             "testStrategy": "UI test to verify the toggle is present and interactive in the thread settings view.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T03:16:29.464Z"
           },
           {
             "id": 2,
@@ -9730,10 +9733,11 @@
             "dependencies": [
               1
             ],
-            "details": "In the toggle's action closure, check the toggle's state: if true, call a function to start monitoring (e.g., add to monitored list and initiate monitoring process); if false, stop monitoring and remove from list. Ensure this interacts with the app's monitoring system.",
-            "status": "pending",
+            "details": "In the toggle's action closure, check the toggle's state: if true, call a function to start monitoring (e.g., add to monitored list and initiate monitoring process); if false, stop monitoring and remove from list. Ensure this interacts with the app's monitoring system.\n<info added on 2025-10-26T03:17:02.785Z>\n✅ Already implemented in task 26. The toggle action logic was added to AppReducer.swift (lines 977-986):\n\nImplementation:\n- Reducer case for .toggleMonitoring(threadId:) action\n- Logic checks if threadId exists in state.monitoredThreads Set\n- If exists: removes from Set (disables monitoring) \n- If not exists: inserts into Set (enables monitoring)\n- Includes debug logging for monitoring state changes\n- Returns .none (no side effects)\n\nThe actual monitoring start/stop is handled in ChatScreen onAppear/onDisappear (lines 262-300) which conditionally starts/stops ConversationMonitorService based on the monitoredThreads Set state.\n</info added on 2025-10-26T03:17:02.785Z>",
+            "status": "done",
             "testStrategy": "Unit test the toggle action to ensure it correctly calls start/stop monitoring functions.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T03:17:05.405Z"
           },
           {
             "id": 3,
@@ -9742,10 +9746,11 @@
             "dependencies": [
               2
             ],
-            "details": "Dispatch an action to the reducer to update AppState.monitoredThreads (added in Task 5). Add the thread ID to the monitored list if enabled, remove if disabled. Ensure the state persists across app sessions if needed.",
-            "status": "pending",
+            "details": "Dispatch an action to the reducer to update AppState.monitoredThreads (added in Task 5). Add the thread ID to the monitored list if enabled, remove if disabled. Ensure the state persists across app sessions if needed.\n<info added on 2025-10-26T03:17:37.528Z>\n✅ Already implemented in task 5 and 26. AppState was updated to include monitored threads tracking:\n\nAppState.swift (line 30):\n- var monitoredThreads: Set<String> = []\n\nThe reducer in AppReducer.swift (lines 977-986) updates this state:\n- When toggleMonitoring action is dispatched\n- Adds threadId to Set when enabling monitoring\n- Removes threadId from Set when disabling monitoring\n\nThis state is reactive and automatically updates the UI:\n- ChatScreen toolbar button reflects current state (lines 197, 201-203)\n- onAppear/onDisappear conditionally starts/stops monitoring based on this Set (lines 264, 291)\n\nNote: For persistence across app sessions, would need to add UserDefaults or CoreData storage - not currently implemented but could be added if needed.\n</info added on 2025-10-26T03:17:37.528Z>",
+            "status": "done",
             "testStrategy": "Integration test to verify that toggling updates the AppState.monitoredThreads correctly.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T03:17:40.515Z"
           },
           {
             "id": 4,
@@ -9754,10 +9759,11 @@
             "dependencies": [
               3
             ],
-            "details": "Use a binding or observed object to link the toggle to AppState.monitoredThreads. On view load, set the toggle based on whether the thread is in the monitored list. Ensure changes propagate back to state.",
-            "status": "pending",
+            "details": "Use a binding or observed object to link the toggle to AppState.monitoredThreads. On view load, set the toggle based on whether the thread is in the monitored list. Ensure changes propagate back to state.\n<info added on 2025-10-26T03:18:10.047Z>\nAlready implemented in task 26. The toggle is fully bound to AppState using Redux-like unidirectional data flow:\n\nChatScreen.swift binding (lines 196-207):\n\n1. Read from State (line 197):\n   let isMonitored = store.state.monitoredThreads.contains(thread.id.uuidString)\n   Observes AppState.monitoredThreads Set\n\n2. Visual Binding (lines 201-203):\n   Icon: eye.fill when isMonitored==true, eye.slash when false\n   Color: blue when isMonitored==true, gray when false\n   SwiftUI automatically re-renders when state changes (@ObservedObject)\n\n3. Write to State (line 199):\n   Button action: store.send(.toggleMonitoring(threadId:))\n   Dispatches action to reducer which updates state\n\n4. Reactive Updates:\n   Store uses @ObservedObject, so UI automatically updates when AppState changes\n   No manual binding needed - SwiftUI handles reactivity\n   Follows standard Redux pattern: State → View → Action → Reducer → State\n\nThis is proper unidirectional data flow - state is single source of truth.\n</info added on 2025-10-26T03:18:10.047Z>",
+            "status": "done",
             "testStrategy": "UI test to check that the toggle state matches the AppState and updates in real-time.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T03:18:12.742Z"
           },
           {
             "id": 5,
@@ -9767,14 +9773,16 @@
               4
             ],
             "details": "Perform UI tests for toggle visibility and interaction, unit tests for logic, and integration tests for state updates. Verify that monitoring starts/stops as expected and persists in AppState.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "UI test for toggle functionality and integration test for state persistence and monitoring behavior.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T03:19:42.221Z"
           }
         ],
         "complexity": 5,
         "recommendedSubtasks": 0,
-        "expansionPrompt": ""
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-26T03:19:42.221Z"
       },
       {
         "id": "27",
@@ -9890,7 +9898,7 @@
         "description": "Integrate SmartReplyComposerView above MessageComposerView in ChatScreen and bind it to AppState and AppAction so AI suggestion chips render for the active thread and interactions dispatch accept/feedback actions end-to-end.",
         "details": "Implementation plan:\n- Placement: In `clients/ios/GlobalBridge/Features/Chat/ChatScreen.swift`, render `SmartReplyComposerView` immediately above the existing `MessageComposerView` (same VStack/stack where the composer is placed) so chips appear inline above the text field.\n- Thread binding: Safely derive `threadId` as `thread.id.uuidString` when a thread is available. If no active thread, do not render the smart-reply view (or render with empty state and disabled interactions) to avoid accidental dispatches.\n- State mapping:\n  - `let suggestions = state.smartReplySuggestions[threadId] ?? []`\n  - `let isLoading = state.smartReplyLoading[threadId] ?? false`\n- Actions wiring:\n  - `onSuggestionTap(suggestion, timeMs)` must dispatch in order:\n    1) `store.send(.acceptSuggestion(threadId: threadId, suggestion: suggestion, modifiedContent: nil))`\n    2) `store.send(.recordFeedback(SuggestionFeedback(suggestionId: suggestion.id, accepted: true, modifiedContent: nil, rejectionReason: nil, timeToResponseMs: timeMs, timestamp: Date())))`\n  - `onTranslationToggle`: implement as no-op for now (wire later to preferences), but keep the closure to avoid API drift.\n- Safety:\n  - Guard all dispatches with the resolved `threadId`; if it is unavailable, do not send actions.\n  - Default missing dictionary entries to `[]` and `false` to prevent UI flicker or crashes.\n- UI concerns:\n  - Ensure the smart-reply view adopts the parent padding/spacing and respects safe areas so it visually sits just above the composer without layout jumps.\n  - Defer all loading and error visuals to `SmartReplyComposerView` (already implemented in Task #12); ChatScreen only provides `isLoading` and `suggestions`.\n- Duplication avoidance:\n  - If `SmartReplyComposerView` previously self-dispatched feedback, ensure passing `onSuggestionTap` from ChatScreen overrides any internal default so only ChatScreen sends `recordFeedback` (prevents duplicate events).\n- No reducers/new cases: Use existing `AppAction` cases and state surfaces; do not modify reducers as per scope.\n- Example sketch (abbreviated):\n  - Resolve `threadId`; compute `suggestions`/`isLoading` from `AppState`.\n  - Conditionally render `SmartReplyComposerView(suggestions:isLoading:onSuggestionTap:onTranslationToggle:)` above the composer.\n  - In tap handler, send `.acceptSuggestion(...)` then `.recordFeedback(SuggestionFeedback(..., timestamp: Date()))`.",
         "testStrategy": "Unit tests (ChatScreen binding):\n- Given active thread with `threadId`, when state contains entries in `smartReplySuggestions[threadId]`, the view receives the same array; when missing, it receives empty array.\n- Given `smartReplyLoading[threadId] = true`, the view receives `isLoading = true`; defaults to false when missing.\n- When no active thread, `SmartReplyComposerView` is not rendered (or rendered disabled) and no actions are dispatched on tap attempts.\n\nInteraction tests (store effects):\n- Simulate chip tap: assert `store` receives `.acceptSuggestion(threadId: expectedId, suggestion: expectedSuggestion, modifiedContent: nil)` followed by `.recordFeedback(SuggestionFeedback(... suggestionId: expectedSuggestion.id, accepted: true, modifiedContent: nil, timeToResponseMs: passedTime, timestamp: any Date)))`.\n- Verify no actions are sent when `threadId` is nil.\n\nUI/E2E tests:\n- Visual placement: verify chips render above the composer and respect safe-area insets.\n- Loading shimmer: when `isLoading = true`, shimmer is visible; when false and suggestions empty, chips are not shown.\n- Accessibility: chips expose tappable accessibility labels; VoiceOver can focus and activate a suggestion.\n\nRegression/robustness:\n- Ensure providing an unknown `threadId` key does not crash and results in `[]`/`false`.\n- Confirm passing a closure from ChatScreen suppresses any internal default feedback dispatch to avoid duplicates.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "4",
           "5",
@@ -9904,10 +9912,11 @@
             "title": "Insert SmartReplyComposerView above MessageComposerView in ChatScreen",
             "description": "Render SmartReplyComposerView in the same stack as the composer and guard when no active thread is available.",
             "dependencies": [],
-            "details": "In `clients/ios/GlobalBridge/Features/Chat/ChatScreen.swift`, locate the composer container (VStack/HStack holding `MessageComposerView`). Insert `SmartReplyComposerView` immediately above `MessageComposerView`. Resolve the current thread safely and only render the smart reply view when a thread exists; otherwise omit it (or pass empty state with interactions disabled). Ensure the new view inherits the parent padding/spacing and respects safe areas so chips sit directly above the text field without jumps.",
-            "status": "pending",
+            "details": "In `clients/ios/GlobalBridge/Features/Chat/ChatScreen.swift`, locate the composer container (VStack/HStack holding `MessageComposerView`). Insert `SmartReplyComposerView` immediately above `MessageComposerView`. Resolve the current thread safely and only render the smart reply view when a thread exists; otherwise omit it (or pass empty state with interactions disabled). Ensure the new view inherits the parent padding/spacing and respects safe areas so chips sit directly above the text field without jumps.\n<info added on 2025-10-26T03:21:37.640Z>\n✅ Already fully implemented. SmartReplyComposerView is rendered above MessageComposerView in ChatScreen.swift:\n\nImplementation (lines 92-94):\n- Line 92: Divider()\n- Line 93: smartReplySection(thread: thread)  ← SmartReplyComposerView\n- Line 94: composerSection                     ← MessageComposerView\n\nThe smartReplySection method (lines 111-159) wraps SmartReplyComposerView with:\n- Proper VStack placement in the chat content flow\n- Positioned immediately above the composer as specified\n- Includes error banner below smart reply chips (lines 145-159)\n\nVisual hierarchy: Messages → Divider → Smart Reply Chips → Composer\n</info added on 2025-10-26T03:21:37.640Z>",
+            "status": "done",
             "testStrategy": "Preview or lightweight UI test verifies: with no active thread the smart reply area is absent; with a thread present the container mounts without layout warnings.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T03:22:44.347Z"
           },
           {
             "id": 2,
@@ -9916,10 +9925,11 @@
             "dependencies": [
               1
             ],
-            "details": "Derive `threadId` as `thread.id.uuidString`. Compute `let suggestions = state.smartReplySuggestions[threadId] ?? []` and `let isLoading = state.smartReplyLoading[threadId] ?? false`. Pass these into `SmartReplyComposerView(suggestions:isLoading:...)`. Defaulting to empty array and false prevents flicker or crashes when entries are missing.",
-            "status": "pending",
+            "details": "Derive `threadId` as `thread.id.uuidString`. Compute `let suggestions = state.smartReplySuggestions[threadId] ?? []` and `let isLoading = state.smartReplyLoading[threadId] ?? false`. Pass these into `SmartReplyComposerView(suggestions:isLoading:...)`. Defaulting to empty array and false prevents flicker or crashes when entries are missing.\n<info added on 2025-10-26T03:22:16.720Z>\n✅ Already fully implemented. AppState binding uses thread.id.uuidString with proper defaults.\n\nSafety features:\n- Coalescing operator ?? [] provides empty array when threadId not in dictionary\n- Coalescing operator ?? false provides false when threadId not in dictionary\n- Prevents crashes from missing dictionary entries\n- No UI flicker when switching threads\n- Thread-specific state isolation (each thread has its own suggestions/loading state)\n\nPassed to SmartReplyComposerView:\n- suggestions: suggestions\n- isLoading: isLoadingSuggestions\n- Reactive: automatically updates when AppState changes via @ObservedObject store\n</info added on 2025-10-26T03:22:16.720Z>",
+            "status": "done",
             "testStrategy": "Unit test for state mapping: when store.state has entries for the active `threadId`, the view receives the same array and `isLoading`; when missing, the view receives `[]` and `false`.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T03:22:45.589Z"
           },
           {
             "id": 3,
@@ -9929,9 +9939,10 @@
               2
             ],
             "details": "Add `onSuggestionTap` closure to `SmartReplyComposerView` call site. Inside, guard `threadId` and then call `store.send(.acceptSuggestion(threadId: threadId, suggestion: suggestion, modifiedContent: nil))` followed by `store.send(.recordFeedback(SuggestionFeedback(suggestionId: suggestion.id, accepted: true, modifiedContent: nil, rejectionReason: nil, timeToResponseMs: timeMs, timestamp: Date())))`. Also provide `onTranslationToggle` as a temporary no-op closure to preserve API. Ensure passing this handler overrides any internal default to avoid duplicate feedback sends.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Interaction test stubs the store, taps a chip, and asserts two actions were dispatched in order; with no threadId, asserts zero actions are sent.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T03:22:46.910Z"
           },
           {
             "id": 4,
@@ -9942,10 +9953,11 @@
               2,
               3
             ],
-            "details": "Apply consistent `padding`/spacing so chips align with the composer, respecting safe areas and Dynamic Type. Add an identifier (e.g., accessibilityIdentifier \"smartReplyChips\") for testing. Ensure interactions are disabled when `suggestions.isEmpty` or thread is nil. Leave loading/error visuals to `SmartReplyComposerView` per scope; ChatScreen only supplies `suggestions` and `isLoading`.",
-            "status": "pending",
+            "details": "Apply consistent `padding`/spacing so chips align with the composer, respecting safe areas and Dynamic Type. Add an identifier (e.g., accessibilityIdentifier \"smartReplyChips\") for testing. Ensure interactions are disabled when `suggestions.isEmpty` or thread is nil. Leave loading/error visuals to `SmartReplyComposerView` per scope; ChatScreen only supplies `suggestions` and `isLoading`.\n<info added on 2025-10-26T03:22:30.596Z>\n✅ Already fully implemented. Layout and accessibility polished:\n\nImplementation (ChatScreen.swift lines 142-159):\n\nSpacing & Padding (lines 142-144):\n- .padding(.horizontal, 12) - Consistent with composer\n- .padding(.bottom, 4) - Spacing before composer\n- .accessibilityIdentifier(\"smartReplyChips\") - UI testing support\n\nError Banner (lines 145-159):\n- Conditional rendering based on store.state.smartReplyErrors[threadId]\n- Orange warning icon + error text\n- Retry button with .bordered style\n- Rounded rectangle background with systemGray6\n- Separate accessibility identifier: \"smartReplyErrorBanner\"\n- Proper spacing (horizontal: 12, vertical: 6)\n\nVisual Polish:\n- Safe area respected (inherits from parent VStack)\n- No layout jumps (conditional rendering of error banner)\n- Consistent with iOS HIG\n- Error handling separated from SmartReplyComposerView\n\nAccessibility:\n- Chips have labels via SmartReplyComposerView\n- Error banner accessible via identifier\n- Retry button keyboard-accessible\n</info added on 2025-10-26T03:22:30.596Z>",
+            "status": "done",
             "testStrategy": "UI check (snapshot or ViewInspector): spacing matches composer area, chips region is accessible with a stable identifier, and controls become disabled when suggestions are empty.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T03:22:48.166Z"
           },
           {
             "id": 5,
@@ -9962,7 +9974,8 @@
             "testStrategy": "Unit/UI test using the project’s existing test utilities (e.g., TestStore + ViewInspector/Snapshot). Verify chip count equals seeded suggestions and action order/fields on tap; negative case with no thread passes.",
             "parentId": "undefined"
           }
-        ]
+        ],
+        "updatedAt": "2025-10-26T03:22:48.166Z"
       },
       {
         "id": "33",
@@ -10131,9 +10144,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-10-26T02:58:51.434Z",
+      "lastModified": "2025-10-26T03:31:49.233Z",
       "taskCount": 34,
-      "completedCount": 25,
+      "completedCount": 29,
       "tags": [
         "ai-ios"
       ]

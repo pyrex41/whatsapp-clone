@@ -41,6 +41,7 @@ public class FeatureFlags {
         case translationEnabled = "translation_enabled"
         case threadSummarization = "thread_summarization"
         case semanticSearch = "semantic_search"
+        case styleLearning = "style_learning"
 
         // Free tier
         case directMessaging = "direct_messaging"

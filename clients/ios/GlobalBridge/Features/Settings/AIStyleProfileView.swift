@@ -94,12 +94,29 @@ struct AIStyleProfileView: View {
 
                 // Actions Section
                 Section {
+                    // Style Learning Toggle
+                    Toggle(isOn: Binding(
+                        get: { store.state.styleLearningEnabled },
+                        set: { _ in store.send(.toggleStyleLearning) }
+                    )) {
+                        HStack {
+                            Image(systemName: "sparkles")
+                                .foregroundColor(.purple)
+                            Text("Style Learning")
+                        }
+                    }
+
                     Button(action: refreshProfile) {
                         Label("Refresh Profile", systemImage: "arrow.clockwise")
                     }
 
                     Button(role: .destructive, action: { showClearConfirmation = true }) {
                         Label("Clear Profile Data", systemImage: "trash")
+                    }
+                } footer: {
+                    if store.state.styleLearningEnabled {
+                        Text("AI is learning from your messages to improve suggestions")
+                            .font(.caption)
                     }
                 }
 

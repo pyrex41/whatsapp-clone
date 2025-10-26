@@ -117,6 +117,7 @@ struct ChatScreen: View {
             isLoading: isLoadingSuggestions,
             error: nil, // Error handling done via separate banner below for now
             translationEnabled: false,
+            styleLearningEnabled: store.state.styleLearningEnabled,
             onSuggestionTap: { suggestion, timeToResponseMs in
                 store.send(.acceptSuggestion(threadId: threadId, suggestion: suggestion, modifiedContent: nil))
                 store.send(.recordFeedback(

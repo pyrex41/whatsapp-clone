@@ -104,6 +104,9 @@ enum AppAction {
     /// Style profile fetch result
     case styleProfileReceived(Result<UserStyleProfile, Error>)
 
+    /// Toggle style learning on/off
+    case toggleStyleLearning
+
     // MARK: - AI Features: Insights & UI
 
     /// Toggle AI insights panel visibility

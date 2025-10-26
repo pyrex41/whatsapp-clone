@@ -21,6 +21,7 @@ struct AppState: Equatable {
 
     // MARK: - AI Features - Style Learning
     var userStyleProfile: UserStyleProfile?
+    var styleLearningEnabled: Bool = true // Style learning active by default
 
     // MARK: - AI Features - Translation
     var translationPreferences: TranslationPreferences = .default
@@ -42,6 +43,7 @@ struct AppState: Equatable {
         smartReplyLoading: [String: Bool] = [:],
         smartReplyErrors: [String: String] = [:],
         userStyleProfile: UserStyleProfile? = nil,
+        styleLearningEnabled: Bool = true,
         translationPreferences: TranslationPreferences = .default,
         messageTranslations: [String: String] = [:],
         monitoredThreads: Set<String> = [],
@@ -58,6 +60,7 @@ struct AppState: Equatable {
         self.smartReplyLoading = smartReplyLoading
         self.smartReplyErrors = smartReplyErrors
         self.userStyleProfile = userStyleProfile
+        self.styleLearningEnabled = styleLearningEnabled
         self.translationPreferences = translationPreferences
         self.messageTranslations = messageTranslations
         self.monitoredThreads = monitoredThreads

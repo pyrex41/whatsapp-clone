@@ -1074,6 +1074,11 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         print("🎨 [STYLE] Style profile received")
         return .none
 
+    case .toggleStyleLearning:
+        state.styleLearningEnabled.toggle()
+        print("🎨 [STYLE] Style learning \(state.styleLearningEnabled ? "enabled" : "disabled")")
+        return .none
+
     // MARK: AI Insights Actions
 
     case .toggleInsightsVisible:
