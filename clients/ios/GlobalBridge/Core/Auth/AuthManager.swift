@@ -49,6 +49,7 @@ final class AuthManager: ObservableObject {
     @Published private(set) var authError: String?
     
     private var accessToken: String?
+    private var idToken: String?
     private var refreshToken: String?
     private var tokenExpiresAt: Date?
     private var refreshTask: Task<Void, Never>?
@@ -235,6 +236,7 @@ final class AuthManager: ObservableObject {
                 // Update state
                 await MainActor.run {
                     self.accessToken = credentials.accessToken
+                    self.idToken = credentials.idToken
                     self.refreshToken = credentials.refreshToken
 
                     // Store expiration time
@@ -333,6 +335,11 @@ final class AuthManager: ObservableObject {
         
         return accessToken
     }
+
+    /// Get current ID token (JWT). Prefer this for Phoenix auth since access tokens may be JWE.
+    func getIdToken() async -> String? {
+        return idToken
+    }
     
     /// Refresh the access token using refresh token
     func refreshToken() async throws -> String {
@@ -351,6 +358,7 @@ final class AuthManager: ObservableObject {
             let credentials = try await credentialsManager.credentials()
             
             self.accessToken = credentials.accessToken
+            self.idToken = credentials.idToken
             self.refreshToken = credentials.refreshToken
             
             tokenExpiresAt = credentials.expiresIn

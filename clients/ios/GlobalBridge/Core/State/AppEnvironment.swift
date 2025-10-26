@@ -337,7 +337,8 @@ extension AppEnvironment {
                 print("🔌 [CONNECT] Realtime connect called for thread: \(threadID)")
 
                 // Get Auth0 token
-                let token = await AuthManager.shared.getAccessToken()
+                // Prefer ID token (JWT) for Phoenix auth to avoid JWE access tokens
+                let token = await AuthManager.shared.getIdToken() ?? await AuthManager.shared.getAccessToken()
                 
                 print("🔌 [CONNECT] Connecting to Phoenix...")
                 try await phoenixManager.connect(authToken: token)
@@ -366,7 +367,8 @@ extension AppEnvironment {
                 print("📤 [ENV] sendMessage called - thread: \(threadID.uuidString), content: \"\(content)\", clientMessageId: \(clientMessageId?.uuidString ?? "nil")")
 
                 // Get Auth0 token
-                let token = await AuthManager.shared.getAccessToken()
+                // Prefer ID token for Phoenix auth
+                let token = await AuthManager.shared.getIdToken() ?? await AuthManager.shared.getAccessToken()
                 
                 print("📤 [ENV] Ensuring Phoenix connection with Auth0 token...")
                 try await phoenixManager.connect(authToken: token)
