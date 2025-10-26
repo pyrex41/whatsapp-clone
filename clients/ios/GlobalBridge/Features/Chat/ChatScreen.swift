@@ -121,7 +121,14 @@ struct ChatScreen: View {
             Divider()
             // Only show smart reply suggestions after user has interacted with composer
             if hasInteractedWithComposer {
-                smartReplySection(thread: thread)
+                let threadId = thread.id.uuidString
+                let hasSuggestions = !(store.state.smartReplySuggestions[threadId] ?? []).isEmpty
+                let isLoading = store.state.smartReplyLoading[threadId] ?? false
+                let hasError = !(store.state.smartReplyErrors[threadId] ?? "").isEmpty
+
+                if hasSuggestions || isLoading || hasError {
+                    smartReplySection(thread: thread)
+                }
             }
             composerSection
         }
