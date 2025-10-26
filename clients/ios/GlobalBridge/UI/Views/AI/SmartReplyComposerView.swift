@@ -17,7 +17,7 @@ struct SmartReplyComposerView: View {
     let suggestions: [SmartReplySuggestion]
     let isLoading: Bool
     let translationEnabled: Bool
-    let onSuggestionTap: (SmartReplySuggestion) -> Void
+    let onSuggestionTap: (SmartReplySuggestion, Int) -> Void // Now includes timeToResponseMs
     let onTranslationToggle: () -> Void
 
     // MARK: - Body
@@ -60,7 +60,9 @@ struct SmartReplyComposerView: View {
                 ForEach(suggestions.prefix(3)) { suggestion in
                     SuggestionChip(
                         suggestion: suggestion,
-                        onTap: { onSuggestionTap(suggestion) }
+                        onTap: { timeToResponseMs in
+                            onSuggestionTap(suggestion, timeToResponseMs)
+                        }
                     )
                 }
             }
@@ -92,10 +94,12 @@ struct SmartReplyComposerView: View {
 
 private struct SuggestionChip: View {
     let suggestion: SmartReplySuggestion
-    let onTap: () -> Void
+    let onTap: (Int) -> Void // Now receives timeToResponseMs
+
+    @State private var displayTimestamp: Date = Date()
 
     var body: some View {
-        Button(action: onTap) {
+        Button(action: handleTap) {
             HStack(spacing: 4) {
                 if suggestion.isProactive {
                     Image(systemName: "sparkles")
@@ -121,6 +125,18 @@ private struct SuggestionChip: View {
         .accessibilityLabel("Suggestion: \(suggestion.content)")
         .accessibilityHint("Double tap to insert into message")
         .accessibilityAddTraits(.isButton)
+        .onAppear {
+            // Record the timestamp when the chip is displayed
+            displayTimestamp = Date()
+        }
+    }
+
+    private func handleTap() {
+        // Calculate time-to-response in milliseconds
+        let timeToResponseMs = Int(Date().timeIntervalSince(displayTimestamp) * 1000)
+
+        // Pass the time-to-response to the callback
+        onTap(timeToResponseMs)
     }
 }
 
@@ -185,7 +201,9 @@ private struct ShimmerChip: View {
         ],
         isLoading: false,
         translationEnabled: false,
-        onSuggestionTap: { _ in },
+        onSuggestionTap: { suggestion, timeMs in
+            print("Tapped suggestion: \(suggestion.content) after \(timeMs)ms")
+        },
         onTranslationToggle: {}
     )
     .padding()
@@ -196,7 +214,7 @@ private struct ShimmerChip: View {
         suggestions: [],
         isLoading: true,
         translationEnabled: false,
-        onSuggestionTap: { _ in },
+        onSuggestionTap: { _, _ in },
         onTranslationToggle: {}
     )
     .padding()
@@ -207,7 +225,7 @@ private struct ShimmerChip: View {
         suggestions: [],
         isLoading: false,
         translationEnabled: false,
-        onSuggestionTap: { _ in },
+        onSuggestionTap: { _, _ in },
         onTranslationToggle: {}
     )
     .padding()
@@ -228,7 +246,7 @@ private struct ShimmerChip: View {
         ],
         isLoading: false,
         translationEnabled: true,
-        onSuggestionTap: { _ in },
+        onSuggestionTap: { _, _ in },
         onTranslationToggle: {}
     )
     .padding()
