@@ -8696,7 +8696,7 @@
         "dependencies": [
           "8"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -8711,7 +8711,8 @@
         ],
         "complexity": 6,
         "recommendedSubtasks": 1,
-        "expansionPrompt": "Subtask for subscription methods and style learning trigger."
+        "expansionPrompt": "Subtask for subscription methods and style learning trigger.",
+        "updatedAt": "2025-10-26T00:39:14.574Z"
       },
       {
         "id": "12",
@@ -9848,9 +9849,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-10-26T00:32:35.467Z",
+      "lastModified": "2025-10-26T00:39:14.577Z",
       "taskCount": 31,
-      "completedCount": 9,
+      "completedCount": 10,
       "tags": [
         "ai-ios"
       ]
