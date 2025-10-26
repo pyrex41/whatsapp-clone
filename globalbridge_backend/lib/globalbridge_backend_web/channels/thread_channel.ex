@@ -168,7 +168,8 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
       media_size: payload["media_size"],
       media_mime_type: payload["media_mime_type"],
       reply_to_id: payload["reply_to_id"],
-      client_created_at: payload["client_created_at"]
+      client_created_at: payload["client_created_at"],
+      client_message_id: client_message_id
     }
 
     # Broadcast immediately to all thread participants
@@ -288,7 +289,8 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
           content_type: msg.content_type || "text",
           created_at: msg.inserted_at,
           reply_to_id: msg.reply_to_id,
-          media_url: msg.media_url
+          media_url: msg.media_url,
+          client_message_id: Map.get(msg, :client_message_id)
         }
       end)
 

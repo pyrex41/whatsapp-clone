@@ -398,6 +398,7 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
       deleted_at TEXT,
       edited_at TEXT,
       client_created_at TEXT,
+      client_message_id TEXT,
       -- Embedding metadata (to align with main Repo schema)
       embedding BLOB,
       embedding_model TEXT DEFAULT 'text-embedding-3-large',
@@ -412,10 +413,37 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
     CREATE INDEX IF NOT EXISTS messages_sender_id_index ON messages(sender_id);
     CREATE INDEX IF NOT EXISTS messages_inserted_at_index ON messages(inserted_at);
     CREATE INDEX IF NOT EXISTS messages_content_type_index ON messages(content_type);
+    CREATE INDEX IF NOT EXISTS messages_client_message_id_index ON messages(client_message_id);
     CREATE INDEX IF NOT EXISTS messages_detected_language_index ON messages(detected_language);
     """
 
     Ecto.Adapters.SQL.query!(repo, sql)
+
+    # Backward-compatible upgrades for older DBs
+    ensure_column(repo, "messages", "client_message_id", "TEXT")
+    ensure_index(repo, "messages_client_message_id_index", "CREATE INDEX IF NOT EXISTS messages_client_message_id_index ON messages(client_message_id)")
+  end
+
+  defp ensure_column(repo, table, column, type) do
+    case Ecto.Adapters.SQL.query(repo, "PRAGMA table_info(#{table})", []) do
+      {:ok, %{rows: rows}} ->
+        has_column = Enum.any?(rows, fn [_cid, name | _] -> name == column end)
+        unless has_column do
+          Ecto.Adapters.SQL.query!(repo, "ALTER TABLE #{table} ADD COLUMN #{column} #{type}", [])
+        end
+      _ -> :ok
+    end
+  end
+
+  defp ensure_index(repo, index_name, create_sql) do
+    case Ecto.Adapters.SQL.query(repo, "PRAGMA index_list(messages)", []) do
+      {:ok, %{rows: rows}} ->
+        has_index = Enum.any?(rows, fn [_seq, name | _] -> name == index_name end)
+        unless has_index do
+          Ecto.Adapters.SQL.query!(repo, create_sql, [])
+        end
+      _ -> :ok
+    end
   end
 
   defp create_read_receipts_table(repo) do

@@ -30,6 +30,8 @@ defmodule GlobalbridgeBackend.Schemas.Message do
 
     # Client-side timestamps for CDC sync
     field(:client_created_at, :utc_datetime)
+    # Client-provided message id to support deduplication on fetch
+    field(:client_message_id, :string)
 
     timestamps(type: :utc_datetime)
   end
@@ -40,6 +42,7 @@ defmodule GlobalbridgeBackend.Schemas.Message do
   def create_changeset(message, attrs) do
     message
     |> cast(attrs, [
+      :id,
       :thread_id,
       :sender_id,
       :content,
@@ -51,7 +54,8 @@ defmodule GlobalbridgeBackend.Schemas.Message do
       :encryption_key_id,
       :reply_to_id,
       :detected_language,
-      :client_created_at
+      :client_created_at,
+      :client_message_id
     ])
     |> validate_required([:thread_id, :sender_id, :content_type])
     |> validate_inclusion(:content_type, ["text", "image", "video", "audio", "file", "location"])
