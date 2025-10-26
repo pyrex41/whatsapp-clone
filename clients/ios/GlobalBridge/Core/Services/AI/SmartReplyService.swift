@@ -28,6 +28,7 @@ final class SmartReplyService: ObservableObject {
     private let session: URLSession
     private let authManager: AuthManager
     private let baseURL: URL
+    private let clock: ClockProtocol
 
     // MARK: - Configuration
 
@@ -51,8 +52,8 @@ final class SmartReplyService: ObservableObject {
             self.ttl = ttl
         }
 
-        var isValid: Bool {
-            Date().timeIntervalSince(timestamp) < ttl
+        func isValid(clock: ClockProtocol) -> Bool {
+            clock.now().timeIntervalSince(timestamp) < ttl
         }
     }
 
@@ -61,10 +62,12 @@ final class SmartReplyService: ObservableObject {
     init(
         session: URLSession = .shared,
         authManager: AuthManager = .shared,
-        baseURL: URL? = nil
+        baseURL: URL? = nil,
+        clock: ClockProtocol = SystemClock.shared
     ) {
         self.session = session
         self.authManager = authManager
+        self.clock = clock
 
         // Determine base URL based on environment
         if let providedURL = baseURL {
@@ -109,7 +112,7 @@ final class SmartReplyService: ObservableObject {
 
         // Check cache first
         let cacheKey = "suggestions_\(threadId.uuidString)" as NSString
-        if let cached = cache.object(forKey: cacheKey), cached.isValid {
+        if let cached = cache.object(forKey: cacheKey), cached.isValid(clock: clock) {
             print("✅ [SMART_REPLY_SERVICE] Returning cached suggestions for thread: \(threadId)")
             return Array(cached.suggestions.prefix(limit))
         }
@@ -187,7 +190,7 @@ final class SmartReplyService: ObservableObject {
         // Cache the results
         let cachedValue = CachedSuggestions(
             suggestions: suggestions,
-            timestamp: Date(),
+            timestamp: clock.now(),
             ttl: suggestionCacheTTL
         )
         cache.setObject(cachedValue, forKey: cacheKey)

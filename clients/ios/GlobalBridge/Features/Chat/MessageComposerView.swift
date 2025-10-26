@@ -22,6 +22,7 @@ struct MessageComposerView: View {
                 .onChange(of: text) { old, new in
                     print("⌨️ [TEXT_FIELD] Text changed: '\(old)' -> '\(new)'")
                 }
+                .accessibilityIdentifier("ComposerTextField")
 
             Button {
                 sendIfPossible()
@@ -31,6 +32,7 @@ struct MessageComposerView: View {
                     .foregroundStyle(text.isEmpty || isSending ? Color.gray : Color.blue)
             }
             .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)
+            .accessibilityIdentifier("ComposerSendButton")
             .accessibilityLabel("Send message")
         }
     }

@@ -52,6 +52,7 @@ struct SmartReplyComposerView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
         .background(Color(.systemBackground))
+        .accessibilityIdentifier("SmartReplyBar")
     }
 
     // MARK: - Loading View
@@ -83,6 +84,7 @@ struct SmartReplyComposerView: View {
                             onSuggestionDismiss?(dismissedSuggestion)
                         }
                     )
+                    .accessibilityIdentifier("SmartReplyChip-\(suggestion.position)")
                 }
             }
         }
@@ -149,6 +151,7 @@ struct SmartReplyComposerView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(.blue)
                 }
+                .accessibilityIdentifier("SmartReplyRetryButton")
                 .accessibilityLabel("Retry fetching suggestions")
                 .accessibilityHint("Double tap to try loading suggestions again")
             }
