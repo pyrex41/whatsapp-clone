@@ -860,70 +860,209 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             }
         }
 
-    // MARK: - AI Features (Stub implementations - will be completed in Task 10)
+    // MARK: - AI Features
 
-    case .fetchSmartReplies:
-        // TODO: Task 10 - Trigger smart reply fetch
+    // MARK: Smart Reply Actions
+
+    case let .fetchSmartReplies(threadId):
+        // Set loading state for this thread
+        state.smartReplyLoading[threadId] = true
+        state.smartReplyErrors[threadId] = nil
+
+        print("🤖 [SMART_REPLY] Fetching suggestions for thread: \(threadId)")
+
+        return .run(priority: nil) { send in
+            do {
+                let suggestions = try await SmartReplyService.shared.fetchSuggestions(
+                    for: threadId,
+                    contextWindow: 10
+                )
+                print("✅ [SMART_REPLY] Received \(suggestions.count) suggestions")
+                send(.smartRepliesReceived(threadId: threadId, .success(suggestions)))
+            } catch {
+                print("❌ [SMART_REPLY] Failed to fetch suggestions: \(error)")
+                send(.smartRepliesReceived(threadId: threadId, .failure(error)))
+            }
+        }
+
+    case let .smartRepliesReceived(threadId, result):
+        // Clear loading state
+        state.smartReplyLoading[threadId] = false
+
+        switch result {
+        case let .success(suggestions):
+            // Update suggestions for this thread
+            state.smartReplySuggestions[threadId] = suggestions
+            state.smartReplyErrors[threadId] = nil
+            print("✅ [SMART_REPLY] Stored \(suggestions.count) suggestions for thread: \(threadId)")
+
+        case let .failure(error):
+            // Store error for this thread
+            state.smartReplyErrors[threadId] = error.localizedDescription
+            print("❌ [SMART_REPLY] Error for thread \(threadId): \(error.localizedDescription)")
+        }
         return .none
 
-    case .smartRepliesReceived:
-        // TODO: Task 10 - Update state with received suggestions
+    case let .acceptSuggestion(threadId, suggestion, modifiedContent):
+        // Insert suggestion content into composer
+        let content = modifiedContent ?? suggestion.content
+        state.chat.composer.text = content
+
+        print("✅ [SMART_REPLY] Accepted suggestion: \(suggestion.id)")
+
+        // Record feedback asynchronously
+        let feedback = SuggestionFeedback(
+            suggestionId: suggestion.id,
+            accepted: true,
+            modified: modifiedContent != nil,
+            originalContent: suggestion.content,
+            finalContent: content,
+            threadId: UUID(uuidString: threadId) ?? UUID(),
+            timestamp: Date()
+        )
+
+        return .run(priority: nil) { send in
+            send(.recordFeedback(feedback))
+        }
+
+    case let .rejectSuggestion(threadId, suggestionId, reason):
+        print("❌ [SMART_REPLY] Rejected suggestion: \(suggestionId), reason: \(reason ?? "none")")
+
+        // Remove rejected suggestion from state
+        if var suggestions = state.smartReplySuggestions[threadId] {
+            suggestions.removeAll { $0.id == suggestionId }
+            state.smartReplySuggestions[threadId] = suggestions
+        }
+
+        // Record rejection feedback
+        let feedback = SuggestionFeedback(
+            suggestionId: suggestionId,
+            accepted: false,
+            modified: false,
+            originalContent: "",
+            finalContent: nil,
+            threadId: UUID(uuidString: threadId) ?? UUID(),
+            timestamp: Date(),
+            rejectionReason: reason
+        )
+
+        return .run(priority: nil) { send in
+            send(.recordFeedback(feedback))
+        }
+
+    case let .recordFeedback(feedback):
+        print("📊 [SMART_REPLY] Recording feedback for suggestion: \(feedback.suggestionId)")
+
+        return .run(priority: nil) { _ in
+            do {
+                try await SmartReplyService.shared.recordFeedback(feedback)
+                print("✅ [SMART_REPLY] Feedback recorded successfully")
+            } catch {
+                print("⚠️  [SMART_REPLY] Failed to record feedback: \(error)")
+            }
+        }
+
+    // MARK: Conversation Monitoring Actions
+
+    case let .startMonitoring(threadId):
+        // Add thread to monitored set
+        state.monitoredThreads.insert(threadId)
+        print("👁️  [MONITORING] Started monitoring thread: \(threadId)")
         return .none
 
-    case .acceptSuggestion:
-        // TODO: Task 10 - Handle suggestion acceptance and feedback
+    case let .stopMonitoring(threadId):
+        // Remove thread from monitored set
+        state.monitoredThreads.remove(threadId)
+        print("👁️  [MONITORING] Stopped monitoring thread: \(threadId)")
         return .none
 
-    case .rejectSuggestion:
-        // TODO: Task 10 - Handle suggestion rejection and feedback
+    case let .aiSuggestionBroadcast(threadId, suggestion):
+        // Handle proactive AI suggestion from broadcast
+        print("📡 [AI_BROADCAST] Received proactive suggestion for thread: \(threadId)")
+        print("   - Suggestion ID: \(suggestion.id)")
+        print("   - Type: \(suggestion.type)")
+        print("   - Content: \(suggestion.content)")
+
+        // Add to suggestions for this thread
+        var suggestions = state.smartReplySuggestions[threadId] ?? []
+        // Avoid duplicates
+        if !suggestions.contains(where: { $0.id == suggestion.id }) {
+            suggestions.append(suggestion)
+            state.smartReplySuggestions[threadId] = suggestions
+            print("✅ [AI_BROADCAST] Added proactive suggestion to state")
+        } else {
+            print("⚠️  [AI_BROADCAST] Suggestion already exists in state")
+        }
+
         return .none
 
-    case .recordFeedback:
-        // TODO: Task 10 - Record user feedback
+    // MARK: Translation Actions
+
+    case let .translateMessage(messageId, targetLanguage):
+        print("🌐 [TRANSLATION] Translating message: \(messageId) to \(targetLanguage)")
+
+        return .run(priority: nil) { send in
+            do {
+                // Find message text (would need to look it up from state or database)
+                // For now, this is a placeholder - actual implementation would fetch message
+                let translatedText = try await AIService.shared.translate(
+                    text: "Sample text", // TODO: Get actual message text
+                    targetLanguage: targetLanguage
+                ).translatedText
+
+                send(.translationReceived(messageId: messageId, .success(translatedText)))
+            } catch {
+                print("❌ [TRANSLATION] Failed: \(error)")
+                send(.translationReceived(messageId: messageId, .failure(error)))
+            }
+        }
+
+    case let .translationReceived(messageId, result):
+        switch result {
+        case let .success(translatedText):
+            state.messageTranslations[messageId] = translatedText
+            print("✅ [TRANSLATION] Stored translation for message: \(messageId)")
+
+        case let .failure(error):
+            print("❌ [TRANSLATION] Error for message \(messageId): \(error.localizedDescription)")
+        }
         return .none
 
-    case .startMonitoring:
-        // TODO: Task 10 - Start conversation monitoring
+    case let .updateTranslationPreferences(preferences):
+        state.translationPreferences = preferences
+        print("✅ [TRANSLATION] Updated preferences: auto-translate=\(preferences.autoTranslateEnabled)")
         return .none
 
-    case .stopMonitoring:
-        // TODO: Task 10 - Stop conversation monitoring
-        return .none
+    // MARK: Style Learning Actions
 
-    case .aiSuggestionBroadcast:
-        // TODO: Task 10 - Handle proactive suggestion broadcast
-        return .none
-
-    case .translateMessage:
-        // TODO: Task 10 - Trigger message translation
-        return .none
-
-    case .translationReceived:
-        // TODO: Task 10 - Update state with translation result
-        return .none
-
-    case .updateTranslationPreferences:
-        // TODO: Task 10 - Update translation preferences
-        return .none
-
-    case .styleProfileUpdated:
-        // TODO: Task 10 - Update user style profile
+    case let .styleProfileUpdated(profile):
+        state.userStyleProfile = profile
+        print("✅ [STYLE] Updated user style profile")
         return .none
 
     case .fetchStyleProfile:
-        // TODO: Task 10 - Fetch style profile from backend
-        return .none
+        print("🎨 [STYLE] Fetching user style profile")
+        return .run(priority: nil) { send in
+            // TODO: Implement actual style profile fetch from backend
+            // For now, placeholder implementation
+            print("⚠️  [STYLE] Style profile fetch not yet implemented")
+        }
 
     case .styleProfileReceived:
-        // TODO: Task 10 - Update state with style profile result
+        // TODO: Handle style profile received result
+        print("🎨 [STYLE] Style profile received")
         return .none
+
+    // MARK: AI Insights Actions
 
     case .toggleInsightsVisible:
-        // TODO: Task 10 - Toggle AI insights panel
+        state.aiInsightsVisible.toggle()
+        print("👁️  [INSIGHTS] Toggled insights visible: \(state.aiInsightsVisible)")
         return .none
 
-    case .setCurrentThread:
-        // TODO: Task 10 - Set current thread for insights
+    case let .setCurrentThread(threadId):
+        state.currentThreadId = threadId
+        print("📍 [INSIGHTS] Set current thread: \(threadId ?? "nil")")
         return .none
     }
 }

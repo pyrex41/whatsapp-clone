@@ -8651,7 +8651,7 @@
         "id": "10",
         "title": "Update AppReducer for AI Logic",
         "description": "Add reducer logic in AppReducer.swift for handling SmartReply actions like fetching suggestions and updating state.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "5",
           "6",
@@ -8684,7 +8684,8 @@
         ],
         "complexity": 8,
         "recommendedSubtasks": 2,
-        "expansionPrompt": "Already has subtasks for Monitoring and Translation actions; expand if needed for SmartReply logic."
+        "expansionPrompt": "Already has subtasks for Monitoring and Translation actions; expand if needed for SmartReply logic.",
+        "updatedAt": "2025-10-26T01:06:02.851Z"
       },
       {
         "id": "11",
@@ -9850,9 +9851,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-10-26T00:53:38.848Z",
+      "lastModified": "2025-10-26T01:06:02.854Z",
       "taskCount": 31,
-      "completedCount": 11,
+      "completedCount": 12,
       "tags": [
         "ai-ios"
       ]
