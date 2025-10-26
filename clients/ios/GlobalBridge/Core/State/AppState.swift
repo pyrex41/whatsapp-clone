@@ -14,13 +14,39 @@ struct AppState: Equatable {
     var connectionState: ConnectionState = .disconnected
     var userCache: [String: CachedUserInfo] = [:]  // userId -> display info
 
+    // MARK: - AI Features - Smart Reply
+    var smartReplySuggestions: [String: [SmartReplySuggestion]] = [:] // threadId -> suggestions
+    var smartReplyLoading: [String: Bool] = [:] // threadId -> loading state
+    var smartReplyErrors: [String: String] = [:] // threadId -> error message
+
+    // MARK: - AI Features - Style Learning
+    var userStyleProfile: UserStyleProfile?
+
+    // MARK: - AI Features - Translation
+    var translationPreferences: TranslationPreferences = .default
+    var messageTranslations: [String: String] = [:] // messageId -> translated text
+
+    // MARK: - AI Features - Monitoring
+    var monitoredThreads: Set<String> = []
+    var aiInsightsVisible: Bool = false
+    var currentThreadId: String?
+
     init(
         user: User = .sampleCurrent,
         threads: ThreadsState = .init(),
         chat: ChatState = .init(),
         authError: String? = nil,
         connectionState: ConnectionState = .disconnected,
-        userCache: [String: CachedUserInfo] = [:]
+        userCache: [String: CachedUserInfo] = [:],
+        smartReplySuggestions: [String: [SmartReplySuggestion]] = [:],
+        smartReplyLoading: [String: Bool] = [:],
+        smartReplyErrors: [String: String] = [:],
+        userStyleProfile: UserStyleProfile? = nil,
+        translationPreferences: TranslationPreferences = .default,
+        messageTranslations: [String: String] = [:],
+        monitoredThreads: Set<String> = [],
+        aiInsightsVisible: Bool = false,
+        currentThreadId: String? = nil
     ) {
         self.user = user
         self.threads = threads
@@ -28,6 +54,15 @@ struct AppState: Equatable {
         self.authError = authError
         self.connectionState = connectionState
         self.userCache = userCache
+        self.smartReplySuggestions = smartReplySuggestions
+        self.smartReplyLoading = smartReplyLoading
+        self.smartReplyErrors = smartReplyErrors
+        self.userStyleProfile = userStyleProfile
+        self.translationPreferences = translationPreferences
+        self.messageTranslations = messageTranslations
+        self.monitoredThreads = monitoredThreads
+        self.aiInsightsVisible = aiInsightsVisible
+        self.currentThreadId = currentThreadId
     }
 }
 

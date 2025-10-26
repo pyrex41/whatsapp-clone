@@ -50,4 +50,62 @@ enum AppAction {
     
     // User cache
     case cacheUsers([String: CachedUserInfo])
+
+    // MARK: - AI Features: Smart Reply
+
+    /// Trigger fetch of smart reply suggestions for a thread
+    case fetchSmartReplies(threadId: String)
+
+    /// Smart reply suggestions received from backend
+    case smartRepliesReceived(threadId: String, Result<[SmartReplySuggestion], Error>)
+
+    /// User accepted a suggestion (for feedback and composer insertion)
+    case acceptSuggestion(threadId: String, suggestion: SmartReplySuggestion, modifiedContent: String?)
+
+    /// User rejected a suggestion (for feedback learning)
+    case rejectSuggestion(threadId: String, suggestionId: UUID, reason: String?)
+
+    /// Record user feedback on suggestion usage
+    case recordFeedback(SuggestionFeedback)
+
+    // MARK: - AI Features: Conversation Monitoring
+
+    /// Start monitoring a thread for AI suggestions
+    case startMonitoring(threadId: String)
+
+    /// Stop monitoring a thread
+    case stopMonitoring(threadId: String)
+
+    /// Received proactive AI suggestion broadcast from monitoring
+    case aiSuggestionBroadcast(threadId: String, suggestion: SmartReplySuggestion)
+
+    // MARK: - AI Features: Translation
+
+    /// Translate a message to target language
+    case translateMessage(messageId: String, targetLanguage: String)
+
+    /// Translation result received
+    case translationReceived(messageId: String, Result<String, Error>)
+
+    /// Update user translation preferences
+    case updateTranslationPreferences(TranslationPreferences)
+
+    // MARK: - AI Features: Style Learning
+
+    /// User style profile updated from backend
+    case styleProfileUpdated(UserStyleProfile)
+
+    /// Fetch latest user style profile
+    case fetchStyleProfile
+
+    /// Style profile fetch result
+    case styleProfileReceived(Result<UserStyleProfile, Error>)
+
+    // MARK: - AI Features: Insights & UI
+
+    /// Toggle AI insights panel visibility
+    case toggleInsightsVisible
+
+    /// Set current active thread for insights
+    case setCurrentThread(threadId: String?)
 }

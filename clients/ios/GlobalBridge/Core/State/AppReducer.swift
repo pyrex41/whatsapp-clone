@@ -784,10 +784,11 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                     print("💾 [FETCH] Storing \(result.messages.count) messages...")
                     for phoenixMsg in result.messages {
                         if let message = Message.fromPhoenix(phoenixMsg) {
+                            // Store message from server (deduplication happens in SQLite layer)
                             try? await environment.database.storeMessage(message)
                         }
                     }
-                    
+                
                     // Reload from local DB to show in UI with user names
                     print("🔄 [FETCH] Reloading messages to display with names...")
                     send(.loadMessages(threadID))
@@ -846,6 +847,7 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 // Store new messages
                 for phoenixMsg in result.messages {
                     if let message = Message.fromPhoenix(phoenixMsg) {
+                        // Store message (deduplication handled by SQLite layer)
                         try? await environment.database.storeMessage(message)
                     }
                 }
@@ -857,5 +859,71 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 // Error state will be cleared on next messagesLoaded
             }
         }
+
+    // MARK: - AI Features (Stub implementations - will be completed in Task 10)
+
+    case .fetchSmartReplies:
+        // TODO: Task 10 - Trigger smart reply fetch
+        return .none
+
+    case .smartRepliesReceived:
+        // TODO: Task 10 - Update state with received suggestions
+        return .none
+
+    case .acceptSuggestion:
+        // TODO: Task 10 - Handle suggestion acceptance and feedback
+        return .none
+
+    case .rejectSuggestion:
+        // TODO: Task 10 - Handle suggestion rejection and feedback
+        return .none
+
+    case .recordFeedback:
+        // TODO: Task 10 - Record user feedback
+        return .none
+
+    case .startMonitoring:
+        // TODO: Task 10 - Start conversation monitoring
+        return .none
+
+    case .stopMonitoring:
+        // TODO: Task 10 - Stop conversation monitoring
+        return .none
+
+    case .aiSuggestionBroadcast:
+        // TODO: Task 10 - Handle proactive suggestion broadcast
+        return .none
+
+    case .translateMessage:
+        // TODO: Task 10 - Trigger message translation
+        return .none
+
+    case .translationReceived:
+        // TODO: Task 10 - Update state with translation result
+        return .none
+
+    case .updateTranslationPreferences:
+        // TODO: Task 10 - Update translation preferences
+        return .none
+
+    case .styleProfileUpdated:
+        // TODO: Task 10 - Update user style profile
+        return .none
+
+    case .fetchStyleProfile:
+        // TODO: Task 10 - Fetch style profile from backend
+        return .none
+
+    case .styleProfileReceived:
+        // TODO: Task 10 - Update state with style profile result
+        return .none
+
+    case .toggleInsightsVisible:
+        // TODO: Task 10 - Toggle AI insights panel
+        return .none
+
+    case .setCurrentThread:
+        // TODO: Task 10 - Set current thread for insights
+        return .none
     }
 }

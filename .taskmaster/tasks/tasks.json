@@ -8081,7 +8081,7 @@
   "ai-ios": {
     "tasks": [
       {
-        "id": 1,
+        "id": "1",
         "title": "Create SmartReplySuggestion Model",
         "description": "Define the SmartReplySuggestion struct with properties for id, type, content, confidence, position, context, and timestamp as specified in the PRD.",
         "details": "Implement SmartReplySuggestion.swift with Codable conformance. Include computed property isProactive. Use UUID for id, String for type, Double for confidence, etc. Ensure it matches the PRD structure.",
@@ -8097,7 +8097,8 @@
             "dependencies": [],
             "details": "Create an empty Swift file in the Models folder or equivalent, ensuring it follows the project's file naming and organization conventions.",
             "status": "pending",
-            "testStrategy": null
+            "testStrategy": null,
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -8108,7 +8109,8 @@
             ],
             "details": "Implement the struct with all specified properties, using appropriate Swift types as per the PRD. Ensure properties are properly declared with correct access levels.",
             "status": "pending",
-            "testStrategy": "Unit test property initialization and types."
+            "testStrategy": "Unit test property initialization and types.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -8119,7 +8121,8 @@
             ],
             "details": "Implement encoding and decoding by conforming to Codable, allowing the struct to be easily converted to and from JSON format for data persistence or API interactions.",
             "status": "pending",
-            "testStrategy": "Unit test serialization/deserialization with JSONEncoder/Decoder."
+            "testStrategy": "Unit test serialization/deserialization with JSONEncoder/Decoder.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -8130,7 +8133,8 @@
             ],
             "details": "Define the isProactive property as a Bool computed property, likely checking if the type indicates a proactive suggestion, ensuring it updates dynamically based on the struct's state.",
             "status": "pending",
-            "testStrategy": "Unit test the computed property logic with various type values."
+            "testStrategy": "Unit test the computed property logic with various type values.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -8142,12 +8146,16 @@
             ],
             "details": "Cross-check the code against the PRD document to confirm accuracy in property names, types, and any other structural requirements, making adjustments as needed for full compliance.",
             "status": "pending",
-            "testStrategy": "Integration test to verify the model works correctly in the broader application context."
+            "testStrategy": "Integration test to verify the model works correctly in the broader application context.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 3,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 2,
+        "id": "2",
         "title": "Create UserStyleProfile Model",
         "description": "Define the UserStyleProfile struct with properties for userId, formalityLevel, emojiFrequency, avgSentenceLength, messagesAnalyzed, confidenceScore, and lastUpdatedAt.",
         "details": "Implement UserStyleProfile.swift with Codable. Include computed property isHighConfidence. Use UUID for userId, Double for metrics, Date for timestamps.",
@@ -8163,7 +8171,8 @@
             "dependencies": [],
             "details": "Implement the struct with the specified properties, ensuring userId is UUID, metrics are Double, messagesAnalyzed is Int, and lastUpdatedAt is Date. This forms the foundation of the model.",
             "status": "pending",
-            "testStrategy": null
+            "testStrategy": null,
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -8174,7 +8183,8 @@
             ],
             "details": "Implement Codable by ensuring all properties are encodable and decodable. Use standard JSONEncoder and JSONDecoder for testing basic serialization.",
             "status": "pending",
-            "testStrategy": "Unit test serialization and deserialization using JSONEncoder/Decoder to verify the struct can be encoded to and decoded from JSON correctly."
+            "testStrategy": "Unit test serialization and deserialization using JSONEncoder/Decoder to verify the struct can be encoded to and decoded from JSON correctly.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -8185,7 +8195,8 @@
             ],
             "details": "Define isHighConfidence as a computed property based on the confidenceScore threshold. Ensure it is read-only and calculates dynamically.",
             "status": "pending",
-            "testStrategy": "Unit test the computed property with various confidenceScore values to verify it returns true for scores >= 0.8 and false otherwise."
+            "testStrategy": "Unit test the computed property with various confidenceScore values to verify it returns true for scores >= 0.8 and false otherwise.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -8196,7 +8207,8 @@
             ],
             "details": "Create an init method that takes all properties except lastUpdatedAt, which defaults to Date(). This allows easy creation of instances with current timestamp.",
             "status": "pending",
-            "testStrategy": "Unit test the initializer with different inputs, ensuring lastUpdatedAt defaults correctly and all properties are set as expected."
+            "testStrategy": "Unit test the initializer with different inputs, ensuring lastUpdatedAt defaults correctly and all properties are set as expected.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -8209,12 +8221,16 @@
             ],
             "details": "Develop tests in a test file for UserStyleProfile, including tests for init, Codable, isHighConfidence, and edge cases like boundary confidence scores.",
             "status": "pending",
-            "testStrategy": "Run unit tests to validate all functionalities, ensuring coverage for initialization, serialization, computed properties, and threshold logic."
+            "testStrategy": "Run unit tests to validate all functionalities, ensuring coverage for initialization, serialization, computed properties, and threshold logic.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 3,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 3,
+        "id": "3",
         "title": "Create TranslationPreferences Model",
         "description": "Define the TranslationPreferences struct with properties for preferredLanguage, autoTranslateEnabled, contactOverrides, and threadOverrides.",
         "details": "Implement TranslationPreferences.swift with Codable. Include static default property. Use String for language codes, Bool for toggles, dictionaries for overrides.",
@@ -8230,7 +8246,8 @@
             "dependencies": [],
             "details": "Ensure the file is created in the correct location within the project structure, following the naming conventions and folder organization used in the codebase.",
             "status": "pending",
-            "testStrategy": null
+            "testStrategy": null,
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -8241,7 +8258,8 @@
             ],
             "details": "Add the struct declaration and these two properties inside the file. Use appropriate access levels (e.g., public or internal) based on the project's needs.",
             "status": "pending",
-            "testStrategy": null
+            "testStrategy": null,
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -8252,7 +8270,8 @@
             ],
             "details": "Extend the struct to include these dictionary properties, allowing for custom translation settings per contact or thread, with String keys representing identifiers and Bool values for enable/disable states.",
             "status": "pending",
-            "testStrategy": null
+            "testStrategy": null,
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -8263,7 +8282,8 @@
             ],
             "details": "Add the Codable conformance to the struct declaration. Ensure all properties are compatible with Codable; no additional coding keys are needed if property names match JSON keys.",
             "status": "pending",
-            "testStrategy": null
+            "testStrategy": null,
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -8274,12 +8294,16 @@
             ],
             "details": "Define a static let default = TranslationPreferences(preferredLanguage: \"en\", autoTranslateEnabled: true, contactOverrides: [:], threadOverrides: [:]) or similar, ensuring the struct can be initialized with defaults for easy use.",
             "status": "pending",
-            "testStrategy": "Unit test the default initialization to verify that the static property creates an instance with expected default values, and test serialization/deserialization of the default instance."
+            "testStrategy": "Unit test the default initialization to verify that the static property creates an instance with expected default values, and test serialization/deserialization of the default instance.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 4,
+        "id": "4",
         "title": "Create SuggestionFeedback Model",
         "description": "Define the SuggestionFeedback struct with properties for suggestionId, accepted, modifiedContent, rejectionReason, timeToResponseMs, and timestamp.",
         "details": "Implement SuggestionFeedback.swift with Codable. Use UUID for suggestionId, Bool for accepted, optional Strings for content/reason, optional Int for time, Date for timestamp.",
@@ -8295,7 +8319,8 @@
             "dependencies": [],
             "details": "Use Xcode or your preferred editor to create a new Swift file. Ensure it is placed in the Models folder or equivalent in the project structure. This file will contain the SuggestionFeedback struct definition.",
             "status": "pending",
-            "testStrategy": null
+            "testStrategy": null,
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -8306,7 +8331,8 @@
             ],
             "details": "Inside SuggestionFeedback.swift, declare a struct named SuggestionFeedback. Add two properties: suggestionId of type UUID and accepted of type Bool. Make sure the struct is properly formatted with Swift syntax.",
             "status": "pending",
-            "testStrategy": null
+            "testStrategy": null,
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -8317,7 +8343,8 @@
             ],
             "details": "Extend the SuggestionFeedback struct by adding modifiedContent: String? and rejectionReason: String?. These are optional to handle cases where feedback might not include modifications or reasons. Ensure they are declared as stored properties.",
             "status": "pending",
-            "testStrategy": null
+            "testStrategy": null,
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -8328,7 +8355,8 @@
             ],
             "details": "Add timeToResponseMs: Int? for measuring response time in milliseconds, and timestamp: Date for recording when the feedback was created. Use Swift's Date type for timestamp to leverage built-in date handling.",
             "status": "pending",
-            "testStrategy": null
+            "testStrategy": null,
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -8339,22 +8367,26 @@
             ],
             "details": "Add Codable to the struct declaration to enable JSON encoding/decoding. Create unit tests in a test file to verify that instances can be encoded to JSON and decoded back, especially handling optional fields correctly.",
             "status": "pending",
-            "testStrategy": "Unit test optional fields and serialization using JSONEncoder and JSONDecoder to ensure data integrity."
+            "testStrategy": "Unit test optional fields and serialization using JSONEncoder and JSONDecoder to ensure data integrity.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 3,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 5,
+        "id": "5",
         "title": "Extend AppState for AI Features",
         "description": "Add new properties to AppState for smart reply suggestions, loading states, errors, style profile, translation preferences, and monitoring.",
         "details": "Update AppState.swift to include dictionaries for suggestions, loading, errors; optional UserStyleProfile; TranslationPreferences; messageTranslations; monitoredThreads; aiInsightsVisible and threadId.",
         "testStrategy": "Unit test state initialization and equality checks. Integration test with reducer.",
         "priority": "high",
         "dependencies": [
-          1,
-          2,
-          3,
-          4
+          "1",
+          "2",
+          "3",
+          "4"
         ],
         "status": "pending",
         "subtasks": [
@@ -8365,7 +8397,8 @@
             "dependencies": [],
             "details": "Update AppState.swift to include a dictionary property for suggestions, keyed by thread ID, to hold arrays of suggestion strings or objects.",
             "status": "pending",
-            "testStrategy": "Unit test initialization of the suggestions dictionary and verify it can store and retrieve suggestion data."
+            "testStrategy": "Unit test initialization of the suggestions dictionary and verify it can store and retrieve suggestion data.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -8376,7 +8409,8 @@
             ],
             "details": "Extend AppState.swift with dictionaries for loading (e.g., keyed by operation ID) and errors (e.g., keyed by thread or operation), ensuring they integrate with existing state structure.",
             "status": "pending",
-            "testStrategy": "Unit test state updates for loading flags and error handling, including equality checks."
+            "testStrategy": "Unit test state updates for loading flags and error handling, including equality checks.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -8387,7 +8421,8 @@
             ],
             "details": "Modify AppState.swift to include an optional UserStyleProfile instance, ensuring it conforms to the existing state model and can be updated via actions.",
             "status": "pending",
-            "testStrategy": "Integration test with reducer to verify profile updates and state persistence."
+            "testStrategy": "Integration test with reducer to verify profile updates and state persistence.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -8398,7 +8433,8 @@
             ],
             "details": "Update AppState.swift to add TranslationPreferences struct and a messageTranslations dictionary, keyed by message ID, for storing translated text.",
             "status": "pending",
-            "testStrategy": "Unit test preference settings and translation storage, ensuring compatibility with existing state."
+            "testStrategy": "Unit test preference settings and translation storage, ensuring compatibility with existing state.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -8409,21 +8445,25 @@
             ],
             "details": "Finalize AppState.swift by adding an array or set for monitoredThreads, a boolean for aiInsightsVisible, and a string for threadId, ensuring all new properties work together.",
             "status": "pending",
-            "testStrategy": "Unit test state initialization with all new properties and integration test with reducer for monitoring features."
+            "testStrategy": "Unit test state initialization with all new properties and integration test with reducer for monitoring features.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 6,
+        "id": "6",
         "title": "Extend AppAction for AI Features",
         "description": "Add new cases to AppAction enum for smart replies, monitoring, translation, style profile, and insights.",
         "details": "Update AppAction.swift with cases like fetchSmartReplies, smartRepliesReceived, aiSuggestionBroadcast, translateMessage, styleProfileUpdated, etc., matching PRD specifications.",
         "testStrategy": "Unit test action creation and pattern matching.",
         "priority": "high",
         "dependencies": [
-          5
+          "5"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -8432,7 +8472,8 @@
             "dependencies": [],
             "details": "Update AppAction.swift to include cases such as fetchSmartReplies and smartRepliesReceived, ensuring they align with the PRD specifications for smart reply handling.",
             "status": "pending",
-            "testStrategy": "Unit test the creation of these actions and their pattern matching in reducers."
+            "testStrategy": "Unit test the creation of these actions and their pattern matching in reducers.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -8443,7 +8484,8 @@
             ],
             "details": "Update AppAction.swift to include cases related to monitoring, like startMonitoring and stopMonitoring, matching the PRD requirements for per-thread monitoring toggles.",
             "status": "pending",
-            "testStrategy": "Unit test action initialization and ensure proper dispatching in state management."
+            "testStrategy": "Unit test action initialization and ensure proper dispatching in state management.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -8454,7 +8496,8 @@
             ],
             "details": "Update AppAction.swift to include cases such as translateMessage, ensuring they support translation preferences and message handling as per PRD.",
             "status": "pending",
-            "testStrategy": "Unit test action creation and verify integration with translation state updates."
+            "testStrategy": "Unit test action creation and verify integration with translation state updates.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -8465,7 +8508,8 @@
             ],
             "details": "Update AppAction.swift to include cases like styleProfileUpdated and aiSuggestionBroadcast, aligning with PRD for user style learning and suggestions.",
             "status": "pending",
-            "testStrategy": "Unit test pattern matching and state reducer interactions for style profile actions."
+            "testStrategy": "Unit test pattern matching and state reducer interactions for style profile actions.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -8476,64 +8520,64 @@
             ],
             "details": "Update AppAction.swift to include cases related to insights, like toggleInsightsVisible, ensuring they match PRD specifications for aiInsightsVisible and threadId handling.",
             "status": "pending",
-            "testStrategy": "Unit test action dispatching and integration with AppState for insights management."
+            "testStrategy": "Unit test action dispatching and integration with AppState for insights management.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-25T23:55:39.265Z"
       },
       {
-        "id": 7,
+        "id": "7",
         "title": "Implement SmartReplyService",
         "description": "Create SmartReplyService.swift with methods to fetch suggestions, record feedback, and get user style profile via backend APIs.",
         "details": "Implement fetchSuggestions async method calling POST /api/v1/ai/suggest_replies. Include caching with 60s TTL. Record feedback via POST /api/v1/ai/record_feedback. Handle errors with AIServiceError.",
         "testStrategy": "Unit test API calls with mock responses. Integration test caching and error handling.",
         "priority": "high",
         "dependencies": [
-          1,
-          2,
-          5,
-          6
+          "1",
+          "2",
+          "5",
+          "6"
         ],
         "status": "pending",
         "subtasks": [
           {
             "id": 1,
-            "title": "Implement fetchSuggestions API with 60s TTL cache and AIServiceError mapping",
-            "description": "Build SmartReplyService.fetchSuggestions to POST to /api/v1/ai/suggest_replies, return decoded suggestions, apply in-memory caching with a 60-second TTL, and map failures to AIServiceError.",
-            "dependencies": [
-              1,
-              2,
-              5,
-              6
-            ],
-            "details": "Create SmartReplyService.swift (protocol + concrete). Add async func fetchSuggestions(conversationId:String, messages:[Message], limit:Int?) -> [SmartReplySuggestion]. Before requesting, check an in-memory cache keyed by (conversationId, lastMessageId/hash, limit, locale). If a non-expired CacheEntry(expiry: Date, value: [SmartReplySuggestion]) exists, return it. Otherwise, build URLRequest to POST /api/v1/ai/suggest_replies with JSON body {conversationId, messages, limit}. Use injected HTTP client and JSONEncoder/Decoder. On 2xx, decode suggestions, write to cache with expiry = now + 60s, then return. Map network/HTTP errors and decoding problems to AIServiceError (.network, .timeout, .unauthorized, .rateLimited, .server, .decoding, .unknown). Ensure cache is thread-safe (actor or serial queue) and support Task cancellation.",
+            "title": "Implement fetchSuggestions method with caching",
+            "description": "Create the async fetchSuggestions method that calls POST /api/v1/ai/suggest_replies and includes caching with 60s TTL.",
+            "dependencies": [],
+            "details": "Implement the fetchSuggestions async method in SmartReplyService.swift. It should make a POST request to /api/v1/ai/suggest_replies, handle the response, and cache results for 60 seconds to avoid repeated calls. Ensure proper error handling using AIServiceError.",
             "status": "pending",
-            "testStrategy": "Unit: mock HTTP client to verify path/body, decode result, cache hit/miss, TTL expiry, and AIServiceError mapping for 401/429/500/decoding. Inject a FakeClock/DateProvider to advance time. Integration: exercise cache across consecutive calls to confirm no duplicate network hits within 60s."
+            "testStrategy": "Unit test the API call with mock responses and verify caching behavior with TTL.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
-            "title": "Implement recordFeedback API with robust payload and error handling",
-            "description": "Build SmartReplyService.recordFeedback to POST to /api/v1/ai/record_feedback, supporting accepted, rejected (with reason), and modified (with modifiedContent) events, with AIServiceError mapping.",
-            "dependencies": [
-              1,
-              2,
-              5,
-              6
-            ],
-            "details": "Add async func recordFeedback(conversationId:String, suggestionId:String, action: FeedbackAction, reason:String? = nil, modifiedContent:String? = nil) -> Void. Construct JSON payload {conversationId, suggestionId, action, reason?, modifiedContent?} and POST to /api/v1/ai/record_feedback via injected HTTP client. Include optional idempotency header (stable UUID from conversationId+suggestionId+action+modifiedContent) to avoid duplicates. Treat non-2xx as failures and map to AIServiceError (.unauthorized for 401, .rateLimited for 429, .badRequest for 400, .server for 5xx, .network/.timeout for connectivity, .unknown otherwise). Do not cache. Ensure method is cancellable, log non-fatal errors as needed, and keep types internal DTOs separate from domain models.",
+            "title": "Implement recordFeedback method and error handling",
+            "description": "Add the recordFeedback method to call POST /api/v1/ai/record_feedback and integrate comprehensive error handling.",
+            "dependencies": [],
+            "details": "Implement the recordFeedback method in SmartReplyService.swift to send feedback via POST /api/v1/ai/record_feedback. Ensure all methods in the service handle errors appropriately using AIServiceError, including network failures and invalid responses.",
             "status": "pending",
-            "testStrategy": "Unit: verify correct endpoint, headers, and JSON for accepted/rejected(with reason)/modified(with modifiedContent). Assert no caching. Simulate 400/401/429/500/timeouts and assert AIServiceError mapping. Integration: ensure compatibility with Task 16/21 call sites using a stub transport."
+            "testStrategy": "Unit test feedback recording with mocks and integration test error handling scenarios.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Break down into subtasks for API method implementations (fetchSuggestions, recordFeedback), caching logic, and error handling."
       },
       {
-        "id": 8,
+        "id": "8",
         "title": "Implement ConversationMonitorService",
         "description": "Create ConversationMonitorService.swift to subscribe to Phoenix events and handle AI suggestion broadcasts. Note: This is Phase 3 (after MVP) for real-time proactive suggestions - not needed for basic smart reply MVP.",
         "status": "pending",
         "dependencies": [
-          1,
-          5,
-          6
+          "1",
+          "5",
+          "6"
         ],
         "priority": "medium",
         "details": "Implement startMonitoring and stopMonitoring methods. Handle {:ai_suggestions, suggestions} events. Maintain sliding window of last 20 messages. Dispatch to UI via actions.",
@@ -8546,19 +8590,23 @@
             "dependencies": [],
             "details": "Implement methods to subscribe to Phoenix events using PhoenixChannelManager. Handle incoming {:ai_suggestions, suggestions} events by updating the sliding window of messages (limit to 20). Ensure the window slides correctly by adding new messages and removing old ones. Dispatch actions to the UI for real-time updates. Integrate with startMonitoring and stopMonitoring methods to control event subscription.",
             "status": "pending",
-            "testStrategy": "Unit test event handling logic and sliding window maintenance with mock events. Integration test with PhoenixChannelManager to verify event subscription and dispatching."
+            "testStrategy": "Unit test event handling logic and sliding window maintenance with mock events. Integration test with PhoenixChannelManager to verify event subscription and dispatching.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Subtask for event handling and sliding window logic."
       },
       {
-        "id": 9,
+        "id": "9",
         "title": "Implement SmartTranslationService",
         "description": "Create SmartTranslationService.swift for translating messages and managing preferences.",
         "status": "pending",
         "dependencies": [
-          3,
-          5,
-          6
+          "3",
+          "5",
+          "6"
         ],
         "priority": "low",
         "details": "Implement translateMessage and batchTranslateSuggestions async methods calling POST /api/v1/ai/translate. Include caching with 3600s TTL. Handle preferences and auto-detect logic. Note: This is Phase 4, not needed for MVP smart reply feature.",
@@ -8571,7 +8619,8 @@
             "dependencies": [],
             "details": "Create async functions for translateMessage (single message translation) and batchTranslateSuggestions (batch translation). Integrate API calls to POST /api/v1/ai/translate, implement caching mechanism with 3600 seconds TTL to avoid redundant requests, and ensure proper error handling for network issues.",
             "status": "pending",
-            "testStrategy": "Unit test the translation methods with mock API responses and verify caching behavior. Integration test API calls and caching persistence."
+            "testStrategy": "Unit test the translation methods with mock API responses and verify caching behavior. Integration test API calls and caching persistence.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -8582,19 +8631,23 @@
             ],
             "details": "Add logic to manage user preferences for translation settings, such as preferred languages or auto-detect options. Integrate auto-detect functionality to identify source language before translation, ensuring it works seamlessly with the translation methods. Store preferences locally or via user settings.",
             "status": "pending",
-            "testStrategy": "Unit test preference storage and retrieval, as well as auto-detect logic with various input scenarios. Integration test with translation methods to ensure preferences affect translations correctly."
+            "testStrategy": "Unit test preference storage and retrieval, as well as auto-detect logic with various input scenarios. Integration test with translation methods to ensure preferences affect translations correctly.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Separate into subtasks for translation methods and preference handling."
       },
       {
-        "id": 10,
+        "id": "10",
         "title": "Update AppReducer for AI Logic",
         "description": "Add reducer logic in AppReducer.swift for handling SmartReply actions like fetching suggestions and updating state.",
         "status": "pending",
         "dependencies": [
-          5,
-          6,
-          7
+          "5",
+          "6",
+          "7"
         ],
         "priority": "high",
         "details": "Implement cases for fetchSmartReplies, smartRepliesReceived, etc. Use .run for async operations. Ensure state updates correctly, e.g., setting loading states.",
@@ -8607,7 +8660,8 @@
             "dependencies": [],
             "details": "Implement cases for monitoring related actions. Use .run for async operations. Ensure state updates correctly.",
             "status": "pending",
-            "testStrategy": "Unit test reducer functions. Integration test state transitions."
+            "testStrategy": "Unit test reducer functions. Integration test state transitions.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -8616,19 +8670,23 @@
             "dependencies": [],
             "details": "Implement cases for translation related actions. Use .run for async operations. Ensure state updates correctly.",
             "status": "pending",
-            "testStrategy": "Unit test reducer functions. Integration test state transitions."
+            "testStrategy": "Unit test reducer functions. Integration test state transitions.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 8,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Already has subtasks for Monitoring and Translation actions; expand if needed for SmartReply logic."
       },
       {
-        "id": 11,
+        "id": "11",
         "title": "Extend PhoenixChannelManager for AI",
         "description": "Add AI-specific methods to PhoenixChannelManager+AI.swift for subscribing to suggestions and triggering style learning.",
         "details": "Implement subscribeToAISuggestions to join thread channel and listen for ai_suggestions events. Implement triggerStyleLearning as fire-and-forget on message send.",
         "testStrategy": "Unit test channel subscription. Integration test event dispatching.",
         "priority": "high",
         "dependencies": [
-          8
+          "8"
         ],
         "status": "pending",
         "subtasks": [
@@ -8639,21 +8697,25 @@
             "dependencies": [],
             "details": "For subscribeToAISuggestions, use PhoenixChannel to join the thread channel with appropriate parameters and set up event listeners for 'ai_suggestions' events, handling incoming suggestions by dispatching actions. For triggerStyleLearning, implement it as a fire-and-forget method that sends a message to the channel without waiting for a response, ensuring it integrates seamlessly with message sending logic.",
             "status": "pending",
-            "testStrategy": "Unit test the channel joining and event listening for subscribeToAISuggestions, and verify fire-and-forget behavior for triggerStyleLearning using mocks for PhoenixChannel."
+            "testStrategy": "Unit test the channel joining and event listening for subscribeToAISuggestions, and verify fire-and-forget behavior for triggerStyleLearning using mocks for PhoenixChannel.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Subtask for subscription methods and style learning trigger."
       },
       {
-        "id": 12,
+        "id": "12",
         "title": "Build SmartReplyComposerView",
         "description": "Create SmartReplyComposerView.swift to display suggestion chips inline above the composer.",
         "details": "Use SwiftUI to render 1-3 chips with loading shimmer. Handle tap-to-insert. Include translation toggle. Position above text field as per PRD design.",
         "testStrategy": "UI test tap interactions and loading states. Accessibility test with VoiceOver.",
         "priority": "high",
         "dependencies": [
-          1,
-          5,
-          10
+          "1",
+          "5",
+          "10"
         ],
         "status": "pending",
         "subtasks": [
@@ -8664,7 +8726,8 @@
             "dependencies": [],
             "details": "Use SwiftUI's HStack or VStack to position chips horizontally above the text field. Implement a shimmer animation using SwiftUI's built-in effects or a custom modifier for the loading state. Ensure chips are styled according to PRD design with appropriate padding, colors, and fonts. Handle dynamic sizing based on content length.",
             "status": "pending",
-            "testStrategy": "UI tests to verify chip rendering, shimmer animation, and positioning above the composer."
+            "testStrategy": "UI tests to verify chip rendering, shimmer animation, and positioning above the composer.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -8675,20 +8738,24 @@
             ],
             "details": "Attach onTapGesture to each chip to append the suggestion content to the text field's binding. Include a toggle button per chip for translation, updating the view state accordingly. Ensure accessibility with proper labels and VoiceOver support. Record feedback asynchronously upon insertion as per Task 14 dependencies.",
             "status": "pending",
-            "testStrategy": "UI tests for tap-to-insert functionality and toggle interactions. Integration tests for feedback recording and accessibility checks with VoiceOver."
+            "testStrategy": "UI tests for tap-to-insert functionality and toggle interactions. Integration tests for feedback recording and accessibility checks with VoiceOver.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Subtasks for chip rendering and interaction handling."
       },
       {
-        "id": 13,
+        "id": "13",
         "title": "Build SuggestionChipView",
         "description": "Create SuggestionChipView.swift for individual tappable suggestion chips.",
         "details": "Implement chip with confidence indicator, proactive distinction (icon/color), haptic feedback on tap, swipe-to-dismiss gesture.",
         "testStrategy": "UI test gestures and feedback. Unit test visual states.",
         "priority": "medium",
         "dependencies": [
-          1,
-          12
+          "1",
+          "12"
         ],
         "status": "pending",
         "subtasks": [
@@ -8699,21 +8766,25 @@
             "dependencies": [],
             "details": "In SuggestionChipView.swift, integrate SwiftUI gestures for swipe-to-dismiss using DragGesture. Implement haptic feedback using UINotificationFeedbackGenerator on tap. Add visual states for confidence indicator (e.g., opacity or color based on confidence score) and proactive distinction (e.g., specific icon or color scheme). Ensure animations are smooth and states update reactively.",
             "status": "pending",
-            "testStrategy": "UI tests for gesture recognition (swipe and tap), haptic feedback simulation, and visual state changes using snapshot testing or accessibility checks."
+            "testStrategy": "UI tests for gesture recognition (swipe and tap), haptic feedback simulation, and visual state changes using snapshot testing or accessibility checks.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Subtask for gesture handling and visual indicators."
       },
       {
-        "id": 14,
+        "id": "14",
         "title": "Implement Tap-to-Insert Behavior",
         "description": "Add logic to insert tapped suggestion into the message composer.",
         "details": "In SmartReplyComposerView, on chip tap, append content to text field. Record acceptance feedback asynchronously.",
         "testStrategy": "UI test insertion. Integration test feedback recording.",
         "priority": "high",
         "dependencies": [
-          12,
-          13,
-          7
+          "12",
+          "13",
+          "7"
         ],
         "status": "pending",
         "subtasks": [
@@ -8724,7 +8795,8 @@
             "dependencies": [],
             "details": "In SmartReplyComposerView, add a UITapGestureRecognizer to each suggestion chip view. Ensure the recognizer is properly configured to handle single taps and is not conflicting with other gestures. This will trigger the insertion logic when a chip is tapped.",
             "status": "pending",
-            "testStrategy": "Unit test that the gesture recognizer is added and responds to taps without interfering with other UI elements."
+            "testStrategy": "Unit test that the gesture recognizer is added and responds to taps without interfering with other UI elements.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -8735,7 +8807,8 @@
             ],
             "details": "Develop a function in SmartReplyComposerView that takes the suggestion text as input and appends it to the existing text in the composer's text field. Handle cases where the text field is empty or already has content, ensuring proper spacing and cursor positioning after insertion.",
             "status": "pending",
-            "testStrategy": "UI test to verify that tapping a chip correctly inserts the suggestion text into the text field, maintaining proper formatting."
+            "testStrategy": "UI test to verify that tapping a chip correctly inserts the suggestion text into the text field, maintaining proper formatting.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -8746,7 +8819,8 @@
             ],
             "details": "After inserting the text, call SmartReplyService.recordFeedback asynchronously with the suggestion ID and acceptance type. Ensure this does not block the UI thread and handle any potential errors gracefully, logging them if necessary.",
             "status": "pending",
-            "testStrategy": "Integration test to confirm that feedback is recorded via the API call when a suggestion is accepted, using mock services."
+            "testStrategy": "Integration test to confirm that feedback is recorded via the API call when a suggestion is accepted, using mock services.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -8757,7 +8831,8 @@
             ],
             "details": "After text insertion, update the view to reflect the change, e.g., dismiss the suggestion chips or refresh the list if needed. Ensure the composer remains focused and ready for further input, maintaining a smooth user experience.",
             "status": "pending",
-            "testStrategy": "UI test to check that the suggestion chips are properly updated or hidden after insertion, and the composer behaves correctly."
+            "testStrategy": "UI test to check that the suggestion chips are properly updated or hidden after insertion, and the composer behaves correctly.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -8771,89 +8846,105 @@
             ],
             "details": "Implement checks to ensure the suggestion is valid before insertion. Prevent multiple insertions from rapid taps by debouncing. Provide fallback behavior if feedback recording fails, and log errors for debugging purposes.",
             "status": "pending",
-            "testStrategy": "Unit and integration tests for edge cases, such as testing debounce logic, invalid suggestion handling, and error scenarios in feedback recording."
+            "testStrategy": "Unit and integration tests for edge cases, such as testing debounce logic, invalid suggestion handling, and error scenarios in feedback recording.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 15,
+        "id": "15",
         "title": "Add Loading and Error States",
         "description": "Implement loading shimmer and error handling in SmartReplyComposerView.",
         "details": "Show shimmer while fetching. Display error toast on failure. Retry logic if applicable.",
         "testStrategy": "UI test loading animations and error displays.",
         "priority": "medium",
         "dependencies": [
-          12,
-          7
+          "12",
+          "7"
         ],
         "status": "pending",
         "subtasks": [
           {
             "id": 1,
-            "title": "Add Shimmer Animation Component",
-            "description": "Create a reusable shimmer animation component for loading states in the UI.",
+            "title": "Audit SmartReplyComposerView and supporting UI utilities in repo",
+            "description": "Locate SmartReplyComposerView and check for any existing shimmer, toast, or error UI utilities to reuse.",
             "dependencies": [],
-            "details": "Implement a ShimmerView component using SwiftUI or UIKit that displays a skeleton loading animation. Ensure it can be customized for different sizes and shapes to fit the SmartReplyComposerView layout. This component will be used to show loading while fetching smart reply suggestions.",
+            "details": "- Use ripgrep to search for `SmartReplyComposerView`, `SmartReply`, `Shimmer`, `Skeleton`, `Toast`, `Banner`, `HUD` across `*.swift`.\n- Note file paths, naming, and SwiftUI vs UIKit patterns.\n- Identify any existing error enum (e.g., `AIServiceError`) and shared view modifiers for alerts/toasts.",
             "status": "pending",
-            "testStrategy": "Unit test the shimmer animation rendering and performance on different devices."
+            "testStrategy": "Manual verification by opening matched files; no code changes yet.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
-            "title": "Integrate Shimmer into SmartReplyComposerView",
-            "description": "Add the shimmer animation to SmartReplyComposerView to display during fetching operations.",
+            "title": "Define loading state and shimmer placeholder for SmartReplyComposerView",
+            "description": "Add a loading state and display a shimmer/skeleton while smart replies are being fetched.",
             "dependencies": [
               1
             ],
-            "details": "Modify SmartReplyComposerView to conditionally show the ShimmerView when the loading state is active. Bind it to the AppState's loading properties for smart reply suggestions. Ensure the shimmer overlays or replaces the content appropriately without disrupting the UI flow.",
+            "details": "- Introduce `@State private var isLoadingSuggestions = false` (or ViewModel equivalent) in `SmartReplyComposerView`.\n- Wrap suggestions area with conditional: show shimmer placeholders when `isLoadingSuggestions` is true.\n- Reuse existing shimmer component if found; otherwise add a minimal SwiftUI shimmer modifier locally scoped to this view.\n- Ensure accessibility labels/traits indicate loading.",
             "status": "pending",
-            "testStrategy": "UI test to verify shimmer appears during loading and disappears when data loads."
+            "testStrategy": "SwiftUI preview and unit snapshot tests validating shimmer appears when `isLoadingSuggestions = true` and hides when false.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
-            "title": "Implement Error Handling and Toast Display",
-            "description": "Add error handling logic to display error toasts on failure in SmartReplyComposerView.",
+            "title": "Implement error handling and toast/banner presentation",
+            "description": "Capture service errors and present a user-visible error (toast/banner/alert) with optional details.",
             "dependencies": [
+              1,
               2
             ],
-            "details": "Integrate error state from AppState into SmartReplyComposerView. Use a toast notification library or custom implementation to show error messages when fetching suggestions fails. Handle different error types (e.g., network, API) with appropriate user-friendly messages.",
+            "details": "- Catch errors from the suggestions fetch call and map to a user-friendly message (prefer `AIServiceError` mapping if available).\n- Add `@State private var fetchError: String?` and show toast/banner when non-nil (follow existing repo toast utilities if present; otherwise use `.alert`).\n- Ensure the error UI is dismissible and accessible with VoiceOver labels.",
             "status": "pending",
-            "testStrategy": "UI test error toast display and message accuracy for various error scenarios."
+            "testStrategy": "UI tests asserting toast/alert is shown on simulated error; unit tests for error mapping from service error to message.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
-            "title": "Add Retry Logic for Failed Requests",
-            "description": "Implement retry functionality for failed smart reply suggestion fetches.",
+            "title": "Wire retry logic with debounced trigger and disabled states",
+            "description": "Provide a retry action when fetch fails and prevent duplicate concurrent requests.",
             "dependencies": [
+              2,
               3
             ],
-            "details": "Add a retry button or automatic retry mechanism in SmartReplyComposerView. Upon error, provide an option to retry the fetch operation. Integrate with SmartReplyService to re-attempt the API call. Include exponential backoff or user-configurable retry limits if applicable.",
+            "details": "- Add `retryFetch()` that sets `isLoadingSuggestions = true`, clears prior error, and re-invokes the service.\n- Debounce subsequent retries (e.g., via `Task` cancellation or a short cooldown) and disable retry button while loading.\n- Log retries and optionally limit to N attempts per session to avoid loops.",
             "status": "pending",
-            "testStrategy": "Integration test retry logic with mocked failures to ensure retries work and update UI states correctly."
+            "testStrategy": "Unit tests verifying retry sets loading, clears error, and calls service once; UI test ensuring retry button disabled during loading and re-enabled after completion.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
-            "title": "Update View State Management",
-            "description": "Ensure SmartReplyComposerView properly manages loading, error, and retry states.",
+            "title": "Add view-model/service integration tests for success, loading, and failure",
+            "description": "Validate SmartReplyService integration paths: loading shimmer during fetch, success hides shimmer, failure shows error and enables retry.",
             "dependencies": [
+              2,
+              3,
               4
             ],
-            "details": "Refactor SmartReplyComposerView to handle state transitions between loading, error, and success. Use Combine or SwiftUI state to react to AppState changes. Ensure that shimmer, error toasts, and retry options are shown/hidden based on the current state, maintaining a smooth user experience.",
+            "details": "- Mock `SmartReplyService.fetchSuggestions` to return success, failure, and delayed responses.\n- Assert state transitions: `isLoadingSuggestions -> true` on start, false on completion, `fetchError` set on failure.\n- Verify UI renders placeholders vs suggestions accordingly; confirm toast presentation and retry flow works end-to-end.",
             "status": "pending",
-            "testStrategy": "End-to-end test state transitions in the view, verifying all UI elements respond correctly to state changes."
+            "testStrategy": "Combine unit tests with UI snapshot/UI automation tests using mocks; cover success, error, and retry scenarios.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 16,
+        "id": "16",
         "title": "Implement Feedback Recording",
         "description": "Add logic to record acceptance, rejection, and modification of suggestions.",
         "details": "On tap: record accepted. On swipe: record rejected with optional reason. On modify: record modified content. Use SmartReplyService.recordFeedback.",
         "testStrategy": "Unit test feedback logic. Integration test API calls.",
         "priority": "high",
         "dependencies": [
-          7,
-          13,
-          14
+          "7",
+          "13",
+          "14"
         ],
         "status": "pending",
         "subtasks": [
@@ -8864,20 +8955,24 @@
             "dependencies": [],
             "details": "Integrate feedback recording into the UI interactions: for tap events, call SmartReplyService.recordFeedback with accepted status; for swipe events, record rejected with optional reason; for modify events, compare and record modified content. Ensure proper error handling and integration with existing services.",
             "status": "pending",
-            "testStrategy": "Unit test each feedback type recording logic and integration test with SmartReplyService API calls."
+            "testStrategy": "Unit test each feedback type recording logic and integration test with SmartReplyService API calls.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Subtask for different feedback types (accept, reject, modify)."
       },
       {
-        "id": 17,
+        "id": "17",
         "title": "Auto-Trigger Style Learning",
         "description": "Trigger style learning on every message send.",
         "details": "In message send handler, call PhoenixChannelManager.triggerStyleLearning with userId, message, threadId. Fire-and-forget.",
         "testStrategy": "Integration test triggering on send. Mock backend response.",
         "priority": "medium",
         "dependencies": [
-          11,
-          2
+          "11",
+          "2"
         ],
         "status": "pending",
         "subtasks": [
@@ -8888,7 +8983,8 @@
             "dependencies": [],
             "details": "Search the project for the message send handler, likely in a messaging or chat module. Ensure it's the correct handler that processes outgoing messages before they are sent.",
             "status": "pending",
-            "testStrategy": "Verify the handler location through code review or logging to confirm it's the right entry point for message sends."
+            "testStrategy": "Verify the handler location through code review or logging to confirm it's the right entry point for message sends.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -8899,7 +8995,8 @@
             ],
             "details": "Add the necessary import statement for PhoenixChannelManager at the top of the file containing the message send handler. If it's already imported, confirm its availability.",
             "status": "pending",
-            "testStrategy": "Compile the code to ensure no import errors and that PhoenixChannelManager is accessible in the scope."
+            "testStrategy": "Compile the code to ensure no import errors and that PhoenixChannelManager is accessible in the scope.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -8910,7 +9007,8 @@
             ],
             "details": "Within the message send handler, retrieve the userId (likely from user session), message content, and threadId (from the current thread or conversation). Prepare these as parameters for the method call.",
             "status": "pending",
-            "testStrategy": "Unit test the parameter extraction logic with mock data to ensure correct values are obtained."
+            "testStrategy": "Unit test the parameter extraction logic with mock data to ensure correct values are obtained.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -8922,7 +9020,8 @@
             ],
             "details": "Insert the method call PhoenixChannelManager.triggerStyleLearning(userId: userId, message: message, threadId: threadId) inside the message send handler, ensuring it's executed on every message send. Make it fire-and-forget by not awaiting or handling the response.",
             "status": "pending",
-            "testStrategy": "Integration test to simulate message sends and verify the method is called with correct parameters using mocks."
+            "testStrategy": "Integration test to simulate message sends and verify the method is called with correct parameters using mocks.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -8933,20 +9032,24 @@
             ],
             "details": "Ensure the call is made asynchronously without awaiting the result, allowing the message send to proceed immediately. Test that the UI or send process is not delayed by this operation.",
             "status": "pending",
-            "testStrategy": "Performance test to measure send times with and without the call, ensuring no blocking occurs. Mock the method to confirm it's called asynchronously."
+            "testStrategy": "Performance test to measure send times with and without the call, ensuring no blocking occurs. Mock the method to confirm it's called asynchronously.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 18,
+        "id": "18",
         "title": "Build AIStyleProfileView",
         "description": "Create a settings view to display user style profile metrics.",
         "details": "Use SwiftUI to show formalityLevel, emojiFrequency, etc., confidenceScore, and options to disable/clear profile.",
         "testStrategy": "UI test display and interactions. Unit test data binding.",
         "priority": "medium",
         "dependencies": [
-          2,
-          5
+          "2",
+          "5"
         ],
         "status": "pending",
         "subtasks": [
@@ -8957,7 +9060,8 @@
             "dependencies": [],
             "details": "Create a SwiftUI View struct named AIStyleProfileView with a VStack containing sections for metrics display and buttons for disable/clear options. Use appropriate SwiftUI components like Text, HStack, VStack, and Button to structure the view.",
             "status": "pending",
-            "testStrategy": "UI snapshot tests to verify layout structure."
+            "testStrategy": "UI snapshot tests to verify layout structure.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -8968,7 +9072,8 @@
             ],
             "details": "Bind the view to AppState properties for style profile. Use Text views to show each metric with labels, ensuring data is fetched and displayed correctly. Handle cases where metrics might be nil or loading.",
             "status": "pending",
-            "testStrategy": "Unit tests for data binding and UI tests for metric display accuracy."
+            "testStrategy": "Unit tests for data binding and UI tests for metric display accuracy.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -8980,7 +9085,8 @@
             ],
             "details": "Add a ProgressView or custom indicator to show the confidenceScore as a percentage or bar. Ensure it updates reactively with state changes and includes accessibility labels.",
             "status": "pending",
-            "testStrategy": "UI tests for confidence score rendering and unit tests for score calculation."
+            "testStrategy": "UI tests for confidence score rendering and unit tests for score calculation.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -8991,7 +9097,8 @@
             ],
             "details": "Include a Toggle or Button in the view that updates the AppState to disable the profile. Ensure the action persists and affects related features, with confirmation dialog if needed.",
             "status": "pending",
-            "testStrategy": "UI tests for toggle interaction and integration tests for state changes."
+            "testStrategy": "UI tests for toggle interaction and integration tests for state changes.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -9002,19 +9109,23 @@
             ],
             "details": "Add a Button that, when tapped, clears the style profile from AppState and possibly resets related metrics. Include a confirmation alert to prevent accidental clears.",
             "status": "pending",
-            "testStrategy": "UI tests for button tap and alert, unit tests for data clearing logic."
+            "testStrategy": "UI tests for button tap and alert, unit tests for data clearing logic.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 19,
+        "id": "19",
         "title": "Show Confidence Scores in Chips",
         "description": "Display confidence indicators in SuggestionChipView.",
         "details": "Add subtle visual indicator (e.g., opacity or badge) based on confidence Double.",
         "testStrategy": "UI test confidence display. Unit test threshold logic.",
         "priority": "low",
         "dependencies": [
-          13
+          "13"
         ],
         "status": "pending",
         "subtasks": [
@@ -9025,7 +9136,8 @@
             "dependencies": [],
             "details": "Review the SuggestionChipView code to identify the confidence Double property and the view's layout. Determine the best place to integrate subtle visual indicators like opacity or badges without disrupting the existing UI.",
             "status": "pending",
-            "testStrategy": "Manual code review to ensure understanding of the view structure."
+            "testStrategy": "Manual code review to ensure understanding of the view structure.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -9036,7 +9148,8 @@
             ],
             "details": "Define thresholds (e.g., low: 0-0.3, medium: 0.3-0.7, high: 0.7-1.0) and corresponding visual effects, such as opacity levels (e.g., 0.5 for low, 1.0 for high) or badge styles. Implement this as a helper function or computed property.",
             "status": "pending",
-            "testStrategy": "Unit test the threshold logic with various Double inputs to verify correct mapping."
+            "testStrategy": "Unit test the threshold logic with various Double inputs to verify correct mapping.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -9047,7 +9160,8 @@
             ],
             "details": "Modify SuggestionChipView to include a modifier or property that adjusts opacity or adds a badge dynamically. Ensure the indicator is subtle and does not interfere with chip readability. Use SwiftUI modifiers for opacity or overlay for badges.",
             "status": "pending",
-            "testStrategy": "Unit test the visual logic by simulating different confidence values and checking applied modifiers."
+            "testStrategy": "Unit test the visual logic by simulating different confidence values and checking applied modifiers.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -9058,7 +9172,8 @@
             ],
             "details": "Apply the visual changes in the SuggestionChipView body, ensuring the indicator updates reactively with confidence changes. Test for smooth transitions and accessibility considerations, like ensuring text remains readable at lower opacities.",
             "status": "pending",
-            "testStrategy": "UI test to verify the indicator appears correctly for different confidence levels in the chip view."
+            "testStrategy": "UI test to verify the indicator appears correctly for different confidence levels in the chip view.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -9069,19 +9184,23 @@
             ],
             "details": "Run UI tests to confirm the indicators display as expected in SuggestionChipView. Include edge cases like minimum and maximum confidence values. Verify no regressions in chip functionality or performance.",
             "status": "pending",
-            "testStrategy": "Automated UI tests for confidence display and manual testing for visual appeal and usability."
+            "testStrategy": "Automated UI tests for confidence display and manual testing for visual appeal and usability.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 20,
+        "id": "20",
         "title": "Track Time-to-Response for Feedback",
         "description": "Measure and record time from suggestion display to acceptance/rejection.",
         "details": "In SuggestionChipView, track timestamp on display. On interaction, calculate timeToResponseMs and include in feedback.",
         "testStrategy": "Unit test time calculation. Integration test feedback inclusion.",
         "priority": "medium",
         "dependencies": [
-          16
+          "16"
         ],
         "status": "pending",
         "subtasks": [
@@ -9092,7 +9211,8 @@
             "dependencies": [],
             "details": "In the SuggestionChipView class, add a property to store the display timestamp (e.g., using Date.timeIntervalSince1970). Set this timestamp in the view's onAppear or equivalent method to capture when the suggestion becomes visible.",
             "status": "pending",
-            "testStrategy": "Unit test that the timestamp is set correctly on view display using mock views."
+            "testStrategy": "Unit test that the timestamp is set correctly on view display using mock views.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -9103,7 +9223,8 @@
             ],
             "details": "In the interaction handler (e.g., on tap or swipe), calculate timeToResponseMs as the difference between current time and stored display timestamp, converting to milliseconds. Store this value in a local variable for inclusion in feedback.",
             "status": "pending",
-            "testStrategy": "Unit test the calculation logic with mocked timestamps to verify accurate millisecond computation."
+            "testStrategy": "Unit test the calculation logic with mocked timestamps to verify accurate millisecond computation.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -9114,7 +9235,8 @@
             ],
             "details": "Modify the feedback creation logic to populate the timeToResponseMs field in SuggestionFeedback with the computed value. This should happen right after calculation and before calling the recording service.",
             "status": "pending",
-            "testStrategy": "Unit test that SuggestionFeedback instances include the correct timeToResponseMs value when initialized with calculated data."
+            "testStrategy": "Unit test that SuggestionFeedback instances include the correct timeToResponseMs value when initialized with calculated data.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -9125,7 +9247,8 @@
             ],
             "details": "In the feedback recording implementation (dependent on Task 16), ensure that the timeToResponseMs is passed to the service and handled appropriately, possibly logging or sending it to analytics without altering core rejection/acceptance logic.",
             "status": "pending",
-            "testStrategy": "Integration test that feedback recording includes time-to-response and that API calls or logs reflect this data accurately."
+            "testStrategy": "Integration test that feedback recording includes time-to-response and that API calls or logs reflect this data accurately.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -9136,19 +9259,23 @@
             ],
             "details": "Conduct integration tests simulating user interactions with SuggestionChipView, verifying that timestamps are tracked, times are calculated, and feedback is recorded with accurate timeToResponseMs values across different scenarios.",
             "status": "pending",
-            "testStrategy": "End-to-end test using UI automation or manual testing to confirm the feature in a real app environment, checking for edge cases like quick interactions or delayed responses."
+            "testStrategy": "End-to-end test using UI automation or manual testing to confirm the feature in a real app environment, checking for edge cases like quick interactions or delayed responses.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 21,
+        "id": "21",
         "title": "Implement Suggestion Modification Tracking",
         "description": "Record when user modifies a suggestion before sending.",
         "details": "Compare original content to sent message. If modified, record in feedback with modifiedContent.",
         "testStrategy": "Unit test modification detection. Integration test recording.",
         "priority": "medium",
         "dependencies": [
-          16
+          "16"
         ],
         "status": "pending",
         "subtasks": [
@@ -9161,7 +9288,8 @@
             ],
             "details": "Implement structs or classes in Swift to represent suggestion data, including original content, modified content, and a flag for modification status. Ensure compatibility with existing feedback recording structures from Task 16.",
             "status": "pending",
-            "testStrategy": "Unit test the data structures for correct initialization and property access."
+            "testStrategy": "Unit test the data structures for correct initialization and property access.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -9172,7 +9300,8 @@
             ],
             "details": "Write a Swift function that performs string comparison, possibly using diff algorithms or simple equality checks, to identify modifications. Handle cases like whitespace changes, punctuation, and partial edits. Return a boolean indicating if modified, and optionally the diff.",
             "status": "pending",
-            "testStrategy": "Unit test the comparison function with various inputs including identical strings, minor changes, and major edits."
+            "testStrategy": "Unit test the comparison function with various inputs including identical strings, minor changes, and major edits.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -9183,7 +9312,8 @@
             ],
             "details": "Modify the message sending handler in the relevant view controller or service to call the comparison logic before sending. Capture the original suggestion and the final message content. Ensure this integrates seamlessly with the existing send message functionality.",
             "status": "pending",
-            "testStrategy": "Integration test to verify that the detection is triggered correctly during the send action in a simulated UI flow."
+            "testStrategy": "Integration test to verify that the detection is triggered correctly during the send action in a simulated UI flow.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -9194,7 +9324,8 @@
             ],
             "details": "Upon detection of modification, construct the feedback payload with the modifiedContent field as specified. Call SmartReplyService.recordFeedback asynchronously. Handle any errors gracefully and ensure the recording does not block the message sending process.",
             "status": "pending",
-            "testStrategy": "Unit test the feedback preparation and API call. Integration test to ensure feedback is recorded correctly when modifications occur."
+            "testStrategy": "Unit test the feedback preparation and API call. Integration test to ensure feedback is recorded correctly when modifications occur.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -9205,19 +9336,23 @@
             ],
             "details": "Add logging statements to track when modifications are detected and recorded. Implement fallback logic for cases where feedback recording fails, ensuring the message still sends. Consider privacy implications and avoid logging sensitive content.",
             "status": "pending",
-            "testStrategy": "Unit test edge cases like empty inputs and error scenarios. Integration test logging output and behavior under failure conditions."
+            "testStrategy": "Unit test edge cases like empty inputs and error scenarios. Integration test logging output and behavior under failure conditions.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 22,
+        "id": "22",
         "title": "Add Learning Indicator",
         "description": "Display indicator when style learning is active.",
         "details": "In composer or settings, show 'Learning from your messages' text or icon when enabled.",
         "testStrategy": "UI test visibility toggle.",
         "priority": "low",
         "dependencies": [
-          18
+          "18"
         ],
         "status": "pending",
         "subtasks": [
@@ -9228,7 +9363,8 @@
             "dependencies": [],
             "details": "Research and decide on the indicator's appearance, such as a subtle text label or an icon (e.g., a brain or learning symbol). Ensure it fits the app's design language and is non-intrusive. Document the design in a mockup or specification.",
             "status": "pending",
-            "testStrategy": null
+            "testStrategy": null,
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -9239,7 +9375,8 @@
             ],
             "details": "Analyze the user interface to choose between the composer (where messages are typed) or the settings screen. Consider user visibility, context, and minimal disruption. Update the design spec with the chosen location.",
             "status": "pending",
-            "testStrategy": null
+            "testStrategy": null,
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -9250,7 +9387,8 @@
             ],
             "details": "In the relevant SwiftUI or UIKit file, add a view or component that displays the indicator. Use conditional rendering based on a state variable. Ensure it integrates seamlessly with existing UI elements in the selected location.",
             "status": "pending",
-            "testStrategy": "Unit test the UI component rendering with different states."
+            "testStrategy": "Unit test the UI component rendering with different states.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -9261,7 +9399,8 @@
             ],
             "details": "Bind the indicator's show/hide logic to a state variable that reflects whether style learning is enabled. This likely involves observing a property from the UserStyleProfile or a similar model, ensuring it updates in real-time when learning toggles on or off.",
             "status": "pending",
-            "testStrategy": "Integration test to verify the indicator appears/disappears correctly when style learning state changes."
+            "testStrategy": "Integration test to verify the indicator appears/disappears correctly when style learning state changes.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -9272,20 +9411,24 @@
             ],
             "details": "Write UI tests using XCTest or similar framework to check visibility in the composer or settings. Test both enabled and disabled states, and verify the indicator's position and appearance match the design.",
             "status": "pending",
-            "testStrategy": "UI test for visibility toggle and integration with state changes."
+            "testStrategy": "UI test for visibility toggle and integration with state changes.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 3,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 23,
+        "id": "23",
         "title": "Subscribe to AI Suggestion Broadcasts",
         "description": "Enable subscription to Phoenix AI events for active threads.",
         "details": "In thread open, call ConversationMonitorService.startMonitoring. Handle broadcasts via PhoenixChannelManager.",
         "testStrategy": "Integration test event subscription and handling.",
         "priority": "high",
         "dependencies": [
-          8,
-          11
+          "8",
+          "11"
         ],
         "status": "pending",
         "subtasks": [
@@ -9299,7 +9442,8 @@
             ],
             "details": "Locate the code responsible for opening threads and ensure ConversationMonitorService is accessible. Prepare the service for starting monitoring when a thread becomes active.",
             "status": "pending",
-            "testStrategy": "Unit test that ConversationMonitorService is properly initialized and accessible in the thread opening context."
+            "testStrategy": "Unit test that ConversationMonitorService is properly initialized and accessible in the thread opening context.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -9310,7 +9454,8 @@
             ],
             "details": "In the thread open event handler, invoke startMonitoring method of ConversationMonitorService. Ensure this happens only for active threads and handle any potential errors gracefully.",
             "status": "pending",
-            "testStrategy": "Integration test to verify startMonitoring is called upon thread open and that monitoring begins without errors."
+            "testStrategy": "Integration test to verify startMonitoring is called upon thread open and that monitoring begins without errors.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -9321,7 +9466,8 @@
             ],
             "details": "Initialize PhoenixChannelManager with the appropriate channel for AI suggestions. Set up event listeners to receive broadcasts when monitoring starts.",
             "status": "pending",
-            "testStrategy": "Unit test PhoenixChannelManager initialization and event listener setup. Mock broadcasts to ensure proper subscription."
+            "testStrategy": "Unit test PhoenixChannelManager initialization and event listener setup. Mock broadcasts to ensure proper subscription.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -9332,7 +9478,8 @@
             ],
             "details": "Parse the broadcast messages to extract suggestion details such as content, confidence, and context. Map them to SmartReplySuggestion models for further use in the app.",
             "status": "pending",
-            "testStrategy": "Unit test parsing logic with sample broadcast payloads. Verify correct mapping to SmartReplySuggestion structs."
+            "testStrategy": "Unit test parsing logic with sample broadcast payloads. Verify correct mapping to SmartReplySuggestion structs.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -9343,19 +9490,23 @@
             ],
             "details": "Connect the processed suggestions to the UI components, such as SuggestionChipView, ensuring they are shown proactively or on demand. Handle updates in real-time as broadcasts arrive.",
             "status": "pending",
-            "testStrategy": "UI integration test to confirm suggestions appear correctly in the thread view after broadcasts. Test real-time updates and user interactions."
+            "testStrategy": "UI integration test to confirm suggestions appear correctly in the thread view after broadcasts. Test real-time updates and user interactions.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 6,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 24,
+        "id": "24",
         "title": "Visual Distinction for Proactive Suggestions",
         "description": "Differentiate proactive suggestions with icon or color in SuggestionChipView.",
         "details": "Check isProactive, apply different style (e.g., blue tint for proactive).",
         "testStrategy": "UI test visual differences.",
         "priority": "medium",
         "dependencies": [
-          13
+          "13"
         ],
         "status": "pending",
         "subtasks": [
@@ -9368,7 +9519,8 @@
             ],
             "details": "Open SuggestionChipView.swift and review the code for chip rendering, styling, and any existing properties. Ensure familiarity with the view's layout and current visual elements to prepare for adding proactive distinction.",
             "status": "pending",
-            "testStrategy": "Manual code review to verify understanding of the view structure."
+            "testStrategy": "Manual code review to verify understanding of the view structure.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -9379,7 +9531,8 @@
             ],
             "details": "Modify SuggestionChipView.swift to include a new @State or parameter property named isProactive of type Bool. This will be used to conditionally apply different visual styles. Ensure the property is initialized appropriately in the view's initializer or body.",
             "status": "pending",
-            "testStrategy": "Unit test to verify the property is correctly added and can be set to true or false without errors."
+            "testStrategy": "Unit test to verify the property is correctly added and can be set to true or false without errors.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -9390,7 +9543,8 @@
             ],
             "details": "In SuggestionChipView.swift, define constants or computed properties for background color, border, or icon based on the isProactive flag. For example, use a blue tint (e.g., Color.blue.opacity(0.2)) for proactive chips and a default style for others. Optionally, add a small icon like a lightbulb for proactive suggestions.",
             "status": "pending",
-            "testStrategy": "Unit test the style definitions to ensure they return correct colors or icons based on isProactive value."
+            "testStrategy": "Unit test the style definitions to ensure they return correct colors or icons based on isProactive value.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -9401,7 +9555,8 @@
             ],
             "details": "Update the body of SuggestionChipView to use conditional modifiers. For instance, apply .background(isProactive ? proactiveBackground : defaultBackground) and add an icon overlay if isProactive. Ensure the logic integrates seamlessly with existing chip styling without breaking other features.",
             "status": "pending",
-            "testStrategy": "UI test to verify that chips with isProactive=true display the distinct style (e.g., blue tint) and those with false use the default style."
+            "testStrategy": "UI test to verify that chips with isProactive=true display the distinct style (e.g., blue tint) and those with false use the default style.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -9412,20 +9567,24 @@
             ],
             "details": "Run the app and navigate to where SuggestionChipView is used. Test various scenarios: proactive and non-proactive chips side by side. Confirm the blue tint or icon appears only for proactive suggestions. Adjust styling if needed for better distinction and accessibility.",
             "status": "pending",
-            "testStrategy": "UI integration test using snapshot testing or manual inspection to ensure visual differences are clear and consistent across devices."
+            "testStrategy": "UI integration test using snapshot testing or manual inspection to ensure visual differences are clear and consistent across devices.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 4,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 25,
+        "id": "25",
         "title": "Add Dismissal for Proactive Suggestions",
         "description": "Implement dismissal interaction for proactive suggestions.",
         "details": "Allow tap or swipe to dismiss without recording rejection. Update UI state.",
         "testStrategy": "UI test dismissal gestures.",
         "priority": "medium",
         "dependencies": [
-          13,
-          24
+          "13",
+          "24"
         ],
         "status": "pending",
         "subtasks": [
@@ -9436,7 +9595,8 @@
             "dependencies": [],
             "details": "Modify SuggestionChipView to add gesture recognizers for tap and swipe actions. Ensure they are configured to detect single taps and left/right swipes without conflicting with existing interactions. This sets up the foundation for handling dismissal gestures.",
             "status": "pending",
-            "testStrategy": "Unit test that gesture recognizers are properly added and configured on the view."
+            "testStrategy": "Unit test that gesture recognizers are properly added and configured on the view.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -9447,7 +9607,8 @@
             ],
             "details": "In SuggestionChipView, implement a tap gesture handler that triggers dismissal when the user taps on the chip. This should animate the chip's removal from the UI and update the view state accordingly, without sending any rejection feedback to the backend.",
             "status": "pending",
-            "testStrategy": "UI test to verify that tapping the chip dismisses it and updates the UI state without recording rejection."
+            "testStrategy": "UI test to verify that tapping the chip dismisses it and updates the UI state without recording rejection.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -9458,7 +9619,8 @@
             ],
             "details": "In SuggestionChipView, implement a swipe gesture handler that detects swipe directions (left or right) and dismisses the chip upon swipe. Include smooth animation for the dismissal and ensure the UI state is updated to reflect the removal of the suggestion.",
             "status": "pending",
-            "testStrategy": "UI test to verify that swiping the chip dismisses it with animation and updates the UI state without recording rejection."
+            "testStrategy": "UI test to verify that swiping the chip dismisses it with animation and updates the UI state without recording rejection.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -9470,7 +9632,8 @@
             ],
             "details": "After dismissal via tap or swipe, notify the parent view controller or data source to remove the dismissed suggestion from the list or array. Update any relevant UI elements, such as hiding the suggestion list if all are dismissed, to maintain a consistent interface state.",
             "status": "pending",
-            "testStrategy": "UI integration test to confirm that dismissing a suggestion removes it from the view and updates the overall UI state correctly."
+            "testStrategy": "UI integration test to confirm that dismissing a suggestion removes it from the view and updates the overall UI state correctly.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -9482,20 +9645,24 @@
             ],
             "details": "In the dismissal handlers, explicitly avoid triggering any feedback mechanisms that record rejections. Ensure that proactive suggestions can be dismissed silently, preserving user privacy and not influencing future suggestions based on dismissal actions.",
             "status": "pending",
-            "testStrategy": "Unit test to verify that no rejection data is sent or logged when dismissal occurs, and integration test to confirm backend does not receive rejection signals."
+            "testStrategy": "Unit test to verify that no rejection data is sent or logged when dismissal occurs, and integration test to confirm backend does not receive rejection signals.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 26,
+        "id": "26",
         "title": "Per-Thread Monitoring Toggle",
         "description": "Add setting to enable/disable monitoring per thread.",
         "details": "In thread settings, toggle to start/stop monitoring. Persist in AppState.monitoredThreads.",
         "testStrategy": "UI test toggle. Integration test state update.",
         "priority": "medium",
         "dependencies": [
-          5,
-          23
+          "5",
+          "23"
         ],
         "status": "pending",
         "subtasks": [
@@ -9506,7 +9673,8 @@
             "dependencies": [],
             "details": "Locate the thread settings view (assuming it exists from prior tasks like 23), and add a Toggle view labeled 'Enable Monitoring' or similar. Bind it to a local state variable for the thread's monitoring status.",
             "status": "pending",
-            "testStrategy": "UI test to verify the toggle is present and interactive in the thread settings view."
+            "testStrategy": "UI test to verify the toggle is present and interactive in the thread settings view.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -9517,7 +9685,8 @@
             ],
             "details": "In the toggle's action closure, check the toggle's state: if true, call a function to start monitoring (e.g., add to monitored list and initiate monitoring process); if false, stop monitoring and remove from list. Ensure this interacts with the app's monitoring system.",
             "status": "pending",
-            "testStrategy": "Unit test the toggle action to ensure it correctly calls start/stop monitoring functions."
+            "testStrategy": "Unit test the toggle action to ensure it correctly calls start/stop monitoring functions.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -9528,7 +9697,8 @@
             ],
             "details": "Dispatch an action to the reducer to update AppState.monitoredThreads (added in Task 5). Add the thread ID to the monitored list if enabled, remove if disabled. Ensure the state persists across app sessions if needed.",
             "status": "pending",
-            "testStrategy": "Integration test to verify that toggling updates the AppState.monitoredThreads correctly."
+            "testStrategy": "Integration test to verify that toggling updates the AppState.monitoredThreads correctly.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -9539,7 +9709,8 @@
             ],
             "details": "Use a binding or observed object to link the toggle to AppState.monitoredThreads. On view load, set the toggle based on whether the thread is in the monitored list. Ensure changes propagate back to state.",
             "status": "pending",
-            "testStrategy": "UI test to check that the toggle state matches the AppState and updates in real-time."
+            "testStrategy": "UI test to check that the toggle state matches the AppState and updates in real-time.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -9550,75 +9721,79 @@
             ],
             "details": "Perform UI tests for toggle visibility and interaction, unit tests for logic, and integration tests for state updates. Verify that monitoring starts/stops as expected and persists in AppState.",
             "status": "pending",
-            "testStrategy": "UI test for toggle functionality and integration test for state persistence and monitoring behavior."
+            "testStrategy": "UI test for toggle functionality and integration test for state persistence and monitoring behavior.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 5,
+        "recommendedSubtasks": 0,
+        "expansionPrompt": ""
       },
       {
-        "id": 27,
+        "id": "27",
         "title": "Build TranslationBubbleView",
         "description": "Create TranslationBubbleView.swift for overlaying translations below messages.",
         "details": "Use SwiftUI to show original and translated text with toggle. Include confidence badge if <80%. Fade-in animation.",
         "testStrategy": "UI test toggle and animations. Accessibility test.",
         "priority": "low",
         "dependencies": [
-          9
+          "9"
         ],
         "status": "deferred",
         "subtasks": []
       },
       {
-        "id": 28,
+        "id": "28",
         "title": "Implement Auto-Translate on Message Receive",
         "description": "Auto-detect language and translate if needed using SmartTranslationService.",
         "details": "On message receive, check shouldAutoTranslate. Call translateMessage if true. Display in TranslationBubbleView.",
         "testStrategy": "Integration test detection and translation. Unit test preference logic.",
         "priority": "low",
         "dependencies": [
-          9,
-          27
+          "9",
+          "27"
         ],
         "status": "deferred",
         "subtasks": []
       },
       {
-        "id": 29,
+        "id": "29",
         "title": "Build TranslationPreferencesView",
         "description": "Create settings view for managing translation preferences.",
         "details": "Use SwiftUI to set preferredLanguage, autoTranslateEnabled, contactOverrides, threadOverrides.",
         "testStrategy": "UI test preference updates. Unit test storage.",
         "priority": "low",
         "dependencies": [
-          3,
-          5
+          "3",
+          "5"
         ],
         "status": "deferred",
         "subtasks": []
       },
       {
-        "id": 30,
+        "id": "30",
         "title": "Implement Batch Translate for Suggestions",
         "description": "Translate multiple suggestions in one API call.",
         "details": "In SmartTranslationService, implement batchTranslateSuggestions calling POST /api/v1/ai/translate with array. Cache results.",
         "testStrategy": "Unit test batch logic. Integration test API call.",
         "priority": "low",
         "dependencies": [
-          9,
-          7
+          "9",
+          "7"
         ],
         "status": "deferred",
         "subtasks": []
       },
       {
-        "id": 31,
+        "id": "31",
         "title": "Milestone: E2E Test Smart Reply MVP",
         "description": "Validate the full Smart Reply flow end-to-end: suggestions fetched on chat open, user taps a suggestion to insert into composer, and sending records feedback. Add deterministic integration tests with a mocked backend and a light UI test covering the happy path.",
         "details": "What to build and verify\n- Scope: Smart Reply MVP only. On opening a thread, fetch suggestions from backend, render chips, tap to insert into composer, send message, and record feedback (accept/modify/reject).\n- Not in scope: proactive (real-time) suggestions and per-thread monitor toggle (Task 26).\n\nCodebase alignment and hooks\n- UI layer: Suggestions render above the composer in Chat view (`clients/ios/GlobalBridge/Features/Chat/ChatScreen.swift`) and use the existing composer (`clients/ios/GlobalBridge/Features/Chat/MessageComposerView.swift`).\n- State/actions: Use current `AppAction.composerTextChanged` and `AppAction.sendMessage` for composing/sending, or dispatch `AppAction.sendQuickReply(threadID:text:)` if the UI opts to send immediately.\n- Tests infra: Reuse `MockURLProtocol` and ephemeral `URLSession` pattern from `clients/ios/GlobalBridge/Tests/FeatureFlags/FeatureFlagsServiceTests.swift:23` and class `MockURLProtocol` at `clients/ios/GlobalBridge/Tests/FeatureFlags/FeatureFlagsServiceTests.swift:428`.\n- Accessibility: Add identifiers so UI tests are reliable: set `.accessibilityIdentifier(\"ChatView\")` on the Chat root, a container id `.accessibilityIdentifier(\"SmartReplyBar\")`, each chip `.accessibilityIdentifier(\"SmartReplyChip-<index>\")`, the composer text field `.accessibilityIdentifier(\"ComposerTextField\")`, and send button `.accessibilityIdentifier(\"ComposerSendButton\")`.\n\nManual test script (primary acceptance)\n1) Launch app, open an existing thread. Confirm a Smart Reply bar appears with 2–3 chips within 1.5s of view appear.\n2) Tap the first chip. Composer populates exactly with chip text; caret at end; chips hide or remain per design.\n3) Tap Send. Message appears immediately (optimistic). Feedback is recorded as decision=accepted with suggestionId; no modifiedContent.\n4) Modify flow: tap a chip, append text, send. Feedback recorded as decision=modified with modifiedContent.\n5) Error paths: simulate offline via `NetworkMonitor.shared.simulateOffline()` (DEBUG) and confirm a non-blocking error state on the Smart Reply bar with a retry button; normal sending still works.\n6) Cache behavior: navigate away and back within 60s; bar repopulates using cache instantly, with background refresh deferred.\n\nIntegration tests (XCTest, mocked backend)\n- Location: add `clients/ios/GlobalBridge/Tests/AI/SmartReply/SmartReplyServiceTests.swift` and `.../SmartReplyIntegrationTests.swift`.\n- Session mocking: use\n  ```swift\n  let cfg = URLSessionConfiguration.ephemeral\n  cfg.protocolClasses = [MockURLProtocol.self]\n  let session = URLSession(configuration: cfg)\n  let service = SmartReplyService(baseURL: FeatureFlagsService.defaultBaseURL,\n                                  session: session,\n                                  authManager: mockAuth,\n                                  cacheTTL: 60,\n                                  clock: mockClock)\n  ```\n- Suggest replies stub:\n  ```json\n  {\"data\":{\"suggestions\":[\n    {\"id\":\"s1\",\"text\":\"Sounds good.\"},\n    {\"id\":\"s2\",\"text\":\"Let’s do it.\"},\n    {\"id\":\"s3\",\"text\":\"I’ll get back to you.\"}\n  ]}}\n  ```\n  Verify: POST /api/v1/ai/suggest_replies with threadId, lastMessage; Authorization header present; Accept/Content-Type headers = application/json.\n- Caching: First call returns network result; second call within 60s returns cached result (no new network hit). Advance `mockClock` >60s to force refresh.\n- Feedback recording stub: intercept POST /api/v1/ai/record_feedback. Validate JSON body contains `suggestionId`, `decision` (accepted|modified|rejected), `threadId`, optional `modifiedContent`, and timing metadata (latencyMs/timeToAcceptMs if present). Return 200 and ensure service resolves successfully.\n- Error mapping: 401 → unauthorized, 429 → rateLimited(retryAfter), 5xx → backendError, invalid JSON → decodingError. Verify typed errors.\n\nUI test (XCUITest, happy path)\n- Location: add `clients/ios/GlobalBridge/Tests/UI/SmartReplyUITests.swift`.\n- Pattern: follow `MessageBubbleUITests.swift` for setup. Use launch arg \"UI-Testing\".\n- Flow: open chat (`app.otherElements[\"ChatView\"]`), wait for `\"SmartReplyBar\"`, tap `\"SmartReplyChip-0\"`, assert `\"ComposerTextField\"` contains the chip text, tap `\"ComposerSendButton\"`, and assert a new outbound message bubble appears with that text.\n\nBest-practice implementation notes\n- Determinism: inject a `Clock`/`DateProvider` into `SmartReplyService` to test TTL precisely; avoid sleeping.\n- Isolation: prefer protocol-driven DI (`SmartReplyServiceProtocol` or extend `AIServiceProtocol`) so UI can be previewed with an in-memory mock.\n- Resilience: debounce re-fetch on rapid thread switches; guard against duplicate taps; clamp chip count to 3.\n- Telemetry: log accept/modify/reject with OSLog (privacy .private) in DEBUG only.\n- Accessibility: ensure chips have readable labels and hit targets ≥44pt; VoiceOver reads chip text and “double tap to insert”.\n\nArtifacts to add\n- Test files: `.../Tests/AI/SmartReply/SmartReplyServiceTests.swift`, `.../Tests/AI/SmartReply/SmartReplyIntegrationTests.swift`, `.../Tests/UI/SmartReplyUITests.swift`.\n- Minimal UI identifiers updates in `ChatScreen.swift` and `MessageComposerView.swift`.\n- Optional: `SmartReplyBarView.swift` + `SuggestionChipView.swift` (if not already present) with identifiers as noted.\n",
         "testStrategy": "Unit/Integration (XCTest)\n- Fetch success: service returns 3 suggestions; assert decoding, order, and non-empty ids/text.\n- Caching TTL: first fetch hits network; second within 60s is cache; after advancing mock clock >60s, network called again.\n- Feedback accepted: tap path leads to POST /api/v1/ai/record_feedback with decision=accepted and correct suggestionId.\n- Feedback modified: modify composer before send; expect decision=modified with modifiedContent present.\n- Feedback rejected: simulate chip swipe-to-dismiss; expect decision=rejected with optional reason field.\n- Headers/auth: Authorization and JSON headers present on both endpoints.\n- Error mapping: assert 401→unauthorized, 429→rateLimited(retryAfter), 5xx→backendError, bad JSON→decodingError.\n\nUI (XCUITest)\n- Happy path: open chat → wait for SmartReplyBar → tap chip → composer fills → send → new message bubble appears.\n- No suggestions state: backend returns empty array → bar hidden or shows placeholder; ensure no layout jank.\n- Offline: simulate offline via DEBUG hook; bar shows retry affordance; composer send still works for typed text.\n- Accessibility: VoiceOver labels on chips and bar; ensure chips are hittable and visible with large text sizes.\n\nHow to run\n- Scheme: run `GlobalBridgeTests` and `GlobalBridgeUITests` in Xcode. From CLI, use `xcodebuild test -scheme GlobalBridge -destination 'platform=iOS Simulator,name=iPhone 15'` with appropriate test targets.\n",
         "status": "pending",
         "dependencies": [
-          7,
-          16
+          "7",
+          "16"
         ],
         "priority": "medium",
         "subtasks": [
@@ -9629,7 +9804,8 @@
             "dependencies": [],
             "details": "Add SmartReplyServiceTests.swift and SmartReplyIntegrationTests.swift in clients/ios/GlobalBridge/Tests/AI/SmartReply/. Use MockURLProtocol and ephemeral URLSession for mocking. Test suggestion fetching with JSON stubs, caching TTL with mock clock, feedback POST validation, and error mappings. Ensure determinism with injected Clock.",
             "status": "pending",
-            "testStrategy": "XCTest with mocked backend using MockURLProtocol, verify network calls, caching, and error handling."
+            "testStrategy": "XCTest with mocked backend using MockURLProtocol, verify network calls, caching, and error handling.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -9640,7 +9816,8 @@
             ],
             "details": "Add SmartReplyUITests.swift in clients/ios/GlobalBridge/Tests/UI/. Follow MessageBubbleUITests pattern with launch arg 'UI-Testing'. Use accessibility identifiers like 'ChatView', 'SmartReplyBar', 'SmartReplyChip-0', 'ComposerTextField', 'ComposerSendButton'. Assert chip tap populates composer, send adds message bubble.",
             "status": "pending",
-            "testStrategy": "XCUITest for happy path, asserting UI elements and interactions using accessibility IDs."
+            "testStrategy": "XCUITest for happy path, asserting UI elements and interactions using accessibility IDs.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -9652,15 +9829,23 @@
             ],
             "details": "Perform manual testing: launch app, open thread, check Smart Reply bar with chips, tap chip to populate composer, send and verify feedback. Test modify flow, offline errors with retry, and cache repopulation. Use NetworkMonitor.shared.simulateOffline() for errors. Ensure all steps match the script and record results.",
             "status": "pending",
-            "testStrategy": "Manual testing script execution, verifying UI behavior, feedback recording, error states, and caching within 60s."
+            "testStrategy": "Manual testing script execution, verifying UI behavior, feedback recording, error states, and caching within 60s.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 9,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Break into subtasks for unit/integration tests, UI tests, and manual test script validation."
       }
     ],
     "metadata": {
-      "created": "2025-10-25T23:03:58.521Z",
-      "updated": "2025-10-25T23:24:48.221Z",
-      "description": "Tasks for ai-ios context"
+      "version": "1.0.0",
+      "lastModified": "2025-10-25T23:55:39.268Z",
+      "taskCount": 31,
+      "completedCount": 1,
+      "tags": [
+        "ai-ios"
+      ]
     }
   }
 }
