@@ -16,15 +16,19 @@ struct SmartReplyComposerView: View {
 
     let suggestions: [SmartReplySuggestion]
     let isLoading: Bool
+    let error: AIServiceError?
     let translationEnabled: Bool
     let onSuggestionTap: (SmartReplySuggestion, Int) -> Void // Now includes timeToResponseMs
     let onTranslationToggle: () -> Void
+    let onRetry: (() -> Void)?
 
     // MARK: - Body
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if isLoading {
+            if let error = error {
+                errorView(error)
+            } else if isLoading {
                 loadingView
             } else if !suggestions.isEmpty {
                 suggestionsView
@@ -87,6 +91,53 @@ struct SmartReplyComposerView: View {
             .accessibilityLabel(translationEnabled ? "Translation enabled" : "Translation disabled")
             .accessibilityHint("Double tap to toggle translation")
         }
+    }
+
+    // MARK: - Error View
+
+    private func errorView(_ error: AIServiceError) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundColor(.orange)
+                .font(.title3)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(error.errorDescription ?? "An error occurred")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+
+                if let recoverySuggestion = error.recoverySuggestion {
+                    Text(recoverySuggestion)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            Spacer()
+
+            if let onRetry = onRetry, error.shouldRetry {
+                Button(action: onRetry) {
+                    Text("Retry")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.blue)
+                }
+                .accessibilityLabel("Retry fetching suggestions")
+                .accessibilityHint("Double tap to try loading suggestions again")
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.orange.opacity(0.1))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Error: \(error.errorDescription ?? "An error occurred"). \(error.recoverySuggestion ?? "")")
     }
 }
 
@@ -200,11 +251,13 @@ private struct ShimmerChip: View {
             )
         ],
         isLoading: false,
+        error: nil,
         translationEnabled: false,
         onSuggestionTap: { suggestion, timeMs in
             print("Tapped suggestion: \(suggestion.content) after \(timeMs)ms")
         },
-        onTranslationToggle: {}
+        onTranslationToggle: {},
+        onRetry: nil
     )
     .padding()
 }
@@ -213,9 +266,11 @@ private struct ShimmerChip: View {
     SmartReplyComposerView(
         suggestions: [],
         isLoading: true,
+        error: nil,
         translationEnabled: false,
         onSuggestionTap: { _, _ in },
-        onTranslationToggle: {}
+        onTranslationToggle: {},
+        onRetry: nil
     )
     .padding()
 }
@@ -224,9 +279,11 @@ private struct ShimmerChip: View {
     SmartReplyComposerView(
         suggestions: [],
         isLoading: false,
+        error: nil,
         translationEnabled: false,
         onSuggestionTap: { _, _ in },
-        onTranslationToggle: {}
+        onTranslationToggle: {},
+        onRetry: nil
     )
     .padding()
 }
@@ -245,9 +302,11 @@ private struct ShimmerChip: View {
             )
         ],
         isLoading: false,
+        error: nil,
         translationEnabled: true,
         onSuggestionTap: { _, _ in },
-        onTranslationToggle: {}
+        onTranslationToggle: {},
+        onRetry: nil
     )
     .padding()
 }
@@ -282,9 +341,11 @@ private struct ShimmerChip: View {
                 )
             ],
             isLoading: false,
+            error: nil,
             translationEnabled: false,
             onSuggestionTap: { _, _ in },
-            onTranslationToggle: {}
+            onTranslationToggle: {},
+            onRetry: nil
         )
 
         Divider()
@@ -314,10 +375,57 @@ private struct ShimmerChip: View {
                 )
             ],
             isLoading: false,
+            error: nil,
             translationEnabled: false,
             onSuggestionTap: { _, _ in },
-            onTranslationToggle: {}
+            onTranslationToggle: {},
+            onRetry: nil
         )
     }
+    .padding()
+}
+
+#Preview("Network Error with Retry") {
+    SmartReplyComposerView(
+        suggestions: [],
+        isLoading: false,
+        error: .networkError(URLError(.notConnectedToInternet)),
+        translationEnabled: false,
+        onSuggestionTap: { _, _ in },
+        onTranslationToggle: {},
+        onRetry: {
+            print("Retry tapped")
+        }
+    )
+    .padding()
+}
+
+#Preview("Rate Limit Error") {
+    SmartReplyComposerView(
+        suggestions: [],
+        isLoading: false,
+        error: .rateLimitExceeded(
+            retryAfter: Date().addingTimeInterval(300),
+            remainingQuota: 0,
+            tierLimit: "Premium"
+        ),
+        translationEnabled: false,
+        onSuggestionTap: { _, _ in },
+        onTranslationToggle: {},
+        onRetry: nil
+    )
+    .padding()
+}
+
+#Preview("Unauthorized Error") {
+    SmartReplyComposerView(
+        suggestions: [],
+        isLoading: false,
+        error: .unauthorized,
+        translationEnabled: false,
+        onSuggestionTap: { _, _ in },
+        onTranslationToggle: {},
+        onRetry: nil
+    )
     .padding()
 }
