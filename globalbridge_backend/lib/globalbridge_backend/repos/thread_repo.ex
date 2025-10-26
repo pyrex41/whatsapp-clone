@@ -258,17 +258,26 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
     module_name = Module.concat([GlobalbridgeBackend.Repos.ThreadRepo, "Shard_#{clean_shard_id}"])
 
     # Define the module dynamically if it doesn't exist
+    # Use try/rescue to handle race conditions when multiple processes
+    # attempt to create the same module simultaneously
     unless Code.ensure_loaded?(module_name) do
-      {:module, _module, _binary, _term} =
-        Module.create(
-          module_name,
-          quote do
-            use Ecto.Repo,
-              otp_app: :globalbridge_backend,
-              adapter: Ecto.Adapters.SQLite3
-          end,
-          Macro.Env.location(__ENV__)
-        )
+      try do
+        {:module, _module, _binary, _term} =
+          Module.create(
+            module_name,
+            quote do
+              use Ecto.Repo,
+                otp_app: :globalbridge_backend,
+                adapter: Ecto.Adapters.SQLite3
+            end,
+            Macro.Env.location(__ENV__)
+          )
+      rescue
+        ArgumentError ->
+          # Module already exists - another process created it
+          # This is fine, just continue
+          :ok
+      end
     end
 
     module_name

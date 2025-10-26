@@ -443,13 +443,13 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
 
     # Trigger async style learning (non-blocking)
     Task.start(fn ->
-      case Chat.get_message(thread_id, message_id) do
-        {:ok, message} ->
+      case Messages.get_message(thread_id, message_id) do
+        nil ->
+          Logger.warning("⚠️  [STYLE_LEARN] Message #{message_id} not found")
+
+        message ->
           SmartReplyGenerator.learn_user_style(user_id, message, thread_id)
           Logger.info("✅ [STYLE_LEARN] Style learning completed for user: #{user_id}")
-
-        {:error, reason} ->
-          Logger.warning("⚠️  [STYLE_LEARN] Failed to get message #{message_id}: #{inspect(reason)}")
       end
     end)
 
