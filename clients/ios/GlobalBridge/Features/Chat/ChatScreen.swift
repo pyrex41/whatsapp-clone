@@ -13,6 +13,7 @@ struct ChatScreen: View {
     @State private var hasFetchedSuggestions = false // Track if we've fetched for this thread
     @State private var lastFetchTime: Date? = nil // For debouncing
     @State private var hasInteractedWithComposer = false // Track if user has focused composer
+    @State private var smartReplyExpanded = false // Track if suggestions are expanded
 
     private var chatState: ChatState { store.state.chat }
 
@@ -65,6 +66,7 @@ struct ChatScreen: View {
                         }
                         .padding(.vertical, 12)
                         .padding(.horizontal, 8)
+                        .padding(.bottom, smartReplyExpanded ? 80 : 0) // Extra padding when suggestions expanded
                     }
                     if !isAtBottom {
                         jumpToLatestButton(proxy: proxy)
@@ -143,7 +145,10 @@ struct ChatScreen: View {
                 print("DEBUG: Suggestion dismissed (UI only): \(dismissedSuggestion.content)")
             },
             onTranslationToggle: {},
-            onRetry: { refreshSmartReplies(for: thread.id) }
+            onRetry: { refreshSmartReplies(for: thread.id) },
+            onExpandToggle: { expanded in
+                smartReplyExpanded = expanded
+            }
         )
         .padding(.horizontal, 12)
         .padding(.bottom, 4)

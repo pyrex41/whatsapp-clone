@@ -23,6 +23,7 @@ struct SmartReplyComposerView: View {
     let onSuggestionDismiss: ((SmartReplySuggestion) -> Void)?
     let onTranslationToggle: () -> Void
     let onRetry: (() -> Void)?
+    let onExpandToggle: ((Bool) -> Void)? // Callback when expansion state changes
 
     // MARK: - State
 
@@ -85,6 +86,7 @@ struct SmartReplyComposerView: View {
                     Button(action: {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                             isExpanded.toggle()
+                            onExpandToggle?(isExpanded)
                         }
                     }) {
                         HStack(spacing: 4) {
@@ -511,7 +513,8 @@ private struct ShimmerChip: View {
             print("Dismissed suggestion: \(suggestion.content)")
         },
         onTranslationToggle: {},
-        onRetry: nil
+        onRetry: nil,
+        onExpandToggle: nil
     )
     .padding()
 }
@@ -526,7 +529,8 @@ private struct ShimmerChip: View {
         onSuggestionTap: { _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
-        onRetry: nil
+        onRetry: nil,
+        onExpandToggle: nil
     )
     .padding()
 }
@@ -541,7 +545,8 @@ private struct ShimmerChip: View {
         onSuggestionTap: { _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
-        onRetry: nil
+        onRetry: nil,
+        onExpandToggle: nil
     )
     .padding()
 }
@@ -566,7 +571,8 @@ private struct ShimmerChip: View {
         onSuggestionTap: { _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
-        onRetry: nil
+        onRetry: nil,
+        onExpandToggle: nil
     )
     .padding()
 }
@@ -607,7 +613,8 @@ private struct ShimmerChip: View {
             onSuggestionTap: { _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
-            onRetry: nil
+            onRetry: nil,
+        onExpandToggle: nil
         )
 
         Divider()
@@ -643,7 +650,8 @@ private struct ShimmerChip: View {
             onSuggestionTap: { _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
-            onRetry: nil
+            onRetry: nil,
+        onExpandToggle: nil
         )
     }
     .padding()
@@ -680,7 +688,8 @@ private struct ShimmerChip: View {
         onSuggestionTap: { _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
-        onRetry: nil
+        onRetry: nil,
+        onExpandToggle: nil
     )
     .padding()
 }
@@ -695,7 +704,8 @@ private struct ShimmerChip: View {
         onSuggestionTap: { _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
-        onRetry: nil
+        onRetry: nil,
+        onExpandToggle: nil
     )
     .padding()
 }
@@ -736,7 +746,8 @@ private struct ShimmerChip: View {
             onSuggestionTap: { _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
-            onRetry: nil
+            onRetry: nil,
+        onExpandToggle: nil
         )
 
         Divider()
@@ -772,7 +783,8 @@ private struct ShimmerChip: View {
             onSuggestionTap: { _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
-            onRetry: nil
+            onRetry: nil,
+        onExpandToggle: nil
         )
 
         Divider()
@@ -808,7 +820,8 @@ private struct ShimmerChip: View {
             onSuggestionTap: { _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
-            onRetry: nil
+            onRetry: nil,
+        onExpandToggle: nil
         )
     }
     .padding()
