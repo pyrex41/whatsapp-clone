@@ -873,9 +873,14 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
 
         return .run(priority: nil) { send in
             do {
+                // Convert threadId String to UUID
+                guard let threadUUID = UUID(uuidString: threadId) else {
+                    throw AIServiceError.invalidInput(reason: "Invalid thread ID format")
+                }
+
                 let suggestions = try await SmartReplyService.shared.fetchSuggestions(
-                    for: threadId,
-                    contextWindow: 10
+                    threadId: threadUUID,
+                    limit: 3
                 )
                 print("✅ [SMART_REPLY] Received \(suggestions.count) suggestions")
                 send(.smartRepliesReceived(threadId: threadId, .success(suggestions)))
@@ -914,10 +919,9 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         let feedback = SuggestionFeedback(
             suggestionId: suggestion.id,
             accepted: true,
-            modified: modifiedContent != nil,
-            originalContent: suggestion.content,
-            finalContent: content,
-            threadId: UUID(uuidString: threadId) ?? UUID(),
+            modifiedContent: modifiedContent,
+            rejectionReason: nil,
+            timeToResponseMs: nil,
             timestamp: Date()
         )
 
@@ -938,12 +942,10 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         let feedback = SuggestionFeedback(
             suggestionId: suggestionId,
             accepted: false,
-            modified: false,
-            originalContent: "",
-            finalContent: nil,
-            threadId: UUID(uuidString: threadId) ?? UUID(),
-            timestamp: Date(),
-            rejectionReason: reason
+            modifiedContent: nil,
+            rejectionReason: reason,
+            timeToResponseMs: nil,
+            timestamp: Date()
         )
 
         return .run(priority: nil) { send in
