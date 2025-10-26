@@ -183,4 +183,36 @@ final class AIBroadcastCoordinator {
         store.send(.aiSuggestionBroadcast(threadId: threadId, suggestion: suggestion))
         print("✅ [AI_BROADCAST_COORDINATOR] Dispatched aiSuggestionBroadcast action to store")
     }
+
+    // MARK: - DEBUG Only
+
+    #if DEBUG
+    /// DEBUG: Simulate a proactive AI suggestion for testing
+    /// - Parameter threadId: The thread ID to send the test suggestion to
+    func simulateProactiveSuggestion(threadId: String) {
+        print("🧪 [AI_BROADCAST_COORDINATOR] [DEBUG] Simulating proactive suggestion for thread: \(threadId)")
+
+        let testSuggestion = SmartReplySuggestion(
+            id: UUID(),
+            type: "proactive",
+            content: "This is a test AI suggestion from DEBUG menu",
+            confidence: 0.95,
+            position: 0,
+            context: "DEBUG simulation",
+            timestamp: Date()
+        )
+
+        // Post the notification as if it came from the backend
+        NotificationCenter.default.post(
+            name: NSNotification.Name("AIProactiveSuggestion"),
+            object: nil,
+            userInfo: [
+                "threadId": threadId,
+                "suggestion": testSuggestion
+            ]
+        )
+
+        print("✅ [AI_BROADCAST_COORDINATOR] [DEBUG] Test suggestion posted to NotificationCenter")
+    }
+    #endif
 }

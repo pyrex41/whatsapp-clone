@@ -9067,7 +9067,7 @@
           "2",
           "5"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -9075,9 +9075,10 @@
             "description": "Design the SwiftUI layout for the settings view, including sections for displaying style profile metrics and action buttons.",
             "dependencies": [],
             "details": "Create a SwiftUI View struct named AIStyleProfileView with a VStack containing sections for metrics display and buttons for disable/clear options. Use appropriate SwiftUI components like Text, HStack, VStack, and Button to structure the view.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "UI snapshot tests to verify layout structure.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T02:21:52.780Z"
           },
           {
             "id": 2,
@@ -9087,9 +9088,10 @@
               1
             ],
             "details": "Bind the view to AppState properties for style profile. Use Text views to show each metric with labels, ensuring data is fetched and displayed correctly. Handle cases where metrics might be nil or loading.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit tests for data binding and UI tests for metric display accuracy.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T02:21:54.054Z"
           },
           {
             "id": 3,
@@ -9100,9 +9102,10 @@
               2
             ],
             "details": "Add a ProgressView or custom indicator to show the confidenceScore as a percentage or bar. Ensure it updates reactively with state changes and includes accessibility labels.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "UI tests for confidence score rendering and unit tests for score calculation.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T02:21:55.335Z"
           },
           {
             "id": 4,
@@ -9112,9 +9115,10 @@
               1
             ],
             "details": "Include a Toggle or Button in the view that updates the AppState to disable the profile. Ensure the action persists and affects related features, with confirmation dialog if needed.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "UI tests for toggle interaction and integration tests for state changes.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T02:21:56.669Z"
           },
           {
             "id": 5,
@@ -9124,14 +9128,16 @@
               1
             ],
             "details": "Add a Button that, when tapped, clears the style profile from AppState and possibly resets related metrics. Include a confirmation alert to prevent accidental clears.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "UI tests for button tap and alert, unit tests for data clearing logic.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T02:21:57.990Z"
           }
         ],
         "complexity": 5,
         "recommendedSubtasks": 0,
-        "expansionPrompt": ""
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-26T02:21:57.990Z"
       },
       {
         "id": "19",
@@ -10042,7 +10048,7 @@
         "description": "On chat open, call ConversationMonitorService.shared.startMonitoring(threadId:) and subscribe via PhoenixChannelManager; on close, stop monitoring. Ensure AIBroadcastCoordinator routes proactive suggestions to store and chips appear. Handle idempotency, errors, and Simulator backend URLs.",
         "details": "",
         "testStrategy": "",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           "5",
           "8",
@@ -10107,19 +10113,21 @@
               3,
               4
             ],
-            "details": "Files: Tests/AI/AIBroadcastCoordinatorTests.swift, iOS/DevTools/DebugMenu.swift, iOS/AI/AIBroadcastCoordinator.swift, iOS/State/AppState.swift. Add DEBUG menu action \"Send Test AI Suggestion\" that posts an AIProactiveSuggestion notification with a sample SmartReplySuggestion (isProactive=true) for the active thread. In tests, publish the same notification/event to AIBroadcastCoordinator and assert it dispatches aiSuggestionBroadcast to the store, updating AppState for that thread. Acceptance: unit test passes asserting AppState change; in DEBUG build tapping the menu shows proactive chips within 1s in the current chat.",
-            "status": "pending",
+            "details": "Files: Tests/AI/AIBroadcastCoordinatorTests.swift, iOS/DevTools/DebugMenu.swift, iOS/AI/AIBroadcastCoordinator.swift, iOS/State/AppState.swift. Add DEBUG menu action \"Send Test AI Suggestion\" that posts an AIProactiveSuggestion notification with a sample SmartReplySuggestion (isProactive=true) for the active thread. In tests, publish the same notification/event to AIBroadcastCoordinator and assert it dispatches aiSuggestionBroadcast to the store, updating AppState for that thread. Acceptance: unit test passes asserting AppState change; in DEBUG build tapping the menu shows proactive chips within 1s in the current chat.\n<info added on 2025-10-26T02:19:42.907Z>\nImplemented DEBUG test hook for AIProactiveSuggestion:\n\n1. Added DEBUG method to AIBroadcastCoordinator.swift:192-217\n   - simulateProactiveSuggestion(threadId:) creates a test SmartReplySuggestion\n   - Posts to NotificationCenter to trigger the coordinator flow\n   - Only available in DEBUG builds via #if DEBUG\n\n2. Enhanced DebugMenuView.swift:56-107\n   - Added 'AI Testing' section with thread ID input\n   - Button to trigger test suggestion (uses current thread or custom ID)\n   - Alert feedback for success/error\n   - @EnvironmentObject store access for current thread ID\n\n3. Created comprehensive tests in AIBroadcastCoordinatorTests.swift\n   - testProactiveSuggestionNotificationHandling: Validates notification → action flow\n   - testDebugSimulateProactiveSuggestion: Tests DEBUG method directly\n   - testAppStateUpdateAfterProactiveSuggestion: Confirms state updates\n   - testMultipleProactiveSuggestions: Tests multiple concurrent suggestions\n   - MockStore and MockPhoenixChannelManager for isolated testing\n\nAcceptance criteria met:\n✅ Unit tests verify AppState updates via aiSuggestionBroadcast action\n✅ DEBUG menu action allows manual testing in simulator\n✅ Test suggestion has isProactive=true (type='proactive')\n✅ Implementation files in correct locations per task spec\n</info added on 2025-10-26T02:19:42.907Z>",
+            "status": "done",
             "testStrategy": "Unit: construct sample suggestion payload and post to coordinator, then assert AppState updated. UI (optional DEBUG): run automated step tapping DebugMenu action and assert SuggestionChipView contains the injected chip.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T02:19:46.019Z"
           }
-        ]
+        ],
+        "updatedAt": "2025-10-26T02:19:46.019Z"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-10-26T02:05:29.619Z",
+      "lastModified": "2025-10-26T02:21:57.992Z",
       "taskCount": 34,
-      "completedCount": 22,
+      "completedCount": 24,
       "tags": [
         "ai-ios"
       ]

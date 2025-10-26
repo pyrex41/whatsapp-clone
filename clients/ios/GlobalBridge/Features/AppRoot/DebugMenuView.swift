@@ -9,8 +9,12 @@ import SwiftUI
 
 struct DebugMenuView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var store: Store<AppState, AppAction>
     @State private var selected: NotificationMode = NotificationConfig.runtimeOverride ?? NotificationConfig.current
     @State private var hasOverride: Bool = NotificationConfig.runtimeOverride != nil
+    @State private var testThreadId: String = ""
+    @State private var showSuccessAlert: Bool = false
+    @State private var alertMessage: String = ""
 
     var body: some View {
         NavigationView {
@@ -48,6 +52,26 @@ struct DebugMenuView: View {
                         hasOverride = false
                     }
                 }
+
+                #if DEBUG
+                Section(header: Text("AI Testing")) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Current Thread: \(store.state.currentThreadId ?? "None")")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+
+                        TextField("Test Thread ID (optional)", text: $testThreadId)
+                            .textFieldStyle(.roundedBorder)
+                            .autocapitalization(.none)
+                            .autocorrectionDisabled()
+                    }
+
+                    Button("Send Test AI Suggestion") {
+                        sendTestAISuggestion()
+                    }
+                    .disabled(store.state.currentThreadId == nil && testThreadId.isEmpty)
+                }
+                #endif
             }
             .navigationTitle("Debug Menu")
             .toolbar {
@@ -55,8 +79,32 @@ struct DebugMenuView: View {
                     Button("Close") { dismiss() }
                 }
             }
+            .alert("AI Test", isPresented: $showSuccessAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(alertMessage)
+            }
         }
     }
+
+    #if DEBUG
+    private func sendTestAISuggestion() {
+        // Use custom thread ID if provided, otherwise use current thread
+        let threadId = testThreadId.isEmpty ? (store.state.currentThreadId ?? "") : testThreadId
+
+        guard !threadId.isEmpty else {
+            alertMessage = "No thread ID available. Open a chat or enter a thread ID."
+            showSuccessAlert = true
+            return
+        }
+
+        Task { @MainActor in
+            AIBroadcastCoordinator.shared.simulateProactiveSuggestion(threadId: threadId)
+            alertMessage = "Test AI suggestion sent for thread:\n\(threadId)"
+            showSuccessAlert = true
+        }
+    }
+    #endif
 }
 
 #if DEBUG
