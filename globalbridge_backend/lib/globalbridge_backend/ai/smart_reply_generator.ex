@@ -502,17 +502,26 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
     suggestions
     |> Enum.with_index(1)
     |> Enum.map(fn {content, position} ->
+      # Generate unique ID for each suggestion
+      suggestion_id = Ecto.UUID.generate()
+
+      # Format context as JSON string for iOS compatibility
+      context_map = %{
+        matched_style: not is_nil(user_profile),
+        last_message_id: context.last_message.id,
+        formality_level: if(user_profile, do: user_profile.formality_level, else: 0.5),
+        ai_generated: true
+      }
+      context_string = Jason.encode!(context_map)
+
       %{
+        id: suggestion_id,
         type: "smart_reply",
         content: content,
         confidence: calculate_suggestion_confidence(user_profile, position),
         position: position,
-        context: %{
-          matched_style: not is_nil(user_profile),
-          last_message_id: context.last_message.id,
-          formality_level: if(user_profile, do: user_profile.formality_level, else: 0.5),
-          ai_generated: true
-        }
+        context: context_string,
+        timestamp: DateTime.utc_now() |> DateTime.to_iso8601()
       }
     end)
   end
@@ -540,17 +549,26 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
     |> Enum.take(count)
     |> Enum.with_index(1)
     |> Enum.map(fn {content, position} ->
+      # Generate unique ID for each suggestion
+      suggestion_id = Ecto.UUID.generate()
+
+      # Format context as JSON string for iOS compatibility
+      context_map = %{
+        matched_style: not is_nil(user_profile),
+        last_message_id: last_message.id,
+        formality_level: if(user_profile, do: user_profile.formality_level, else: 0.5),
+        ai_generated: false
+      }
+      context_string = Jason.encode!(context_map)
+
       %{
+        id: suggestion_id,
         type: "smart_reply",
         content: content,
         confidence: calculate_suggestion_confidence(user_profile, position),
         position: position,
-        context: %{
-          matched_style: not is_nil(user_profile),
-          last_message_id: last_message.id,
-          formality_level: if(user_profile, do: user_profile.formality_level, else: 0.5),
-          ai_generated: false
-        }
+        context: context_string,
+        timestamp: DateTime.utc_now() |> DateTime.to_iso8601()
       }
     end)
   end
