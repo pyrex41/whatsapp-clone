@@ -66,7 +66,6 @@ struct ChatScreen: View {
                         }
                         .padding(.vertical, 12)
                         .padding(.horizontal, 8)
-                        .padding(.bottom, smartReplyExpanded ? 80 : 0) // Extra padding when suggestions expanded
                     }
                     if !isAtBottom {
                         jumpToLatestButton(proxy: proxy)
@@ -79,6 +78,14 @@ struct ChatScreen: View {
                         proxy.scrollTo(lastMessage.id, anchor: .bottom)
                     } else if isAtBottom {
                         withAnimation { proxy.scrollTo(lastMessage.id, anchor: .bottom) }
+                    }
+                }
+                .onChange(of: smartReplyExpanded) { _, expanded in
+                    // Auto-scroll to bottom when suggestions expand to keep them visible
+                    if expanded, let lastMessage = chatState.messages.last {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                        }
                     }
                 }
             }
