@@ -83,8 +83,11 @@ struct ChatScreen: View {
                 .onChange(of: smartReplyExpanded) { _, expanded in
                     // Auto-scroll to bottom when suggestions expand to keep them visible
                     if expanded, let lastMessage = chatState.messages.last {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                        // Small delay to ensure layout has updated before scrolling
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                            }
                         }
                     }
                 }
