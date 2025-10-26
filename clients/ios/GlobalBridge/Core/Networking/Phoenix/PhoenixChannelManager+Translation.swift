@@ -58,20 +58,23 @@ extension PhoenixChannelManager {
                     "preferred_thread_language": targetLanguage
                 ]
 
-                sendableChannel.channel.push("set_translation_preference", payload: payload)
-                    .receive("ok") { response in
-                        print("✅ [PHOENIX_TRANSLATION] Translation preference set successfully")
-                        print("   Response: \(response.payload)")
-                        continuation.resume()
-                    }
-                    .receive("error") { message in
-                        print("❌ [PHOENIX_TRANSLATION] Failed to set translation preference: \(message.payload)")
-                        continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
-                    }
-                    .receive("timeout") { _ in
-                        print("⏱️  [PHOENIX_TRANSLATION] Translation preference request timeout")
-                        continuation.resume(throwing: PhoenixError.timeout)
-                    }
+                let push = sendableChannel.channel.push("set_translation_preference", payload: payload)
+
+                push.receive("ok") { response in
+                    print("✅ [PHOENIX_TRANSLATION] Translation preference set successfully")
+                    print("   Response: \(response.payload)")
+                    continuation.resume(returning: ())
+                }
+
+                push.receive("error") { message in
+                    print("❌ [PHOENIX_TRANSLATION] Failed to set translation preference: \(message.payload)")
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
+                }
+
+                push.receive("timeout") { _ in
+                    print("⏱️  [PHOENIX_TRANSLATION] Translation preference request timeout")
+                    continuation.resume(throwing: PhoenixError.timeout)
+                }
             }
         }
     }
@@ -98,35 +101,38 @@ extension PhoenixChannelManager {
                 let payload: [String: Any] = [:]
 
                 // Backend uses plural "preferences" not singular "preference"
-                sendableChannel.channel.push("get_translation_preferences", payload: payload)
-                    .receive("ok") { response in
-                        print("✅ [PHOENIX_TRANSLATION] Translation preferences retrieved")
-                        print("   Response: \(response.payload)")
+                let push = sendableChannel.channel.push("get_translation_preferences", payload: payload)
 
-                        // Backend returns: auto_translate_incoming, auto_translate_outgoing, preferred_thread_language
-                        let autoTranslateIncoming = response.payload["auto_translate_incoming"] as? Bool ?? false
-                        let autoTranslateOutgoing = response.payload["auto_translate_outgoing"] as? Bool ?? false
-                        let preferredLanguage = response.payload["preferred_thread_language"] as? String
+                push.receive("ok") { response in
+                    print("✅ [PHOENIX_TRANSLATION] Translation preferences retrieved")
+                    print("   Response: \(response.payload)")
 
-                        // Consider enabled if either incoming or outgoing translation is on
-                        let enabled = autoTranslateIncoming || autoTranslateOutgoing
+                    // Backend returns: auto_translate_incoming, auto_translate_outgoing, preferred_thread_language
+                    let autoTranslateIncoming = response.payload["auto_translate_incoming"] as? Bool ?? false
+                    let autoTranslateOutgoing = response.payload["auto_translate_outgoing"] as? Bool ?? false
+                    let preferredLanguage = response.payload["preferred_thread_language"] as? String
 
-                        let result = TranslationPreferenceResponse(
-                            success: true,
-                            targetLanguage: preferredLanguage,
-                            enabled: enabled
-                        )
+                    // Consider enabled if either incoming or outgoing translation is on
+                    let enabled = autoTranslateIncoming || autoTranslateOutgoing
 
-                        continuation.resume(returning: result)
-                    }
-                    .receive("error") { message in
-                        print("❌ [PHOENIX_TRANSLATION] Failed to get translation preferences: \(message.payload)")
-                        continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
-                    }
-                    .receive("timeout") { _ in
-                        print("⏱️  [PHOENIX_TRANSLATION] Translation preferences request timeout")
-                        continuation.resume(throwing: PhoenixError.timeout)
-                    }
+                    let result = TranslationPreferenceResponse(
+                        success: true,
+                        targetLanguage: preferredLanguage,
+                        enabled: enabled
+                    )
+
+                    continuation.resume(returning: result)
+                }
+
+                push.receive("error") { message in
+                    print("❌ [PHOENIX_TRANSLATION] Failed to get translation preferences: \(message.payload)")
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
+                }
+
+                push.receive("timeout") { _ in
+                    print("⏱️  [PHOENIX_TRANSLATION] Translation preferences request timeout")
+                    continuation.resume(throwing: PhoenixError.timeout)
+                }
             }
         }
     }
