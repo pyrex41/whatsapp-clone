@@ -32,6 +32,7 @@ defmodule GlobalbridgeBackend.Auth.Pipeline do
             conn
             |> Guardian.Plug.put_current_resource(user)
             |> Plug.Conn.assign(:current_user, user)
+            |> Plug.Conn.assign(:auth0_verified, true)
             |> Plug.Conn.assign(:auth_bypass_used, token == "test-token-for-backend-integration")
 
           {:error, reason} ->
@@ -50,15 +51,21 @@ defmodule GlobalbridgeBackend.Auth.Pipeline do
   end
 
   @doc """
-  Conditionally verify Guardian token, skipping for auth bypass.
+  Conditionally verify Guardian token, skipping for auth bypass or Auth0 tokens.
   """
   def conditionally_verify_guardian(conn, _opts) do
-    if conn.assigns[:auth_bypass_used] do
+    cond do
+      # Skip if Auth0 already verified the user
+      conn.assigns[:auth0_verified] ->
+        conn
+
       # Skip Guardian verification for test token
-      conn
-    else
-      # Use normal Guardian verification
-      Guardian.Plug.VerifyHeader.call(conn, [])
+      conn.assigns[:auth_bypass_used] ->
+        conn
+
+      # Use normal Guardian verification for Guardian tokens
+      true ->
+        Guardian.Plug.VerifyHeader.call(conn, [])
     end
   end
 

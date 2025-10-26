@@ -873,8 +873,20 @@ defmodule GlobalbridgeBackendWeb.AIController do
   defp validate_accepted(_), do: {:error, "accepted must be a boolean"}
 
   defp get_recent_messages(thread_id, limit) do
-    # Get thread's repo
-    repo = ThreadRepo.get_repo(thread_id)
+    require Logger
+    alias GlobalbridgeBackend.Chat
+
+    # Get thread to find its database shard
+    thread = Chat.get_thread(thread_id)
+
+    if is_nil(thread) do
+      Logger.warning("⚠️ [SMART_REPLY] Thread not found: #{thread_id}")
+      []
+    else
+
+    # Get thread's repo using the correct shard_id
+    repo = ThreadRepo.get_repo(thread.database_shard_id)
+    Logger.info("🔍 [SMART_REPLY] get_recent_messages for thread: #{thread_id}, shard: #{thread.database_shard_id}, repo: #{inspect(repo)}")
 
     # Query recent messages
     import Ecto.Query
@@ -885,12 +897,22 @@ defmodule GlobalbridgeBackendWeb.AIController do
         limit: ^limit,
         select: m
 
-    case repo.all(query) do
-      messages when is_list(messages) -> Enum.reverse(messages)
-      _ -> []
+    messages = case repo.all(query) do
+      messages when is_list(messages) ->
+        Logger.info("📨 [SMART_REPLY] Found #{length(messages)} messages in database")
+        Enum.reverse(messages)
+      result ->
+        Logger.warning("⚠️ [SMART_REPLY] Unexpected result from query: #{inspect(result)}")
+        []
+    end
+
+    Logger.info("✅ [SMART_REPLY] Returning #{length(messages)} messages")
+    messages
     end
   rescue
-    _ -> []
+    error ->
+      Logger.error("❌ [SMART_REPLY] Error querying messages: #{inspect(error)}")
+      []
   end
 
   # Security helper: sanitize error responses to prevent information leakage

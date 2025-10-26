@@ -50,7 +50,9 @@ public class NotificationManager: NSObject, ObservableObject {
 
             if granted {
                 print("[Notifications] Authorization granted")
-                await registerForRemoteNotifications()
+                // Remote notifications disabled for personal development teams
+                // Uncomment when using a paid Apple Developer account:
+                // await registerForRemoteNotifications()
             } else {
                 print("[Notifications] Authorization denied")
                 throw NotificationError.permissionDenied
@@ -63,8 +65,12 @@ public class NotificationManager: NSObject, ObservableObject {
     }
 
     /// Register for remote notifications (APNs)
+    /// Note: Requires paid Apple Developer account with Push Notifications capability
     public func registerForRemoteNotifications() async {
-        UIApplication.shared.registerForRemoteNotifications()
+        // Disabled for personal development teams
+        // Uncomment when using a paid Apple Developer account:
+        // UIApplication.shared.registerForRemoteNotifications()
+        print("[Notifications] Remote notifications disabled (requires paid developer account)")
     }
 
     /// Set device token from AppDelegate
