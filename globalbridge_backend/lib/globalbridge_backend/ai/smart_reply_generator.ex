@@ -409,13 +409,14 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
 
   defp generate_replies_with_ai(context, user_profile, similar_suggestions, count) do
     # Use llama-3.1-8b-instant for fast, context-aware suggestion generation
-    model = System.get_env("TRANSLATION_MODEL") || "llama-3.1-8b-instant"
+    # Can also use: llama-3.2-3b-preview (faster, smaller), mixtral-8x7b-32768 (better quality)
+    model = System.get_env("SMART_REPLY_MODEL") || System.get_env("TRANSLATION_MODEL") || "llama-3.2-3b-preview"
 
     # Build prompt with conversation context and user style
     prompt = build_suggestion_prompt(context, user_profile, similar_suggestions, count)
 
-    # Call LLM via OpenAIServing
-    case GlobalbridgeBackend.AI.OpenAIServing.generate_completion(prompt, model) do
+    # Call LLM via OpenAIServing with optimized parameters for speed
+    case GlobalbridgeBackend.AI.OpenAIServing.generate_completion(prompt, model, max_tokens: 150, temperature: 0.3) do
       {:ok, ai_response} ->
         # Parse AI response into suggestion objects
         parse_ai_suggestions(ai_response, user_profile, context, count)
@@ -521,7 +522,7 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
         confidence: calculate_suggestion_confidence(user_profile, position),
         position: position,
         context: context_string,
-        timestamp: DateTime.utc_now() |> DateTime.to_iso8601()
+        timestamp: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
       }
     end)
   end
@@ -568,7 +569,7 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
         confidence: calculate_suggestion_confidence(user_profile, position),
         position: position,
         context: context_string,
-        timestamp: DateTime.utc_now() |> DateTime.to_iso8601()
+        timestamp: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
       }
     end)
   end

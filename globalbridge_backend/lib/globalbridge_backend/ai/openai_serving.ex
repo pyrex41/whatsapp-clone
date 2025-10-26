@@ -51,15 +51,19 @@ defmodule GlobalbridgeBackend.AI.OpenAIServing do
   Public API for generating completions directly.
 
   Used by SmartReplyGenerator and other AI modules.
+
+  ## Options
+  - `:max_tokens` - Maximum tokens to generate (default: 1000)
+  - `:temperature` - Sampling temperature 0-1 (default: 0.7)
   """
-  def generate_completion(prompt, model) do
+  def generate_completion(prompt, model, opts \\ []) do
     provider = determine_provider(model)
     Logger.debug("Calling #{provider} API with model: #{model}")
 
     case provider do
-      :groq -> call_groq(prompt, model)
-      :xai -> call_xai(prompt, model)
-      :openai -> call_openai(prompt, model)
+      :groq -> call_groq(prompt, model, opts)
+      :xai -> call_xai(prompt, model, opts)
+      :openai -> call_openai(prompt, model, opts)
     end
   end
 
@@ -94,7 +98,7 @@ defmodule GlobalbridgeBackend.AI.OpenAIServing do
     end
   end
 
-  defp call_groq(prompt, model) do
+  defp call_groq(prompt, model, opts \\ []) do
     api_key = System.get_env("GROQ_API_KEY")
 
     if is_nil(api_key) do
@@ -108,11 +112,15 @@ defmodule GlobalbridgeBackend.AI.OpenAIServing do
         {"Content-Type", "application/json"}
       ]
 
+      # Extract options with defaults
+      max_tokens = Keyword.get(opts, :max_tokens, 1000)
+      temperature = Keyword.get(opts, :temperature, 0.7)
+
       body = Jason.encode!(%{
         model: model,
         messages: [%{role: "user", content: prompt}],
-        max_tokens: 1000,
-        temperature: 0.7
+        max_tokens: max_tokens,
+        temperature: temperature
       })
 
       case HTTPoison.post(url, body, headers, timeout: 30_000, recv_timeout: 30_000) do
@@ -142,7 +150,7 @@ defmodule GlobalbridgeBackend.AI.OpenAIServing do
     end
   end
 
-  defp call_xai(prompt, model) do
+  defp call_xai(prompt, model, opts \\ []) do
     api_key = System.get_env("XAI_API_KEY")
 
     if is_nil(api_key) do
@@ -190,7 +198,7 @@ defmodule GlobalbridgeBackend.AI.OpenAIServing do
     end
   end
 
-  defp call_openai(prompt, model) do
+  defp call_openai(prompt, model, opts \\ []) do
     Logger.debug("Calling OpenAI API with model: #{model}")
 
     case OpenAI.chat_completion(
