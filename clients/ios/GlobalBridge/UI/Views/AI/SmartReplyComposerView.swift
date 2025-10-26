@@ -18,6 +18,7 @@ struct SmartReplyComposerView: View {
     let isLoading: Bool
     let error: AIServiceError?
     let translationEnabled: Bool
+    let styleLearningEnabled: Bool
     let onSuggestionTap: (SmartReplySuggestion, Int) -> Void // Now includes timeToResponseMs
     let onSuggestionDismiss: ((SmartReplySuggestion) -> Void)?
     let onTranslationToggle: () -> Void
@@ -36,7 +37,16 @@ struct SmartReplyComposerView: View {
             }
 
             if !suggestions.isEmpty || isLoading {
-                translationToggleView
+                HStack {
+                    // Learning indicator
+                    if styleLearningEnabled {
+                        learningIndicator
+                    }
+
+                    Spacer()
+
+                    translationToggleView
+                }
             }
         }
         .padding(.horizontal, 16)
@@ -79,23 +89,34 @@ struct SmartReplyComposerView: View {
         .accessibilityLabel("Smart reply suggestions")
     }
 
+    // MARK: - Learning Indicator
+
+    private var learningIndicator: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "sparkles")
+                .font(.caption2)
+                .foregroundColor(.purple)
+            Text("Learning from your messages")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        }
+        .accessibilityLabel("Style learning is active")
+    }
+
     // MARK: - Translation Toggle
 
     private var translationToggleView: some View {
-        HStack {
-            Spacer()
-            Button(action: onTranslationToggle) {
-                HStack(spacing: 4) {
-                    Image(systemName: translationEnabled ? "checkmark.circle.fill" : "circle")
-                        .font(.caption)
-                    Text("Translate")
-                        .font(.caption)
-                }
-                .foregroundColor(translationEnabled ? .blue : .gray)
+        Button(action: onTranslationToggle) {
+            HStack(spacing: 4) {
+                Image(systemName: translationEnabled ? "checkmark.circle.fill" : "circle")
+                    .font(.caption)
+                Text("Translate")
+                    .font(.caption)
             }
-            .accessibilityLabel(translationEnabled ? "Translation enabled" : "Translation disabled")
-            .accessibilityHint("Double tap to toggle translation")
+            .foregroundColor(translationEnabled ? .blue : .gray)
         }
+        .accessibilityLabel(translationEnabled ? "Translation enabled" : "Translation disabled")
+        .accessibilityHint("Double tap to toggle translation")
     }
 
     // MARK: - Error View
@@ -181,22 +202,28 @@ private struct SuggestionChip: View {
                     .stroke(suggestion.isProactive ? Color.purple.opacity(0.3) : Color.clear, lineWidth: 1)
             )
             .overlay(alignment: .topTrailing) {
-                // Dismiss button (X)
-                if showDismissButton {
-                    Button(action: handleDismiss) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                            .background(
-                                Circle()
-                                    .fill(Color(.systemBackground))
-                                    .frame(width: 14, height: 14)
-                            )
+                HStack(spacing: 4) {
+                    // Confidence Badge
+                    ConfidenceBadge(confidence: suggestion.confidence)
+                        .offset(x: showDismissButton ? -16 : -2, y: -2)
+
+                    // Dismiss button (X)
+                    if showDismissButton {
+                        Button(action: handleDismiss) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                                .background(
+                                    Circle()
+                                        .fill(Color(.systemBackground))
+                                        .frame(width: 14, height: 14)
+                                )
+                        }
+                        .offset(x: 4, y: -4)
+                        .transition(.scale.combined(with: .opacity))
+                        .accessibilityLabel("Dismiss suggestion")
+                        .accessibilityHint("Double tap to remove this suggestion")
                     }
-                    .offset(x: 4, y: -4)
-                    .transition(.scale.combined(with: .opacity))
-                    .accessibilityLabel("Dismiss suggestion")
-                    .accessibilityHint("Double tap to remove this suggestion")
                 }
             }
         }
@@ -240,7 +267,7 @@ private struct SuggestionChip: View {
                 showDismissButton = true
             }
         }
-        .accessibilityLabel(suggestion.isProactive ? "Proactive suggestion: \(suggestion.content)" : "Suggestion: \(suggestion.content)")
+        .accessibilityLabel(accessibilityLabel)
         .accessibilityHint("Double tap to insert into message. Swipe to dismiss.")
         .accessibilityAddTraits(.isButton)
         .accessibilityAction(named: "Dismiss") {
@@ -280,6 +307,68 @@ private struct SuggestionChip: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             onDismiss(suggestion)
         }
+    }
+
+    private var accessibilityLabel: String {
+        let confidencePercentage = Int(suggestion.confidence * 100)
+        let confidenceLevel: String
+
+        switch suggestion.confidence {
+        case 0.0..<0.6:
+            confidenceLevel = "Low confidence"
+        case 0.6..<0.8:
+            confidenceLevel = "Medium confidence"
+        default:
+            confidenceLevel = "High confidence"
+        }
+
+        let suggestionType = suggestion.isProactive ? "Proactive suggestion" : "Suggestion"
+        return "\(suggestionType): \(suggestion.content). \(confidenceLevel), \(confidencePercentage)%"
+    }
+}
+
+// MARK: - Confidence Badge
+
+private struct ConfidenceBadge: View {
+    let confidence: Double
+
+    var body: some View {
+        Circle()
+            .fill(confidenceColor(confidence))
+            .frame(width: 8, height: 8)
+            .overlay(
+                Circle()
+                    .stroke(Color.white, lineWidth: 1.5)
+            )
+            .shadow(color: confidenceColor(confidence).opacity(0.3), radius: 2, x: 0, y: 1)
+            .accessibilityLabel(confidenceAccessibilityLabel(confidence))
+    }
+
+    private func confidenceColor(_ confidence: Double) -> Color {
+        switch confidence {
+        case 0.0..<0.6:
+            return .orange
+        case 0.6..<0.8:
+            return .blue
+        default:
+            return .green
+        }
+    }
+
+    private func confidenceAccessibilityLabel(_ confidence: Double) -> String {
+        let percentage = Int(confidence * 100)
+        let level: String
+
+        switch confidence {
+        case 0.0..<0.6:
+            level = "Low"
+        case 0.6..<0.8:
+            level = "Medium"
+        default:
+            level = "High"
+        }
+
+        return "\(level) confidence, \(percentage)%"
     }
 }
 
@@ -345,6 +434,7 @@ private struct ShimmerChip: View {
         isLoading: false,
         error: nil,
         translationEnabled: false,
+        styleLearningEnabled: true,
         onSuggestionTap: { suggestion, timeMs in
             print("Tapped suggestion: \(suggestion.content) after \(timeMs)ms")
         },
@@ -363,6 +453,7 @@ private struct ShimmerChip: View {
         isLoading: true,
         error: nil,
         translationEnabled: false,
+        styleLearningEnabled: true,
         onSuggestionTap: { _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
@@ -377,6 +468,7 @@ private struct ShimmerChip: View {
         isLoading: false,
         error: nil,
         translationEnabled: false,
+        styleLearningEnabled: true,
         onSuggestionTap: { _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
@@ -401,6 +493,7 @@ private struct ShimmerChip: View {
         isLoading: false,
         error: nil,
         translationEnabled: true,
+        styleLearningEnabled: true,
         onSuggestionTap: { _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
@@ -441,6 +534,7 @@ private struct ShimmerChip: View {
             isLoading: false,
             error: nil,
             translationEnabled: false,
+            styleLearningEnabled: true,
             onSuggestionTap: { _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
@@ -476,6 +570,7 @@ private struct ShimmerChip: View {
             isLoading: false,
             error: nil,
             translationEnabled: false,
+            styleLearningEnabled: true,
             onSuggestionTap: { _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
@@ -491,6 +586,7 @@ private struct ShimmerChip: View {
         isLoading: false,
         error: .networkError(URLError(.notConnectedToInternet)),
         translationEnabled: false,
+        styleLearningEnabled: true,
         onSuggestionTap: { _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
@@ -511,6 +607,7 @@ private struct ShimmerChip: View {
             tierLimit: "Premium"
         ),
         translationEnabled: false,
+        styleLearningEnabled: true,
         onSuggestionTap: { _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
@@ -525,10 +622,125 @@ private struct ShimmerChip: View {
         isLoading: false,
         error: .unauthorized,
         translationEnabled: false,
+        styleLearningEnabled: true,
         onSuggestionTap: { _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
         onRetry: nil
     )
+    .padding()
+}
+
+#Preview("Confidence Levels") {
+    VStack(spacing: 20) {
+        Text("Confidence Score Indicators")
+            .font(.headline)
+
+        Text("High Confidence (>80%)")
+            .font(.subheadline)
+            .foregroundColor(.secondary)
+        SmartReplyComposerView(
+            suggestions: [
+                SmartReplySuggestion(
+                    id: UUID(),
+                    type: "quick-reply",
+                    content: "Sounds great!",
+                    confidence: 0.95,
+                    position: 0,
+                    context: "",
+                    timestamp: Date()
+                ),
+                SmartReplySuggestion(
+                    id: UUID(),
+                    type: "contextual",
+                    content: "Thanks for letting me know",
+                    confidence: 0.87,
+                    position: 1,
+                    context: "",
+                    timestamp: Date()
+                )
+            ],
+            isLoading: false,
+            error: nil,
+            translationEnabled: false,
+            styleLearningEnabled: true,
+            onSuggestionTap: { _, _ in },
+            onSuggestionDismiss: nil,
+            onTranslationToggle: {},
+            onRetry: nil
+        )
+
+        Divider()
+
+        Text("Medium Confidence (60-80%)")
+            .font(.subheadline)
+            .foregroundColor(.secondary)
+        SmartReplyComposerView(
+            suggestions: [
+                SmartReplySuggestion(
+                    id: UUID(),
+                    type: "contextual",
+                    content: "I'll check on that",
+                    confidence: 0.72,
+                    position: 0,
+                    context: "",
+                    timestamp: Date()
+                ),
+                SmartReplySuggestion(
+                    id: UUID(),
+                    type: "proactive",
+                    content: "Let me get back to you",
+                    confidence: 0.65,
+                    position: 1,
+                    context: "",
+                    timestamp: Date()
+                )
+            ],
+            isLoading: false,
+            error: nil,
+            translationEnabled: false,
+            styleLearningEnabled: true,
+            onSuggestionTap: { _, _ in },
+            onSuggestionDismiss: nil,
+            onTranslationToggle: {},
+            onRetry: nil
+        )
+
+        Divider()
+
+        Text("Low Confidence (<60%)")
+            .font(.subheadline)
+            .foregroundColor(.secondary)
+        SmartReplyComposerView(
+            suggestions: [
+                SmartReplySuggestion(
+                    id: UUID(),
+                    type: "proactive",
+                    content: "Maybe we should discuss this",
+                    confidence: 0.48,
+                    position: 0,
+                    context: "",
+                    timestamp: Date()
+                ),
+                SmartReplySuggestion(
+                    id: UUID(),
+                    type: "contextual",
+                    content: "I'm not entirely sure",
+                    confidence: 0.52,
+                    position: 1,
+                    context: "",
+                    timestamp: Date()
+                )
+            ],
+            isLoading: false,
+            error: nil,
+            translationEnabled: false,
+            styleLearningEnabled: true,
+            onSuggestionTap: { _, _ in },
+            onSuggestionDismiss: nil,
+            onTranslationToggle: {},
+            onRetry: nil
+        )
+    }
     .padding()
 }
