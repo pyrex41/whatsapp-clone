@@ -50,11 +50,12 @@ extension PhoenixChannelManager {
 
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             Task { @MainActor in
+                // Backend expects: scope, auto_translate_incoming, auto_translate_outgoing, preferred_thread_language
                 let payload: [String: Any] = [
                     "scope": "thread",
-                    "thread_id": threadId,
-                    "target_language": targetLanguage,
-                    "enabled": enabled
+                    "auto_translate_incoming": enabled,
+                    "auto_translate_outgoing": enabled,
+                    "preferred_thread_language": targetLanguage
                 ]
 
                 sendableChannel.channel.push("set_translation_preference", payload: payload)
@@ -89,39 +90,41 @@ extension PhoenixChannelManager {
             throw PhoenixError.channelNotJoined
         }
 
-        print("🌐 [PHOENIX_TRANSLATION] Getting translation preference for thread: \(threadId)")
+        print("🌐 [PHOENIX_TRANSLATION] Getting translation preferences for thread: \(threadId)")
 
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<TranslationPreferenceResponse, Error>) in
             Task { @MainActor in
-                let payload: [String: Any] = [
-                    "scope": "thread",
-                    "thread_id": threadId
-                ]
+                // Backend expects no payload for get_translation_preferences
+                let payload: [String: Any] = [:]
 
-                sendableChannel.channel.push("get_translation_preference", payload: payload)
+                // Backend uses plural "preferences" not singular "preference"
+                sendableChannel.channel.push("get_translation_preferences", payload: payload)
                     .receive("ok") { response in
-                        print("✅ [PHOENIX_TRANSLATION] Translation preference retrieved")
+                        print("✅ [PHOENIX_TRANSLATION] Translation preferences retrieved")
                         print("   Response: \(response.payload)")
 
-                        // Parse response
-                        let preferenceData = response.payload["preference"] as? [String: Any]
-                        let targetLanguage = preferenceData?["target_language"] as? String
-                        let enabled = preferenceData?["enabled"] as? Bool ?? false
+                        // Backend returns: auto_translate_incoming, auto_translate_outgoing, preferred_thread_language
+                        let autoTranslateIncoming = response.payload["auto_translate_incoming"] as? Bool ?? false
+                        let autoTranslateOutgoing = response.payload["auto_translate_outgoing"] as? Bool ?? false
+                        let preferredLanguage = response.payload["preferred_thread_language"] as? String
+
+                        // Consider enabled if either incoming or outgoing translation is on
+                        let enabled = autoTranslateIncoming || autoTranslateOutgoing
 
                         let result = TranslationPreferenceResponse(
                             success: true,
-                            targetLanguage: targetLanguage,
+                            targetLanguage: preferredLanguage,
                             enabled: enabled
                         )
 
                         continuation.resume(returning: result)
                     }
                     .receive("error") { message in
-                        print("❌ [PHOENIX_TRANSLATION] Failed to get translation preference: \(message.payload)")
+                        print("❌ [PHOENIX_TRANSLATION] Failed to get translation preferences: \(message.payload)")
                         continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
                     }
                     .receive("timeout") { _ in
-                        print("⏱️  [PHOENIX_TRANSLATION] Translation preference request timeout")
+                        print("⏱️  [PHOENIX_TRANSLATION] Translation preferences request timeout")
                         continuation.resume(throwing: PhoenixError.timeout)
                     }
             }
