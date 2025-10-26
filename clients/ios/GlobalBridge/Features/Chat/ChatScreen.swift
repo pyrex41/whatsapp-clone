@@ -91,6 +91,22 @@ struct ChatScreen: View {
                         }
                     }
                 }
+                .onChange(of: store.state.smartReplySuggestions[thread.id.uuidString]?.count ?? 0) { oldCount, newCount in
+                    // Auto-scroll when suggestions appear or disappear
+                    if let lastMessage = chatState.messages.last {
+                        let suggestionsAppeared = oldCount == 0 && newCount > 0
+                        let suggestionsDisappeared = oldCount > 0 && newCount == 0
+
+                        if suggestionsAppeared || suggestionsDisappeared {
+                            // Small delay to ensure layout has updated before scrolling
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                    proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             if !chatState.typingUsers.isEmpty {
