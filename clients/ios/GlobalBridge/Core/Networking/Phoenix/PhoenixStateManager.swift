@@ -181,6 +181,44 @@ public class PhoenixStateManager {
         await MainActor.run { connectionState }
     }
 
+    // MARK: - Translation Methods
+
+    /// Set translation preference for a specific thread
+    public func setTranslationPreference(
+        threadId: String,
+        targetLanguage: String,
+        enabled: Bool
+    ) async throws {
+        try await channelManager.setTranslationPreference(
+            threadId: threadId,
+            targetLanguage: targetLanguage,
+            enabled: enabled
+        )
+    }
+
+    /// Get translation preference for a specific thread
+    public func getTranslationPreference(
+        threadId: String
+    ) async throws -> TranslationPreferenceResponse {
+        try await channelManager.getTranslationPreference(threadId: threadId)
+    }
+
+    /// Subscribe to translation preference changes
+    public func subscribeToTranslationUpdates(
+        threadId: String,
+        handler: @escaping @Sendable (String, Bool) -> Void
+    ) async throws {
+        try await channelManager.subscribeToTranslationUpdates(
+            threadId: threadId,
+            handler: handler
+        )
+    }
+
+    /// Unsubscribe from translation preference updates
+    public func unsubscribeFromTranslationUpdates(threadId: String) async {
+        await channelManager.unsubscribeFromTranslationUpdates(threadId: threadId)
+    }
+
     // MARK: - Private Methods
 
     private func setupHandlers() {
