@@ -448,60 +448,28 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
         # We have feedback data, proceed with RAG search
         Logger.debug("Found #{count} feedback embeddings, performing RAG search")
 
-        # Try to get cached embedding first, otherwise generate
+        # Try to get cached embedding first
+        # If cache miss, SKIP RAG to avoid blocking (2-3s wait)
         query_embedding = case GlobalbridgeBackend.AI.EmbeddingCache.get(thread_id) do
           {:ok, cached_embedding} ->
             Logger.debug("[RAG] Using cached query embedding")
             cached_embedding
 
           :miss ->
-            Logger.debug("[RAG] Cache miss, generating embedding on-demand")
-            embedding = generate_embedding(context.context_text)
-            # Cache for future use
-            GlobalbridgeBackend.AI.EmbeddingCache.put(thread_id, embedding)
-            embedding
+            # Cache miss - embedding not ready yet (rapid-fire messages case)
+            # SKIP RAG entirely to maintain fast response (<1s)
+            Logger.info("[FAST_PATH] Cache miss, skipping RAG for speed (will use style profile only)")
+            nil  # Signal to skip RAG search
         end
 
-        # Search for similar accepted suggestions using real RAG semantic search
-        feedback_results = case VectorStore.search_accepted_suggestions(thread_id, user_id, query_embedding, limit: 5) do
-          results when is_list(results) ->
-            Logger.debug("Found #{length(results)} similar accepted suggestions via RAG")
-            Enum.each(results, fn result ->
-              Logger.debug("  - Feedback #{result.feedback_id}: similarity=#{Float.round(result.similarity, 3)}, type=#{result.suggestion_type}")
-            end)
-            results
-
-          {:error, reason} ->
-            Logger.warning("RAG feedback search failed: #{inspect(reason)}")
-            []
+        # If no embedding available, skip RAG and return empty results
+        if is_nil(query_embedding) do
+          Logger.debug("[FAST_PATH] No query embedding, returning empty RAG results")
+          []
+        else
+          # Proceed with RAG search using cached embedding
+          perform_rag_search(thread_id, user_id, query_embedding)
         end
-
-        # ALSO search user style embeddings for personalization
-        style_results = case VectorStore.get_user_styles(thread_id, user_id) do
-          {:ok, styles} when length(styles) > 0 ->
-            Logger.debug("Found #{length(styles)} user style embeddings")
-            # Calculate similarity for each style aspect
-            Enum.map(styles, fn style ->
-              similarity = GlobalbridgeBackend.AI.Embeddings.cosine_similarity(
-                query_embedding,
-                style.embedding
-              )
-              %{
-                type: :style,
-                aspect: style.style_aspect,
-                similarity: similarity
-              }
-            end)
-            |> Enum.sort_by(& &1.similarity, :desc)
-            |> Enum.take(3)
-
-          _ ->
-            Logger.debug("No user style embeddings found")
-            []
-        end
-
-        # Combine feedback and style results
-        feedback_results ++ style_results
 
       {:ok, %{rows: [[0]]}} ->
         # No feedback data yet, skip RAG entirely
@@ -513,6 +481,49 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
         Logger.debug("Feedback table query failed, skipping RAG")
         []
     end
+  end
+
+  defp perform_rag_search(thread_id, user_id, query_embedding) do
+    # Search for similar accepted suggestions using real RAG semantic search
+    feedback_results = case VectorStore.search_accepted_suggestions(thread_id, user_id, query_embedding, limit: 5) do
+      results when is_list(results) ->
+        Logger.debug("Found #{length(results)} similar accepted suggestions via RAG")
+        Enum.each(results, fn result ->
+          Logger.debug("  - Feedback #{result.feedback_id}: similarity=#{Float.round(result.similarity, 3)}, type=#{result.suggestion_type}")
+        end)
+        results
+
+      {:error, reason} ->
+        Logger.warning("RAG feedback search failed: #{inspect(reason)}")
+        []
+    end
+
+    # ALSO search user style embeddings for personalization
+    style_results = case VectorStore.get_user_styles(thread_id, user_id) do
+      {:ok, styles} when length(styles) > 0 ->
+        Logger.debug("Found #{length(styles)} user style embeddings")
+        # Calculate similarity for each style aspect
+        Enum.map(styles, fn style ->
+          similarity = GlobalbridgeBackend.AI.Embeddings.cosine_similarity(
+            query_embedding,
+            style.embedding
+          )
+          %{
+            type: :style,
+            aspect: style.style_aspect,
+            similarity: similarity
+          }
+        end)
+        |> Enum.sort_by(& &1.similarity, :desc)
+        |> Enum.take(3)
+
+      _ ->
+        Logger.debug("No user style embeddings found")
+        []
+    end
+
+    # Combine feedback and style results
+    feedback_results ++ style_results
   end
 
   defp generate_replies_with_ai(context, user_profile, similar_suggestions, count) do
