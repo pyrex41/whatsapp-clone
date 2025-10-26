@@ -21,8 +21,8 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             print("⏳ [STARTUP] Waiting for session restoration...")
             await AuthManager.shared.ensureSessionRestored()
             print("✅ [STARTUP] Session restoration complete")
-            
-            let isAuthenticated = await AuthManager.shared.isAuthenticated
+
+            let isAuthenticated = AuthManager.shared.isAuthenticated
             print("🔐 [STARTUP] Auth check result: \(isAuthenticated)")
             send(.authenticationChecked(isAuthenticated: isAuthenticated))
         }
@@ -387,7 +387,15 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 
                 // 5. Update UI with sent status
                 send(.messageStatusUpdated(localMessage.id, .sent))
-                
+
+                // 6. Fire-and-forget: Trigger style learning for AI personalization
+                Task {
+                    await environment.phoenixManager?.triggerStyleLearning(
+                        messageId: localMessage.id.uuidString,
+                        threadId: threadID.uuidString
+                    )
+                }
+
             } catch {
                 print("❌ [SEND] Phoenix send failed: \(error.localizedDescription)")
                 

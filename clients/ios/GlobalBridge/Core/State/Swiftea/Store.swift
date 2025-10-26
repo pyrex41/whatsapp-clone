@@ -12,7 +12,7 @@ import SwiftUI
 @MainActor
 final class Store<State: Equatable, Action>: ObservableObject {
 
-    typealias Reducer = (inout State, Action, AppEnvironment) -> Command<Action>
+    typealias Reducer = @MainActor (inout State, Action, AppEnvironment) -> Command<Action>
 
     @Published private(set) var state: State
 
