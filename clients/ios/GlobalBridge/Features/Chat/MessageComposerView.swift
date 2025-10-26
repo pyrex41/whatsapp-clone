@@ -21,6 +21,7 @@ struct MessageComposerView: View {
     @State private var showLanguagePicker = false
     @State private var threadLanguage: String?
     @State private var isLoadingPreference = false
+    @State private var showTranslationPreview = false
 
     init(
         text: Binding<String>,
@@ -59,7 +60,7 @@ struct MessageComposerView: View {
             }
 
             // Message input
-            HStack(spacing: 12) {
+            HStack(spacing: 8) {
                 TextField("Message", text: $text, prompt: Text("Message"))
                     .textFieldStyle(.roundedBorder)
                     .focused(isFocused)
@@ -71,6 +72,29 @@ struct MessageComposerView: View {
                     }
                     .accessibilityIdentifier("ComposerTextField")
 
+                // Translate & Send button (only show if translation is available)
+                if threadId != nil && phoenixManager != nil {
+                    Button {
+                        showTranslationPreview = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "globe")
+                                .font(.system(size: 14))
+                            Text("Translate")
+                                .font(.caption.weight(.medium))
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.purple.opacity(0.15))
+                        .foregroundColor(.purple)
+                        .cornerRadius(20)
+                    }
+                    .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)
+                    .accessibilityIdentifier("ComposerTranslateButton")
+                    .accessibilityLabel("Translate and send")
+                }
+
+                // Regular send button
                 Button {
                     sendIfPossible()
                 } label: {
@@ -94,6 +118,22 @@ struct MessageComposerView: View {
                 )
             }
         }
+        .sheet(isPresented: $showTranslationPreview) {
+            if let tid = threadId {
+                TranslationPreviewSheet(
+                    originalText: text,
+                    targetLanguage: selectedLanguage,
+                    onSend: { translatedText, formality in
+                        handleTranslatedSend(translatedText: translatedText, formality: formality)
+                    },
+                    onCancel: {
+                        showTranslationPreview = false
+                    },
+                    phoenixManager: phoenixManager,
+                    threadId: tid
+                )
+            }
+        }
         .task {
             await loadTranslationPreference()
         }
@@ -107,6 +147,19 @@ struct MessageComposerView: View {
     private func sendIfPossible() {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !isSending else { return }
         onSend()
+    }
+
+    private func handleTranslatedSend(translatedText: String, formality: TranslationFormality) {
+        // Replace the text with the translated version
+        text = translatedText
+
+        // Close the preview sheet
+        showTranslationPreview = false
+
+        // Send the message
+        onSend()
+
+        print("📤 [TRANSLATION_SEND] Sending translated message with \(formality) formality: \(translatedText)")
     }
 
     // MARK: - Translation Methods

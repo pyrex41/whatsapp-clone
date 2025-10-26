@@ -17,26 +17,36 @@ struct TranslationToggleButton: View {
     let threadLanguage: String?
 
     var body: some View {
-        HStack(spacing: 4) {
-            // Translation toggle
+        HStack(spacing: 8) {
+            // Translation toggle with label
             Button(action: {
                 withAnimation(.spring(response: 0.3)) {
                     isTranslationEnabled.toggle()
                 }
             }) {
-                Image(systemName: isTranslationEnabled ? "globe.americas.fill" : "globe")
-                    .font(.body)
-                    .foregroundColor(isTranslationEnabled ? .blue : .secondary)
+                HStack(spacing: 6) {
+                    Image(systemName: isTranslationEnabled ? "globe.americas.fill" : "globe")
+                        .font(.body)
+                        .foregroundColor(isTranslationEnabled ? .blue : .secondary)
+
+                    Text(isTranslationEnabled ? "Auto-translate" : "Auto-translate")
+                        .font(.caption)
+                        .foregroundColor(isTranslationEnabled ? .blue : .secondary)
+                }
             }
             .accessibilityLabel(isTranslationEnabled ? "Translation enabled" : "Translation disabled")
 
             if isTranslationEnabled {
-                // Language selector
+                // Clarified language selector
                 Button(action: {
                     showLanguagePicker = true
                 }) {
                     HStack(spacing: 4) {
-                        Text(selectedLanguage.uppercased())
+                        Text("to")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+
+                        Text(languageName(selectedLanguage))
                             .font(.caption.weight(.semibold))
                             .foregroundColor(.blue)
 
@@ -51,17 +61,15 @@ struct TranslationToggleButton: View {
                             .fill(Color.blue.opacity(0.15))
                     )
                 }
-                .accessibilityLabel("Select target language: \(selectedLanguage)")
-
-                // Show thread language hint if available
-                if let threadLang = threadLanguage, threadLang != selectedLanguage {
-                    Text("→ \(threadLang.uppercased())")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                .accessibilityLabel("Translate to \(languageName(selectedLanguage))")
             }
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isTranslationEnabled)
+    }
+
+    private func languageName(_ code: String) -> String {
+        let locale = Locale(identifier: "en")
+        return locale.localizedString(forLanguageCode: code)?.capitalized ?? code.uppercased()
     }
 }
 
