@@ -130,8 +130,14 @@ defmodule GlobalbridgeBackend.Contexts.Messages do
           message.id
         )
 
-        # Invalidate cached query embedding since conversation context changed
-        GlobalbridgeBackend.AI.EmbeddingCache.invalidate(thread_id)
+        # Eagerly generate query embedding for Smart Reply in background
+        # This happens server-side when message is sent, so it's ready instantly
+        # when user opens the app later
+        Task.start(fn ->
+          # Get recent messages for context
+          recent_messages = list_messages(thread_id, limit: 10)
+          GlobalbridgeBackend.AI.SmartReplyGenerator.prepare_embeddings_for_thread(thread_id, recent_messages)
+        end)
 
         {:ok, message}
 

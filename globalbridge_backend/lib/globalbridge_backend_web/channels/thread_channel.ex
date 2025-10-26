@@ -298,13 +298,9 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
       "✅ [FETCH] Returning #{length(formatted_messages)} messages + #{map_size(users)} users for thread #{thread_id}"
     )
 
-    # Eagerly generate query embedding in background for instant Smart Reply
-    # This runs async so it doesn't block the fetch_messages response
-    if length(messages) > 0 do
-      Task.start(fn ->
-        GlobalbridgeBackend.AI.SmartReplyGenerator.prepare_embeddings_for_thread(thread_id, messages)
-      end)
-    end
+    # NOTE: Query embeddings are now generated server-side when messages are sent,
+    # so they're already cached by the time user opens the thread. No need to
+    # generate here!
 
     {:reply, {:ok, %{messages: formatted_messages, users: users}}, socket}
   end
