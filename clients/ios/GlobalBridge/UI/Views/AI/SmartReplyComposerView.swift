@@ -114,7 +114,7 @@ private struct SuggestionChip: View {
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 18)
-                    .fill(Color(.secondarySystemBackground))
+                    .fill(suggestion.isProactive ? Color.purple.opacity(0.08) : Color(.secondarySystemBackground))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 18)
@@ -122,7 +122,7 @@ private struct SuggestionChip: View {
             )
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Suggestion: \(suggestion.content)")
+        .accessibilityLabel(suggestion.isProactive ? "Proactive suggestion: \(suggestion.content)" : "Suggestion: \(suggestion.content)")
         .accessibilityHint("Double tap to insert into message")
         .accessibilityAddTraits(.isButton)
         .onAppear {
@@ -249,5 +249,75 @@ private struct ShimmerChip: View {
         onSuggestionTap: { _, _ in },
         onTranslationToggle: {}
     )
+    .padding()
+}
+
+#Preview("Proactive vs Non-Proactive") {
+    VStack(spacing: 20) {
+        Text("Visual Distinction Demo")
+            .font(.headline)
+
+        Text("Proactive Suggestions (Purple Theme)")
+            .font(.subheadline)
+            .foregroundColor(.secondary)
+        SmartReplyComposerView(
+            suggestions: [
+                SmartReplySuggestion(
+                    id: UUID(),
+                    type: "proactive",
+                    content: "I'll be there in 5 minutes",
+                    confidence: 0.85,
+                    position: 0,
+                    context: "",
+                    timestamp: Date()
+                ),
+                SmartReplySuggestion(
+                    id: UUID(),
+                    type: "proactive",
+                    content: "Let me know if you need help",
+                    confidence: 0.75,
+                    position: 1,
+                    context: "",
+                    timestamp: Date()
+                )
+            ],
+            isLoading: false,
+            translationEnabled: false,
+            onSuggestionTap: { _, _ in },
+            onTranslationToggle: {}
+        )
+
+        Divider()
+
+        Text("Non-Proactive Suggestions (Standard Theme)")
+            .font(.subheadline)
+            .foregroundColor(.secondary)
+        SmartReplyComposerView(
+            suggestions: [
+                SmartReplySuggestion(
+                    id: UUID(),
+                    type: "quick-reply",
+                    content: "Thanks!",
+                    confidence: 0.95,
+                    position: 0,
+                    context: "",
+                    timestamp: Date()
+                ),
+                SmartReplySuggestion(
+                    id: UUID(),
+                    type: "contextual",
+                    content: "Sounds good",
+                    confidence: 0.85,
+                    position: 1,
+                    context: "",
+                    timestamp: Date()
+                )
+            ],
+            isLoading: false,
+            translationEnabled: false,
+            onSuggestionTap: { _, _ in },
+            onTranslationToggle: {}
+        )
+    }
     .padding()
 }

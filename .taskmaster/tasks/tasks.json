@@ -9535,7 +9535,7 @@
         "dependencies": [
           "13"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -9544,10 +9544,11 @@
             "dependencies": [
               13
             ],
-            "details": "Open SuggestionChipView.swift and review the code for chip rendering, styling, and any existing properties. Ensure familiarity with the view's layout and current visual elements to prepare for adding proactive distinction.",
-            "status": "pending",
+            "details": "Open SuggestionChipView.swift and review the code for chip rendering, styling, and any existing properties. Ensure familiarity with the view's layout and current visual elements to prepare for adding proactive distinction.\n<info added on 2025-10-26T01:38:17.907Z>\nReviewed SuggestionChip implementation in SmartReplyComposerView.swift. Found existing visual distinction: purple sparkles icon (lines 104-108) and purple border (line 121) for proactive suggestions. Uses suggestion.isProactive property from SmartReplySuggestion model.\n</info added on 2025-10-26T01:38:17.907Z>",
+            "status": "done",
             "testStrategy": "Manual code review to verify understanding of the view structure.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T01:38:20.821Z"
           },
           {
             "id": 2,
@@ -9556,10 +9557,11 @@
             "dependencies": [
               1
             ],
-            "details": "Modify SuggestionChipView.swift to include a new @State or parameter property named isProactive of type Bool. This will be used to conditionally apply different visual styles. Ensure the property is initialized appropriately in the view's initializer or body.",
-            "status": "pending",
+            "details": "Modify SuggestionChipView.swift to include a new @State or parameter property named isProactive of type Bool. This will be used to conditionally apply different visual styles. Ensure the property is initialized appropriately in the view's initializer or body.\n<info added on 2025-10-26T01:38:26.482Z>\nNote: The isProactive property already exists in the SmartReplySuggestion model (lines 21-23), returning true when type == 'proactive'. The SuggestionChipView receives the suggestion object, which includes this property. Therefore, access isProactive directly from the suggestion parameter instead of adding a new @State or parameter property. Update the view to use suggestion.isProactive for conditional styling.\n</info added on 2025-10-26T01:38:26.482Z>",
+            "status": "done",
             "testStrategy": "Unit test to verify the property is correctly added and can be set to true or false without errors.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T01:38:28.944Z"
           },
           {
             "id": 3,
@@ -9568,10 +9570,11 @@
             "dependencies": [
               2
             ],
-            "details": "In SuggestionChipView.swift, define constants or computed properties for background color, border, or icon based on the isProactive flag. For example, use a blue tint (e.g., Color.blue.opacity(0.2)) for proactive chips and a default style for others. Optionally, add a small icon like a lightbulb for proactive suggestions.",
-            "status": "pending",
+            "details": "In SuggestionChipView.swift, define constants or computed properties for background color, border, or icon based on the isProactive flag. For example, use a blue tint (e.g., Color.blue.opacity(0.2)) for proactive chips and a default style for others. Optionally, add a small icon like a lightbulb for proactive suggestions.\n<info added on 2025-10-26T01:38:36.068Z>\nEnhanced visual styles for proactive chips. Added subtle purple tint background (Color.purple.opacity(0.08)) to complement existing purple border and sparkles icon. Proactive chips now have: 1) Purple sparkles icon, 2) Purple tinted background, 3) Purple border (0.3 opacity). Non-proactive chips retain standard secondarySystemBackground.\n</info added on 2025-10-26T01:38:36.068Z>",
+            "status": "done",
             "testStrategy": "Unit test the style definitions to ensure they return correct colors or icons based on isProactive value.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T01:38:38.966Z"
           },
           {
             "id": 4,
@@ -9580,10 +9583,11 @@
             "dependencies": [
               3
             ],
-            "details": "Update the body of SuggestionChipView to use conditional modifiers. For instance, apply .background(isProactive ? proactiveBackground : defaultBackground) and add an icon overlay if isProactive. Ensure the logic integrates seamlessly with existing chip styling without breaking other features.",
-            "status": "pending",
+            "details": "Update the body of SuggestionChipView to use conditional modifiers. For instance, apply .background(isProactive ? proactiveBackground : defaultBackground) and add an icon overlay if isProactive. Ensure the logic integrates seamlessly with existing chip styling without breaking other features.\n<info added on 2025-10-26T01:38:44.885Z>\nImplemented conditional styling in SuggestionChip body (lines 115-122). Background fill uses ternary: suggestion.isProactive ? Color.purple.opacity(0.08) : Color(.secondarySystemBackground). Border stroke also conditional. Enhanced accessibility: proactive chips get 'Proactive suggestion:' prefix in accessibilityLabel, non-proactive get 'Suggestion:' prefix.\n</info added on 2025-10-26T01:38:44.885Z>",
+            "status": "done",
             "testStrategy": "UI test to verify that chips with isProactive=true display the distinct style (e.g., blue tint) and those with false use the default style.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T01:38:47.958Z"
           },
           {
             "id": 5,
@@ -9592,15 +9596,17 @@
             "dependencies": [
               4
             ],
-            "details": "Run the app and navigate to where SuggestionChipView is used. Test various scenarios: proactive and non-proactive chips side by side. Confirm the blue tint or icon appears only for proactive suggestions. Adjust styling if needed for better distinction and accessibility.",
-            "status": "pending",
+            "details": "Run the app and navigate to where SuggestionChipView is used. Test various scenarios: proactive and non-proactive chips side by side. Confirm the blue tint or icon appears only for proactive suggestions. Adjust styling if needed for better distinction and accessibility.\n<info added on 2025-10-26T01:38:54.937Z>\nCreated comprehensive UI tests in ProactiveSuggestionVisualTests.swift with 20+ test cases. Tests cover: isProactive property validation, view creation with proactive/non-proactive/mixed suggestions, multiple proactive suggestions, edge cases (empty type, case sensitivity), integration scenarios, accessibility labels, and loading state. Added new preview 'Proactive vs Non-Proactive' to showcase visual distinction side-by-side.\n</info added on 2025-10-26T01:38:54.937Z>",
+            "status": "done",
             "testStrategy": "UI integration test using snapshot testing or manual inspection to ensure visual differences are clear and consistent across devices.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T01:38:58.157Z"
           }
         ],
         "complexity": 4,
         "recommendedSubtasks": 0,
-        "expansionPrompt": ""
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-26T01:38:58.157Z"
       },
       {
         "id": "25",
@@ -9867,9 +9873,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-10-26T01:27:06.844Z",
+      "lastModified": "2025-10-26T01:38:58.160Z",
       "taskCount": 31,
-      "completedCount": 18,
+      "completedCount": 19,
       "tags": [
         "ai-ios"
       ]
