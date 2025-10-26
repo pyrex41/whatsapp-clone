@@ -101,7 +101,9 @@ final class AIBroadcastCoordinator {
 
             if let threadId = notification.userInfo?["threadId"] as? String,
                let suggestion = notification.userInfo?["suggestion"] as? SmartReplySuggestion {
-                self.handleProactiveSuggestion(threadId: threadId, suggestion: suggestion)
+                Task { @MainActor in
+                    self.handleProactiveSuggestion(threadId: threadId, suggestion: suggestion)
+                }
             }
         }
         notificationObservers.append(suggestionObserver)
@@ -134,8 +136,7 @@ final class AIBroadcastCoordinator {
 
         // Subscribe to AI suggestions via Phoenix
         do {
-            try await phoenixManager.subscribeToAISuggestions(threadId: threadIdString) { [weak self] suggestion in
-                guard let self else { return }
+            try await phoenixManager.subscribeToAISuggestions(threadId: threadIdString) { suggestion in
                 Task { @MainActor in
                     // Note: subscribeToAISuggestions already posts to NotificationCenter,
                     // so this handler is redundant but we keep it for logging

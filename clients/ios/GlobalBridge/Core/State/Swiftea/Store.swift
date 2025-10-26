@@ -17,7 +17,7 @@ final class Store<State: Equatable, Action>: ObservableObject {
     @Published private(set) var state: State
 
     private let reducer: Reducer
-    private let environment: AppEnvironment
+    let environment: AppEnvironment  // Internal access for AIBroadcastCoordinator
     private var cancellables: Set<AnyCancellable> = []
 
     init(
