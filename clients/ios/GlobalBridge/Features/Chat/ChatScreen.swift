@@ -140,6 +140,17 @@ struct ChatScreen: View {
                     composerFocused = true
                     // Notify banner center of active thread for suppression
                     InAppBannerCenter.shared.setActiveThread(thread.id)
+
+                    // Start AI monitoring for proactive suggestions
+                    Task {
+                        do {
+                            try await ConversationMonitorService.shared.startMonitoring(threadId: thread.id)
+                            print("✅ [AI_MONITOR] Started monitoring thread: \(thread.id)")
+                        } catch {
+                            print("⚠️ [AI_MONITOR] Failed to start monitoring: \(error)")
+                        }
+                    }
+
                     // Try again after a delay to ensure view hierarchy is ready
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         print("⌨️ [COMPOSER] Delayed focus attempt")
@@ -158,6 +169,16 @@ struct ChatScreen: View {
                 .onDisappear {
                     // Clear active thread when leaving chat
                     InAppBannerCenter.shared.setActiveThread(nil)
+
+                    // Stop AI monitoring when leaving thread
+                    Task {
+                        do {
+                            try await ConversationMonitorService.shared.stopMonitoring(threadId: thread.id)
+                            print("✅ [AI_MONITOR] Stopped monitoring thread: \(thread.id)")
+                        } catch {
+                            print("⚠️ [AI_MONITOR] Failed to stop monitoring: \(error)")
+                        }
+                    }
                 }
                 .toolbar {
                     ToolbarItem(placement: .principal) {

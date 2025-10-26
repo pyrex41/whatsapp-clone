@@ -24,6 +24,7 @@ struct GlobalBridgeApp: App {
             AppRootView(store: store)
                 .onAppear {
                     setupNotifications()
+                    setupAIBroadcastCoordination()
                 }
                 .onOpenURL { url in
                     handleDeepLink(url)
@@ -60,9 +61,22 @@ struct GlobalBridgeApp: App {
     private func handleDeepLink(_ url: URL) {
         // Auth0 handles its own callbacks automatically when using custom URL schemes
         // No need to manually handle Auth0 URLs
-        
+
         // Handle other deep links for navigation
         print("Deep link: \(url)")
+    }
+
+    private func setupAIBroadcastCoordination() {
+        // Start AI broadcast coordinator to wire Phoenix AI events to Redux store
+        guard let phoenixManager = store.environment.phoenixManager else {
+            print("⚠️  [AI_COORDINATOR] PhoenixManager not available in environment")
+            return
+        }
+
+        Task { @MainActor in
+            AIBroadcastCoordinator.shared.start(with: store, phoenixManager: phoenixManager)
+            print("✅ [AI_COORDINATOR] AI broadcast coordination started")
+        }
     }
 }
 

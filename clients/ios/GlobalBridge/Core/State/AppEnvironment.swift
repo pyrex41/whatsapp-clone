@@ -53,6 +53,7 @@ struct AppEnvironment {
     var uuid: @Sendable () -> UUID = { UUID() }
     var now: @Sendable () -> Date = { Date() }
     var deviceId: UUID = UUID() // Unique device identifier for deduplication
+    var phoenixManager: PhoenixChannelManager? = nil // For AI broadcast coordination
 }
 
 extension AppEnvironment {
@@ -443,7 +444,7 @@ extension AppEnvironment {
             }
         )
 
-        return AppEnvironment(database: database, realtime: realtime, sync: sync)
+        return AppEnvironment(database: database, realtime: realtime, sync: sync, phoenixManager: phoenixManager)
     }()
 }
 
