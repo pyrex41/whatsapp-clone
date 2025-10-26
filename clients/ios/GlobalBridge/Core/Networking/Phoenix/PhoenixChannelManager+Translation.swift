@@ -11,11 +11,11 @@ import Foundation
 
 /// Translation preference response from backend
 public struct TranslationPreferenceResponse: Sendable {
-    let success: Bool
-    let targetLanguage: String?
-    let enabled: Bool
+    public let success: Bool
+    public let targetLanguage: String?
+    public let enabled: Bool
 
-    init(success: Bool, targetLanguage: String?, enabled: Bool) {
+    public nonisolated init(success: Bool, targetLanguage: String?, enabled: Bool) {
         self.success = success
         self.targetLanguage = targetLanguage
         self.enabled = enabled
@@ -42,40 +42,35 @@ extension PhoenixChannelManager {
         targetLanguage: String,
         enabled: Bool
     ) async throws {
-        guard let sendableChannel = await sendableChannel(for: threadId) else {
+        guard let channel = channel(for: threadId) else {
             throw PhoenixError.channelNotJoined
         }
 
         print("🌐 [PHOENIX_TRANSLATION] Setting translation preference for thread: \(threadId), language: \(targetLanguage), enabled: \(enabled)")
 
+        // Backend expects: scope, auto_translate_incoming, auto_translate_outgoing, preferred_thread_language
+        let payload: [String: Any] = [
+            "scope": "thread",
+            "auto_translate_incoming": enabled,
+            "auto_translate_outgoing": enabled,
+            "preferred_thread_language": targetLanguage
+        ]
+
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            Task { @MainActor in
-                // Backend expects: scope, auto_translate_incoming, auto_translate_outgoing, preferred_thread_language
-                let payload: [String: Any] = [
-                    "scope": "thread",
-                    "auto_translate_incoming": enabled,
-                    "auto_translate_outgoing": enabled,
-                    "preferred_thread_language": targetLanguage
-                ]
-
-                let push = sendableChannel.channel.push("set_translation_preference", payload: payload)
-
-                push.receive("ok") { response in
+            channel.push("set_translation_preference", payload: payload)
+                .receive("ok") { response in
                     print("✅ [PHOENIX_TRANSLATION] Translation preference set successfully")
                     print("   Response: \(response.payload)")
                     continuation.resume(returning: ())
                 }
-
-                push.receive("error") { message in
+                .receive("error") { message in
                     print("❌ [PHOENIX_TRANSLATION] Failed to set translation preference: \(message.payload)")
                     continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
                 }
-
-                push.receive("timeout") { _ in
+                .receive("timeout") { _ in
                     print("⏱️  [PHOENIX_TRANSLATION] Translation preference request timeout")
                     continuation.resume(throwing: PhoenixError.timeout)
                 }
-            }
         }
     }
 
@@ -89,21 +84,19 @@ extension PhoenixChannelManager {
     func getTranslationPreference(
         threadId: String
     ) async throws -> TranslationPreferenceResponse {
-        guard let sendableChannel = await sendableChannel(for: threadId) else {
+        guard let channel = channel(for: threadId) else {
             throw PhoenixError.channelNotJoined
         }
 
         print("🌐 [PHOENIX_TRANSLATION] Getting translation preferences for thread: \(threadId)")
 
+        // Backend expects no payload for get_translation_preferences
+        let payload: [String: Any] = [:]
+
         return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<TranslationPreferenceResponse, Error>) in
-            Task { @MainActor in
-                // Backend expects no payload for get_translation_preferences
-                let payload: [String: Any] = [:]
-
-                // Backend uses plural "preferences" not singular "preference"
-                let push = sendableChannel.channel.push("get_translation_preferences", payload: payload)
-
-                push.receive("ok") { response in
+            // Backend uses plural "preferences" not singular "preference"
+            channel.push("get_translation_preferences", payload: payload)
+                .receive("ok") { response in
                     print("✅ [PHOENIX_TRANSLATION] Translation preferences retrieved")
                     print("   Response: \(response.payload)")
 
@@ -123,17 +116,14 @@ extension PhoenixChannelManager {
 
                     continuation.resume(returning: result)
                 }
-
-                push.receive("error") { message in
+                .receive("error") { message in
                     print("❌ [PHOENIX_TRANSLATION] Failed to get translation preferences: \(message.payload)")
                     continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
                 }
-
-                push.receive("timeout") { _ in
+                .receive("timeout") { _ in
                     print("⏱️  [PHOENIX_TRANSLATION] Translation preferences request timeout")
                     continuation.resume(throwing: PhoenixError.timeout)
                 }
-            }
         }
     }
 
