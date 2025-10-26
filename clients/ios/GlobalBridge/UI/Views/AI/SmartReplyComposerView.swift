@@ -669,7 +669,8 @@ private struct ShimmerChip: View {
         onTranslationToggle: {},
         onRetry: {
             print("Retry tapped")
-        }
+        },
+        onExpandToggle: nil
     )
     .padding()
 }
