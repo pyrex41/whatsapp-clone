@@ -19,6 +19,7 @@ struct SmartReplyComposerView: View {
     let error: AIServiceError?
     let translationEnabled: Bool
     let onSuggestionTap: (SmartReplySuggestion, Int) -> Void // Now includes timeToResponseMs
+    let onSuggestionDismiss: ((SmartReplySuggestion) -> Void)?
     let onTranslationToggle: () -> Void
     let onRetry: (() -> Void)?
 
@@ -66,6 +67,10 @@ struct SmartReplyComposerView: View {
                         suggestion: suggestion,
                         onTap: { timeToResponseMs in
                             onSuggestionTap(suggestion, timeToResponseMs)
+                        },
+                        onDismiss: { dismissedSuggestion in
+                            // Call the dismiss callback if provided
+                            onSuggestionDismiss?(dismissedSuggestion)
                         }
                     )
                 }
@@ -146,8 +151,12 @@ struct SmartReplyComposerView: View {
 private struct SuggestionChip: View {
     let suggestion: SmartReplySuggestion
     let onTap: (Int) -> Void // Now receives timeToResponseMs
+    let onDismiss: (SmartReplySuggestion) -> Void
 
     @State private var displayTimestamp: Date = Date()
+    @State private var isDismissed: Bool = false
+    @State private var dragOffset: CGFloat = 0
+    @State private var showDismissButton: Bool = false
 
     var body: some View {
         Button(action: handleTap) {
@@ -171,11 +180,72 @@ private struct SuggestionChip: View {
                 RoundedRectangle(cornerRadius: 18)
                     .stroke(suggestion.isProactive ? Color.purple.opacity(0.3) : Color.clear, lineWidth: 1)
             )
+            .overlay(alignment: .topTrailing) {
+                // Dismiss button (X)
+                if showDismissButton {
+                    Button(action: handleDismiss) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .background(
+                                Circle()
+                                    .fill(Color(.systemBackground))
+                                    .frame(width: 14, height: 14)
+                            )
+                    }
+                    .offset(x: 4, y: -4)
+                    .transition(.scale.combined(with: .opacity))
+                    .accessibilityLabel("Dismiss suggestion")
+                    .accessibilityHint("Double tap to remove this suggestion")
+                }
+            }
         }
         .buttonStyle(.plain)
+        .offset(x: dragOffset)
+        .opacity(isDismissed ? 0 : 1)
+        .scaleEffect(isDismissed ? 0.8 : 1)
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    // Allow horizontal dragging
+                    dragOffset = value.translation.width
+
+                    // Show dismiss button when dragging
+                    if abs(dragOffset) > 10 {
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            showDismissButton = true
+                        }
+                    }
+                }
+                .onEnded { value in
+                    // Dismiss if dragged beyond threshold (50pt in either direction)
+                    if abs(value.translation.width) > 50 {
+                        handleDismiss()
+                    } else {
+                        // Snap back if not dismissed
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            dragOffset = 0
+                        }
+
+                        // Hide dismiss button after snap back
+                        withAnimation(.easeOut(duration: 0.2).delay(0.3)) {
+                            showDismissButton = false
+                        }
+                    }
+                }
+        )
+        .onLongPressGesture(minimumDuration: 0.5) {
+            // Show dismiss button on long press
+            withAnimation(.easeOut(duration: 0.2)) {
+                showDismissButton = true
+            }
+        }
         .accessibilityLabel(suggestion.isProactive ? "Proactive suggestion: \(suggestion.content)" : "Suggestion: \(suggestion.content)")
-        .accessibilityHint("Double tap to insert into message")
+        .accessibilityHint("Double tap to insert into message. Swipe to dismiss.")
         .accessibilityAddTraits(.isButton)
+        .accessibilityAction(named: "Dismiss") {
+            handleDismiss()
+        }
         .onAppear {
             // Record the timestamp when the chip is displayed
             displayTimestamp = Date()
@@ -183,11 +253,33 @@ private struct SuggestionChip: View {
     }
 
     private func handleTap() {
+        // Only handle tap if not showing dismiss button
+        guard !showDismissButton else {
+            // Hide dismiss button on tap if it's showing
+            withAnimation(.easeOut(duration: 0.2)) {
+                showDismissButton = false
+            }
+            return
+        }
+
         // Calculate time-to-response in milliseconds
         let timeToResponseMs = Int(Date().timeIntervalSince(displayTimestamp) * 1000)
 
         // Pass the time-to-response to the callback
         onTap(timeToResponseMs)
+    }
+
+    private func handleDismiss() {
+        // Animate dismissal
+        withAnimation(.easeOut(duration: 0.25)) {
+            isDismissed = true
+            dragOffset = dragOffset < 0 ? -100 : 100 // Complete the swipe animation
+        }
+
+        // Call dismiss callback after animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            onDismiss(suggestion)
+        }
     }
 }
 
@@ -256,6 +348,9 @@ private struct ShimmerChip: View {
         onSuggestionTap: { suggestion, timeMs in
             print("Tapped suggestion: \(suggestion.content) after \(timeMs)ms")
         },
+        onSuggestionDismiss: { suggestion in
+            print("Dismissed suggestion: \(suggestion.content)")
+        },
         onTranslationToggle: {},
         onRetry: nil
     )
@@ -269,6 +364,7 @@ private struct ShimmerChip: View {
         error: nil,
         translationEnabled: false,
         onSuggestionTap: { _, _ in },
+        onSuggestionDismiss: nil,
         onTranslationToggle: {},
         onRetry: nil
     )
@@ -282,6 +378,7 @@ private struct ShimmerChip: View {
         error: nil,
         translationEnabled: false,
         onSuggestionTap: { _, _ in },
+        onSuggestionDismiss: nil,
         onTranslationToggle: {},
         onRetry: nil
     )
@@ -305,6 +402,7 @@ private struct ShimmerChip: View {
         error: nil,
         translationEnabled: true,
         onSuggestionTap: { _, _ in },
+        onSuggestionDismiss: nil,
         onTranslationToggle: {},
         onRetry: nil
     )
@@ -344,6 +442,7 @@ private struct ShimmerChip: View {
             error: nil,
             translationEnabled: false,
             onSuggestionTap: { _, _ in },
+            onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
         )
@@ -378,6 +477,7 @@ private struct ShimmerChip: View {
             error: nil,
             translationEnabled: false,
             onSuggestionTap: { _, _ in },
+            onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
         )
@@ -392,6 +492,7 @@ private struct ShimmerChip: View {
         error: .networkError(URLError(.notConnectedToInternet)),
         translationEnabled: false,
         onSuggestionTap: { _, _ in },
+        onSuggestionDismiss: nil,
         onTranslationToggle: {},
         onRetry: {
             print("Retry tapped")
@@ -411,6 +512,7 @@ private struct ShimmerChip: View {
         ),
         translationEnabled: false,
         onSuggestionTap: { _, _ in },
+        onSuggestionDismiss: nil,
         onTranslationToggle: {},
         onRetry: nil
     )
@@ -424,6 +526,7 @@ private struct ShimmerChip: View {
         error: .unauthorized,
         translationEnabled: false,
         onSuggestionTap: { _, _ in },
+        onSuggestionDismiss: nil,
         onTranslationToggle: {},
         onRetry: nil
     )

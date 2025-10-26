@@ -79,9 +79,12 @@ final class ProactiveSuggestionVisualTests: XCTestCase {
         let view = SmartReplyComposerView(
             suggestions: [proactiveSuggestion],
             isLoading: false,
+            error: nil,
             translationEnabled: false,
             onSuggestionTap: { _, _ in },
-            onTranslationToggle: {}
+            onSuggestionDismiss: nil,
+            onTranslationToggle: {},
+            onRetry: nil
         )
 
         XCTAssertNotNil(view, "View should be created with proactive suggestions")
@@ -91,9 +94,12 @@ final class ProactiveSuggestionVisualTests: XCTestCase {
         let view = SmartReplyComposerView(
             suggestions: [nonProactiveSuggestion],
             isLoading: false,
+            error: nil,
             translationEnabled: false,
             onSuggestionTap: { _, _ in },
-            onTranslationToggle: {}
+            onSuggestionDismiss: nil,
+            onTranslationToggle: {},
+            onRetry: nil
         )
 
         XCTAssertNotNil(view, "View should be created with non-proactive suggestions")
@@ -103,9 +109,12 @@ final class ProactiveSuggestionVisualTests: XCTestCase {
         let view = SmartReplyComposerView(
             suggestions: [proactiveSuggestion, nonProactiveSuggestion],
             isLoading: false,
+            error: nil,
             translationEnabled: false,
             onSuggestionTap: { _, _ in },
-            onTranslationToggle: {}
+            onSuggestionDismiss: nil,
+            onTranslationToggle: {},
+            onRetry: nil
         )
 
         XCTAssertNotNil(view, "View should be created with mixed suggestions")
@@ -151,9 +160,12 @@ final class ProactiveSuggestionVisualTests: XCTestCase {
         let view = SmartReplyComposerView(
             suggestions: suggestions,
             isLoading: false,
+            error: nil,
             translationEnabled: false,
             onSuggestionTap: { _, _ in },
-            onTranslationToggle: {}
+            onSuggestionDismiss: nil,
+            onTranslationToggle: {},
+            onRetry: nil
         )
 
         XCTAssertNotNil(view)
@@ -253,9 +265,12 @@ final class ProactiveSuggestionVisualTests: XCTestCase {
         let view = SmartReplyComposerView(
             suggestions: suggestions,
             isLoading: false,
+            error: nil,
             translationEnabled: false,
             onSuggestionTap: { _, _ in },
-            onTranslationToggle: {}
+            onSuggestionDismiss: nil,
+            onTranslationToggle: {},
+            onRetry: nil
         )
 
         XCTAssertNotNil(view)
@@ -312,9 +327,12 @@ final class ProactiveSuggestionVisualTests: XCTestCase {
         let view = SmartReplyComposerView(
             suggestions: [proactiveSuggestion, nonProactiveSuggestion],
             isLoading: true,
+            error: nil,
             translationEnabled: false,
             onSuggestionTap: { _, _ in },
-            onTranslationToggle: {}
+            onSuggestionDismiss: nil,
+            onTranslationToggle: {},
+            onRetry: nil
         )
 
         XCTAssertNotNil(view)

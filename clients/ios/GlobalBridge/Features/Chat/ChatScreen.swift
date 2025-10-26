@@ -130,6 +130,12 @@ struct ChatScreen: View {
                     )
                 ))
             },
+            onSuggestionDismiss: { dismissedSuggestion in
+                // TODO: Remove dismissed suggestion from local UI state
+                // This is purely UI-level dismissal - no rejection feedback is recorded
+                // The suggestion may reappear in future sessions
+                print("DEBUG: Suggestion dismissed (UI only): \(dismissedSuggestion.content)")
+            },
             onTranslationToggle: {},
             onRetry: { refreshSmartReplies(for: thread.id) }
         )
