@@ -54,6 +54,7 @@ struct SmartReplyComposerView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity)
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(Color(.systemBackground))
@@ -106,7 +107,6 @@ struct SmartReplyComposerView: View {
                         isCompact: true
                     )
                     .accessibilityIdentifier("SmartReplyChip-\(suggestion.position)")
-                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 }
             }
 
