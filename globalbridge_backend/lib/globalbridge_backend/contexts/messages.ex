@@ -129,6 +129,10 @@ defmodule GlobalbridgeBackend.Contexts.Messages do
           thread_id,
           message.id
         )
+
+        # Invalidate cached query embedding since conversation context changed
+        GlobalbridgeBackend.AI.EmbeddingCache.invalidate(thread_id)
+
         {:ok, message}
 
       error ->

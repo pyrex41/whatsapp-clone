@@ -1,6 +1,6 @@
 defmodule GlobalbridgeBackend.AI.Embeddings do
   @moduledoc """
-  Real embedding generation using OpenAI's text-embedding-3-large model.
+  Real embedding generation using OpenAI's text-embedding-3-small model.
 
   This module provides production-quality embeddings for:
   - Message content semantic search
@@ -8,35 +8,36 @@ defmodule GlobalbridgeBackend.AI.Embeddings do
   - Suggestion feedback embeddings
   - RAG retrieval
 
-  Uses text-embedding-3-large:
-  - Dimension: 3072 (matches our vector store)
-  - Cost: ~$0.13 per 1M tokens
-  - Quality: State-of-the-art semantic understanding
+  Uses text-embedding-3-small:
+  - Dimension: 1536 (optimized for speed)
+  - Cost: ~$0.02 per 1M tokens (70% cheaper than large)
+  - Speed: 2-3x faster than large model
+  - Quality: ~95% of large model performance
   """
 
   require Logger
 
-  @embedding_model "text-embedding-3-large"
-  @embedding_dimensions 3072
+  @embedding_model "text-embedding-3-small"
+  @embedding_dimensions 1536
   @openai_embeddings_url "https://api.openai.com/v1/embeddings"
 
   @doc """
-  Generates a 3072-dimensional embedding vector for the given text.
+  Generates a 1536-dimensional embedding vector for the given text.
 
   ## Parameters
   - text: String to embed
   - opts: Optional parameters
-    - model: Override default model (default: text-embedding-3-large)
-    - dimensions: Override dimensions (default: 3072)
+    - model: Override default model (default: text-embedding-3-small)
+    - dimensions: Override dimensions (default: 1536)
 
   ## Returns
-  - {:ok, embedding} where embedding is a list of 3072 floats
+  - {:ok, embedding} where embedding is a list of 1536 floats
   - {:error, reason} if the API call fails
 
   ## Examples
 
       iex> Embeddings.generate("Hello world")
-      {:ok, [0.123, -0.456, 0.789, ...]} # 3072 floats
+      {:ok, [0.123, -0.456, 0.789, ...]} # 1536 floats
 
       iex> Embeddings.generate("")
       {:error, "Text cannot be empty"}

@@ -23,7 +23,7 @@ defmodule GlobalbridgeBackend.AI.VectorStore do
     sql = """
     CREATE VIRTUAL TABLE IF NOT EXISTS message_embeddings USING vec0(
       message_id TEXT PRIMARY KEY,
-      embedding float[3072]
+      embedding float[1536]
     );
     """
 
@@ -205,7 +205,7 @@ defmodule GlobalbridgeBackend.AI.VectorStore do
       embedding_id TEXT PRIMARY KEY,
       user_id TEXT,
       style_aspect TEXT,
-      embedding float[3072]
+      embedding float[1536]
     );
     """
 
@@ -357,7 +357,7 @@ defmodule GlobalbridgeBackend.AI.VectorStore do
       user_id TEXT,
       suggestion_type TEXT,
       accepted INTEGER,
-      embedding float[3072]
+      embedding float[1536]
     );
     """
 

@@ -26,6 +26,8 @@ defmodule GlobalbridgeBackend.Application do
         GlobalbridgeBackend.Cache.ParticipantCache,
         # AI Cache (ETS-based) for translations and embeddings
         GlobalbridgeBackend.AI.Cache,
+        # Embedding Cache for eager query embedding generation
+        GlobalbridgeBackend.AI.EmbeddingCache,
         # Task supervisor for async operations (message persistence, read receipts, notifications)
         {Task.Supervisor, name: GlobalbridgeBackend.TaskSupervisor},
         # Dynamic supervisor for per-thread database repos

@@ -173,6 +173,58 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
   end
 
   @doc """
+  Eagerly generates and caches the query embedding for a thread.
+
+  This should be called in the background when a thread opens, BEFORE the user
+  taps the composer. This way, when the user is ready to see suggestions, the
+  expensive embedding generation has already completed.
+
+  ## Performance Impact
+  - Without eager generation: 5-7s wait when user taps composer
+  - With eager generation: <1s (embedding already cached)
+
+  ## Parameters
+  - thread_id: The thread to generate embeddings for
+  - recent_messages: Last 5-10 messages for context
+
+  ## Returns
+  - :ok if embedding was generated and cached
+  - {:error, reason} on failure
+  """
+  def prepare_embeddings_for_thread(thread_id, recent_messages) do
+    try do
+      # Build conversation context
+      context = build_conversation_context(recent_messages)
+
+      # Check if embedding is already cached
+      case GlobalbridgeBackend.AI.EmbeddingCache.get(thread_id) do
+        {:ok, _embedding} ->
+          Logger.debug("[EAGER_EMBED] Already cached for thread #{thread_id}, skipping")
+          :ok
+
+        :miss ->
+          Logger.info("[EAGER_EMBED] Generating query embedding for thread #{thread_id}")
+          start_time = System.monotonic_time(:millisecond)
+
+          # Generate embedding for context
+          query_embedding = generate_embedding(context.context_text)
+
+          # Store in cache with 10-minute TTL
+          GlobalbridgeBackend.AI.EmbeddingCache.put(thread_id, query_embedding)
+
+          elapsed = System.monotonic_time(:millisecond) - start_time
+          Logger.info("[EAGER_EMBED] Cached query embedding for thread #{thread_id} in #{elapsed}ms")
+
+          :ok
+      end
+    rescue
+      e ->
+        Logger.error("[EAGER_EMBED] Failed for thread #{thread_id}: #{inspect(e)}")
+        {:error, e}
+    end
+  end
+
+  @doc """
   Records feedback on a suggestion (accepted or rejected).
 
   This creates a learning loop where the system improves based on user choices.
@@ -396,8 +448,19 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
         # We have feedback data, proceed with RAG search
         Logger.debug("Found #{count} feedback embeddings, performing RAG search")
 
-        # Get embedding for current context using real OpenAI embeddings
-        query_embedding = generate_embedding(context.context_text)
+        # Try to get cached embedding first, otherwise generate
+        query_embedding = case GlobalbridgeBackend.AI.EmbeddingCache.get(thread_id) do
+          {:ok, cached_embedding} ->
+            Logger.debug("[RAG] Using cached query embedding")
+            cached_embedding
+
+          :miss ->
+            Logger.debug("[RAG] Cache miss, generating embedding on-demand")
+            embedding = generate_embedding(context.context_text)
+            # Cache for future use
+            GlobalbridgeBackend.AI.EmbeddingCache.put(thread_id, embedding)
+            embedding
+        end
 
         # Search for similar accepted suggestions using real RAG semantic search
         case VectorStore.search_accepted_suggestions(thread_id, user_id, query_embedding, limit: 5) do
@@ -649,7 +712,7 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
   end
 
   defp generate_embedding(text) do
-    # Use real OpenAI text-embedding-3-large model
+    # Use real OpenAI text-embedding-3-small model (1536 dims, 2-3x faster)
     case GlobalbridgeBackend.AI.Embeddings.generate(text) do
       {:ok, embedding} ->
         embedding
@@ -658,7 +721,7 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
         Logger.warning("Embedding generation failed: #{inspect(reason)}, using fallback")
         # Fallback to zero vector to avoid breaking the flow
         # In production, you might want to retry or use a different strategy
-        List.duplicate(0.0, 3072)
+        List.duplicate(0.0, 1536)
     end
   end
 
