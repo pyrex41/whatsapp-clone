@@ -9627,17 +9627,18 @@
           "13",
           "24"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
             "title": "Add Gesture Recognizers to SuggestionChipView",
             "description": "Integrate UITapGestureRecognizer and UISwipeGestureRecognizer into SuggestionChipView to enable dismissal interactions.",
             "dependencies": [],
-            "details": "Modify SuggestionChipView to add gesture recognizers for tap and swipe actions. Ensure they are configured to detect single taps and left/right swipes without conflicting with existing interactions. This sets up the foundation for handling dismissal gestures.",
-            "status": "pending",
+            "details": "Modify SuggestionChipView to add gesture recognizers for tap and swipe actions. Ensure they are configured to detect single taps and left/right swipes without conflicting with existing interactions. This sets up the foundation for handling dismissal gestures.\n<info added on 2025-10-26T02:56:45.400Z>\nThis task is already complete. The SuggestionChip component in SmartReplyComposerView.swift (lines 151-284) already implements all required gesture functionality using SwiftUI's native gesture system:\n\n- DragGesture for swipe dismissal with 50pt threshold (lines 207-236)\n- onLongPressGesture to show dismiss button (lines 237-242)  \n- Tap gesture handling via Button with showDismissButton state (lines 186-201, 255-270)\n- Full animations: fade, scale, slide (lines 204-206, 272-283)\n- State management with @State properties\n- Accessibility support with custom dismiss action (lines 246-248)\n\nImplementation uses SwiftUI gesture modifiers rather than UIKit UIGestureRecognizer, which is the modern SwiftUI best practice. All tests exist in SuggestionDismissalTests.swift. No additional work needed.\n</info added on 2025-10-26T02:56:45.400Z>",
+            "status": "done",
             "testStrategy": "Unit test that gesture recognizers are properly added and configured on the view.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T02:56:48.079Z"
           },
           {
             "id": 2,
@@ -9646,10 +9647,11 @@
             "dependencies": [
               1
             ],
-            "details": "In SuggestionChipView, implement a tap gesture handler that triggers dismissal when the user taps on the chip. This should animate the chip's removal from the UI and update the view state accordingly, without sending any rejection feedback to the backend.",
-            "status": "pending",
+            "details": "In SuggestionChipView, implement a tap gesture handler that triggers dismissal when the user taps on the chip. This should animate the chip's removal from the UI and update the view state accordingly, without sending any rejection feedback to the backend.\n<info added on 2025-10-26T02:57:16.018Z>\nThis task is already complete. The tap dismissal handler is fully implemented in SuggestionChip (SmartReplyComposerView.swift):\n\nLines 183-201: X button overlay with Button(action: handleDismiss)\nLines 272-283: handleDismiss() method with animations and callback\nLines 255-270: handleTap() method that prevents selection when dismiss button is visible\n\nThe implementation includes:\n- X button appears on drag (>10pt) or long press (0.5s)\n- Button positioned at top-trailing with offset(x: 4, y: -4)\n- Dismissal animation: fade (opacity 0), scale (0.8), slide (±100pt)\n- 0.25s animation duration with easeOut curve\n- onDismiss callback triggered after animation completes\n- No rejection feedback sent to backend\n\nTests exist in SuggestionDismissalTests.swift. No additional work needed.\n</info added on 2025-10-26T02:57:16.018Z>",
+            "status": "done",
             "testStrategy": "UI test to verify that tapping the chip dismisses it and updates the UI state without recording rejection.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T02:57:19.438Z"
           },
           {
             "id": 3,
@@ -9658,10 +9660,11 @@
             "dependencies": [
               1
             ],
-            "details": "In SuggestionChipView, implement a swipe gesture handler that detects swipe directions (left or right) and dismisses the chip upon swipe. Include smooth animation for the dismissal and ensure the UI state is updated to reflect the removal of the suggestion.",
-            "status": "pending",
+            "details": "In SuggestionChipView, implement a swipe gesture handler that detects swipe directions (left or right) and dismisses the chip upon swipe. Include smooth animation for the dismissal and ensure the UI state is updated to reflect the removal of the suggestion.\n<info added on 2025-10-26T02:57:47.497Z>\nThis task is already complete. The swipe dismissal handler is fully implemented in SuggestionChip (SmartReplyComposerView.swift):\n\nLines 207-236: DragGesture() with .onChanged and .onEnded handlers\n\nImplementation details:\n- onChanged: Updates dragOffset with value.translation.width (horizontal drag)\n- Shows dismiss button when abs(dragOffset) > 10pt\n- onEnded: Checks if abs(translation.width) > 50pt threshold\n- If beyond threshold: calls handleDismiss() to remove chip\n- If below threshold: springs back with 0.3s response, 0.7 damping\n- Dismiss button auto-hides 0.3s after snap-back\n- Supports both left and right swipe directions\n- Smooth animations using withAnimation() and spring()\n- Visual feedback via .offset(x: dragOffset) modifier (line 204)\n\nThe swipe dismissal is fully functional with fluid animations and proper thresholds. Tests exist in SuggestionDismissalTests.swift. No additional work needed.\n</info added on 2025-10-26T02:57:47.497Z>",
+            "status": "done",
             "testStrategy": "UI test to verify that swiping the chip dismisses it with animation and updates the UI state without recording rejection.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T02:57:51.130Z"
           },
           {
             "id": 4,
@@ -9671,10 +9674,11 @@
               2,
               3
             ],
-            "details": "After dismissal via tap or swipe, notify the parent view controller or data source to remove the dismissed suggestion from the list or array. Update any relevant UI elements, such as hiding the suggestion list if all are dismissed, to maintain a consistent interface state.",
-            "status": "pending",
+            "details": "After dismissal via tap or swipe, notify the parent view controller or data source to remove the dismissed suggestion from the list or array. Update any relevant UI elements, such as hiding the suggestion list if all are dismissed, to maintain a consistent interface state.\n<info added on 2025-10-26T02:58:18.184Z>\nThis task is already complete. UI state update on dismissal is fully implemented via callback mechanism:\n\nSmartReplyComposerView.swift implementation:\n- Line 22: onSuggestionDismiss callback property (optional)\n- Lines 71-74: SuggestionChip receives onDismiss callback\n- Lines 280-282: handleDismiss() calls onDismiss(suggestion) after animation\n\nSuggestionChip state management:\n- @State isDismissed: Controls opacity (0) and scale (0.8) for fade-out\n- @State dragOffset: Animates slide-out direction (±100pt)\n- Animation completes before callback fires (0.25s delay)\n\nParent view responsibility:\nThe parent component receives dismissed suggestion via onSuggestionDismiss callback and removes it from the suggestions array. This follows SwiftUI's unidirectional data flow pattern where child components notify parents via callbacks and parents manage state.\n\nThe UI state update architecture is complete. Tests exist in SuggestionDismissalTests.swift verifying callback invocation. No additional work needed.\n</info added on 2025-10-26T02:58:18.184Z>",
+            "status": "done",
             "testStrategy": "UI integration test to confirm that dismissing a suggestion removes it from the view and updates the overall UI state correctly.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T02:58:21.195Z"
           },
           {
             "id": 5,
@@ -9684,15 +9688,17 @@
               2,
               3
             ],
-            "details": "In the dismissal handlers, explicitly avoid triggering any feedback mechanisms that record rejections. Ensure that proactive suggestions can be dismissed silently, preserving user privacy and not influencing future suggestions based on dismissal actions.",
-            "status": "pending",
+            "details": "In the dismissal handlers, explicitly avoid triggering any feedback mechanisms that record rejections. Ensure that proactive suggestions can be dismissed silently, preserving user privacy and not influencing future suggestions based on dismissal actions.\n<info added on 2025-10-26T02:58:48.629Z>\nThis task is already complete. The dismissal implementation explicitly prevents rejection recording:\n\nSmartReplyComposerView.swift - handleDismiss() (lines 272-283):\n✅ ONLY performs UI operations:\n  - Animates dismissal (fade, scale, slide)\n  - Calls onDismiss(suggestion) callback for parent state update\n\n❌ Does NOT:\n  - Call any API endpoints\n  - Record feedback\n  - Log rejection events\n  - Invoke SmartReplyService methods\n  - Send network requests\n\nArchitecture separation:\n- Dismissal = Pure UI operation (ephemeral, session-only)\n- Rejection = Explicit user feedback (recorded via separate action)\n- These are completely separate code paths\n\nTest verification:\nSuggestionDismissalTests.swift lines 244-274: testDismissalDoesNotRecordRejection() explicitly verifies no feedback APIs are called during dismissal.\n\nComment at line 257: 'Dismissal callback should NOT record rejection. This is just for UI state management.'\n\nThe implementation correctly treats dismissal as a silent, privacy-preserving UI action. No additional work needed.\n</info added on 2025-10-26T02:58:48.629Z>",
+            "status": "done",
             "testStrategy": "Unit test to verify that no rejection data is sent or logged when dismissal occurs, and integration test to confirm backend does not receive rejection signals.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-10-26T02:58:51.431Z"
           }
         ],
         "complexity": 5,
         "recommendedSubtasks": 0,
-        "expansionPrompt": ""
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-26T02:58:51.431Z"
       },
       {
         "id": "26",
@@ -10125,9 +10131,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-10-26T02:21:57.992Z",
+      "lastModified": "2025-10-26T02:58:51.434Z",
       "taskCount": 34,
-      "completedCount": 24,
+      "completedCount": 25,
       "tags": [
         "ai-ios"
       ]
