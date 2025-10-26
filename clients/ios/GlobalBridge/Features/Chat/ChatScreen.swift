@@ -215,7 +215,9 @@ struct ChatScreen: View {
                 store.send(.sendMessage)
                 composerFocused = true
             },
-            isFocused: $composerFocused
+            isFocused: $composerFocused,
+            threadId: chatState.currentThread?.id.uuidString,
+            phoenixManager: store.environment.phoenixManager
         )
         .padding(.horizontal, 12)
         .padding(.vertical, 8)

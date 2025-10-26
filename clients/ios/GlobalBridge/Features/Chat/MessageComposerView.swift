@@ -13,7 +13,7 @@ struct MessageComposerView: View {
 
     // Translation support (optional)
     let threadId: String?
-    let phoenixStateManager: PhoenixStateManager?
+    let phoenixManager: PhoenixChannelManager?
 
     // Translation state
     @State private var isTranslationEnabled = false
@@ -28,20 +28,20 @@ struct MessageComposerView: View {
         onSend: @escaping () -> Void,
         isFocused: FocusState<Bool>.Binding,
         threadId: String? = nil,
-        phoenixStateManager: PhoenixStateManager? = nil
+        phoenixManager: PhoenixChannelManager? = nil
     ) {
         self._text = text
         self.isSending = isSending
         self.onSend = onSend
         self.isFocused = isFocused
         self.threadId = threadId
-        self.phoenixStateManager = phoenixStateManager
+        self.phoenixManager = phoenixManager
     }
 
     var body: some View {
         VStack(spacing: 0) {
             // Translation toggle (if thread-specific translation is enabled)
-            if threadId != nil && phoenixStateManager != nil {
+            if threadId != nil && phoenixManager != nil {
                 HStack {
                     TranslationToggleButton(
                         isTranslationEnabled: $isTranslationEnabled,
@@ -114,7 +114,7 @@ struct MessageComposerView: View {
     /// Load translation preference for the current thread
     private func loadTranslationPreference() async {
         guard let threadId = threadId,
-              let manager = phoenixStateManager else {
+              let manager = phoenixManager else {
             return
         }
 
@@ -142,7 +142,7 @@ struct MessageComposerView: View {
     /// Save translation preference when enabled/disabled changes
     private func saveTranslationPreference() async {
         guard let threadId = threadId,
-              let manager = phoenixStateManager else {
+              let manager = phoenixManager else {
             return
         }
 
@@ -191,7 +191,7 @@ private struct ComposerPreview: View {
             onSend: {},
             isFocused: $focused,
             threadId: withTranslation ? "preview-thread-123" : nil,
-            phoenixStateManager: withTranslation ? nil : nil  // Would use actual manager in real app
+            phoenixManager: withTranslation ? nil : nil  // Would use actual manager in real app
         )
         .padding()
     }

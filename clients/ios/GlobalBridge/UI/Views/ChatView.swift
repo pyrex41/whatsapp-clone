@@ -72,15 +72,25 @@ struct ChatView: View {
                     .padding(.horizontal, 8)
             }
 
-            // Message composer with translation support
-            MessageComposerView(
-                text: $messageText,
-                isSending: false,  // TODO: Add sending state tracking
-                onSend: sendMessage,
-                isFocused: $isInputFocused,
-                threadId: conversationId,
-                phoenixStateManager: phoenixState
-            )
+            // Message input (simplified - no translation support in this example view)
+            HStack(spacing: 12) {
+                TextField("Message", text: $messageText)
+                    .textFieldStyle(.roundedBorder)
+                    .focused($isInputFocused)
+                    .onChange(of: messageText) { oldValue, newValue in
+                        handleTypingChange(newValue: newValue)
+                    }
+
+                Button(action: sendMessage) {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(messageText.isEmpty ? .gray : .blue)
+                }
+                .disabled(messageText.isEmpty)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(.systemBackground))
         }
         .navigationTitle(displayTitle)
         .navigationBarTitleDisplayMode(.inline)
