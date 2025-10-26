@@ -386,23 +386,44 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
   end
 
   defp get_similar_accepted_suggestions(thread_id, user_id, context) do
-    # Get embedding for current context using real OpenAI embeddings
-    query_embedding = generate_embedding(context.context_text)
+    # OPTIMIZATION: Check if there's any feedback data before generating expensive embeddings
+    # This saves 5-7 seconds of OpenAI API latency when dataset is empty
+    repo = GlobalbridgeBackend.Repos.ThreadRepo.get_repo(thread_id)
+    count_sql = "SELECT COUNT(*) FROM feedback_embeddings WHERE user_id = ? AND accepted = 1"
 
-    # Search for similar accepted suggestions using real RAG semantic search
-    case VectorStore.search_accepted_suggestions(thread_id, user_id, query_embedding, limit: 5) do
-      results when is_list(results) ->
-        # Convert feedback_ids to actual suggestion content
-        # For now, just return the metadata; later we can join with feedback table
-        Logger.debug("Found #{length(results)} similar accepted suggestions via RAG")
-        Enum.map(results, fn result ->
-          # Log similarity scores for debugging
-          Logger.debug("  - Feedback #{result.feedback_id}: similarity=#{Float.round(result.similarity, 3)}, type=#{result.suggestion_type}")
-          result
-        end)
+    case Ecto.Adapters.SQL.query(repo, count_sql, [user_id]) do
+      {:ok, %{rows: [[count]]}} when count > 0 ->
+        # We have feedback data, proceed with RAG search
+        Logger.debug("Found #{count} feedback embeddings, performing RAG search")
 
-      {:error, reason} ->
-        Logger.warning("RAG search failed: #{inspect(reason)}")
+        # Get embedding for current context using real OpenAI embeddings
+        query_embedding = generate_embedding(context.context_text)
+
+        # Search for similar accepted suggestions using real RAG semantic search
+        case VectorStore.search_accepted_suggestions(thread_id, user_id, query_embedding, limit: 5) do
+          results when is_list(results) ->
+            # Convert feedback_ids to actual suggestion content
+            # For now, just return the metadata; later we can join with feedback table
+            Logger.debug("Found #{length(results)} similar accepted suggestions via RAG")
+            Enum.map(results, fn result ->
+              # Log similarity scores for debugging
+              Logger.debug("  - Feedback #{result.feedback_id}: similarity=#{Float.round(result.similarity, 3)}, type=#{result.suggestion_type}")
+              result
+            end)
+
+          {:error, reason} ->
+            Logger.warning("RAG search failed: #{inspect(reason)}")
+            []
+        end
+
+      {:ok, %{rows: [[0]]}} ->
+        # No feedback data yet, skip RAG entirely
+        Logger.debug("No feedback embeddings found, skipping RAG (saves 5-7s)")
+        []
+
+      {:error, _} ->
+        # Table doesn't exist or query failed, skip RAG
+        Logger.debug("Feedback table query failed, skipping RAG")
         []
     end
   end
