@@ -42,7 +42,7 @@ struct TranslationPreviewSheet: View {
             VStack(spacing: 0) {
                 // Original text section
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Original")
+                    Text("Original (English)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .textCase(.uppercase)
@@ -60,10 +60,18 @@ struct TranslationPreviewSheet: View {
                 // Translated text section
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("Translation to \(languageName(targetLanguage))")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .textCase(.uppercase)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Translation to \(languageName(targetLanguage))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .textCase(.uppercase)
+
+                            if !translatedText.isEmpty && !isTranslating {
+                                Text("Tap formality buttons below to adjust tone")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
 
                         Spacer()
 
@@ -196,24 +204,31 @@ struct TranslationPreviewSheet: View {
     // MARK: - Translation Logic
 
     private func performInitialTranslation() async {
-        guard let phoenixManager = phoenixManager else {
-            error = "Translation service unavailable"
-            isTranslating = false
-            return
-        }
-
         isTranslating = true
         error = nil
 
         do {
-            // TODO: Implement actual translation API call through Phoenix Channel
-            // For now, simulate translation
-            try await Task.sleep(nanoseconds: 1_000_000_000)
-            translatedText = "Hola (translated with \(selectedFormality.rawValue.lowercased()) tone)"
-            isTranslating = false
+            print("🌐 [TRANSLATION_PREVIEW] Translating to \(targetLanguage) with \(selectedFormality.rawValue) formality")
+
+            let result = try await BackendTranslationService.shared.translate(
+                text: originalText,
+                targetLanguage: targetLanguage,
+                sourceLanguage: "en",
+                context: nil,
+                formality: mapToFormalityLevel(selectedFormality)
+            )
+
+            await MainActor.run {
+                translatedText = result.translatedText
+                isTranslating = false
+                print("✅ [TRANSLATION_PREVIEW] Translation complete: \(translatedText)")
+            }
         } catch {
-            self.error = "Translation failed: \(error.localizedDescription)"
-            isTranslating = false
+            await MainActor.run {
+                self.error = "Translation failed: \(error.localizedDescription)"
+                isTranslating = false
+                print("❌ [TRANSLATION_PREVIEW] Translation failed: \(error)")
+            }
         }
     }
 
@@ -222,13 +237,38 @@ struct TranslationPreviewSheet: View {
         error = nil
 
         do {
-            // TODO: Implement actual translation with formality parameter
-            try await Task.sleep(nanoseconds: 500_000_000)
-            translatedText = "Hola (translated with \(formality.rawValue.lowercased()) tone)"
-            isTranslating = false
+            print("🌐 [TRANSLATION_PREVIEW] Re-translating with \(formality.rawValue) formality")
+
+            let result = try await BackendTranslationService.shared.translate(
+                text: originalText,
+                targetLanguage: targetLanguage,
+                sourceLanguage: "en",
+                context: nil,
+                formality: mapToFormalityLevel(formality)
+            )
+
+            await MainActor.run {
+                translatedText = result.translatedText
+                isTranslating = false
+                print("✅ [TRANSLATION_PREVIEW] Re-translation complete: \(translatedText)")
+            }
         } catch {
-            self.error = "Translation failed: \(error.localizedDescription)"
-            isTranslating = false
+            await MainActor.run {
+                self.error = "Translation failed: \(error.localizedDescription)"
+                isTranslating = false
+                print("❌ [TRANSLATION_PREVIEW] Re-translation failed: \(error)")
+            }
+        }
+    }
+
+    private func mapToFormalityLevel(_ formality: TranslationFormality) -> FormalityLevel {
+        switch formality {
+        case .informal:
+            return .informal
+        case .neutral:
+            return .neutral
+        case .formal:
+            return .formal
         }
     }
 
