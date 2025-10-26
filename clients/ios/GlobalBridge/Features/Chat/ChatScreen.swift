@@ -83,8 +83,8 @@ struct ChatScreen: View {
                 .onChange(of: smartReplyExpanded) { _, expanded in
                     // Auto-scroll to bottom when suggestions expand to keep them visible
                     if expanded, let lastMessage = chatState.messages.last {
-                        // Small delay to ensure layout has updated before scrolling
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                        // Longer delay to ensure layout has fully updated before scrolling
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                                 proxy.scrollTo(lastMessage.id, anchor: .bottom)
                             }
@@ -98,8 +98,8 @@ struct ChatScreen: View {
                         let suggestionsDisappeared = oldCount > 0 && newCount == 0
 
                         if suggestionsAppeared || suggestionsDisappeared {
-                            // Small delay to ensure layout has updated before scrolling
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                            // Longer delay to ensure layout has fully updated before scrolling
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                                 withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                                     proxy.scrollTo(lastMessage.id, anchor: .bottom)
                                 }
