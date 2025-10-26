@@ -108,7 +108,7 @@ final class ConversationMonitorService: ObservableObject {
         }
 
         // Add to monitored threads set
-        await MainActor.run {
+        _ = await MainActor.run {
             monitoredThreads.insert(threadId)
         }
 
@@ -164,7 +164,7 @@ final class ConversationMonitorService: ObservableObject {
         }
 
         // Remove from monitored threads set
-        await MainActor.run {
+        _ = await MainActor.run {
             monitoredThreads.remove(threadId)
         }
 
