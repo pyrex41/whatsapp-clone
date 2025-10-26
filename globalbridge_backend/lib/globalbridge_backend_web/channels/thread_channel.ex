@@ -432,6 +432,27 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
   end
 
   @impl true
+  def handle_in("style:learn", %{"message_id" => message_id, "thread_id" => thread_id}, socket) do
+    user_id = socket.assigns.user_id
+
+    Logger.info("🧠 [STYLE_LEARN] Received style learning request for message: #{message_id}")
+
+    # Trigger async style learning (non-blocking)
+    Task.start(fn ->
+      case Chat.get_message(thread_id, message_id) do
+        {:ok, message} ->
+          SmartReplyGenerator.learn_user_style(user_id, message, thread_id)
+          Logger.info("✅ [STYLE_LEARN] Style learning completed for user: #{user_id}")
+
+        {:error, reason} ->
+          Logger.warning("⚠️  [STYLE_LEARN] Failed to get message #{message_id}: #{inspect(reason)}")
+      end
+    end)
+
+    {:reply, :ok, socket}
+  end
+
+  @impl true
   def handle_in("ai:feedback", payload, socket) do
     thread_id = socket.assigns.thread_id
     user_id = socket.assigns.user_id

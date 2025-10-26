@@ -52,14 +52,15 @@ defmodule GlobalbridgeBackend.AI.VectorStore do
     # Ensure the virtual table exists
     create_embeddings_table(repo)
 
-    # Convert embedding list to binary format expected by vec0
-    embedding_binary = embedding_to_binary(embedding)
+    # Convert embedding list to JSON array string expected by vec0
+    # vec0 expects format: "[0.1, 0.2, 0.3, ...]"
+    embedding_json = Jason.encode!(embedding)
 
     sql = """
     INSERT OR REPLACE INTO message_embeddings (message_id, embedding)
     VALUES (?, ?)
     """
-    case Ecto.Adapters.SQL.query(repo, sql, [message_id, embedding_binary]) do
+    case Ecto.Adapters.SQL.query(repo, sql, [message_id, embedding_json]) do
       {:ok, _} -> :ok
       {:error, %Exqlite.Error{} = err} ->
         require Logger

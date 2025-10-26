@@ -258,7 +258,7 @@ defmodule GlobalbridgeBackend.AI.ConversationMonitor do
     new_message = %{
       id: message.id,
       content: message.content,
-      user_id: message.user_id,
+      user_id: message.sender_id,  # Message schema uses sender_id, not user_id
       timestamp: message.inserted_at || DateTime.utc_now(),
       analyzed: false
     }
