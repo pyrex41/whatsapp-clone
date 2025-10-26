@@ -16,6 +16,11 @@ defmodule GlobalbridgeBackend.Schemas.ThreadParticipant do
     field(:left_at, :utc_datetime)
     field(:is_active, :boolean, default: true)
 
+    # Translation preferences (per-thread overrides)
+    field(:auto_translate_incoming, :boolean)
+    field(:auto_translate_outgoing, :boolean)
+    field(:preferred_thread_language, :string)
+
     belongs_to(:thread, GlobalbridgeBackend.Schemas.Thread)
     belongs_to(:user, GlobalbridgeBackend.Schemas.User)
 
@@ -45,5 +50,14 @@ defmodule GlobalbridgeBackend.Schemas.ThreadParticipant do
     |> cast(attrs, [:left_at, :is_active])
     |> put_change(:left_at, DateTime.utc_now() |> DateTime.truncate(:second))
     |> put_change(:is_active, false)
+  end
+
+  @doc """
+  Changeset for updating translation preferences.
+  """
+  def translation_changeset(participant, attrs) do
+    participant
+    |> cast(attrs, [:auto_translate_incoming, :auto_translate_outgoing, :preferred_thread_language])
+    |> validate_length(:preferred_thread_language, is: 2)
   end
 end

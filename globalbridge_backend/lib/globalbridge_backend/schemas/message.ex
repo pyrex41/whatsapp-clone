@@ -28,6 +28,13 @@ defmodule GlobalbridgeBackend.Schemas.Message do
     # Language detection for translation
     field(:detected_language, :string)
 
+    # Translation fields
+    field(:original_content, :string)
+    field(:translated_content, :string)
+    field(:source_language, :string)
+    field(:target_language, :string)
+    field(:is_translated, :boolean, default: false)
+
     # Client-side timestamps for CDC sync
     field(:client_created_at, :utc_datetime)
     # Client-provided message id to support deduplication on fetch
@@ -83,6 +90,23 @@ defmodule GlobalbridgeBackend.Schemas.Message do
     |> change()
     |> put_change(:is_deleted, true)
     |> put_change(:deleted_at, DateTime.utc_now() |> DateTime.truncate(:second))
+  end
+
+  @doc """
+  Changeset for adding translation to a message.
+  """
+  def translation_changeset(message, attrs) do
+    message
+    |> cast(attrs, [
+      :original_content,
+      :translated_content,
+      :source_language,
+      :target_language,
+      :is_translated
+    ])
+    |> validate_required([:original_content, :translated_content, :source_language, :target_language])
+    |> validate_length(:source_language, is: 2)
+    |> validate_length(:target_language, is: 2)
   end
 
   defp validate_message_content(changeset) do

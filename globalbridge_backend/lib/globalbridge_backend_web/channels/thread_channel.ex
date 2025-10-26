@@ -528,6 +528,165 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     {:reply, {:error, %{reason: "Missing required parameter: logs"}}, socket}
   end
 
+  @doc """
+  Translates a specific message on-demand.
+
+  Used for "Show original" / "Show translation" toggle in UI.
+  """
+  @impl true
+  def handle_in("translate_message", %{"message_id" => message_id, "target_language" => target_lang} = _payload, socket) do
+    thread_id = socket.assigns.thread_id
+
+    case Messages.get_message(thread_id, message_id) do
+      nil ->
+        {:reply, {:error, %{reason: "Message not found"}}, socket}
+
+      message ->
+        source_lang = message.detected_language || "en"
+
+        case GlobalbridgeBackend.AI.TranslationCoordinator.translate_message_on_demand(
+          message.content,
+          source_lang,
+          target_lang
+        ) do
+          {:ok, translated_content} ->
+            response = %{
+              message_id: message_id,
+              translated_content: translated_content,
+              source_language: source_lang,
+              target_language: target_lang
+            }
+
+            {:reply, {:ok, response}, socket}
+
+          {:error, reason} ->
+            Logger.error("[TRANSLATION] Failed to translate message #{message_id}: #{inspect(reason)}")
+            {:reply, {:error, %{reason: "Translation failed"}}, socket}
+        end
+    end
+  end
+
+  @doc """
+  Gets effective translation preferences for the current user in this thread.
+  """
+  @impl true
+  def handle_in("get_translation_preferences", _payload, socket) do
+    user_id = socket.assigns.user_id
+    thread_id = socket.assigns.thread_id
+
+    prefs = GlobalbridgeBackend.Contexts.TranslationPreferences.get_effective_preferences(user_id, thread_id)
+
+    {:reply, {:ok, prefs}, socket}
+  end
+
+  @doc """
+  Updates translation preferences for the current user.
+
+  Can update either global preferences or thread-specific overrides.
+  """
+  @impl true
+  def handle_in("set_translation_preference", %{"scope" => "global"} = payload, socket) do
+    user_id = socket.assigns.user_id
+
+    attrs = Map.take(payload, ["auto_translate_incoming", "auto_translate_outgoing", "show_translation_offers"])
+
+    case GlobalbridgeBackend.Contexts.TranslationPreferences.update_user_preferences(user_id, attrs) do
+      {:ok, _prefs} ->
+        {:reply, {:ok, %{updated: true}}, socket}
+
+      {:error, changeset} ->
+        {:reply, {:error, %{reason: "Invalid preferences", errors: format_errors(changeset)}}, socket}
+    end
+  end
+
+  @impl true
+  def handle_in("set_translation_preference", %{"scope" => "thread"} = payload, socket) do
+    user_id = socket.assigns.user_id
+    thread_id = socket.assigns.thread_id
+
+    attrs = Map.take(payload, ["auto_translate_incoming", "auto_translate_outgoing", "preferred_thread_language"])
+
+    case GlobalbridgeBackend.Contexts.TranslationPreferences.update_thread_preferences(user_id, thread_id, attrs) do
+      {:ok, _participant} ->
+        {:reply, {:ok, %{updated: true}}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, %{reason: reason}}, socket}
+    end
+  end
+
+  @impl true
+  def handle_in("set_translation_preference", _payload, socket) do
+    {:reply, {:error, %{reason: "Invalid scope. Must be 'global' or 'thread'"}}, socket}
+  end
+
+  @doc """
+  Checks if an outgoing message should offer translation.
+
+  Returns suggestion if user's message language differs from thread language.
+  """
+  @impl true
+  def handle_in("check_translation_suggestion", %{"content" => content} = _payload, socket) do
+    user_id = socket.assigns.user_id
+    thread_id = socket.assigns.thread_id
+
+    case GlobalbridgeBackend.AI.TranslationCoordinator.check_outgoing_message(content, user_id, thread_id) do
+      {:suggest, thread_language, available_languages} ->
+        response = %{
+          should_translate: true,
+          thread_language: thread_language,
+          available_languages: available_languages
+        }
+
+        {:reply, {:ok, response}, socket}
+
+      {:skip, _reason} ->
+        {:reply, {:ok, %{should_translate: false}}, socket}
+    end
+  end
+
+  @doc """
+  Translates an outgoing message before sending.
+
+  Used when user accepts translation suggestion.
+  """
+  @impl true
+  def handle_in("translate_and_send", %{"content" => content, "target_language" => target_lang} = payload, socket) do
+    user_id = socket.assigns.user_id
+    thread_id = socket.assigns.thread_id
+
+    # Detect source language
+    source_lang = detect_message_language(content)
+
+    case GlobalbridgeBackend.AI.TranslationCoordinator.translate_outgoing_message(
+      content,
+      source_lang,
+      target_lang
+    ) do
+      {:ok, translated_content, metadata} ->
+        # Send the translated message
+        message_attrs = %{
+          content: translated_content,
+          content_type: "text",
+          original_content: content,
+          source_language: source_lang,
+          target_language: target_lang,
+          is_translated: true,
+          detected_language: target_lang
+        }
+
+        # Merge with other payload fields (reply_to_id, etc.)
+        message_attrs = Map.merge(message_attrs, Map.take(payload, ["reply_to_id"]))
+
+        # Send message through normal flow
+        handle_in("new_message", message_attrs, socket)
+
+      {:error, reason} ->
+        Logger.error("[TRANSLATION] Failed to translate outgoing message: #{inspect(reason)}")
+        {:reply, {:error, %{reason: "Translation failed"}}, socket}
+    end
+  end
+
   # Private helper functions
 
   defp authorize_user(thread_id, user_id) do
@@ -613,4 +772,26 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
   defp format_cursor(nil), do: nil
   defp format_cursor(%DateTime{} = datetime), do: DateTime.to_iso8601(datetime)
   defp format_cursor(value), do: value
+
+  defp format_errors(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Enum.reduce(opts, msg, fn {key, value}, acc ->
+        String.replace(acc, "%{#{key}}", to_string(value))
+      end)
+    end)
+  end
+
+  defp detect_message_language(content) do
+    # Simple language detection based on character patterns
+    cond do
+      String.match?(content, ~r/[а-яА-Я]/) -> "ru"
+      String.match?(content, ~r/[一-龯]/) -> "zh"
+      String.match?(content, ~r/[ぁ-ゔ]/) -> "ja"
+      String.match?(content, ~r/[가-힣]/) -> "ko"
+      String.match?(content, ~r/[ñáéíóúü]/i) -> "es"
+      String.match?(content, ~r/[àâäæçéèêëïîôùûü]/i) -> "fr"
+      String.match?(content, ~r/[äöüß]/i) -> "de"
+      true -> "en"
+    end
+  end
 end
