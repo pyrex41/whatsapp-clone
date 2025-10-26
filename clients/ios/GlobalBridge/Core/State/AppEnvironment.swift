@@ -338,7 +338,10 @@ extension AppEnvironment {
 
                 // Get Auth0 token
                 // Prefer ID token (JWT) for Phoenix auth to avoid JWE access tokens
-                let token = await AuthManager.shared.getIdToken() ?? await AuthManager.shared.getAccessToken()
+                var token = await AuthManager.shared.getIdToken()
+                if token == nil {
+                    token = await AuthManager.shared.getAccessToken()
+                }
                 
                 print("🔌 [CONNECT] Connecting to Phoenix...")
                 try await phoenixManager.connect(authToken: token)
@@ -368,7 +371,10 @@ extension AppEnvironment {
 
                 // Get Auth0 token
                 // Prefer ID token for Phoenix auth
-                let token = await AuthManager.shared.getIdToken() ?? await AuthManager.shared.getAccessToken()
+                var token = await AuthManager.shared.getIdToken()
+                if token == nil {
+                    token = await AuthManager.shared.getAccessToken()
+                }
                 
                 print("📤 [ENV] Ensuring Phoenix connection with Auth0 token...")
                 try await phoenixManager.connect(authToken: token)

@@ -8088,7 +8088,7 @@
         "testStrategy": "Unit test serialization/deserialization with JSONEncoder/Decoder. Verify computed properties and edge cases like confidence bounds.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -8152,7 +8152,8 @@
         ],
         "complexity": 3,
         "recommendedSubtasks": 0,
-        "expansionPrompt": ""
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-26T00:12:10.508Z"
       },
       {
         "id": "2",
@@ -8162,7 +8163,7 @@
         "testStrategy": "Unit test model initialization and computed properties. Test confidence score thresholds.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -8227,7 +8228,8 @@
         ],
         "complexity": 3,
         "recommendedSubtasks": 0,
-        "expansionPrompt": ""
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-26T00:12:11.732Z"
       },
       {
         "id": "3",
@@ -8237,7 +8239,7 @@
         "testStrategy": "Unit test default initialization and override logic. Verify dictionary handling.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -8300,7 +8302,8 @@
         ],
         "complexity": 4,
         "recommendedSubtasks": 0,
-        "expansionPrompt": ""
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-26T00:12:12.990Z"
       },
       {
         "id": "4",
@@ -8310,7 +8313,7 @@
         "testStrategy": "Unit test optional fields and serialization.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -8373,7 +8376,8 @@
         ],
         "complexity": 3,
         "recommendedSubtasks": 0,
-        "expansionPrompt": ""
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-26T00:12:14.259Z"
       },
       {
         "id": "5",
@@ -8388,7 +8392,7 @@
           "3",
           "4"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -8451,7 +8455,8 @@
         ],
         "complexity": 5,
         "recommendedSubtasks": 0,
-        "expansionPrompt": ""
+        "expansionPrompt": "",
+        "updatedAt": "2025-10-26T00:12:15.545Z"
       },
       {
         "id": "6",
@@ -8542,7 +8547,7 @@
           "5",
           "6"
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -8567,13 +8572,14 @@
         ],
         "complexity": 7,
         "recommendedSubtasks": 2,
-        "expansionPrompt": "Break down into subtasks for API method implementations (fetchSuggestions, recordFeedback), caching logic, and error handling."
+        "expansionPrompt": "Break down into subtasks for API method implementations (fetchSuggestions, recordFeedback), caching logic, and error handling.",
+        "updatedAt": "2025-10-26T00:15:33.600Z"
       },
       {
         "id": "8",
         "title": "Implement ConversationMonitorService",
         "description": "Create ConversationMonitorService.swift to subscribe to Phoenix events and handle AI suggestion broadcasts. Note: This is Phase 3 (after MVP) for real-time proactive suggestions - not needed for basic smart reply MVP.",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [
           "1",
           "5",
@@ -8596,13 +8602,14 @@
         ],
         "complexity": 6,
         "recommendedSubtasks": 1,
-        "expansionPrompt": "Subtask for event handling and sliding window logic."
+        "expansionPrompt": "Subtask for event handling and sliding window logic.",
+        "updatedAt": "2025-10-26T00:15:34.890Z"
       },
       {
         "id": "9",
         "title": "Implement SmartTranslationService",
         "description": "Create SmartTranslationService.swift for translating messages and managing preferences.",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [
           "3",
           "5",
@@ -8637,7 +8644,8 @@
         ],
         "complexity": 7,
         "recommendedSubtasks": 2,
-        "expansionPrompt": "Separate into subtasks for translation methods and preference handling."
+        "expansionPrompt": "Separate into subtasks for translation methods and preference handling.",
+        "updatedAt": "2025-10-26T00:15:36.152Z"
       },
       {
         "id": "10",
@@ -9840,9 +9848,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-10-25T23:55:39.268Z",
+      "lastModified": "2025-10-26T00:15:36.155Z",
       "taskCount": 31,
-      "completedCount": 1,
+      "completedCount": 6,
       "tags": [
         "ai-ios"
       ]
