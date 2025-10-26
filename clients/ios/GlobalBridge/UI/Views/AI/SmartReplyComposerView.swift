@@ -78,6 +78,28 @@ struct SmartReplyComposerView: View {
 
     private var suggestionsView: some View {
         VStack(alignment: .leading, spacing: 4) {
+            // Top row: expand/collapse button in top right (only show if we have more than 1 suggestion)
+            if suggestions.count > 1 {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            isExpanded.toggle()
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            Text(isExpanded ? "Show less" : "Show \(suggestions.count - 1) more")
+                                .font(.caption2)
+                            Image(systemName: "chevron.down")
+                                .font(.caption2)
+                        }
+                        .foregroundColor(.secondary)
+                    }
+                    .accessibilityLabel(isExpanded ? "Hide additional suggestions" : "Show \(suggestions.count - 1) more suggestions")
+                }
+                .padding(.bottom, 4)
+            }
+
             // Show first suggestion always
             if let firstSuggestion = suggestions.first {
                 SuggestionChip(
@@ -108,28 +130,6 @@ struct SmartReplyComposerView: View {
                     )
                     .accessibilityIdentifier("SmartReplyChip-\(suggestion.position)")
                 }
-            }
-
-            // Bottom row: expand/collapse button (only show if we have more than 1 suggestion)
-            if suggestions.count > 1 {
-                HStack {
-                    Spacer()
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            isExpanded.toggle()
-                        }
-                    }) {
-                        HStack(spacing: 4) {
-                            Text(isExpanded ? "Show less" : "Show \(suggestions.count - 1) more")
-                                .font(.caption2)
-                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                                .font(.caption2)
-                        }
-                        .foregroundColor(.secondary)
-                    }
-                    .accessibilityLabel(isExpanded ? "Hide additional suggestions" : "Show \(suggestions.count - 1) more suggestions")
-                }
-                .padding(.top, 4)
             }
         }
         .accessibilityLabel("Smart reply suggestions")
