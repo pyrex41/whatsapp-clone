@@ -10,6 +10,8 @@ struct ChatScreen: View {
     @FocusState private var composerFocused: Bool
     @State private var hasAutoScrolled = false
     @State private var isAtBottom = true
+    @State private var hasFetchedSuggestions = false // Track if we've fetched for this thread
+    @State private var lastFetchTime: Date? = nil // For debouncing
 
     private var chatState: ChatState { store.state.chat }
 
@@ -116,6 +118,44 @@ struct ChatScreen: View {
 
                     Divider()
 
+                    // Smart Reply chips above composer
+                    if let thread = chatState.currentThread {
+                        let threadId = thread.id.uuidString
+                        let suggestions = store.state.smartReplySuggestions[threadId] ?? []
+                        let isLoadingSuggestions = store.state.smartReplyLoading[threadId] ?? false
+
+                        SmartReplyComposerView(
+                            suggestions: suggestions,
+                            isLoading: isLoadingSuggestions,
+                            translationEnabled: false,
+                            onSuggestionTap: { suggestion, timeToResponseMs in
+                                // Accept to insert into composer
+                                store.send(.acceptSuggestion(
+                                    threadId: threadId,
+                                    suggestion: suggestion,
+                                    modifiedContent: nil
+                                ))
+                                // Record feedback with time-to-response for analytics
+                                store.send(.recordFeedback(
+                                    SuggestionFeedback(
+                                        suggestionId: suggestion.id,
+                                        accepted: true,
+                                        modifiedContent: nil,
+                                        rejectionReason: nil,
+                                        timeToResponseMs: timeToResponseMs,
+                                        timestamp: Date()
+                                    )
+                                ))
+                            },
+                            onTranslationToggle: {
+                                // Placeholder: wire to translation preferences in a separate task
+                            }
+                        )
+                        .padding(.horizontal, 12)
+                        .padding(.bottom, 4)
+                        .accessibilityIdentifier("smartReplyChips")
+                    }
+
                     MessageComposerView(
                         text: store.binding(
                             get: { $0.chat.composer.text },
@@ -141,6 +181,9 @@ struct ChatScreen: View {
                     // Notify banner center of active thread for suppression
                     InAppBannerCenter.shared.setActiveThread(thread.id)
 
+                    // Auto-fetch smart reply suggestions on thread open (once per thread)
+                    fetchSmartRepliesIfNeeded(for: thread.id)
+
                     // Start AI monitoring for proactive suggestions
                     Task {
                         do {
@@ -165,6 +208,9 @@ struct ChatScreen: View {
                 }
                 .onChange(of: chatState.currentThread?.id) { _, newId in
                     InAppBannerCenter.shared.setActiveThread(newId)
+                    // Reset fetch state when thread changes
+                    hasFetchedSuggestions = false
+                    lastFetchTime = nil
                 }
                 .onDisappear {
                     // Clear active thread when leaving chat
@@ -192,6 +238,24 @@ struct ChatScreen: View {
                             }
                         }
                     }
+
+                    // Manual refresh button for smart reply suggestions
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            refreshSmartReplies(for: thread.id)
+                        } label: {
+                            if let isLoading = store.state.smartReplyLoading[thread.id.uuidString], isLoading {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            } else {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.body)
+                            }
+                        }
+                        .disabled(store.state.smartReplyLoading[thread.id.uuidString] == true)
+                        .accessibilityLabel("Refresh smart reply suggestions")
+                        .accessibilityHint("Double tap to refresh AI suggestions")
+                    }
                 }
                 .overlay {
                     if chatState.isLoadingMessages {
@@ -209,6 +273,52 @@ struct ChatScreen: View {
         }
         .navigationTitle(chatState.currentThread?.displayName(currentUserId: store.state.user.id, userCache: store.state.userCache) ?? "Messages")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    // MARK: - Smart Reply Fetch Helpers
+
+    /// Fetch smart replies if not already fetched for this thread (auto-fetch on open)
+    private func fetchSmartRepliesIfNeeded(for threadId: UUID) {
+        let threadIdStr = threadId.uuidString
+
+        // Only fetch once per thread load
+        guard !hasFetchedSuggestions else {
+            print("🤖 [SMART_REPLY] Already fetched for this thread, skipping auto-fetch")
+            return
+        }
+
+        // Don't fetch if already loading
+        if let isLoading = store.state.smartReplyLoading[threadIdStr], isLoading {
+            print("🤖 [SMART_REPLY] Already loading, skipping auto-fetch")
+            return
+        }
+
+        print("🤖 [SMART_REPLY] Auto-fetching suggestions on thread open: \(threadId)")
+        hasFetchedSuggestions = true
+        lastFetchTime = Date()
+        store.send(.fetchSmartReplies(threadId: threadIdStr))
+    }
+
+    /// Manually refresh smart replies with debounce (prevent spam)
+    private func refreshSmartReplies(for threadId: UUID) {
+        let threadIdStr = threadId.uuidString
+        let now = Date()
+
+        // Debounce: prevent refreshes within 2 seconds
+        if let lastFetch = lastFetchTime, now.timeIntervalSince(lastFetch) < 2.0 {
+            print("🤖 [SMART_REPLY] Debouncing refresh (too soon)")
+            return
+        }
+
+        // Don't refresh if already loading
+        if let isLoading = store.state.smartReplyLoading[threadIdStr], isLoading {
+            print("🤖 [SMART_REPLY] Already loading, skipping manual refresh")
+            return
+        }
+
+        print("🤖 [SMART_REPLY] Manual refresh triggered for thread: \(threadId)")
+        lastFetchTime = now
+        store.send(.fetchSmartReplies(threadId: threadIdStr))
     }
 }
 
