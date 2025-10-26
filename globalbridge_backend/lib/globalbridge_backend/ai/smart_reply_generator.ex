@@ -463,21 +463,45 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
         end
 
         # Search for similar accepted suggestions using real RAG semantic search
-        case VectorStore.search_accepted_suggestions(thread_id, user_id, query_embedding, limit: 5) do
+        feedback_results = case VectorStore.search_accepted_suggestions(thread_id, user_id, query_embedding, limit: 5) do
           results when is_list(results) ->
-            # Convert feedback_ids to actual suggestion content
-            # For now, just return the metadata; later we can join with feedback table
             Logger.debug("Found #{length(results)} similar accepted suggestions via RAG")
-            Enum.map(results, fn result ->
-              # Log similarity scores for debugging
+            Enum.each(results, fn result ->
               Logger.debug("  - Feedback #{result.feedback_id}: similarity=#{Float.round(result.similarity, 3)}, type=#{result.suggestion_type}")
-              result
             end)
+            results
 
           {:error, reason} ->
-            Logger.warning("RAG search failed: #{inspect(reason)}")
+            Logger.warning("RAG feedback search failed: #{inspect(reason)}")
             []
         end
+
+        # ALSO search user style embeddings for personalization
+        style_results = case VectorStore.get_user_styles(thread_id, user_id) do
+          {:ok, styles} when length(styles) > 0 ->
+            Logger.debug("Found #{length(styles)} user style embeddings")
+            # Calculate similarity for each style aspect
+            Enum.map(styles, fn style ->
+              similarity = GlobalbridgeBackend.AI.Embeddings.cosine_similarity(
+                query_embedding,
+                style.embedding
+              )
+              %{
+                type: :style,
+                aspect: style.style_aspect,
+                similarity: similarity
+              }
+            end)
+            |> Enum.sort_by(& &1.similarity, :desc)
+            |> Enum.take(3)
+
+          _ ->
+            Logger.debug("No user style embeddings found")
+            []
+        end
+
+        # Combine feedback and style results
+        feedback_results ++ style_results
 
       {:ok, %{rows: [[0]]}} ->
         # No feedback data yet, skip RAG entirely
