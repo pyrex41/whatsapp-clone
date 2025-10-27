@@ -91,6 +91,14 @@ final class InAppBannerCenter: ObservableObject {
                 subtitle: msg.snippet,
                 avatarURL: msg.avatarURL
             )
+
+        case .threadCreated(let thread):
+            presentMessageBanner(
+                threadId: thread.threadId,
+                title: thread.title,
+                subtitle: thread.snippet,
+                avatarURL: thread.avatarURL
+            )
         }
     }
 
