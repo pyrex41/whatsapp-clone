@@ -333,14 +333,17 @@ extension AppEnvironment {
                     // Register global new_message handler once (user-wide feed)
                     if await GlobalBannerHandlerRegistry.shared.markIfNeeded() {
                         await phoenixManager.onAnyMessage { phoenixMessage in
-                            guard var message = Message.fromPhoenix(phoenixMessage) else { return }
+                            guard var tempMessage = Message.fromPhoenix(phoenixMessage) else { return }
 
                             // Store sender display name in message metadata for user cache update
                             if let displayName = phoenixMessage.senderDisplayName {
-                                var metadata = message.metadata ?? [:]
+                                var metadata = tempMessage.metadata ?? [:]
                                 metadata["sender_display_name"] = displayName
-                                message.metadata = metadata
+                                tempMessage.metadata = metadata
                             }
+
+                            // Make immutable copy for concurrent task
+                            let message = tempMessage
 
                             // Present banner in banner mode only
                             Task { @Sendable in
@@ -420,14 +423,17 @@ extension AppEnvironment {
                 let conversationId = threadID.uuidString
                 // Register UI handler BEFORE joining to avoid missing early events
                 await phoenixManager.onMessage(conversationId: conversationId) { phoenixMessage in
-                    guard var message = Message.fromPhoenix(phoenixMessage) else { return }
+                    guard var tempMessage = Message.fromPhoenix(phoenixMessage) else { return }
 
                     // Store sender display name in message metadata for user cache update
                     if let displayName = phoenixMessage.senderDisplayName {
-                        var metadata = message.metadata ?? [:]
+                        var metadata = tempMessage.metadata ?? [:]
                         metadata["sender_display_name"] = displayName
-                        message.metadata = metadata
+                        tempMessage.metadata = metadata
                     }
+
+                    // Make immutable copy for concurrent task
+                    let message = tempMessage
 
                     Task { @MainActor in
                         handler(message)
