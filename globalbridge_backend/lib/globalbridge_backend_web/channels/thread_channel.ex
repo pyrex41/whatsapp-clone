@@ -782,7 +782,11 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     # Use language detection service to detect message language
     # This runs synchronously but should be fast (< 100ms typically)
     case GlobalbridgeBackend.AI.LanguageDetectionService.detect_language_dedicated(content) do
-      {:ok, language_code} ->
+      {:ok, %{language_code: language_code}} ->
+        language_code
+
+      {:ok, language_code} when is_binary(language_code) ->
+        # Fallback for older format
         language_code
 
       {:error, _reason} ->
