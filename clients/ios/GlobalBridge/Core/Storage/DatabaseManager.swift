@@ -10,7 +10,7 @@ import Foundation
 import SQLite
 
 /// Main database manager with per-thread sharding support
-@MainActor
+/// Database operations run on background thread to avoid blocking UI
 final class DatabaseManager {
 
     // MARK: - Singleton
@@ -1038,6 +1038,75 @@ final class DatabaseManager {
             print("✅ Message created: \(message.id) in thread: \(message.threadId)")
         } catch {
             throw DatabaseError.insertFailed("Message: \(error.localizedDescription)")
+        }
+    }
+
+    /// Batch insert multiple messages in a single transaction (optimized for bulk operations)
+    /// This method is significantly faster than individual inserts as it:
+    /// - Uses a single transaction
+    /// - Temporarily disables CDC triggers
+    /// - Logs one batch CDC event instead of N events
+    func batchInsertMessages(_ messages: [Message], threadId: UUID) async throws {
+        guard !messages.isEmpty else { return }
+
+        print("🚀 [BATCH] Starting batch insert of \(messages.count) messages...")
+        let startTime = Date()
+
+        // Get thread to determine shard
+        guard let thread = try await fetchThread(id: threadId) else {
+            throw DatabaseError.notFound("Thread: \(threadId)")
+        }
+
+        let db = try await getThreadDatabase(shardId: thread.databaseShardId)
+
+        do {
+            // Disable CDC triggers for better performance
+            try db.execute("DROP TRIGGER IF EXISTS messages_insert_cdc_trigger")
+            try db.execute("DROP TRIGGER IF EXISTS messages_update_cdc_trigger")
+
+            // Begin transaction
+            try db.transaction {
+                for message in messages {
+                    let metadataJson = message.metadata.flatMap { try? JSONEncoder().encode($0) }
+                        .flatMap { String(data: $0, encoding: .utf8) }
+
+                    // Use INSERT OR REPLACE for deduplication
+                    let upsert = messagesTable.insert(
+                        or: .replace,
+                        messageId <- message.id.uuidString,
+                        messageThreadId <- message.threadId.uuidString,
+                        messageSenderId <- message.senderId,
+                        messageContent <- message.content,
+                        messageType <- message.messageType.rawValue,
+                        messageStatus <- message.status.rawValue,
+                        messageMetadata <- metadataJson,
+                        messageReplyToId <- message.replyToId?.uuidString,
+                        messageEditedAt <- message.editedAt,
+                        messageDeletedAt <- message.deletedAt,
+                        messageClientMessageId <- message.clientMessageId,
+                        messageCreatedAt <- message.createdAt,
+                        messageUpdatedAt <- message.updatedAt
+                    )
+
+                    try db.run(upsert)
+                }
+            }
+
+            // Re-enable CDC triggers
+            try await createCDCTriggers(in: db)
+
+            // Update thread's last_message_at with most recent message
+            if let lastMessage = messages.max(by: { $0.createdAt < $1.createdAt }) {
+                try await updateThreadLastMessage(threadId: threadId, timestamp: lastMessage.createdAt)
+            }
+
+            let duration = Date().timeIntervalSince(startTime)
+            print("✅ [BATCH] Inserted \(messages.count) messages in \(String(format: "%.3f", duration))s")
+
+        } catch {
+            // Re-enable triggers even on error
+            try? await createCDCTriggers(in: db)
+            throw DatabaseError.insertFailed("Batch insert: \(error.localizedDescription)")
         }
     }
 

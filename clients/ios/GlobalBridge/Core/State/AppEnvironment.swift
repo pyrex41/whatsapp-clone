@@ -24,6 +24,7 @@ struct DatabaseClient {
     var loadMessages: @Sendable (_ threadID: UUID) async throws -> [Message]
     var createMessage: @Sendable (_ threadID: UUID, _ content: String, _ author: User) async throws -> Message
     var storeMessage: @Sendable (_ message: Message) async throws -> Void
+    var batchStoreMessages: @Sendable (_ messages: [Message], _ threadID: UUID) async throws -> Void
 }
 
 struct RealtimeClient {
@@ -79,6 +80,11 @@ extension AppEnvironment {
             },
             storeMessage: { message in
                 await store.saveMessage(message)
+            },
+            batchStoreMessages: { messages, _ in
+                for message in messages {
+                    await store.saveMessage(message)
+                }
             }
         )
 
@@ -267,6 +273,16 @@ extension AppEnvironment {
                     try await databaseManager.createMessage(message)
                 } catch {
                     print("⚠️ Failed to store message \(message.id): \(error)")
+                }
+            },
+            batchStoreMessages: { messages, threadID in
+                _ = try await initializationTask.value
+                do {
+                    print("📦 [BATCH] Batch storing \(messages.count) messages for thread \(threadID)")
+                    try await databaseManager.batchInsertMessages(messages, threadId: threadID)
+                    print("✅ [BATCH] Batch store completed for \(messages.count) messages")
+                } catch {
+                    print("⚠️ [BATCH] Failed to batch store messages: \(error)")
                 }
             }
         )
