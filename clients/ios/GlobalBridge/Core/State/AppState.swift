@@ -207,4 +207,5 @@ struct ChatState: Equatable {
 struct MessageComposerState: Equatable {
     var text: String = ""
     var isSending: Bool = false
+    var originalText: String? = nil // Original text before translation (if message was translated)
 }

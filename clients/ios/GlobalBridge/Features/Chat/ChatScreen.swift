@@ -64,7 +64,17 @@ struct ChatScreen: View {
                                     translationSettings: threadSettings,
                                     phoenixManager: store.environment.phoenixManager,
                                     threadId: threadId,
-                                    userBaseLanguage: store.state.userLanguage
+                                    userBaseLanguage: store.state.userLanguage,
+                                    onOriginalTextToggled: { expanded in
+                                        if expanded {
+                                            // Scroll to message when original text is expanded
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                                    proxy.scrollTo(message.id, anchor: .bottom)
+                                                }
+                                            }
+                                        }
+                                    }
                                 )
                                 .id(message.id)
                                 .onAppear { if message.id == chatState.messages.last?.id { isAtBottom = true } }
@@ -292,7 +302,10 @@ struct ChatScreen: View {
             isFocused: $composerFocused,
             threadId: threadId,
             phoenixManager: store.environment.phoenixManager,
-            translationSettings: threadSettings
+            translationSettings: threadSettings,
+            onSetOriginalText: { originalText in
+                store.send(.composerOriginalTextSet(originalText))
+            }
         )
         .padding(.horizontal, 12)
         .padding(.top, 4)
@@ -325,7 +338,7 @@ struct ChatScreen: View {
                     // Fetch summary if not already loaded or if stale
                     if store.state.threadSummaries[threadIdStr] == nil ||
                        (store.state.threadSummaries[threadIdStr]?.isStale ?? false) {
-                        store.send(.fetchThreadSummary(threadId: threadIdStr))
+                        store.send(.fetchThreadSummary(threadId: threadIdStr, forceRefresh: false))
                     }
                 } label: {
                     if isLoadingSummary {
@@ -371,7 +384,7 @@ struct ChatScreen: View {
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
                         Button("Retry") {
-                            store.send(.fetchThreadSummary(threadId: threadIdStr))
+                            store.send(.fetchThreadSummary(threadId: threadIdStr, forceRefresh: false))
                         }
                         .buttonStyle(.borderedProminent)
                     }
@@ -380,7 +393,7 @@ struct ChatScreen: View {
                     ThreadSummaryView(
                         summary: summary,
                         onRegenerateTapped: {
-                            store.send(.fetchThreadSummary(threadId: threadIdStr))
+                            store.send(.fetchThreadSummary(threadId: threadIdStr, forceRefresh: true))
                         },
                         onExportTapped: {
                             // TODO: Implement export functionality
@@ -398,7 +411,7 @@ struct ChatScreen: View {
                     )
                     .overlay(alignment: .bottom) {
                         Button("Generate Summary") {
-                            store.send(.fetchThreadSummary(threadId: threadIdStr))
+                            store.send(.fetchThreadSummary(threadId: threadIdStr, forceRefresh: false))
                         }
                         .buttonStyle(.borderedProminent)
                         .padding()
@@ -552,10 +565,12 @@ private struct MessageRow: View {
     let phoenixManager: PhoenixChannelManager?
     let threadId: String?
     let userBaseLanguage: String
+    let onOriginalTextToggled: ((Bool) -> Void)?
 
     @State private var translatedText: String?
     @State private var isTranslating = false
     @State private var showingTranslation = false
+    @State private var showingOriginalText = false // For own messages: show original before translation
 
     private let translationService = BackendTranslationService.shared
 
@@ -582,12 +597,35 @@ private struct MessageRow: View {
                             handleMessageTap()
                         }
 
-                    // Translation indicator
-                    if showingTranslation {
+                    // Translation indicator for incoming messages
+                    if !isOwnMessage && showingTranslation {
                         HStack(spacing: 4) {
                             Image(systemName: "globe")
                                 .font(.caption2)
                             Text("Tap to see original")
+                                .font(.caption2)
+                        }
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 4)
+                    }
+
+                    // Show original text for own translated messages
+                    if isOwnMessage && showingOriginalText, let original = message.originalText {
+                        Text(original)
+                            .font(.body)
+                            .padding(12)
+                            .background(Color(.systemGray6))
+                            .foregroundColor(.primary)
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .stroke(Color.purple.opacity(0.3), lineWidth: 1)
+                            )
+
+                        HStack(spacing: 4) {
+                            Image(systemName: "globe")
+                                .font(.caption2)
+                            Text("Original")
                                 .font(.caption2)
                         }
                         .foregroundColor(.secondary)
@@ -607,9 +645,26 @@ private struct MessageRow: View {
                     }
                 }
 
-                Text(TimestampFormatter.string(for: message.createdAt))
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                HStack(spacing: 6) {
+                    Text(TimestampFormatter.string(for: message.createdAt))
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+
+                    // Globe icon for own translated messages
+                    if isOwnMessage, message.wasTranslated {
+                        Button {
+                            withAnimation(.spring(response: 0.3)) {
+                                showingOriginalText.toggle()
+                            }
+                            // Notify parent to scroll if expanding
+                            onOriginalTextToggled?(showingOriginalText)
+                        } label: {
+                            Image(systemName: showingOriginalText ? "globe.badge.chevron.backward" : "globe")
+                                .font(.caption)
+                                .foregroundColor(.purple)
+                        }
+                    }
+                }
             }
             .frame(maxWidth: 260, alignment: isOwnMessage ? .trailing : .leading)
 
@@ -638,6 +693,14 @@ private struct MessageRow: View {
             // Translate on demand for incoming messages
             Task {
                 await translateMessage()
+                // Show translation immediately after fetching
+                if translatedText != nil {
+                    await MainActor.run {
+                        withAnimation(.spring(response: 0.3)) {
+                            showingTranslation = true
+                        }
+                    }
+                }
             }
         }
     }
@@ -650,13 +713,30 @@ private struct MessageRow: View {
             return
         }
 
-        await translateMessage()
+        // Check if message already has detected language from backend
+        let targetLanguage = userBaseLanguage
+        if let detectedLanguage = message.detectedLanguage {
+            print("🔍 [MESSAGE_TRANSLATION] Using backend-detected language: \(detectedLanguage)")
 
-        // Show translation by default if auto-translate is enabled
-        if translatedText != nil {
-            await MainActor.run {
-                showingTranslation = true
+            // Skip translation if message is already in the user's base language
+            if detectedLanguage.lowercased() == targetLanguage.lowercased() {
+                print("⏭️ [MESSAGE_TRANSLATION] Skipping auto-translate: message already in base language (\(detectedLanguage) == \(targetLanguage))")
+                return
             }
+
+            // Language is different, proceed with translation
+            print("🌐 [MESSAGE_TRANSLATION] Language differs, proceeding with auto-translate")
+            await translateMessage()
+
+            // Show translation by default if auto-translate is enabled
+            if translatedText != nil {
+                await MainActor.run {
+                    showingTranslation = true
+                }
+            }
+        } else {
+            // Fallback: No detected language from backend, skip auto-translate to avoid unnecessary API calls
+            print("⚠️ [MESSAGE_TRANSLATION] No detected language in message metadata, skipping auto-translate")
         }
     }
 

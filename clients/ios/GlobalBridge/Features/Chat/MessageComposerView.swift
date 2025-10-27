@@ -15,6 +15,7 @@ struct MessageComposerView: View {
     let threadId: String?
     let phoenixManager: PhoenixChannelManager?
     let translationSettings: ThreadTranslationSettings?
+    let onSetOriginalText: ((String) -> Void)? // Callback to store original text before translation
 
     // Translation state
     @State private var showTranslationPreview = false
@@ -27,7 +28,8 @@ struct MessageComposerView: View {
         isFocused: FocusState<Bool>.Binding,
         threadId: String? = nil,
         phoenixManager: PhoenixChannelManager? = nil,
-        translationSettings: ThreadTranslationSettings? = nil
+        translationSettings: ThreadTranslationSettings? = nil,
+        onSetOriginalText: ((String) -> Void)? = nil
     ) {
         self._text = text
         self.isSending = isSending
@@ -36,6 +38,7 @@ struct MessageComposerView: View {
         self.threadId = threadId
         self.phoenixManager = phoenixManager
         self.translationSettings = translationSettings
+        self.onSetOriginalText = onSetOriginalText
     }
 
     var body: some View {
@@ -133,12 +136,13 @@ struct MessageComposerView: View {
             return
         }
 
+        let originalText = text // Capture original before translation
         isTranslating = true
 
         do {
             let translationService = BackendTranslationService.shared
             let result = try await translationService.translate(
-                text: text,
+                text: originalText,
                 targetLanguage: settings.targetLanguage,
                 sourceLanguage: nil, // Auto-detect
                 context: nil,
@@ -147,6 +151,11 @@ struct MessageComposerView: View {
 
             await MainActor.run {
                 isTranslating = false
+
+                // Store original text before replacing
+                onSetOriginalText?(originalText)
+                print("📝 [AUTO_TRANSLATE] Stored original text: '\(originalText)'")
+
                 // Replace the text with translated version
                 text = result.translatedText
 
@@ -171,6 +180,11 @@ struct MessageComposerView: View {
 
     private func handleTranslatedSend(translatedText: String, formality: TranslationFormality) {
         print("📤 [TRANSLATION_SEND] Preparing to send translated message with \(formality) formality: \(translatedText)")
+
+        // Store original text before translation
+        let originalText = text
+        onSetOriginalText?(originalText)
+        print("📝 [MANUAL_TRANSLATE] Stored original text: '\(originalText)'")
 
         // Close the preview sheet first
         showTranslationPreview = false

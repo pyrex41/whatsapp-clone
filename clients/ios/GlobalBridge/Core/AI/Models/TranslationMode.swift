@@ -9,8 +9,8 @@ import Foundation
 
 /// Translation mode for outgoing messages
 enum TranslationMode: String, Codable, CaseIterable, Identifiable {
-    case automatic = "automatic"
     case onPress = "on_press"
+    case automatic = "automatic"
 
     var id: String { rawValue }
 

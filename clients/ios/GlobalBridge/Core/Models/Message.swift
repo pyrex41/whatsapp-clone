@@ -85,6 +85,37 @@ struct Message: Identifiable, Codable, Equatable {
 }
 
 extension Message {
+    /// Key for storing original text before translation in metadata
+    static let originalTextKey = "original_text"
+
+    /// Key for storing detected language from backend
+    static let detectedLanguageKey = "detected_language"
+
+    /// Get the original text if this message was translated
+    var originalText: String? {
+        metadata?[Self.originalTextKey]
+    }
+
+    /// Get the detected language code (e.g., "en", "es", "fr")
+    var detectedLanguage: String? {
+        metadata?[Self.detectedLanguageKey]
+    }
+
+    /// Check if this message was translated (has original text stored)
+    var wasTranslated: Bool {
+        originalText != nil
+    }
+
+    /// Create a copy of this message with original text stored
+    func withOriginalText(_ original: String) -> Message {
+        var newMetadata = metadata ?? [:]
+        newMetadata[Self.originalTextKey] = original
+
+        var updatedMessage = self
+        updatedMessage.metadata = newMetadata
+        return updatedMessage
+    }
+
     nonisolated static func fromPhoenix(_ phoenixMessage: PhoenixMessage) -> Message? {
         guard
             let messageId = UUID(uuidString: phoenixMessage.id),
@@ -112,6 +143,12 @@ extension Message {
             replyTo = UUID(uuidString: reply)
         }
 
+        // Build metadata with detected language if available
+        var messageMetadata: [String: String]? = nil
+        if let detectedLang = phoenixMessage.detectedLanguage {
+            messageMetadata = [Self.detectedLanguageKey: detectedLang]
+        }
+
         return Message(
             id: messageId,
             threadId: threadId,
@@ -119,7 +156,7 @@ extension Message {
             content: phoenixMessage.content,
             messageType: .text,
             status: status,
-            metadata: nil,
+            metadata: messageMetadata,
             replyToId: replyTo,
             editedAt: phoenixMessage.metadata?.editedAt,
             deletedAt: nil,

@@ -157,7 +157,11 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     # Extract client_message_id for deduplication
     client_message_id = payload["client_message_id"]
 
-    # Build message struct
+    # Detect language of the message content
+    detected_language = detect_message_language(content)
+    Logger.debug("🔍 [MSG] Detected language: #{detected_language}")
+
+    # Build message struct with detected language in metadata
     message_attrs = %{
       id: message_id,
       thread_id: thread_id,
@@ -169,11 +173,13 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
       media_mime_type: payload["media_mime_type"],
       reply_to_id: payload["reply_to_id"],
       client_created_at: payload["client_created_at"],
-      client_message_id: client_message_id
+      client_message_id: client_message_id,
+      metadata: %{detected_language: detected_language}
     }
 
     # Broadcast immediately to all thread participants
     # This happens BEFORE database write for minimum latency
+    # Include detected_language so clients can skip unnecessary translations
     broadcast_message = %{
       id: message_id,
       thread_id: thread_id,
@@ -184,7 +190,8 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
       reply_to_id: message_attrs.reply_to_id,
       created_at: DateTime.utc_now(),
       client_timestamp: client_timestamp,
-      client_message_id: client_message_id
+      client_message_id: client_message_id,
+      detected_language: detected_language
     }
 
     Logger.info("📡 [MSG] Broadcasting message #{message_id} to thread:#{thread_id}")
@@ -750,6 +757,19 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     end
   end
 
+  defp detect_message_language(content) do
+    # Use language detection service to detect message language
+    # This runs synchronously but should be fast (< 100ms typically)
+    case GlobalbridgeBackend.AI.LanguageDetectionService.detect_language_dedicated(content) do
+      {:ok, language_code} ->
+        language_code
+
+      {:error, _reason} ->
+        # Default to English if detection fails
+        "en"
+    end
+  end
+
   defp parse_since(payload) do
     payload
     |> Map.get("since")
@@ -783,17 +803,4 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     end)
   end
 
-  defp detect_message_language(content) do
-    # Simple language detection based on character patterns
-    cond do
-      String.match?(content, ~r/[а-яА-Я]/) -> "ru"
-      String.match?(content, ~r/[一-龯]/) -> "zh"
-      String.match?(content, ~r/[ぁ-ゔ]/) -> "ja"
-      String.match?(content, ~r/[가-힣]/) -> "ko"
-      String.match?(content, ~r/[ñáéíóúü]/i) -> "es"
-      String.match?(content, ~r/[àâäæçéèêëïîôùûü]/i) -> "fr"
-      String.match?(content, ~r/[äöüß]/i) -> "de"
-      true -> "en"
-    end
-  end
 end

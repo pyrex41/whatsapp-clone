@@ -101,7 +101,10 @@ struct ThreadSummaryView: View {
                                 )
                             }
 
-                            participantsSectionView
+                            // Only show participants section if we have participants
+                            if !summary.participants.isEmpty {
+                                participantsSectionView
+                            }
                         }
 
                         // Metadata footer
@@ -159,30 +162,24 @@ struct ThreadSummaryView: View {
 
             Spacer()
 
-            // Action buttons
-            HStack(spacing: 8) {
-                if let onExport = onExportTapped {
-                    Button(action: onExport) {
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.body)
-                            .foregroundColor(.blue)
-                    }
-                }
-
-                if let onRegenerate = onRegenerateTapped {
-                    Button(action: onRegenerate) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.body)
-                            .foregroundColor(.blue)
-                    }
-                }
-
-                Button(action: { withAnimation { isExpanded.toggle() } }) {
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+            // Refresh button
+            if let onRegenerate = onRegenerateTapped {
+                Button(action: onRegenerate) {
+                    Image(systemName: "arrow.clockwise")
                         .font(.body)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.blue)
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Regenerate summary")
             }
+
+            // Collapse/expand button
+            Button(action: { withAnimation { isExpanded.toggle() } }) {
+                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
         }
         .padding(16)
         .background(Color(.secondarySystemBackground))

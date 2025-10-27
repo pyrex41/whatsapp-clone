@@ -344,6 +344,10 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             await environment.realtime.sendTyping(threadID, userID, isTyping)
         }
 
+    case let .composerOriginalTextSet(originalText):
+        state.chat.composer.originalText = originalText
+        return .none
+
     case .sendMessage:
         guard let threadID = state.chat.currentThread?.id,
               state.chat.composer.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false,
@@ -355,18 +359,23 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
 
         let text = state.chat.composer.text.trimmingCharacters(in: .whitespacesAndNewlines)
         let currentUser = state.user
+        let originalText = state.chat.composer.originalText // Capture original text before translation
         state.chat.composer.isSending = true
         state.chat.composer.text = ""
+        state.chat.composer.originalText = nil // Clear original text after capturing
 
         print("📤 [SEND] OFFLINE-FIRST: Starting send for thread: \(threadID.uuidString)")
+        if let orig = originalText {
+            print("📤 [SEND] Message was translated from: '\(orig)' to: '\(text)'")
+        }
 
         return .run(priority: nil) { send in
             do {
                 let now = Date()
-                
+
                 // 1. OFFLINE-FIRST: Create message locally FIRST with "pending" status
                 let clientId = UUID()
-                let localMessage = Message(
+                var localMessage = Message(
                     id: clientId,
                     threadId: threadID,
                     senderId: currentUser.id,
@@ -377,6 +386,12 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                     updatedAt: now,
                     clientMessageId: clientId.uuidString  // Track original client ID for dedup
                 )
+
+                // If message was translated, store original text in metadata
+                if let original = originalText {
+                    localMessage = localMessage.withOriginalText(original)
+                    print("💾 [SEND] Storing original text in metadata: '\(original)'")
+                }
                 
                 print("💾 [SEND] Saving locally FIRST: \(localMessage.id.uuidString) with status=pending")
                 try await environment.database.storeMessage(localMessage)
@@ -1182,14 +1197,19 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
 
     // MARK: Thread Summarization Actions
 
-    case let .fetchThreadSummary(threadId):
+    case let .fetchThreadSummary(threadId, forceRefresh):
         state.threadSummaryLoading[threadId] = true
         state.threadSummaryErrors[threadId] = nil
-        print("📝 [SUMMARY] Fetching summary for thread: \(threadId)")
+
+        if forceRefresh {
+            print("📝 [SUMMARY] Force refreshing summary for thread: \(threadId) (skipping cache)")
+        } else {
+            print("📝 [SUMMARY] Fetching summary for thread: \(threadId)")
+        }
 
         return .run(priority: nil) { send in
             do {
-                let summary = try await AIService.shared.summarizeThread(threadId: threadId)
+                let summary = try await AIService.shared.summarizeThread(threadId: threadId, forceRefresh: forceRefresh)
                 send(.threadSummaryReceived(threadId: threadId, .success(summary)))
             } catch {
                 print("❌ [SUMMARY] Failed to fetch summary: \(error.localizedDescription)")

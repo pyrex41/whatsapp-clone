@@ -24,6 +24,7 @@ struct MessageBubbleView: View {
     @State private var showTranslationMenu = false
     @State private var showCulturalNotes = false
     @State private var showLanguageSelection = false
+    @State private var showOriginalText = false // For own messages: show original before translation
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.colorScheme) private var colorScheme
 
@@ -60,8 +61,13 @@ struct MessageBubbleView: View {
                 // Main message content
                 messageBubble
 
-                // Translation overlay if shown
-                if showTranslation, let translation = viewModel.translation {
+                // For OWN messages: show original text if translated and user tapped to see it
+                if isOwnMessage, showOriginalText, let originalText = message.originalText {
+                    originalTextOverlay(originalText)
+                }
+
+                // For OTHER's messages: show translation overlay if shown
+                if !isOwnMessage, showTranslation, let translation = viewModel.translation {
                     translationOverlay(translation)
                 }
 
@@ -130,7 +136,66 @@ struct MessageBubbleView: View {
         }
     }
 
-    // MARK: - Translation Overlay
+    // MARK: - Original Text Overlay (for own translated messages)
+
+    private func originalTextOverlay(_ originalText: String) -> some View {
+        VStack(alignment: isOwnMessage ? .trailing : .leading, spacing: 6) {
+            // Header
+            HStack(spacing: 4) {
+                Text("Original")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Spacer()
+            }
+
+            // Original text
+            Text(originalText)
+                .font(.body)
+                .foregroundColor(.primary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(originalTextBackgroundColor)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .stroke(Color.purple.opacity(0.3), lineWidth: 1)
+                        )
+                )
+
+            // Action buttons
+            HStack(spacing: 12) {
+                Button {
+                    UIPasteboard.general.string = originalText
+                } label: {
+                    Label("Copy", systemImage: "doc.on.doc")
+                        .font(.caption)
+                }
+
+                Button {
+                    withAnimation {
+                        showOriginalText = false
+                    }
+                } label: {
+                    Label("Hide", systemImage: "eye.slash")
+                        .font(.caption)
+                }
+            }
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.capsule)
+        }
+        .transition(.opacity.combined(with: .scale))
+    }
+
+    private var originalTextBackgroundColor: Color {
+        if colorScheme == .dark {
+            return Color(.systemGray6)
+        } else {
+            return Color.white
+        }
+    }
+
+    // MARK: - Translation Overlay (for incoming messages)
 
     private func translationOverlay(_ result: TranslationResult) -> some View {
         VStack(alignment: isOwnMessage ? .trailing : .leading, spacing: 6) {
@@ -257,8 +322,22 @@ struct MessageBubbleView: View {
                 .font(.caption2)
                 .foregroundColor(.secondary)
 
-            // Translation status icon
-            if viewModel.hasTranslation {
+            // For OWN messages: show globe icon if message was translated
+            if isOwnMessage, message.wasTranslated {
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        showOriginalText.toggle()
+                    }
+                } label: {
+                    Image(systemName: showOriginalText ? "globe.badge.chevron.backward" : "globe")
+                        .font(.caption)
+                        .foregroundColor(.purple)
+                }
+                .accessibilityLabel(showOriginalText ? "Hide original" : "Show original text")
+            }
+
+            // For OTHER's messages: show translation icon
+            if !isOwnMessage, viewModel.hasTranslation {
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         showTranslation.toggle()
@@ -271,8 +350,8 @@ struct MessageBubbleView: View {
                 .accessibilityLabel(showTranslation ? "Hide translation" : "Show translation")
             }
 
-            // Loading indicator for translation in progress
-            if viewModel.isTranslating {
+            // Loading indicator for translation in progress (incoming messages only)
+            if !isOwnMessage, viewModel.isTranslating {
                 ProgressView()
                     .scaleEffect(0.7)
             }
@@ -387,7 +466,13 @@ struct MessageBubbleView: View {
         var label = isOwnMessage ? "You: " : "Message: "
         label += message.content
 
-        if let translation = viewModel.translation, showTranslation {
+        // For own messages: show original text info
+        if isOwnMessage, let originalText = message.originalText, showOriginalText {
+            label += ". Original text: \(originalText)"
+        }
+
+        // For other's messages: show translation info
+        if !isOwnMessage, let translation = viewModel.translation, showTranslation {
             label += ". Translation: \(translation.translatedText)"
         }
 
@@ -399,11 +484,20 @@ struct MessageBubbleView: View {
     }
 
     private var accessibilityHint: String {
-        if message.messageType == .text && !viewModel.hasTranslation {
-            return "Long press to translate"
-        } else if viewModel.hasTranslation {
-            return "Tap translation icon to \(showTranslation ? "hide" : "show") translation"
+        // For own messages that were translated
+        if isOwnMessage, message.wasTranslated {
+            return "Tap globe icon to \(showOriginalText ? "hide" : "show") original text"
         }
+
+        // For other's messages
+        if !isOwnMessage {
+            if message.messageType == .text && !viewModel.hasTranslation {
+                return "Long press to translate"
+            } else if viewModel.hasTranslation {
+                return "Tap translation icon to \(showTranslation ? "hide" : "show") translation"
+            }
+        }
+
         return ""
     }
 }

@@ -215,13 +215,13 @@ defmodule GlobalbridgeBackend.AI.Agents.RAGRetrieverAgent do
     messages =
       from(m in Message,
         where: m.thread_id == ^thread_id,
-        order_by: [desc: m.created_at],
+        order_by: [desc: m.inserted_at],
         limit: ^limit,
         select: %{
           id: m.id,
           content: m.content,
           sender_id: m.sender_id,
-          created_at: m.created_at
+          created_at: m.inserted_at
         }
       )
       |> Repo.all()

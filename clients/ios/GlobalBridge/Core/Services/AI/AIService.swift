@@ -178,7 +178,8 @@ final class AIService: ObservableObject {
     /// - Throws: AIServiceError for various failure cases
     func summarizeThread(
         threadId: String,
-        maxLength: Int = 200
+        maxLength: Int = 200,
+        forceRefresh: Bool = false
     ) async throws -> SummarizationResult {
         // Check feature availability
         guard featureFlags.hasFeature(.threadSummarization) else {
@@ -199,12 +200,21 @@ final class AIService: ObservableObject {
         defer { Task { await setProcessing(false) } }
 
         let endpoint = baseURL.appendingPathComponent("api/v1/ai/summarize_thread")
-        let requestBody: [String: Any] = [
+        var requestBody: [String: Any] = [
             "thread_id": threadId,
             "max_length": maxLength
         ]
 
-        print("📝 [AI_SERVICE] Summarizing thread: \(threadId) (max length: \(maxLength))")
+        // Add force_refresh parameter if true
+        if forceRefresh {
+            requestBody["force_refresh"] = true
+        }
+
+        if forceRefresh {
+            print("📝 [AI_SERVICE] Force refreshing summary for thread: \(threadId) (max length: \(maxLength))")
+        } else {
+            print("📝 [AI_SERVICE] Summarizing thread: \(threadId) (max length: \(maxLength))")
+        }
 
         let responseData = try await performRequest(
             endpoint: endpoint,

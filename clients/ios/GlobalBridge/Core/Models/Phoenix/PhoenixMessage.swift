@@ -18,6 +18,7 @@ public struct PhoenixMessage: Codable, Sendable, Identifiable {
     public let status: MessageStatus
     public let metadata: MessageMetadata?
     public let clientMessageId: String? // For deduplication
+    public let detectedLanguage: String? // Language code detected by backend (e.g., "en", "es", "fr")
 
     public enum MessageStatus: String, Codable, Sendable {
         case sending
@@ -52,6 +53,7 @@ public struct PhoenixMessage: Codable, Sendable, Identifiable {
         case status
         case metadata
         case clientMessageId = "client_message_id"
+        case detectedLanguage = "detected_language"
     }
 }
 

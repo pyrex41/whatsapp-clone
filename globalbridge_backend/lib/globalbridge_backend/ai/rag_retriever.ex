@@ -137,27 +137,36 @@ defmodule GlobalbridgeBackend.AI.RAGRetriever do
     if Enum.empty?(message_ids) do
       {:ok, []}
     else
-      # Query messages table for full content and metadata
+      # First, query messages table from thread-specific database
       placeholders = Enum.map(message_ids, fn _ -> "?" end) |> Enum.join(",")
 
       sql = """
       SELECT
-        id,
-        content,
-        content_type,
-        sender_id,
-        inserted_at,
-        updated_at,
-        reply_to_id,
-        is_deleted
-      FROM messages
-      WHERE id IN (#{placeholders})
-        AND is_deleted = 0
-      ORDER BY inserted_at DESC
+        m.id,
+        m.content,
+        m.content_type,
+        m.sender_id,
+        m.inserted_at,
+        m.updated_at,
+        m.reply_to_id,
+        m.is_deleted
+      FROM messages m
+      WHERE m.id IN (#{placeholders})
+        AND m.is_deleted = 0
+      ORDER BY m.inserted_at DESC
       """
 
       case Ecto.Adapters.SQL.query(repo, sql, message_ids) do
         {:ok, %{rows: rows}} ->
+          # Extract unique sender_ids from the messages
+          sender_ids =
+            rows
+            |> Enum.map(fn [_id, _content, _content_type, sender_id | _rest] -> sender_id end)
+            |> Enum.uniq()
+
+          # Fetch user information from shared database
+          user_map = fetch_user_display_names(sender_ids)
+
           # Create a map of message_id to message data for quick lookup
           message_map =
             Map.new(rows, fn [
@@ -170,12 +179,16 @@ defmodule GlobalbridgeBackend.AI.RAGRetriever do
                                reply_to_id,
                                is_deleted
                              ] ->
+              # Get display name from user map, fallback to sender_id
+              sender_display_name = Map.get(user_map, sender_id, sender_id)
+
               {id,
                %{
                  id: id,
                  content: content,
                  content_type: content_type,
                  sender_id: sender_id,
+                 sender_display_name: sender_display_name,
                  inserted_at: parse_timestamp(inserted_at),
                  updated_at: parse_timestamp(updated_at),
                  reply_to_id: reply_to_id,
@@ -206,6 +219,30 @@ defmodule GlobalbridgeBackend.AI.RAGRetriever do
     end
   end
 
+  # Fetch user display names from shared database
+  defp fetch_user_display_names(sender_ids) when is_list(sender_ids) do
+    if Enum.empty?(sender_ids) do
+      %{}
+    else
+      alias GlobalbridgeBackend.Repo
+      alias GlobalbridgeBackend.Schemas.User
+      import Ecto.Query
+
+      users =
+        from(u in User,
+          where: u.id in ^sender_ids,
+          select: %{id: u.id, display_name: u.display_name, username: u.username}
+        )
+        |> Repo.all()
+
+      # Create a map of user_id to display_name (with fallback to username)
+      Map.new(users, fn user ->
+        display_name = user.display_name || user.username || user.id
+        {user.id, display_name}
+      end)
+    end
+  end
+
   defp apply_recency_bias(results, weight) do
     now = DateTime.utc_now()
 
@@ -229,16 +266,18 @@ defmodule GlobalbridgeBackend.AI.RAGRetriever do
 
   defp format_message_context(result, include_metadata) do
     timestamp = format_timestamp(result.inserted_at)
+    # Use display name if available, otherwise fall back to sender_id
+    sender_name = Map.get(result, :sender_display_name, result.sender_id)
 
     if include_metadata do
       """
-      [#{timestamp}] User #{result.sender_id}:
+      [#{timestamp}] #{sender_name}:
       #{result.content}
       (Similarity: #{Float.round(1 - result.distance, 3)})
       """
     else
       """
-      User #{result.sender_id}: #{result.content}
+      #{sender_name}: #{result.content}
       """
     end
   end

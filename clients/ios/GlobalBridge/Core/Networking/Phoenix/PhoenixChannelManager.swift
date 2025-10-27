@@ -758,6 +758,7 @@ public actor PhoenixChannelManager {
     }
 
     private func deliverNewMessage(_ message: PhoenixMessage, conversationId: String) async {
+        print("🔔 [PHOENIX] deliverNewMessage - thread: \(conversationId), globalHandlers: \(globalMessageHandlers.count)")
         eventHandlers[conversationId]?.forEach { handler in
             handler(message)
         }
@@ -985,6 +986,7 @@ public actor PhoenixChannelManager {
     /// Register handler for all incoming messages
     public func onAnyMessage(_ handler: @escaping MessageHandler) {
         globalMessageHandlers.append(handler)
+        print("🔔 [PHOENIX] Global message handler registered - total count: \(globalMessageHandlers.count)")
     }
 
     /// Register handler for new thread events (thread_created)

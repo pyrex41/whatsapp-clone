@@ -176,12 +176,24 @@ defmodule GlobalbridgeBackendWeb.AIController do
       # Get current message count for this thread
       current_message_count = count_thread_messages(thread_id)
 
-      # Check cache and determine strategy
-      case GlobalbridgeBackend.AI.SummaryCache.should_update_incrementally?(thread_id, current_message_count) do
+      # Check if force refresh is requested
+      force_refresh = params["force_refresh"] == true
+
+      # Check cache and determine strategy (skip cache if force_refresh is true)
+      case force_refresh do
+        true ->
+          # Force full regeneration, bypass cache
+          Logger.info("Force refresh requested for thread #{thread_id}, bypassing cache")
+          :full_regenerate
+
+        false ->
+          GlobalbridgeBackend.AI.SummaryCache.should_update_incrementally?(thread_id, current_message_count)
+      end
+      |> case do
         {:use_cached, cached_summary} ->
           # Return cached summary
           Logger.info("Using cached summary for thread #{thread_id}")
-          json(conn, Map.merge(%{success: true, cached: true}, format_summary_response(cached_summary, thread_id, current_message_count)))
+          json(conn, Map.merge(%{success: true, cached: true}, format_summary_response(cached_summary, thread_id, current_message_count, max_length)))
 
         {:incremental, old_summary, old_message_count, delta} ->
           # Incremental update: fetch only new messages and update summary
@@ -193,7 +205,7 @@ defmodule GlobalbridgeBackendWeb.AIController do
               GlobalbridgeBackend.AI.SummaryCache.put(thread_id, summary_data, current_message_count)
 
               json(conn, Map.merge(%{success: true, cached: false, incremental: true},
-                format_summary_response(summary_data, thread_id, current_message_count)))
+                format_summary_response(summary_data, thread_id, current_message_count, max_length)))
 
             {:error, reason} ->
               safe_error_response(conn, :unprocessable_entity, "Incremental summarization failed", reason)
@@ -209,7 +221,7 @@ defmodule GlobalbridgeBackendWeb.AIController do
               GlobalbridgeBackend.AI.SummaryCache.put(thread_id, summary_data, current_message_count)
 
               json(conn, Map.merge(%{success: true, cached: false, incremental: false},
-                format_summary_response(summary_data, thread_id, result[:retrieved_messages] || current_message_count)))
+                format_summary_response(summary_data, thread_id, result[:retrieved_messages] || current_message_count, max_length)))
 
             {:error, reason} ->
               safe_error_response(conn, :unprocessable_entity, "Summarization failed", reason)
@@ -1006,18 +1018,59 @@ defmodule GlobalbridgeBackendWeb.AIController do
   end
 
   # Helper to format summary response
-  defp format_summary_response(summary_data, thread_id, message_count) do
+  defp format_summary_response(summary_data, thread_id, message_count, max_length) do
+    # Get real thread participants from database
+    participants = get_thread_participants(thread_id)
+
     %{
       summary: summary_data.summary,
       thread_id: thread_id,
+      max_length: max_length,
       key_topics: summary_data.key_points || [],
       decisions: summary_data.decisions || [],
       action_items: format_action_items(summary_data.action_items || []),
-      participants: format_participants(summary_data.participants || []),
+      participants: participants,
       message_count: message_count,
       provider: System.get_env("SUMMARIZER_MODEL") || "grok-2-1212",
       confidence_score: summary_data.confidence_score
     }
+  end
+
+  # Get actual thread participants from database
+  defp get_thread_participants(thread_id) do
+    require Logger
+    alias GlobalbridgeBackend.Chat
+    alias GlobalbridgeBackend.Accounts.User
+
+    case Chat.get_thread(thread_id) do
+      nil ->
+        Logger.warning("Thread not found when fetching participants: #{thread_id}")
+        []
+
+      thread ->
+        # Preload thread participants
+        thread = Repo.preload(thread, [:thread_participants])
+
+        # Get user info for each participant
+        thread.thread_participants
+        |> Enum.map(fn tp ->
+          case Repo.get(GlobalbridgeBackend.Schemas.User, tp.user_id) do
+            nil -> nil
+            user ->
+              %{
+                user_id: user.id,
+                username: user.username,
+                display_name: user.display_name,
+                message_count: nil  # Could be calculated if needed
+              }
+          end
+        end)
+        |> Enum.reject(&is_nil/1)
+    end
+  rescue
+    error ->
+      Logger.error("Error fetching thread participants: #{inspect(error)}")
+      []
   end
 
   # Helper to format action items from simple strings to structured objects
@@ -1039,18 +1092,6 @@ defmodule GlobalbridgeBackendWeb.AIController do
   defp format_action_items(_), do: []
 
   # Helper to format participants from simple strings to structured objects
-  defp format_participants(participants) when is_list(participants) do
-    Enum.map(participants, fn name ->
-      %{
-        user_id: nil,  # We don't have user IDs from the summary
-        username: sanitize_username(name),
-        display_name: name,
-        message_count: nil  # We don't have this info in the summary
-      }
-    end)
-  end
-
-  defp format_participants(_), do: []
 
   # Extract assignee from action item text (simple heuristic)
   defp extract_assignee(text) when is_binary(text) do
@@ -1062,16 +1103,6 @@ defmodule GlobalbridgeBackendWeb.AIController do
   end
 
   defp extract_assignee(_), do: nil
-
-  # Sanitize display name to create a username
-  defp sanitize_username(name) when is_binary(name) do
-    name
-    |> String.downcase()
-    |> String.replace(~r/\s+/, "_")
-    |> String.replace(~r/[^a-z0-9_]/, "")
-  end
-
-  defp sanitize_username(_), do: "unknown"
 
   # Security helper: sanitize error responses to prevent information leakage
   defp safe_error_response(conn, status, user_message, error_details) do

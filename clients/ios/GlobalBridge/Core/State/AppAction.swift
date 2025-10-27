@@ -24,6 +24,7 @@ enum AppAction {
     case loadOlderMessages(Thread.ID)  // For pagination
 
     case composerTextChanged(String)
+    case composerOriginalTextSet(String) // Store original text before translation
     case sendMessage
     case messageSent(Result<Message, Error>)
     case messageStatusUpdated(Message.ID, Message.Status)
@@ -139,7 +140,7 @@ enum AppAction {
     // MARK: - AI Features: Thread Summarization
 
     /// Trigger fetch of thread summary
-    case fetchThreadSummary(threadId: String)
+    case fetchThreadSummary(threadId: String, forceRefresh: Bool)
 
     /// Thread summary received from backend
     case threadSummaryReceived(threadId: String, Result<ThreadSummary, Error>)

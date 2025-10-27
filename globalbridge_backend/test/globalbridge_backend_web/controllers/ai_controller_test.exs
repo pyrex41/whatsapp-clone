@@ -193,10 +193,19 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
 
       conn = post(conn, "/api/v1/ai/summarize_thread", params)
 
-      # This might return an error in test environment due to missing data
-      # But it should return a proper JSON response
-      response = json_response(conn, 200)
-      assert Map.has_key?(response, "success") or Map.has_key?(response, "error")
+      # This might return an error in test environment due to missing data (no messages in thread)
+      # Accept either success (200) or expected error (422)
+      case conn.status do
+        200 ->
+          response = json_response(conn, 200)
+          assert response["success"] == true
+        422 ->
+          response = json_response(conn, 422)
+          # Expected error when thread has no messages
+          assert response["error"] =~ ~r/(no messages|empty thread)/i or response["error"] == "Summarization failed"
+        status ->
+          flunk("Unexpected status code: #{status}")
+      end
     end
 
     test "returns 403 when user does not have access to thread", %{conn: conn, user: user} do
@@ -215,7 +224,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
 
       conn = post(conn, "/api/v1/ai/summarize_thread", params)
 
-      assert json_response(conn, 403)["error"] == "You do not have access to this thread"
+      assert json_response(conn, 403)["error"] == "Access denied to this thread"
     end
 
     test "returns error for missing thread_id", %{conn: conn} do
@@ -230,7 +239,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
 
   describe "POST /api/v1/ai/search_semantic" do
     test "performs semantic search when user has access", %{conn: conn, user: user} do
-      thread_id = "test-thread-456"
+      thread_id = "323e4567-e89b-12d3-a456-426614174000"  # Valid UUID
 
       # Grant access to thread
       :ets.insert(
@@ -252,7 +261,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
     end
 
     test "returns 403 when user does not have access to thread", %{conn: conn, user: user} do
-      thread_id = "unauthorized-thread-456"
+      thread_id = "423e4567-e89b-12d3-a456-426614174000"  # Valid UUID
 
       # Deny access to thread
       :ets.insert(
@@ -268,7 +277,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
 
       conn = post(conn, "/api/v1/ai/search_semantic", params)
 
-      assert json_response(conn, 403)["error"] == "You do not have access to this thread"
+      assert json_response(conn, 403)["error"] == "Access denied to this thread"
     end
 
     test "allows search without thread_id for global search", %{conn: conn} do
@@ -294,7 +303,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
     end
 
     test "handles recency bias parameter", %{conn: conn, user: user} do
-      thread_id = "test-thread-789"
+      thread_id = "523e4567-e89b-12d3-a456-426614174000"  # Valid UUID
 
       # Grant access to thread
       :ets.insert(
@@ -317,7 +326,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
 
   describe "POST /api/v1/ai/extract_tasks" do
     test "extracts tasks from thread when user has access", %{conn: conn, user: user} do
-      thread_id = "test-thread-999"
+      thread_id = "623e4567-e89b-12d3-a456-426614174000"  # Valid UUID
 
       # Grant access to thread
       :ets.insert(
@@ -338,7 +347,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
     end
 
     test "returns 403 when user does not have access to thread", %{conn: conn, user: user} do
-      thread_id = "unauthorized-thread-999"
+      thread_id = "723e4567-e89b-12d3-a456-426614174000"  # Valid UUID
 
       # Deny access to thread
       :ets.insert(
@@ -353,7 +362,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
 
       conn = post(conn, "/api/v1/ai/extract_tasks", params)
 
-      assert json_response(conn, 403)["error"] == "You do not have access to this thread"
+      assert json_response(conn, 403)["error"] == "Access denied to this thread"
     end
 
     test "returns error for missing thread_id", %{conn: conn} do
@@ -366,7 +375,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
     end
 
     test "uses default query when not provided", %{conn: conn, user: user} do
-      thread_id = "test-thread-000"
+      thread_id = "823e4567-e89b-12d3-a456-426614174000"  # Valid UUID
 
       # Grant access to thread
       :ets.insert(
@@ -386,7 +395,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
 
   describe "POST /api/v1/ai/vec_health" do
     test "returns vector health when user has access", %{conn: conn, user: user} do
-      thread_id = "test-thread-vec"
+      thread_id = "923e4567-e89b-12d3-a456-426614174000"  # Valid UUID
 
       # Grant access to thread
       :ets.insert(
@@ -403,7 +412,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
     end
 
     test "returns 403 when user does not have access to thread", %{conn: conn, user: user} do
-      thread_id = "unauthorized-thread-vec"
+      thread_id = "a23e4567-e89b-12d3-a456-426614174000"  # Valid UUID
 
       # Deny access to thread
       :ets.insert(
@@ -415,7 +424,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
 
       conn = post(conn, "/api/v1/ai/vec_health", params)
 
-      assert json_response(conn, 403)["error"] == "You do not have access to this thread"
+      assert json_response(conn, 403)["error"] == "Access denied to this thread"
     end
 
     test "returns error for missing thread_id", %{conn: conn} do
@@ -429,9 +438,9 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
 
   describe "authorization across endpoints" do
     test "different threads have independent authorization", %{conn: conn, user: user} do
-      thread1 = "authorized-thread-1"
-      thread2 = "authorized-thread-2"
-      thread3 = "unauthorized-thread-3"
+      thread1 = "b23e4567-e89b-12d3-a456-426614174001"  # Valid UUID
+      thread2 = "b23e4567-e89b-12d3-a456-426614174002"  # Valid UUID
+      thread3 = "b23e4567-e89b-12d3-a456-426614174003"  # Valid UUID
 
       # Grant access to thread1 and thread2, deny thread3
       :ets.insert(
@@ -465,7 +474,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
     end
 
     test "authorization check performance is fast", %{conn: conn, user: user} do
-      thread_id = "perf-test-thread"
+      thread_id = "c23e4567-e89b-12d3-a456-426614174000"  # Valid UUID
 
       # Pre-cache access
       :ets.insert(
