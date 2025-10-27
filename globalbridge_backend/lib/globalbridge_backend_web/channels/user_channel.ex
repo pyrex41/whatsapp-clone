@@ -16,25 +16,45 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
   @impl true
   def join("user:" <> identifier, _payload, socket) do
     # Verify user owns this channel
-    # Support both UUID and username for test mode
+    # Support both UUID, Auth0 ID, and username for flexible authorization
     socket_user_id = socket.assigns.user_id
     socket_user = socket.assigns[:user]
     socket_auth0_id = if socket_user, do: socket_user.auth0_id, else: nil
     socket_username = if socket_user, do: socket_user.username, else: nil
 
+    # Check direct matches first
     authorized? =
       socket_user_id == identifier or
         socket_auth0_id == identifier or
         socket_username == identifier
 
+    # If not authorized yet, check if identifier is an Auth0 ID that maps to socket_user_id
+    authorized? =
+      if authorized? do
+        true
+      else
+        # Try to find a user by auth0_id matching the identifier
+        case Repo.get_by(User, auth0_id: identifier) do
+          nil -> false
+          user -> user.id == socket_user_id
+        end
+      end
+
+    # Also check reverse: if identifier is a UUID, see if it matches a user whose auth0_id matches socket
+    authorized? =
+      if authorized? do
+        true
+      else
+        # Try to find a user by UUID matching the identifier
+        case Repo.get(User, identifier) do
+          nil -> false
+          user -> user.auth0_id == socket_auth0_id or user.id == socket_user_id
+        end
+      end
+
     if authorized? do
       Logger.info(
-        "✅ [USER_CHANNEL] User #{identifier} joined their channel (matched: #{cond do
-          socket_user_id == identifier -> "ID"
-          socket_auth0_id == identifier -> "Auth0"
-          socket_username == identifier -> "username"
-          true -> "unknown"
-        end})"
+        "✅ [USER_CHANNEL] User #{identifier} joined their channel (socket_user=#{socket_user_id}, socket_auth0=#{socket_auth0_id})"
       )
 
       {:ok, %{joined_at: DateTime.utc_now()}, socket}
