@@ -187,12 +187,21 @@ defmodule GlobalbridgeBackendWeb.AIController do
       case SummarizationJob.summarize_thread(thread_id, "comprehensive summary",
              max_length: max_length
            ) do
-        {:ok, result} ->
+        {:ok, %{summary: summary_data} = result} ->
+          # Extract structured summary data from the job result
+          # The summary_data contains: summary, decisions, action_items, key_points, participants, confidence_score
           json(conn, %{
             success: true,
-            summary: result,
+            summary: summary_data.summary,
             thread_id: thread_id,
-            max_length: max_length
+            max_length: max_length,
+            key_topics: summary_data.key_points || [],
+            decisions: summary_data.decisions || [],
+            action_items: format_action_items(summary_data.action_items || []),
+            participants: format_participants(summary_data.participants || []),
+            message_count: result[:retrieved_messages],
+            provider: "grok-2-1212",
+            confidence_score: summary_data.confidence_score
           })
 
         {:error, reason} ->
@@ -211,6 +220,8 @@ defmodule GlobalbridgeBackendWeb.AIController do
     end
   rescue
     exception ->
+      Logger.error("Summarization exception: #{inspect(exception)}")
+      Logger.error("Stacktrace: #{Exception.format_stacktrace(__STACKTRACE__)}")
       safe_error_response(conn, :internal_server_error, "An error occurred during summarization", exception)
   end
 
@@ -955,6 +966,59 @@ defmodule GlobalbridgeBackendWeb.AIController do
       Logger.error("❌ [SMART_REPLY] Error querying messages: #{inspect(error)}")
       []
   end
+
+  # Helper to format action items from simple strings to structured objects
+  defp format_action_items(action_items) when is_list(action_items) do
+    Enum.map(action_items, fn item ->
+      # Action items are strings like "John needs to complete the report by Friday"
+      # Try to extract assignee if present in the format "Name needs to..." or "Name should..."
+      assignee = extract_assignee(item)
+
+      %{
+        description: item,
+        assignee: assignee,
+        due_date: nil,  # We don't parse dates from text for now
+        priority: nil   # Could be enhanced to detect priority keywords
+      }
+    end)
+  end
+
+  defp format_action_items(_), do: []
+
+  # Helper to format participants from simple strings to structured objects
+  defp format_participants(participants) when is_list(participants) do
+    Enum.map(participants, fn name ->
+      %{
+        user_id: nil,  # We don't have user IDs from the summary
+        username: sanitize_username(name),
+        display_name: name,
+        message_count: nil  # We don't have this info in the summary
+      }
+    end)
+  end
+
+  defp format_participants(_), do: []
+
+  # Extract assignee from action item text (simple heuristic)
+  defp extract_assignee(text) when is_binary(text) do
+    # Look for patterns like "John needs to", "Sarah should", etc.
+    case Regex.run(~r/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(?:needs? to|should|must|will)/i, text) do
+      [_, name] -> String.trim(name)
+      _ -> nil
+    end
+  end
+
+  defp extract_assignee(_), do: nil
+
+  # Sanitize display name to create a username
+  defp sanitize_username(name) when is_binary(name) do
+    name
+    |> String.downcase()
+    |> String.replace(~r/\s+/, "_")
+    |> String.replace(~r/[^a-z0-9_]/, "")
+  end
+
+  defp sanitize_username(_), do: "unknown"
 
   # Security helper: sanitize error responses to prevent information leakage
   defp safe_error_response(conn, status, user_message, error_details) do

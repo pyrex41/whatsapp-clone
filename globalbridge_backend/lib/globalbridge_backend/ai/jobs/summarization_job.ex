@@ -70,7 +70,7 @@ defmodule GlobalbridgeBackend.AI.Jobs.SummarizationJob do
 
     # Step 1: Retrieve relevant messages
     case RAGRetrieverAgent.retrieve(thread_id, objective, opts) do
-      {:ok, %{results: _results, context: context}} ->
+      {:ok, %{results: results, context: context}} ->
         # Step 2: Generate summary from context
         case SummarizerAgent.summarize(context, thread_id, opts) do
           {:ok, summary} ->
@@ -81,8 +81,8 @@ defmodule GlobalbridgeBackend.AI.Jobs.SummarizationJob do
                thread_id: thread_id,
                objective: objective,
                summary: summary,
-               # Approximate count
-               retrieved_messages: length(context)
+               # Count of retrieved messages
+               retrieved_messages: length(results)
              }}
 
           {:error, reason} ->
