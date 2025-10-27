@@ -22,6 +22,7 @@ struct MessageBubbleView: View {
     @StateObject private var viewModel: MessageBubbleViewModel
     @State private var showTranslation = false
     @State private var showTranslationMenu = false
+    @State private var showCulturalNotes = false
     @State private var showLanguageSelection = false
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.colorScheme) private var colorScheme
@@ -159,16 +160,9 @@ struct MessageBubbleView: View {
                         )
                 )
 
-            // Cultural notes if available
+            // Cultural notes if available (collapsible for clean UX)
             if let notes = result.culturalNotes, !notes.isEmpty {
-                HStack(spacing: 4) {
-                    Image(systemName: "info.circle")
-                        .font(.caption2)
-                    Text(notes)
-                        .font(.caption2)
-                }
-                .foregroundColor(.secondary)
-                .padding(.horizontal, 8)
+                culturalNotesView(notes: notes)
             }
 
             // Action buttons
@@ -201,6 +195,57 @@ struct MessageBubbleView: View {
         } else {
             return Color.white
         }
+    }
+
+    /// Cultural notes view with collapsible design
+    @ViewBuilder
+    private func culturalNotesView(notes: String) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Tap to expand/collapse
+            Button {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    showCulturalNotes.toggle()
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "lightbulb.fill")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+
+                    Text("Cultural Context")
+                        .font(.caption.weight(.medium))
+                        .foregroundColor(.primary)
+
+                    Spacer()
+
+                    Image(systemName: showCulturalNotes ? "chevron.up" : "chevron.down")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+            }
+            .buttonStyle(.plain)
+
+            // Expanded notes
+            if showCulturalNotes {
+                Text(notes)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 10)
+                    .padding(.bottom, 8)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.orange.opacity(0.08))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(Color.orange.opacity(0.2), lineWidth: 1)
+        )
+        .padding(.horizontal, 8)
     }
 
     // MARK: - Message Metadata
