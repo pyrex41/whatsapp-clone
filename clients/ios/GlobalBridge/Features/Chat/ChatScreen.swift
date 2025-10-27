@@ -681,7 +681,7 @@ private struct MessageRow: View {
             )
 
             // Skip translation if detected source language matches target language
-            if let detectedLang = result.detectedLanguage, detectedLang == targetLanguage {
+            if result.sourceLanguage == targetLanguage {
                 print("⏭️ [MESSAGE_TRANSLATION] Skipping translation: message already in target language (\(targetLanguage))")
                 isTranslating = false
                 return
