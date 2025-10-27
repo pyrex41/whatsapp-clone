@@ -34,7 +34,9 @@ if config_env() == :prod do
 
   config :globalbridge_backend, GlobalbridgeBackend.Repo,
     database: database_path,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
+    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+    # Enable WAL mode and optimized settings on every connection
+    after_connect: {GlobalbridgeBackend.Repo, :after_connect, []}
 
   # Configure dev_mode for bypassing authentication (use carefully in production!)
   dev_mode = System.get_env("DEV_MODE") == "true"
@@ -175,15 +177,17 @@ if config_env() in [:dev, :prod] do
 end
 
 # Oban Background Job Configuration
+# Note: Reduced concurrency limits for SQLite compatibility (even with WAL mode)
+# SQLite with WAL can handle multiple readers but only one writer at a time
 oban_config = [
   engine: Oban.Engines.Basic,
   notifier: Oban.Notifiers.PG,  # Use PG notifier (polling-based, works with SQLite)
   peer: false,  # Disable peer coordination (not needed for single-node SQLite setup)
   prefix: false,  # SQLite doesn't support table prefixes
   queues: [
-    default: 10,
-    embeddings: 5,
-    ai_processing: 3
+    default: 3,        # Reduced from 10 to avoid "database busy" errors
+    embeddings: 2,     # Reduced from 5
+    ai_processing: 1   # Reduced from 3
   ],
   repo: GlobalbridgeBackend.Repo
 ]

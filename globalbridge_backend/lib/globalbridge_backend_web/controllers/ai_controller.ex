@@ -93,8 +93,11 @@ defmodule GlobalbridgeBackendWeb.AIController do
       # Get detection strategy from params or use configured default
       detection_strategy = get_detection_strategy(params["detection_strategy"])
 
-      # Execute translation with optional language detection
-      case execute_translation(text, target_lang, detection_strategy) do
+      # Get formality level from params (informal, neutral, formal)
+      formality = params["formality"]
+
+      # Execute translation with optional language detection and formality
+      case execute_translation(text, target_lang, detection_strategy, formality) do
         {:ok, result} ->
           json(conn, Map.merge(%{success: true}, result))
 
@@ -674,7 +677,7 @@ defmodule GlobalbridgeBackendWeb.AIController do
   Executes translation with optional language detection based on whether
   target_language is provided and which detection strategy is selected.
   """
-  defp execute_translation(text, nil, detection_strategy) do
+  defp execute_translation(text, nil, detection_strategy, formality) do
     # No target language provided - auto-detect and translate to English
     Logger.info("AIController: Auto-detecting language and translating to English using #{detection_strategy} strategy")
 
@@ -691,7 +694,7 @@ defmodule GlobalbridgeBackendWeb.AIController do
       :dedicated ->
         # Two-step: dedicated detection, then translation
         with {:ok, detection} <- LanguageDetectionService.detect_language_dedicated(text),
-             {:ok, translation} <- simple_translate(text, "en") do
+             {:ok, translation} <- simple_translate(text, "en", formality) do
           result = Map.merge(translation, %{
             source_language: detection.language,
             source_language_code: detection.language_code,
@@ -704,11 +707,11 @@ defmodule GlobalbridgeBackendWeb.AIController do
     end
   end
 
-  defp execute_translation(text, target_lang, _detection_strategy) when is_binary(target_lang) do
+  defp execute_translation(text, target_lang, _detection_strategy, formality) when is_binary(target_lang) do
     # Target language provided - use simple translation
-    Logger.info("AIController: Translating to #{target_lang} (no language detection needed)")
+    Logger.info("AIController: Translating to #{target_lang} with formality=#{inspect(formality)}")
 
-    case simple_translate(text, target_lang) do
+    case simple_translate(text, target_lang, formality) do
       {:ok, result} ->
         {:ok, Map.put(result, :detection_strategy, "none")}
       {:error, reason} ->
@@ -727,7 +730,7 @@ defmodule GlobalbridgeBackendWeb.AIController do
   defp get_detection_strategy("dedicated"), do: :dedicated
   defp get_detection_strategy(_), do: LanguageDetectionService.get_detection_strategy()
 
-  defp simple_translate(text, target_lang) do
+  defp simple_translate(text, target_lang, formality \\ nil) do
     # Direct translation using Groq API, bypassing the buggy Agens framework
     groq_api_key = System.get_env("GROQ_API_KEY")
 
@@ -737,18 +740,56 @@ defmodule GlobalbridgeBackendWeb.AIController do
       # Convert language code to full name for clarity
       target_language_name = LanguageDetectionService.get_language_name(target_lang)
 
+      # Build formality instruction
+      formality_instruction = case formality do
+        "informal" -> """
+        FORMALITY LEVEL: INFORMAL/CASUAL
+        - Use casual, friendly language as if speaking to a close friend
+        - Choose informal greetings and expressions (e.g., Spanish: "¿Qué tal?" instead of "¿Cómo está?")
+        - Use informal pronouns (e.g., Spanish: "tú" instead of "usted", French: "tu" instead of "vous")
+        - Opt for conversational slang and colloquialisms when appropriate
+        - Keep the tone warm and relaxed
+        """
+
+        "formal" -> """
+        FORMALITY LEVEL: FORMAL/PROFESSIONAL
+        - Use polite, respectful language as if speaking to a business contact or elder
+        - Choose formal greetings and expressions (e.g., Spanish: "Buenos días, señor" instead of "Hola")
+        - Use formal pronouns (e.g., Spanish: "usted", French: "vous", German: "Sie")
+        - Include appropriate titles and honorifics
+        - Maintain a professional, courteous tone
+        """
+
+        _ -> """
+        FORMALITY LEVEL: NEUTRAL/STANDARD
+        - Use balanced language appropriate for everyday conversation
+        - Choose standard greetings and expressions
+        - Use neutral pronouns appropriate for the context
+        - Maintain a friendly but respectful tone
+        """
+      end
+
       # Build the translation prompt
       prompt = """
-      Translate the following text to #{target_language_name}.
-      Provide the translation along with a confidence score (0.0 to 1.0).
-      If there are any idioms or cultural phrases, note them.
+      You are an expert translator who understands nuance, tone, and cultural context.
+
+      #{formality_instruction}
+
+      CRITICAL INSTRUCTIONS:
+      1. DO NOT translate word-for-word. Instead, find the most natural way to express the INTENT and FEELING in #{target_language_name}.
+      2. Adjust the formality to match the specified level - this may mean choosing completely different words or phrases.
+      3. For simple greetings like "Hello", adjust based on formality:
+         - Informal: Use casual greetings (e.g., "Hola" / "¿Qué tal?" / "Salut")
+         - Formal: Use polite greetings with honorifics (e.g., "Buenos días, señor" / "Bonjour, monsieur")
+      4. Preserve emojis and punctuation exactly as they appear.
+      5. If an idiom or cultural phrase doesn't translate well, find an equivalent expression in the target language.
 
       Text to translate: #{text}
 
       Respond in JSON format:
       {
         "source_language": "detected source language full name (e.g., Spanish, French)",
-        "translation": "the translated text",
+        "translation": "the translated text with appropriate formality",
         "confidence": 0.95,
         "cultural_notes": []
       }

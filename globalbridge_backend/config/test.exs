@@ -31,7 +31,9 @@ config :phoenix, :plug_init_mode, :runtime
 config :globalbridge_backend, GlobalbridgeBackend.Repo,
   database: Path.expand("../priv/repo/test.db", Path.dirname(__ENV__.file)),
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: 10
+  pool_size: 10,
+  # Enable WAL mode and optimized settings on every connection
+  after_connect: {GlobalbridgeBackend.Repo, :after_connect, []}
 
 # Configure Oban for testing (disabled)
 config :globalbridge_backend, Oban,

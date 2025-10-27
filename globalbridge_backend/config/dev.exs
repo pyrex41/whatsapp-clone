@@ -62,7 +62,9 @@ config :swoosh, :api_client, false
 config :globalbridge_backend, GlobalbridgeBackend.Repo,
   database: Path.expand("../priv/shared_dbs/users.db", Path.dirname(__ENV__.file)),
   pool_size: 10,
-  show_sensitive_data_on_connection_error: true
+  show_sensitive_data_on_connection_error: true,
+  # Enable WAL mode and optimized settings on every connection
+  after_connect: {GlobalbridgeBackend.Repo, :after_connect, []}
 
 # Additional shared databases
 # Note: These are configured but will be accessed via custom Repo modules

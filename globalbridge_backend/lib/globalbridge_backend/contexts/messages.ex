@@ -91,6 +91,24 @@ defmodule GlobalbridgeBackend.Contexts.Messages do
   end
 
   @doc """
+  Gets a message by client_message_id (for client-generated UUIDs).
+
+  Used when clients send their locally-generated message ID rather than
+  the server-assigned ID (common in offline-first scenarios and style learning).
+  """
+  def get_message_by_client_id(thread_id, client_message_id) do
+    thread = get_thread_with_shard(thread_id)
+    repo = ThreadRepo.get_repo(thread.database_shard_id)
+
+    query =
+      from(m in Message,
+        where: m.thread_id == ^thread_id and m.client_message_id == ^client_message_id
+      )
+
+    repo.one(query)
+  end
+
+  @doc """
   Creates a new message in a thread.
 
   Automatically updates the thread's last_message_at timestamp.

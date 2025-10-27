@@ -443,9 +443,10 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
 
     # Trigger async style learning (non-blocking)
     Task.start(fn ->
-      case Messages.get_message(thread_id, message_id) do
+      # Use get_message_by_client_id since iOS sends the client-generated UUID
+      case Messages.get_message_by_client_id(thread_id, message_id) do
         nil ->
-          Logger.warning("⚠️  [STYLE_LEARN] Message #{message_id} not found")
+          Logger.warning("⚠️  [STYLE_LEARN] Message #{message_id} not found (searched by client_message_id)")
 
         message ->
           SmartReplyGenerator.learn_user_style(user_id, message, thread_id)
