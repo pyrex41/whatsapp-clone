@@ -29,6 +29,7 @@ enum AppAction {
     case messageStatusUpdated(Message.ID, Message.Status)
 
     case receiveRealtimeMessage(Message)
+    case receiveRealtimeThread(Thread)  // New thread created by another user
     case typingIndicator(Thread.ID, userID: String, isTyping: Bool)
     case handleOrphanedThread(Thread.ID)
 

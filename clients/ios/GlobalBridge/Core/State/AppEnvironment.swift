@@ -346,7 +346,29 @@ extension AppEnvironment {
                                 }
                                 try? await databaseManager.createMessage(message)
                             }
-                            
+
+                        }
+
+                        // Register global thread_created handler
+                        await phoenixManager.onAnyThread { thread in
+                            print("📥 [REALTIME] Received new thread: \(thread.id) - \(thread.title ?? "Untitled")")
+                            Task { @Sendable [weak store] in
+                                guard let store else { return }
+                                // Dispatch action to add thread to state
+                                await store.send(.receiveRealtimeThread(thread))
+
+                                // Show in-app banner notification
+                                let mode = await MainActor.run { NotificationConfig.current }
+                                guard mode != .system else { return }
+
+                                let title = thread.title ?? "New Conversation"
+                                let event = NotificationEvent.threadCreated(
+                                    .init(threadId: thread.id, title: title, snippet: "New thread created", avatarURL: nil)
+                                )
+                                await MainActor.run {
+                                    InAppBannerCenter.shared.present(event: event)
+                                }
+                            }
                         }
                     }
                 }

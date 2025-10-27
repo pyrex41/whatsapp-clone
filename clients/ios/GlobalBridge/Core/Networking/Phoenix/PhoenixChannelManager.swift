@@ -51,6 +51,7 @@ public actor PhoenixChannelManager {
     private var eventHandlers: [String: [MessageHandler]] = [:]
     private var presenceHandlers: [PresenceHandler] = []
     private var globalMessageHandlers: [MessageHandler] = []
+    private var globalThreadHandlers: [@Sendable (Thread) -> Void] = []
     private var typingHandlers: [String: [TypingHandler]] = [:]
     private var readReceiptHandlers: [String: [ReadReceiptHandler]] = [:]
     private var typingTimers: [String: Task<Void, Never>] = [:]
@@ -747,6 +748,12 @@ public actor PhoenixChannelManager {
         }
     }
 
+    private func notifyThreadCreatedHandlers(_ thread: Thread) async {
+        globalThreadHandlers.forEach { handler in
+            handler(thread)
+        }
+    }
+
     private func deliverReadReceipt(_ receipt: ReadReceipt, conversationId: String) async {
         readReceiptHandlers[conversationId]?.forEach { handler in
             handler(receipt)
@@ -941,6 +948,11 @@ public actor PhoenixChannelManager {
     /// Register handler for all incoming messages
     public func onAnyMessage(_ handler: @escaping MessageHandler) {
         globalMessageHandlers.append(handler)
+    }
+
+    /// Register handler for new thread events (thread_created)
+    public func onAnyThread(_ handler: @escaping @Sendable (Thread) -> Void) {
+        globalThreadHandlers.append(handler)
     }
 
     /// Register handler for presence updates
@@ -1314,6 +1326,7 @@ public actor PhoenixChannelManager {
     }
 
     private func setupUserChannelHandlers(_ channel: Channel) {
+        // Handle new messages
         channel.on("new_message") { [weak self] (message: SocketMessage) in
             guard let self else { return }
             do {
@@ -1330,6 +1343,27 @@ public actor PhoenixChannelManager {
                 }
             } catch {
                 print("[Phoenix] Failed to decode user-channel message: \(error)")
+            }
+        }
+
+        // Handle new threads created by other users
+        channel.on("thread_created") { [weak self] (message: SocketMessage) in
+            guard let self else { return }
+            print("📥 [USER_CHANNEL] Received thread_created event")
+            print("📥 [USER_CHANNEL] Payload: \(message.payload)")
+
+            do {
+                let jsonData = try JSONSerialization.data(withJSONObject: message.payload, options: [])
+                let thread = try JSONDecoder().decode(Thread.self, from: jsonData)
+
+                print("✅ [USER_CHANNEL] Parsed thread: \(thread.id) - \(thread.title ?? "Untitled")")
+
+                // Notify global event handlers
+                Task {
+                    await self.notifyThreadCreatedHandlers(thread)
+                }
+            } catch {
+                print("❌ [USER_CHANNEL] Failed to decode thread_created: \(error)")
             }
         }
     }
