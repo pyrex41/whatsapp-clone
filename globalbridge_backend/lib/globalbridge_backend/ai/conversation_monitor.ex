@@ -251,6 +251,24 @@ defmodule GlobalbridgeBackend.AI.ConversationMonitor do
     {:noreply, %{state | thread_monitors: thread_monitors}}
   end
 
+  @impl true
+  def handle_info({:ai_suggestions, suggestions}, state) do
+    # Handle AI suggestions received from async analysis
+    # Extract thread_id from the first suggestion's context if available
+    case suggestions do
+      [%{context: %{message_id: _msg_id}} | _] = suggs ->
+        Logger.debug("📝 [CONVERSATION_MONITOR] Received #{length(suggs)} AI suggestions")
+        # Suggestions are already broadcasted by the async task
+        # Just acknowledge receipt here
+        :ok
+
+      _ ->
+        Logger.warning("⚠️ [CONVERSATION_MONITOR] Received AI suggestions with unexpected format")
+    end
+
+    {:noreply, state}
+  end
+
   ## Private Functions
 
   defp add_message_to_window(thread_state, message) do

@@ -94,9 +94,52 @@ struct CachedUserInfo: Equatable, Codable {
     let displayName: String?
     let username: String
     let avatarUrl: String?
-    
+
     var effectiveDisplayName: String {
-        displayName ?? username
+        // If we have a display name, use it
+        if let displayName = displayName, !displayName.isEmpty {
+            return displayName
+        }
+
+        // Otherwise, format the username nicely
+        return formatUsername(username)
+    }
+
+    /// Format username into a readable display name
+    private func formatUsername(_ username: String) -> String {
+        // Check if username looks like an email
+        if username.contains("@") {
+            let localPart = username.components(separatedBy: "@").first ?? username
+            let cleanName = localPart.components(separatedBy: "+").first ?? localPart
+            let formatted = cleanName
+                .replacingOccurrences(of: ".", with: " ")
+                .replacingOccurrences(of: "_", with: " ")
+                .capitalized
+            return formatted
+        }
+
+        // Check if username has timestamp suffix (e.g., "john_1702345678901" or "user_1702345678901")
+        let parts = username.components(separatedBy: "_")
+        if parts.count >= 2, let lastPart = parts.last, lastPart.count >= 10, lastPart.allSatisfy({ $0.isNumber }) {
+            let namePart = parts.dropLast().joined(separator: " ")
+
+            // Special case: if the name part is just "user", show "User <id prefix>"
+            if namePart.lowercased() == "user" {
+                let idPrefix = String(lastPart.prefix(8))
+                return "User \(idPrefix)"
+            }
+
+            // Otherwise format the name nicely
+            let formatted = namePart.capitalized
+            return formatted.isEmpty ? username : formatted
+        }
+
+        // Otherwise use username as-is with some formatting
+        let formatted = username
+            .replacingOccurrences(of: ".", with: " ")
+            .replacingOccurrences(of: "_", with: " ")
+            .capitalized
+        return formatted.isEmpty ? username : formatted
     }
 }
 

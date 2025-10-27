@@ -792,8 +792,8 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         
         return .run(priority: nil) { send in
             do {
-                // Fetch most recent 50 messages (pagination for older messages)
-                let result = try await environment.realtime.fetchMessages(threadID, 50)
+                // Fetch most recent 20 messages for fast initial display (pagination loads more on scroll)
+                let result = try await environment.realtime.fetchMessages(threadID, 20)
                 print("✅ [FETCH] Fetched \(result.messages.count) messages + \(result.users.count) users from backend")
                 
                 // Convert BasicUserInfo to CachedUserInfo and cache via action
@@ -816,19 +816,21 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 
                 // Store messages locally (only if we fetched any)
                 if !result.messages.isEmpty {
-                    print("💾 [FETCH] Storing \(result.messages.count) messages...")
-                    for phoenixMsg in result.messages {
-                        if let message = Message.fromPhoenix(phoenixMsg) {
-                            // Store message from server (deduplication happens in SQLite layer)
-                            try? await environment.database.storeMessage(message)
-                        }
+                    print("💾 [FETCH] Batch storing \(result.messages.count) messages...")
+
+                    // Convert all Phoenix messages to Message objects
+                    let messages = result.messages.compactMap { Message.fromPhoenix($0) }
+
+                    if !messages.isEmpty {
+                        // Use batch insert for much better performance (single transaction, no UI blocking)
+                        try? await environment.database.batchStoreMessages(messages, threadID)
                     }
-                
+
                     // Reload from local DB to show in UI with user names
                     print("🔄 [FETCH] Reloading messages to display with names...")
                     send(.loadMessages(threadID))
                 } else {
-                    print("ℹ️ [FETCH] No new messages, user cache updated (names should update)") 
+                    print("ℹ️ [FETCH] No new messages, user cache updated (names should update)")
                 }
             } catch {
                 print("⚠️ [FETCH] Backend fetch failed: \(error.localizedDescription)")
@@ -842,7 +844,10 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
     case let .cacheUsers(users):
         for (userId, userInfo) in users {
             state.userCache[userId] = userInfo
-            print("👤 [CACHE] Added user: \(userId) → \(userInfo.effectiveDisplayName)")
+            print("👤 [CACHE] Added user: \(userId)")
+            print("   - displayName: \(userInfo.displayName ?? "nil")")
+            print("   - username: \(userInfo.username)")
+            print("   - effectiveDisplayName: \(userInfo.effectiveDisplayName)")
         }
         return .none
     
@@ -880,13 +885,15 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 }
                 
                 // Store new messages
-                for phoenixMsg in result.messages {
-                    if let message = Message.fromPhoenix(phoenixMsg) {
-                        // Store message (deduplication handled by SQLite layer)
-                        try? await environment.database.storeMessage(message)
+                if !result.messages.isEmpty {
+                    print("💾 [PAGINATION] Batch storing \(result.messages.count) messages...")
+                    let messages = result.messages.compactMap { Message.fromPhoenix($0) }
+                    if !messages.isEmpty {
+                        // Use batch insert for better performance
+                        try? await environment.database.batchStoreMessages(messages, threadID)
                     }
                 }
-                
+
                 // Reload to include new older messages
                 send(.loadMessages(threadID))
             } catch {

@@ -720,15 +720,30 @@ private struct MessageRow: View {
                 return formatted
             }
 
-            // Check if username looks like a system ID (e.g., "user_abc123")
-            if username.starts(with: "user_") {
-                // Extract the part after "user_" and capitalize
-                let idPart = String(username.dropFirst(5)) // Remove "user_"
-                return "User \(idPart.prefix(8).capitalized)"
+            // Check if username has timestamp suffix (e.g., "john_1702345678901" or "user_1702345678901")
+            // Backend generates usernames like "emailprefix_timestamp" or "name_timestamp"
+            let parts = username.components(separatedBy: "_")
+            if parts.count >= 2, let lastPart = parts.last, lastPart.count >= 10, lastPart.allSatisfy({ $0.isNumber }) {
+                // Found timestamp pattern
+                let namePart = parts.dropLast().joined(separator: " ")
+
+                // Special case: if the name part is just "user", show "User <id prefix>"
+                if namePart.lowercased() == "user" {
+                    let idPrefix = String(lastPart.prefix(8))
+                    return "User \(idPrefix)"
+                }
+
+                // Otherwise format the name nicely: capitalize each word
+                let formatted = namePart.capitalized
+                return formatted.isEmpty ? username : formatted
             }
 
-            // Otherwise use username as-is
-            return username
+            // Otherwise use username as-is with some formatting
+            let formatted = username
+                .replacingOccurrences(of: ".", with: " ")
+                .replacingOccurrences(of: "_", with: " ")
+                .capitalized
+            return formatted.isEmpty ? username : formatted
         }
 
         // Fallback to sender ID prefix

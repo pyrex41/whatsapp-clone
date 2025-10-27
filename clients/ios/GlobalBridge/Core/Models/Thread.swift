@@ -67,39 +67,77 @@ struct Thread: Identifiable, Codable, Equatable {
     
     /// Display name for the thread.
     /// - Groups: prefer title; fallback to "Group Chat".
-    /// - Direct messages: prefer a provided title (if backend sent one),
-    ///   otherwise resolve other participant from userCache; fallback to ID prefix.
+    /// - Direct messages: ALWAYS use userCache for proper name formatting,
+    ///   fallback to backend title only if user not in cache yet.
     func displayName(currentUserId: String, userCache: [String: CachedUserInfo] = [:]) -> String {
         // Groups: use title
         if threadType != .direct {
             return title?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty ?? "Group Chat"
         }
 
-        // DMs: if backend provided a title, use it immediately (improves first-load UX)
-        if let provided = title?.trimmingCharacters(in: .whitespacesAndNewlines), !provided.isEmpty {
-            return provided
-        }
-
-        // Otherwise, show the other participant's actual name from cache
+        // DMs: ALWAYS prioritize userCache for proper display name formatting
         if let participants = participantIds,
            let otherParticipant = participants.first(where: { $0 != currentUserId }) {
             print("🔍 [DISPLAY_NAME] Looking up user: \(otherParticipant) in cache (size: \(userCache.count))")
-            
-            // Look up from cache first
+
+            // Look up from cache first - this formats usernames properly
             if let cachedUser = userCache[otherParticipant] {
                 print("✅ [DISPLAY_NAME] Found in cache: \(cachedUser.effectiveDisplayName)")
                 return cachedUser.effectiveDisplayName
             }
-            
+
             print("⚠️ [DISPLAY_NAME] Not in cache, using fallback")
             print("   Cache keys: \(userCache.keys)")
-            
-            // Fallback to ID prefix
+
+            // Fallback 1: Use backend title if available (during initial load)
+            if let provided = title?.trimmingCharacters(in: .whitespacesAndNewlines), !provided.isEmpty {
+                // Format the backend title using the same logic as CachedUserInfo
+                return formatUsername(provided)
+            }
+
+            // Fallback 2: Use ID prefix
             let prefix = otherParticipant.prefix(8)
             return "User \(prefix)"
         }
         // Last resort
         return "Direct Message"
+    }
+
+    /// Format username into a readable display name (same logic as CachedUserInfo)
+    private func formatUsername(_ username: String) -> String {
+        // Check if username looks like an email
+        if username.contains("@") {
+            let localPart = username.components(separatedBy: "@").first ?? username
+            let cleanName = localPart.components(separatedBy: "+").first ?? localPart
+            let formatted = cleanName
+                .replacingOccurrences(of: ".", with: " ")
+                .replacingOccurrences(of: "_", with: " ")
+                .capitalized
+            return formatted
+        }
+
+        // Check if username has timestamp suffix (e.g., "john_1702345678901" or "user_1702345678901")
+        let parts = username.components(separatedBy: "_")
+        if parts.count >= 2, let lastPart = parts.last, lastPart.count >= 10, lastPart.allSatisfy({ $0.isNumber }) {
+            let namePart = parts.dropLast().joined(separator: " ")
+
+            // Special case: if the name part is just "user", show "User <id prefix>"
+            if namePart.lowercased() == "user" {
+                let idPrefix = String(lastPart.prefix(8))
+                return "User \(idPrefix)"
+            }
+
+            // Otherwise format the name nicely
+            let formatted = namePart.capitalized
+            return formatted.isEmpty ? username : formatted
+        }
+
+        // Otherwise use username as-is with some formatting
+        let formatted = username
+            .replacingOccurrences(of: ".", with: " ")
+            .replacingOccurrences(of: "_", with: " ")
+            .capitalized
+        return formatted.isEmpty ? username : formatted
     }
 }
 
