@@ -312,8 +312,12 @@ struct TranslationPreviewSheet: View {
     }
 
     private func translateWithNewLanguage(_ language: String) async {
-        isTranslating = true
-        error = nil
+        // Immediately clear old translations to avoid showing stale data
+        await MainActor.run {
+            translations.removeAll()
+            isTranslating = true
+            error = nil
+        }
 
         do {
             print("🌐 [TRANSLATION_PREVIEW] Fetching all formality variations for new language: \(language)")
