@@ -352,10 +352,9 @@ extension AppEnvironment {
                         // Register global thread_created handler
                         await phoenixManager.onAnyThread { thread in
                             print("📥 [REALTIME] Received new thread: \(thread.id) - \(thread.title ?? "Untitled")")
-                            Task { @Sendable [weak store] in
-                                guard let store else { return }
-                                // Dispatch action to add thread to state
-                                await store.send(.receiveRealtimeThread(thread))
+                            Task { @Sendable in
+                                // Persist thread to database
+                                try? await databaseManager.upsertThread(thread)
 
                                 // Show in-app banner notification
                                 let mode = await MainActor.run { NotificationConfig.current }
@@ -367,6 +366,11 @@ extension AppEnvironment {
                                 )
                                 await MainActor.run {
                                     InAppBannerCenter.shared.present(event: event)
+                                }
+
+                                // Trigger UI reload by broadcasting a custom notification
+                                await MainActor.run {
+                                    NotificationCenter.default.post(name: .newThreadReceived, object: thread)
                                 }
                             }
                         }

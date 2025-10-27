@@ -951,7 +951,7 @@ public actor PhoenixChannelManager {
     }
 
     /// Register handler for new thread events (thread_created)
-    public func onAnyThread(_ handler: @escaping @Sendable (Thread) -> Void) {
+    func onAnyThread(_ handler: @escaping @Sendable (Thread) -> Void) {
         globalThreadHandlers.append(handler)
     }
 
@@ -1352,18 +1352,20 @@ public actor PhoenixChannelManager {
             print("📥 [USER_CHANNEL] Received thread_created event")
             print("📥 [USER_CHANNEL] Payload: \(message.payload)")
 
-            do {
-                let jsonData = try JSONSerialization.data(withJSONObject: message.payload, options: [])
-                let thread = try JSONDecoder().decode(Thread.self, from: jsonData)
+            Task {
+                do {
+                    let jsonData = try JSONSerialization.data(withJSONObject: message.payload, options: [])
+                    let thread = try await MainActor.run {
+                        try JSONDecoder().decode(Thread.self, from: jsonData)
+                    }
 
-                print("✅ [USER_CHANNEL] Parsed thread: \(thread.id) - \(thread.title ?? "Untitled")")
+                    print("✅ [USER_CHANNEL] Parsed thread: \(thread.id) - \(thread.title ?? "Untitled")")
 
-                // Notify global event handlers
-                Task {
+                    // Notify global event handlers
                     await self.notifyThreadCreatedHandlers(thread)
+                } catch {
+                    print("❌ [USER_CHANNEL] Failed to decode thread_created: \(error)")
                 }
-            } catch {
-                print("❌ [USER_CHANNEL] Failed to decode thread_created: \(error)")
             }
         }
     }

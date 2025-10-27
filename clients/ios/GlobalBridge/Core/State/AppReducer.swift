@@ -490,6 +490,29 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             try? await environment.database.storeMessage(message)
         }
 
+    case let .receiveRealtimeThread(thread):
+        print("📥 [REALTIME] Received new thread: \(thread.id) - \(thread.title ?? "Untitled")")
+
+        // Check if thread already exists
+        if state.threads.items.contains(where: { $0.id == thread.id }) {
+            print("⏭️ [REALTIME] Thread already exists, skipping: \(thread.id)")
+            return .none
+        }
+
+        // Add thread to the beginning of the list
+        state.threads.items.insert(thread, at: 0)
+        print("✅ [REALTIME] Added new thread to list")
+
+        // Persist to database
+        return .fireAndForget {
+            do {
+                try await environment.database.saveThread(thread)
+                print("💾 [REALTIME] Thread persisted to database")
+            } catch {
+                print("❌ [REALTIME] Failed to persist thread: \(error)")
+            }
+        }
+
     case let .typingIndicator(threadID, userID, isTyping):
         guard state.chat.currentThread?.id == threadID,
               userID != state.user.id

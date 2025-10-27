@@ -110,6 +110,11 @@ struct ThreadsListScreen: View {
         .sheet(isPresented: $showSettings) {
             SettingsView(store: store)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .newThreadReceived)) { _ in
+            // Reload threads when a new thread is received from another user
+            print("🔄 [THREADS_LIST] Received newThreadReceived notification, reloading threads")
+            store.send(.loadUserAndThreads)
+        }
     }
 
     private var emptyStateView: some View {

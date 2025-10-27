@@ -9,6 +9,7 @@ import Foundation
 
 extension Notification.Name {
     static let notificationModeChanged = Notification.Name("notificationModeChanged")
+    static let newThreadReceived = Notification.Name("newThreadReceived")
 }
 
 enum NotificationMode: String {
