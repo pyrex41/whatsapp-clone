@@ -132,10 +132,15 @@ struct ChatScreen: View {
             if threadSettings.showSuggestions {
                 let hasSuggestions = !(store.state.smartReplySuggestions[threadId] ?? []).isEmpty
                 let isLoading = store.state.smartReplyLoading[threadId] ?? false
-                let hasError = !(store.state.smartReplyErrors[threadId] ?? "").isEmpty
+                let errorText = store.state.smartReplyErrors[threadId] ?? ""
+                // Ignore "no messages" error - it's expected for empty threads
+                let hasRelevantError = !errorText.isEmpty && !errorText.contains("No messages in thread")
 
-                if hasSuggestions || isLoading || hasError {
+                if hasSuggestions || isLoading || hasRelevantError {
                     smartReplySection(thread: thread)
+                } else {
+                    // Show standalone translation settings button when no suggestions
+                    standaloneTranslationSettingsButton(thread: thread)
                 }
             }
 
@@ -212,7 +217,10 @@ struct ChatScreen: View {
             .padding(.bottom, 2)
             .accessibilityIdentifier("smartReplyChips")
         }
-        if let errText = store.state.smartReplyErrors[threadId], !errText.isEmpty {
+        // Only show error banner for relevant errors (not "no messages" error)
+        if let errText = store.state.smartReplyErrors[threadId],
+           !errText.isEmpty,
+           !errText.contains("No messages in thread") {
             HStack(spacing: 8) {
                 Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange)
                 Text(errText).font(.footnote).foregroundColor(.secondary).lineLimit(2).truncationMode(.tail)
@@ -226,6 +234,41 @@ struct ChatScreen: View {
             .padding(.horizontal, 12)
             .padding(.bottom, 4)
             .accessibilityIdentifier("smartReplyErrorBanner")
+        }
+    }
+
+    /// Standalone translation settings button (shown when suggestions are hidden)
+    @ViewBuilder
+    private func standaloneTranslationSettingsButton(thread: Thread) -> some View {
+        let threadId = thread.id.uuidString
+        let threadSettings = store.state.threadTranslationSettings[threadId] ?? .default
+
+        HStack {
+            Spacer()
+            Button(action: {
+                showTranslationSettings = true
+            }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "gearshape")
+                        .font(.caption)
+                    Text("Translation Settings")
+                        .font(.caption)
+                }
+                .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Translation settings")
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
+        .sheet(isPresented: $showTranslationSettings) {
+            TranslationSettingsSheet(
+                settings: .constant(threadSettings),
+                threadId: threadId,
+                onSave: { newSettings in
+                    store.send(.updateThreadTranslationSettings(threadId: threadId, settings: newSettings))
+                }
+            )
         }
     }
 
