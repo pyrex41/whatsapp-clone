@@ -766,6 +766,13 @@ public actor PhoenixChannelManager {
         }
     }
 
+    private func deliverToGlobalHandlers(_ message: PhoenixMessage) async {
+        print("🔔 [PHOENIX] Delivering to \(globalMessageHandlers.count) global handlers")
+        globalMessageHandlers.forEach { handler in
+            handler(message)
+        }
+    }
+
     private func deliverMessageUpdate(_ message: PhoenixMessage, conversationId: String) async {
         eventHandlers[conversationId]?.forEach { handler in
             handler(message)
@@ -1367,15 +1374,23 @@ public actor PhoenixChannelManager {
             guard let self else { return }
             do {
                 let phoenixMessage = try self.parsePhoenixMessage(from: message.payload)
+                print("🔔 [USER_CHANNEL] new_message received: thread=\(phoenixMessage.conversationId), sender=\(phoenixMessage.senderId)")
                 // If the specific thread channel is already joined, it will deliver this
-                // event itself. Suppress the user-channel duplicate to avoid double-render.
+                // event to conversation-specific handlers. But we STILL need to call
+                // globalMessageHandlers (for banners) even for joined threads.
                 Task {
                     let joined = await self.isChannelJoined(for: phoenixMessage.conversationId)
+                    print("🔔 [USER_CHANNEL] Thread joined status: \(joined)")
                     if joined {
-                        print("🔁 [PHOENIX] Skipping user-channel new_message for joined thread: \(phoenixMessage.conversationId)")
-                        return
+                        print("🔔 [USER_CHANNEL] Thread is joined - delivering to global handlers only")
+                        // Don't deliver to conversation-specific handlers (thread channel will do that)
+                        // But DO deliver to global handlers for banners
+                        await self.deliverToGlobalHandlers(phoenixMessage)
+                    } else {
+                        print("🔔 [USER_CHANNEL] Thread not joined - delivering to all handlers")
+                        // Deliver to both conversation-specific and global handlers
+                        await self.deliverNewMessage(phoenixMessage, conversationId: phoenixMessage.conversationId)
                     }
-                    await self.deliverNewMessage(phoenixMessage, conversationId: phoenixMessage.conversationId)
                 }
             } catch {
                 print("[Phoenix] Failed to decode user-channel message: \(error)")

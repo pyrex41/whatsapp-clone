@@ -178,7 +178,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
 
   describe "POST /api/v1/ai/summarize_thread" do
     test "summarizes thread successfully when user has access", %{conn: conn, user: user} do
-      thread_id = "test-thread-123"
+      thread_id = "123e4567-e89b-12d3-a456-426614174000"  # Valid UUID
 
       # Grant access to thread
       :ets.insert(
@@ -200,7 +200,7 @@ defmodule GlobalbridgeBackendWeb.AIControllerTest do
     end
 
     test "returns 403 when user does not have access to thread", %{conn: conn, user: user} do
-      thread_id = "unauthorized-thread-123"
+      thread_id = "223e4567-e89b-12d3-a456-426614174000"  # Valid UUID
 
       # Deny access to thread
       :ets.insert(

@@ -10,6 +10,9 @@ defmodule GlobalbridgeBackend.Repo.Migrations.EnableWalMode do
   This migration is idempotent - it can be run multiple times safely.
   """
 
+  # PRAGMA statements must run outside of a transaction
+  @disable_ddl_transaction true
+
   def up do
     execute("PRAGMA journal_mode=WAL;")
     execute("PRAGMA busy_timeout=10000;")  # 10 second busy timeout
