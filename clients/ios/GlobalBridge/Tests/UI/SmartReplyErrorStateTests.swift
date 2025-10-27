@@ -19,6 +19,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
         id: UUID(),
         type: "quick-reply",
         content: "Thanks!",
+        translatedText: nil,
         confidence: 0.95,
         position: 0,
         context: "",
@@ -33,7 +34,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: true,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
@@ -48,7 +49,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: true,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
@@ -63,7 +64,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: true,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
@@ -80,7 +81,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: false,
             error: .networkError(URLError(.notConnectedToInternet)),
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: {}
@@ -95,7 +96,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: true,
             error: .unauthorized,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
@@ -110,7 +111,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: false,
             error: .forbidden,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
@@ -137,7 +138,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: false,
             error: .networkError(URLError(.timedOut)),
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: {
@@ -231,7 +232,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
@@ -246,7 +247,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
@@ -263,7 +264,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: false,
             error: .networkError(URLError(.notConnectedToInternet)),
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
@@ -280,7 +281,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: false,
             error: .networkError(URLError(.networkConnectionLost)),
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: {
@@ -300,7 +301,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: false,
             error: .unauthorized,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: {
@@ -323,7 +324,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: true,
             error: .unauthorized,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
@@ -336,7 +337,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: true,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
@@ -349,7 +350,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
@@ -384,7 +385,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: false,
             error: .networkError(URLError(.timedOut)),
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: {}
@@ -397,7 +398,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: true,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
@@ -410,7 +411,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
@@ -443,7 +444,7 @@ final class SmartReplyErrorStateTests: XCTestCase {
                 isLoading: false,
                 error: error,
                 translationEnabled: false,
-                onSuggestionTap: { _, _ in },
+                onSuggestionTap: { _, _, _ in },
                 onTranslationToggle: {},
                 onRetry: error.shouldRetry ? {} : nil
             )

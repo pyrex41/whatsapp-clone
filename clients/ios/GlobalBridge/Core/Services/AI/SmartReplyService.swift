@@ -180,6 +180,7 @@ final class SmartReplyService: ObservableObject {
                 id: id,
                 type: item.type,
                 content: item.content,
+                translatedText: nil,
                 confidence: item.confidence,
                 position: item.position,
                 context: item.context,

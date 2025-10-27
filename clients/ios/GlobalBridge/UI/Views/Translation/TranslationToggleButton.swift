@@ -36,33 +36,31 @@ struct TranslationToggleButton: View {
             }
             .accessibilityLabel(isTranslationEnabled ? "Translation enabled" : "Translation disabled")
 
-            if isTranslationEnabled {
-                // Clarified language selector
-                Button(action: {
-                    showLanguagePicker = true
-                }) {
-                    HStack(spacing: 4) {
-                        Text("to")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+            // Language selector - always visible so users know the target language
+            Button(action: {
+                showLanguagePicker = true
+            }) {
+                HStack(spacing: 4) {
+                    Text("to")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
 
-                        Text(languageName(selectedLanguage))
-                            .font(.caption.weight(.semibold))
-                            .foregroundColor(.blue)
+                    Text(languageName(selectedLanguage))
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(isTranslationEnabled ? .blue : .secondary)
 
-                        Image(systemName: "chevron.down")
-                            .font(.caption2)
-                            .foregroundColor(.blue)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(
-                        Capsule()
-                            .fill(Color.blue.opacity(0.15))
-                    )
+                    Image(systemName: "chevron.down")
+                        .font(.caption2)
+                        .foregroundColor(isTranslationEnabled ? .blue : .secondary)
                 }
-                .accessibilityLabel("Translate to \(languageName(selectedLanguage))")
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill((isTranslationEnabled ? Color.blue : Color.gray).opacity(0.15))
+                )
             }
+            .accessibilityLabel("Translate to \(languageName(selectedLanguage))")
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isTranslationEnabled)
     }

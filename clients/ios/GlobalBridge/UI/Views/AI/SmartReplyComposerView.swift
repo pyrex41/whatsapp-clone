@@ -19,7 +19,7 @@ struct SmartReplyComposerView: View {
     let error: AIServiceError?
     let translationEnabled: Bool
     let styleLearningEnabled: Bool
-    let onSuggestionTap: (SmartReplySuggestion, Int) -> Void // Now includes timeToResponseMs
+    let onSuggestionTap: (SmartReplySuggestion, String, Int) -> Void // Now includes (suggestion, textToInsert, timeToResponseMs)
     let onSuggestionDismiss: ((SmartReplySuggestion) -> Void)?
     let onTranslationToggle: () -> Void
     let onRetry: (() -> Void)?
@@ -106,8 +106,8 @@ struct SmartReplyComposerView: View {
             if let firstSuggestion = suggestions.first {
                 SuggestionChip(
                     suggestion: firstSuggestion,
-                    onTap: { timeToResponseMs in
-                        onSuggestionTap(firstSuggestion, timeToResponseMs)
+                    onTap: { textToInsert, timeToResponseMs in
+                        onSuggestionTap(firstSuggestion, textToInsert, timeToResponseMs)
                     },
                     onDismiss: { dismissedSuggestion in
                         onSuggestionDismiss?(dismissedSuggestion)
@@ -122,8 +122,8 @@ struct SmartReplyComposerView: View {
                 ForEach(suggestions.dropFirst().prefix(2)) { suggestion in
                     SuggestionChip(
                         suggestion: suggestion,
-                        onTap: { timeToResponseMs in
-                            onSuggestionTap(suggestion, timeToResponseMs)
+                        onTap: { textToInsert, timeToResponseMs in
+                            onSuggestionTap(suggestion, textToInsert, timeToResponseMs)
                         },
                         onDismiss: { dismissedSuggestion in
                             onSuggestionDismiss?(dismissedSuggestion)
@@ -241,7 +241,7 @@ struct SmartReplyComposerView: View {
 
 private struct SuggestionChip: View {
     let suggestion: SmartReplySuggestion
-    let onTap: (Int) -> Void // Now receives timeToResponseMs
+    let onTap: (String, Int) -> Void // Now receives (textToInsert, timeToResponseMs)
     let onDismiss: (SmartReplySuggestion) -> Void
     var isCompact: Bool = false
 
@@ -249,6 +249,7 @@ private struct SuggestionChip: View {
     @State private var isDismissed: Bool = false
     @State private var dragOffset: CGFloat = 0
     @State private var showDismissButton: Bool = false
+    @State private var showTranslation: Bool = false
 
     var body: some View {
         Button(action: handleTap) {
@@ -258,9 +259,27 @@ private struct SuggestionChip: View {
                         .font(isCompact ? .caption : .caption2)
                         .foregroundColor(.purple)
                 }
-                Text(suggestion.content)
+
+                // Show either original content or translated text based on toggle
+                Text(currentDisplayText)
                     .font(isCompact ? .callout : .body)
                     .lineLimit(1)
+
+                // Translation toggle button (only show if translation is available)
+                if suggestion.translatedText != nil {
+                    Button(action: {
+                        withAnimation(.spring(response: 0.3)) {
+                            showTranslation.toggle()
+                        }
+                    }) {
+                        Image(systemName: showTranslation ? "globe.americas.fill" : "globe")
+                            .font(.caption2)
+                            .foregroundColor(showTranslation ? .blue : .gray)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(showTranslation ? "Showing translation" : "Show translation")
+                    .accessibilityHint("Double tap to toggle translation")
+                }
             }
             .padding(.horizontal, isCompact ? 10 : 12)
             .padding(.vertical, isCompact ? 6 : 8)
@@ -350,6 +369,14 @@ private struct SuggestionChip: View {
         }
     }
 
+    /// Get the currently displayed text (either original or translated)
+    private var currentDisplayText: String {
+        if showTranslation, let translated = suggestion.translatedText {
+            return translated
+        }
+        return suggestion.content
+    }
+
     private func handleTap() {
         // Only handle tap if not showing dismiss button
         guard !showDismissButton else {
@@ -363,8 +390,8 @@ private struct SuggestionChip: View {
         // Calculate time-to-response in milliseconds
         let timeToResponseMs = Int(Date().timeIntervalSince(displayTimestamp) * 1000)
 
-        // Pass the time-to-response to the callback
-        onTap(timeToResponseMs)
+        // Pass the currently displayed text (either English or Spanish) and time-to-response to the callback
+        onTap(currentDisplayText, timeToResponseMs)
     }
 
     private func handleDismiss() {
@@ -478,6 +505,7 @@ private struct ShimmerChip: View {
                 id: UUID(),
                 type: "quick-reply",
                 content: "Thanks!",
+                translatedText: nil,
                 confidence: 0.95,
                 position: 0,
                 context: "",
@@ -487,6 +515,7 @@ private struct ShimmerChip: View {
                 id: UUID(),
                 type: "contextual",
                 content: "Let me check and get back to you",
+                translatedText: nil,
                 confidence: 0.85,
                 position: 1,
                 context: "",
@@ -496,6 +525,7 @@ private struct ShimmerChip: View {
                 id: UUID(),
                 type: "proactive",
                 content: "I'll be there in 5 minutes",
+                translatedText: nil,
                 confidence: 0.75,
                 position: 2,
                 context: "",
@@ -506,8 +536,8 @@ private struct ShimmerChip: View {
         error: nil,
         translationEnabled: false,
         styleLearningEnabled: true,
-        onSuggestionTap: { suggestion, timeMs in
-            print("Tapped suggestion: \(suggestion.content) after \(timeMs)ms")
+        onSuggestionTap: { suggestion, textToInsert, timeMs in
+            print("Tapped suggestion: \(suggestion.content), inserting: \(textToInsert) after \(timeMs)ms")
         },
         onSuggestionDismiss: { suggestion in
             print("Dismissed suggestion: \(suggestion.content)")
@@ -526,7 +556,7 @@ private struct ShimmerChip: View {
         error: nil,
         translationEnabled: false,
         styleLearningEnabled: true,
-        onSuggestionTap: { _, _ in },
+        onSuggestionTap: { _, _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
         onRetry: nil,
@@ -542,7 +572,7 @@ private struct ShimmerChip: View {
         error: nil,
         translationEnabled: false,
         styleLearningEnabled: true,
-        onSuggestionTap: { _, _ in },
+        onSuggestionTap: { _, _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
         onRetry: nil,
@@ -558,6 +588,7 @@ private struct ShimmerChip: View {
                 id: UUID(),
                 type: "quick-reply",
                 content: "Yes, absolutely!",
+                translatedText: nil,
                 confidence: 0.95,
                 position: 0,
                 context: "",
@@ -568,7 +599,7 @@ private struct ShimmerChip: View {
         error: nil,
         translationEnabled: true,
         styleLearningEnabled: true,
-        onSuggestionTap: { _, _ in },
+        onSuggestionTap: { _, _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
         onRetry: nil,
@@ -591,6 +622,7 @@ private struct ShimmerChip: View {
                     id: UUID(),
                     type: "proactive",
                     content: "I'll be there in 5 minutes",
+                    translatedText: nil,
                     confidence: 0.85,
                     position: 0,
                     context: "",
@@ -600,6 +632,7 @@ private struct ShimmerChip: View {
                     id: UUID(),
                     type: "proactive",
                     content: "Let me know if you need help",
+                    translatedText: nil,
                     confidence: 0.75,
                     position: 1,
                     context: "",
@@ -610,7 +643,7 @@ private struct ShimmerChip: View {
             error: nil,
             translationEnabled: false,
             styleLearningEnabled: true,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil,
@@ -628,6 +661,7 @@ private struct ShimmerChip: View {
                     id: UUID(),
                     type: "quick-reply",
                     content: "Thanks!",
+                    translatedText: nil,
                     confidence: 0.95,
                     position: 0,
                     context: "",
@@ -637,6 +671,7 @@ private struct ShimmerChip: View {
                     id: UUID(),
                     type: "contextual",
                     content: "Sounds good",
+                    translatedText: nil,
                     confidence: 0.85,
                     position: 1,
                     context: "",
@@ -647,7 +682,7 @@ private struct ShimmerChip: View {
             error: nil,
             translationEnabled: false,
             styleLearningEnabled: true,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil,
@@ -664,7 +699,7 @@ private struct ShimmerChip: View {
         error: .networkError(URLError(.notConnectedToInternet)),
         translationEnabled: false,
         styleLearningEnabled: true,
-        onSuggestionTap: { _, _ in },
+        onSuggestionTap: { _, _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
         onRetry: {
@@ -686,7 +721,7 @@ private struct ShimmerChip: View {
         ),
         translationEnabled: false,
         styleLearningEnabled: true,
-        onSuggestionTap: { _, _ in },
+        onSuggestionTap: { _, _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
         onRetry: nil,
@@ -702,7 +737,7 @@ private struct ShimmerChip: View {
         error: .unauthorized,
         translationEnabled: false,
         styleLearningEnabled: true,
-        onSuggestionTap: { _, _ in },
+        onSuggestionTap: { _, _, _ in },
         onSuggestionDismiss: nil,
         onTranslationToggle: {},
         onRetry: nil,
@@ -725,6 +760,7 @@ private struct ShimmerChip: View {
                     id: UUID(),
                     type: "quick-reply",
                     content: "Sounds great!",
+                    translatedText: nil,
                     confidence: 0.95,
                     position: 0,
                     context: "",
@@ -734,6 +770,7 @@ private struct ShimmerChip: View {
                     id: UUID(),
                     type: "contextual",
                     content: "Thanks for letting me know",
+                    translatedText: nil,
                     confidence: 0.87,
                     position: 1,
                     context: "",
@@ -744,7 +781,7 @@ private struct ShimmerChip: View {
             error: nil,
             translationEnabled: false,
             styleLearningEnabled: true,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil,
@@ -762,6 +799,7 @@ private struct ShimmerChip: View {
                     id: UUID(),
                     type: "contextual",
                     content: "I'll check on that",
+                    translatedText: nil,
                     confidence: 0.72,
                     position: 0,
                     context: "",
@@ -771,6 +809,7 @@ private struct ShimmerChip: View {
                     id: UUID(),
                     type: "proactive",
                     content: "Let me get back to you",
+                    translatedText: nil,
                     confidence: 0.65,
                     position: 1,
                     context: "",
@@ -781,7 +820,7 @@ private struct ShimmerChip: View {
             error: nil,
             translationEnabled: false,
             styleLearningEnabled: true,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil,
@@ -799,6 +838,7 @@ private struct ShimmerChip: View {
                     id: UUID(),
                     type: "proactive",
                     content: "Maybe we should discuss this",
+                    translatedText: nil,
                     confidence: 0.48,
                     position: 0,
                     context: "",
@@ -808,6 +848,7 @@ private struct ShimmerChip: View {
                     id: UUID(),
                     type: "contextual",
                     content: "I'm not entirely sure",
+                    translatedText: nil,
                     confidence: 0.52,
                     position: 1,
                     context: "",
@@ -818,7 +859,7 @@ private struct ShimmerChip: View {
             error: nil,
             translationEnabled: false,
             styleLearningEnabled: true,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil,

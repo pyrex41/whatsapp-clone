@@ -9,7 +9,7 @@
 //  - Cache hit rate metrics for performance monitoring
 //
 
-import Foundation
+ //import Foundation
 import Combine
 import UIKit
 @preconcurrency import ObjectiveC
@@ -426,9 +426,50 @@ private class CachedItem: NSObject, Codable {
         try container.encode(type, forKey: .type)
         try container.encode(cachedAt, forKey: .cachedAt)
 
-        // Encode data as JSON
-        let jsonData = try JSONSerialization.data(withJSONObject: data)
+        // Encode data as JSON - handle both Codable types and raw JSON objects
+        let jsonData: Data
+
+        // Try to encode as Codable first (for EnhancedTranslationResult, etc.)
+        if let codableData = data as? (any Codable) {
+            // Use a type-erasing helper to encode
+            jsonData = try encodeAnyCodable(codableData)
+        } else {
+            // For raw JSON objects (Dictionary, Array), use JSONSerialization
+            jsonData = try JSONSerialization.data(withJSONObject: data)
+        }
         try container.encode(jsonData, forKey: .data)
+    }
+
+    // Helper to encode any Codable type
+    private func encodeAnyCodable(_ value: any Codable) throws -> Data {
+        // Use a type-erasing encoder
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+
+        // Try to mirror and encode based on actual type
+        let mirror = Mirror(reflecting: value)
+        if let displayStyle = mirror.displayStyle, displayStyle == .struct || displayStyle == .class {
+            // For structs/classes, we need to use type-specific encoding
+            // We'll encode to JSON then back to Data
+            return try encoder.encode(AnyEncodable(value))
+        } else {
+            return try JSONSerialization.data(withJSONObject: value)
+        }
+    }
+}
+
+// Type-erasing wrapper for Codable
+private struct AnyEncodable: Encodable {
+    private let _encode: (Encoder) throws -> Void
+
+    init<T: Encodable>(_ value: T) {
+        _encode = { encoder in
+            try value.encode(to: encoder)
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        try _encode(encoder)
     }
 }
 

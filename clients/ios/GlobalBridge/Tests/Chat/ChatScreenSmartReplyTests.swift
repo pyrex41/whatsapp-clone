@@ -20,7 +20,7 @@ final class ChatScreenSmartReplyTests: XCTestCase {
         state.threads.selectedThreadID = thread.id
         let tid = thread.id.uuidString
         state.smartReplySuggestions[tid] = [
-            SmartReplySuggestion(id: UUID(), type: "quick", content: "Thanks!", confidence: 0.9, position: 0, context: "", timestamp: Date())
+            SmartReplySuggestion(id: UUID(), type: "quick", content: "Thanks!", translatedText: nil, confidence: 0.9, position: 0, context: "", timestamp: Date())
         ]
 
         let store = Store(initialState: state, reducer: appReducer, environment: .preview)

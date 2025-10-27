@@ -11,7 +11,8 @@ import Foundation
 struct SmartReplySuggestion: Codable, Identifiable, Equatable {
     let id: UUID
     let type: String // "quick-reply", "contextual", "proactive"
-    let content: String
+    let content: String // Display text in user's language (e.g., English)
+    let translatedText: String? // Translation in target language (e.g., Spanish)
     let confidence: Double // 0.0-1.0
     let position: Int
     let context: String

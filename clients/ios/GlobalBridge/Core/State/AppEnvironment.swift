@@ -116,20 +116,35 @@ extension AppEnvironment {
     }()
 
     static let live: AppEnvironment = {
+        print("🚀 [STARTUP] Creating live environment...")
+
         let databaseManager = DatabaseManager.shared
+
+        // Defer heavy initialization to background task (use Task not Task.detached to inherit context)
         let initializationTask = Task { @MainActor in
+            print("🗄️ [STARTUP] Starting database initialization...")
             try await databaseManager.initialize()
+            print("✅ [STARTUP] Database initialized")
+
+            print("🌱 [STARTUP] Seeding sample data if needed...")
             try await databaseManager.seedSampleDataIfNeeded()
-            // One-off CDC date repair across all shards
+            print("✅ [STARTUP] Sample data seeded")
+
+            print("🔄 [STARTUP] Running CDC migration...")
             await databaseManager.performOneOffCDCDatesMigration()
+            print("✅ [STARTUP] CDC migration complete")
         }
 
-        let phoenixConfig = PhoenixConfig.current  // Auto-selects dev/prod based on build config
+        print("🌐 [STARTUP] Creating Phoenix manager...")
+        let phoenixConfig = PhoenixConfig.current
         let phoenixManager = PhoenixChannelManager(config: phoenixConfig)
+        print("✅ [STARTUP] Phoenix manager created")
 
         let threadService = ThreadService()
 
+        // Create SyncActor lazily (use Task to inherit context)
         let syncActorTask = Task { () -> SyncActor in
+            print("🔄 [STARTUP] Creating SyncActor...")
             let cdcManager = await MainActor.run {
                 CDCManager(
                     databaseManager: databaseManager,
@@ -138,11 +153,13 @@ extension AppEnvironment {
                 )
             }
 
-            return SyncActor(
+            let actor = SyncActor(
                 phoenixManager: phoenixManager,
                 databaseManager: databaseManager,
                 cdcManager: cdcManager
             )
+            print("✅ [STARTUP] SyncActor created")
+            return actor
         }
 
         let database = DatabaseClient(

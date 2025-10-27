@@ -10,6 +10,7 @@
 		1B40AF8E2EA83DEE0090F1F8 /* Auth0 in Frameworks */ = {isa = PBXBuildFile; productRef = 1B40AF8D2EA83DEE0090F1F8 /* Auth0 */; };
 		1B8132C12EA7137A00583728 /* SwiftPhoenixClient in Frameworks */ = {isa = PBXBuildFile; productRef = 1B8132C02EA7137A00583728 /* SwiftPhoenixClient */; };
 		1B8132C42EA7138E00583728 /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = 1B8132C32EA7138E00583728 /* SQLite */; };
+		1BBB77A12EAEEE6A00AFFFFC /* globalbridge.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 1BBB77A02EAEEE6A00AFFFFC /* globalbridge.mp4 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -25,6 +26,7 @@
 /* Begin PBXFileReference section */
 		1B60EBB52EAC568D007790F2 /* GlobalBridgeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GlobalBridgeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1B81327B2EA70FB200583728 /* GlobalBridge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GlobalBridge.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1BBB77A02EAEEE6A00AFFFFC /* globalbridge.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = globalbridge.mp4; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -92,6 +94,7 @@
 		1B8132722EA70FB200583728 = {
 			isa = PBXGroup;
 			children = (
+				1BBB77A02EAEEE6A00AFFFFC /* globalbridge.mp4 */,
 				1B8132BE2EA7133100583728 /* Features */,
 				1B81327D2EA70FB200583728 /* GlobalBridge */,
 				1B8132BA2EA7131000583728 /* Core */,
@@ -220,6 +223,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1BBB77A12EAEEE6A00AFFFFC /* globalbridge.mp4 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

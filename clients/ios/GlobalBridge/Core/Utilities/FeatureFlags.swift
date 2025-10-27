@@ -226,6 +226,15 @@ public class FeatureFlags {
         guard let data = UserDefaults.standard.data(forKey: "cached_features"),
               let cache = try? JSONDecoder().decode(FeatureCache.self, from: data) else {
             print("ℹ️  [FEATURE_FLAGS] No cached features found, using defaults")
+            // Enable translation by default in development
+            #if DEBUG
+            self.features[Feature.translationEnabled.rawValue] = true
+            self.features[Feature.threadSummarization.rawValue] = true
+            self.features[Feature.semanticSearch.rawValue] = true
+            self.features[Feature.styleLearning.rawValue] = true
+            self.translationLimit = nil // Unlimited in dev
+            print("🛠️  [FEATURE_FLAGS] Development mode: All AI features enabled")
+            #endif
             return
         }
 

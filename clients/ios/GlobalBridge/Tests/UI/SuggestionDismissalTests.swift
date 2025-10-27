@@ -45,7 +45,7 @@ final class SuggestionDismissalTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: { suggestion in
                 dismissedSuggestion = suggestion
             },
@@ -66,7 +66,7 @@ final class SuggestionDismissalTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil
@@ -104,7 +104,7 @@ final class SuggestionDismissalTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: { suggestion in
                 dismissedSuggestions.append(suggestion)
             },
@@ -125,7 +125,7 @@ final class SuggestionDismissalTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: { suggestion in
                 dismissedSuggestion = suggestion
             },
@@ -145,7 +145,7 @@ final class SuggestionDismissalTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: { suggestion in
                 dismissedSuggestion = suggestion
                 // In actual dismissal, verify it's the proactive suggestion
@@ -199,7 +199,7 @@ final class SuggestionDismissalTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: { suggestion in
                 dismissedSuggestions.append(suggestion)
             },
@@ -221,7 +221,7 @@ final class SuggestionDismissalTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in
+            onSuggestionTap: { _, _, _ in
                 selectionTriggered = true
             },
             onSuggestionDismiss: { _ in
@@ -252,7 +252,7 @@ final class SuggestionDismissalTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: { suggestion in
                 // Dismissal callback should NOT record rejection
                 // This is just for UI state management
@@ -281,7 +281,7 @@ final class SuggestionDismissalTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: { _ in },
             onTranslationToggle: {},
             onRetry: nil
@@ -301,7 +301,7 @@ final class SuggestionDismissalTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: { _ in },
             onTranslationToggle: {},
             onRetry: nil
@@ -322,7 +322,7 @@ final class SuggestionDismissalTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: { _ in },
             onTranslationToggle: {},
             onRetry: nil
@@ -337,7 +337,7 @@ final class SuggestionDismissalTests: XCTestCase {
             isLoading: true,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: { _ in },
             onTranslationToggle: {},
             onRetry: nil
@@ -355,7 +355,7 @@ final class SuggestionDismissalTests: XCTestCase {
             isLoading: false,
             error: .networkError(URLError(.notConnectedToInternet)),
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: { _ in },
             onTranslationToggle: {},
             onRetry: nil
@@ -375,7 +375,7 @@ final class SuggestionDismissalTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: { _ in },
             onTranslationToggle: {},
             onRetry: nil
@@ -420,7 +420,7 @@ final class SuggestionDismissalTests: XCTestCase {
             isLoading: false,
             error: nil,
             translationEnabled: false,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: { _ in },
             onTranslationToggle: {},
             onRetry: nil

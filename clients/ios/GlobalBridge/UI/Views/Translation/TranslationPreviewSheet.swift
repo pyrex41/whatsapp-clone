@@ -25,17 +25,41 @@ enum TranslationFormality: String, CaseIterable {
 /// Sheet showing translation preview with formality options
 struct TranslationPreviewSheet: View {
     let originalText: String
-    let targetLanguage: String
     let onSend: (String, TranslationFormality) -> Void
     let onCancel: () -> Void
 
-    @State private var translatedText: String = ""
+    @State private var targetLanguage: String
     @State private var selectedFormality: TranslationFormality = .neutral
     @State private var isTranslating: Bool = true
     @State private var error: String?
+    @State private var showLanguagePicker: Bool = false
+
+    // Store all three formality variations
+    @State private var translations: [TranslationFormality: String] = [:]
 
     let phoenixManager: PhoenixChannelManager?
     let threadId: String
+
+    // Computed property for current translation
+    private var translatedText: String {
+        translations[selectedFormality] ?? ""
+    }
+
+    init(
+        originalText: String,
+        targetLanguage: String,
+        onSend: @escaping (String, TranslationFormality) -> Void,
+        onCancel: @escaping () -> Void,
+        phoenixManager: PhoenixChannelManager?,
+        threadId: String
+    ) {
+        self.originalText = originalText
+        self._targetLanguage = State(initialValue: targetLanguage)
+        self.onSend = onSend
+        self.onCancel = onCancel
+        self.phoenixManager = phoenixManager
+        self.threadId = threadId
+    }
 
     var body: some View {
         NavigationView {
@@ -61,10 +85,26 @@ struct TranslationPreviewSheet: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Translation to \(languageName(targetLanguage))")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .textCase(.uppercase)
+                            HStack(spacing: 4) {
+                                Text("Translation to")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .textCase(.uppercase)
+
+                                Button(action: {
+                                    showLanguagePicker = true
+                                }) {
+                                    HStack(spacing: 4) {
+                                        Text(languageName(targetLanguage))
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundColor(.blue)
+
+                                        Image(systemName: "chevron.down")
+                                            .font(.caption2)
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                            }
 
                             if !translatedText.isEmpty && !isTranslating {
                                 Text("Tap formality buttons below to adjust tone")
@@ -111,10 +151,9 @@ struct TranslationPreviewSheet: View {
                         HStack(spacing: 8) {
                             ForEach(TranslationFormality.allCases, id: \.self) { formality in
                                 Button {
-                                    selectedFormality = formality
-                                    // Re-translate with new formality
-                                    Task {
-                                        await translateWithFormality(formality)
+                                    // Just switch to the cached translation
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        selectedFormality = formality
                                     }
                                 } label: {
                                     VStack(spacing: 4) {
@@ -196,8 +235,23 @@ struct TranslationPreviewSheet: View {
                 }
             }
         }
+        .sheet(isPresented: $showLanguagePicker) {
+            LanguagePickerSheet(
+                selectedLanguage: $targetLanguage,
+                threadId: threadId,
+                onLanguageSelected: { _ in
+                    // Language binding will update automatically and trigger .onChange
+                }
+            )
+        }
         .task {
             await performInitialTranslation()
+        }
+        .onChange(of: targetLanguage) { _, newLanguage in
+            // When language changes, re-translate
+            Task {
+                await translateWithNewLanguage(newLanguage)
+            }
         }
     }
 
@@ -208,20 +262,45 @@ struct TranslationPreviewSheet: View {
         error = nil
 
         do {
-            print("🌐 [TRANSLATION_PREVIEW] Translating to \(targetLanguage) with \(selectedFormality.rawValue) formality")
+            print("🌐 [TRANSLATION_PREVIEW] Fetching all formality variations for \(targetLanguage)")
 
-            let result = try await BackendTranslationService.shared.translate(
+            // Fetch all three formality levels concurrently
+            async let informalResult = BackendTranslationService.shared.translate(
                 text: originalText,
                 targetLanguage: targetLanguage,
                 sourceLanguage: "en",
                 context: nil,
-                formality: mapToFormalityLevel(selectedFormality)
+                formality: .informal
             )
 
+            async let neutralResult = BackendTranslationService.shared.translate(
+                text: originalText,
+                targetLanguage: targetLanguage,
+                sourceLanguage: "en",
+                context: nil,
+                formality: .neutral
+            )
+
+            async let formalResult = BackendTranslationService.shared.translate(
+                text: originalText,
+                targetLanguage: targetLanguage,
+                sourceLanguage: "en",
+                context: nil,
+                formality: .formal
+            )
+
+            // Wait for all results
+            let (informal, neutral, formal) = try await (informalResult, neutralResult, formalResult)
+
             await MainActor.run {
-                translatedText = result.translatedText
+                translations[.informal] = informal.translatedText
+                translations[.neutral] = neutral.translatedText
+                translations[.formal] = formal.translatedText
                 isTranslating = false
-                print("✅ [TRANSLATION_PREVIEW] Translation complete: \(translatedText)")
+                print("✅ [TRANSLATION_PREVIEW] All formality variations loaded")
+                print("   Informal: \(informal.translatedText)")
+                print("   Neutral: \(neutral.translatedText)")
+                print("   Formal: \(formal.translatedText)")
             }
         } catch {
             await MainActor.run {
@@ -232,31 +311,56 @@ struct TranslationPreviewSheet: View {
         }
     }
 
-    private func translateWithFormality(_ formality: TranslationFormality) async {
+    private func translateWithNewLanguage(_ language: String) async {
         isTranslating = true
         error = nil
 
         do {
-            print("🌐 [TRANSLATION_PREVIEW] Re-translating with \(formality.rawValue) formality")
+            print("🌐 [TRANSLATION_PREVIEW] Fetching all formality variations for new language: \(language)")
 
-            let result = try await BackendTranslationService.shared.translate(
+            // Fetch all three formality levels concurrently for new language
+            async let informalResult = BackendTranslationService.shared.translate(
                 text: originalText,
-                targetLanguage: targetLanguage,
+                targetLanguage: language,
                 sourceLanguage: "en",
                 context: nil,
-                formality: mapToFormalityLevel(formality)
+                formality: .informal
             )
 
+            async let neutralResult = BackendTranslationService.shared.translate(
+                text: originalText,
+                targetLanguage: language,
+                sourceLanguage: "en",
+                context: nil,
+                formality: .neutral
+            )
+
+            async let formalResult = BackendTranslationService.shared.translate(
+                text: originalText,
+                targetLanguage: language,
+                sourceLanguage: "en",
+                context: nil,
+                formality: .formal
+            )
+
+            // Wait for all results
+            let (informal, neutral, formal) = try await (informalResult, neutralResult, formalResult)
+
             await MainActor.run {
-                translatedText = result.translatedText
+                translations[.informal] = informal.translatedText
+                translations[.neutral] = neutral.translatedText
+                translations[.formal] = formal.translatedText
                 isTranslating = false
-                print("✅ [TRANSLATION_PREVIEW] Re-translation complete: \(translatedText)")
+                print("✅ [TRANSLATION_PREVIEW] All formality variations loaded for \(language)")
+                print("   Informal: \(informal.translatedText)")
+                print("   Neutral: \(neutral.translatedText)")
+                print("   Formal: \(formal.translatedText)")
             }
         } catch {
             await MainActor.run {
                 self.error = "Translation failed: \(error.localizedDescription)"
                 isTranslating = false
-                print("❌ [TRANSLATION_PREVIEW] Re-translation failed: \(error)")
+                print("❌ [TRANSLATION_PREVIEW] Language change translation failed: \(error)")
             }
         }
     }

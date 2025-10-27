@@ -196,6 +196,7 @@ final class AIBroadcastCoordinator {
             id: UUID(),
             type: "proactive",
             content: "This is a test AI suggestion from DEBUG menu",
+            translatedText: nil,
             confidence: 0.95,
             position: 0,
             context: "DEBUG simulation",

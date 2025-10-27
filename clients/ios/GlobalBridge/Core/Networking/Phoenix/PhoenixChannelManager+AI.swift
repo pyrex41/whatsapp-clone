@@ -221,10 +221,14 @@ extension PhoenixChannelManager {
             )
         }
 
+        // Extract optional translatedText field
+        let translatedText = dict["translated_text"] as? String
+
         return SmartReplySuggestion(
             id: id,
             type: type,
             content: content,
+            translatedText: translatedText,
             confidence: confidence,
             position: position,
             context: context,

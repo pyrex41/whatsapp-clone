@@ -17,7 +17,7 @@ struct MessageComposerView: View {
 
     // Translation state
     @State private var isTranslationEnabled = false
-    @State private var selectedLanguage = "en"
+    @State private var selectedLanguage = "es"  // Default to Spanish for US users
     @State private var showLanguagePicker = false
     @State private var threadLanguage: String?
     @State private var isLoadingPreference = false
@@ -150,16 +150,25 @@ struct MessageComposerView: View {
     }
 
     private func handleTranslatedSend(translatedText: String, formality: TranslationFormality) {
+        print("📤 [TRANSLATION_SEND] Preparing to send translated message with \(formality) formality: \(translatedText)")
+
+        // Close the preview sheet first
+        showTranslationPreview = false
+
         // Replace the text with the translated version
         text = translatedText
 
-        // Close the preview sheet
-        showTranslationPreview = false
+        // Use Task to ensure state update propagates before sending
+        Task {
+            // Small delay to let the binding update propagate to the store
+            try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
 
-        // Send the message
-        onSend()
-
-        print("📤 [TRANSLATION_SEND] Sending translated message with \(formality) formality: \(translatedText)")
+            // Send the message
+            await MainActor.run {
+                print("📤 [TRANSLATION_SEND] Sending message now")
+                onSend()
+            }
+        }
     }
 
     // MARK: - Translation Methods

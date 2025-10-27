@@ -37,7 +37,7 @@ final class SmartReplyTimeTrackingTests: XCTestCase {
             isLoading: false,
             translationEnabled: false,
             error: nil,
-            onSuggestionTap: { suggestion, timeMs in
+            onSuggestionTap: { suggestion, _, timeMs in
                 capturedSuggestion = suggestion
                 capturedTimeMs = timeMs
             },
@@ -69,7 +69,7 @@ final class SmartReplyTimeTrackingTests: XCTestCase {
             isLoading: false,
             translationEnabled: false,
             error: nil,
-            onSuggestionTap: { _, timeMs in
+            onSuggestionTap: { _, _, timeMs in
                 capturedTimeMs = timeMs
             },
             onSuggestionDismiss: nil,
@@ -229,7 +229,7 @@ final class SmartReplyTimeTrackingTests: XCTestCase {
             isLoading: false,
             translationEnabled: false,
             error: nil,
-            onSuggestionTap: { suggestion, timeMs in
+            onSuggestionTap: { suggestion, _, timeMs in
                 tapCount += 1
                 XCTAssertGreaterThanOrEqual(timeMs, 0)
                 XCTAssertTrue(suggestions.contains(where: { $0.id == suggestion.id }))
@@ -249,7 +249,7 @@ final class SmartReplyTimeTrackingTests: XCTestCase {
             isLoading: true,
             translationEnabled: false,
             error: nil,
-            onSuggestionTap: { _, _ in
+            onSuggestionTap: { _, _, _ in
                 XCTFail("Should not tap during loading")
             },
             onSuggestionDismiss: nil,
@@ -267,7 +267,7 @@ final class SmartReplyTimeTrackingTests: XCTestCase {
             isLoading: false,
             translationEnabled: false,
             error: nil,
-            onSuggestionTap: { _, _ in
+            onSuggestionTap: { _, _, _ in
                 XCTFail("Should not tap when no suggestions")
             },
             onSuggestionDismiss: nil,
@@ -302,7 +302,7 @@ final class SmartReplyTimeTrackingTests: XCTestCase {
             isLoading: false,
             translationEnabled: false,
             error: nil,
-            onSuggestionTap: { tappedSuggestion, timeMs in
+            onSuggestionTap: { tappedSuggestion, _, timeMs in
                 // 2. User taps suggestion
                 XCTAssertEqual(tappedSuggestion.id, suggestionId)
                 XCTAssertGreaterThan(timeMs, 0)
@@ -334,7 +334,7 @@ final class SmartReplyTimeTrackingTests: XCTestCase {
             isLoading: false,
             translationEnabled: false,
             error: nil,
-            onSuggestionTap: { _, _ in },
+            onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
             onTranslationToggle: {},
             onRetry: nil

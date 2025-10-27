@@ -7,9 +7,7 @@ import SwiftUI
 
 struct ThreadsListScreen: View {
     @ObservedObject var store: Store<AppState, AppAction>
-    #if DEBUG
-    @State private var showDebugMenu = false
-    #endif
+    @State private var showSettings = false
 
     private var threadsState: ThreadsState { store.state.threads }
     private var connectionState: ConnectionState { store.state.connectionState }
@@ -50,15 +48,15 @@ struct ThreadsListScreen: View {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.system(size: 50))
                         .foregroundColor(.orange)
-                    
+
                     Text("Connection Error")
                         .font(.headline)
-                    
+
                     Text(message)
                         .font(.subheadline)
                         .multilineTextAlignment(.center)
                         .foregroundColor(.secondary)
-                    
+
                     Button("Retry") {
                         store.send(.onAppear)
                     }
@@ -77,9 +75,18 @@ struct ThreadsListScreen: View {
         )
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                ConnectionStatusIndicator(state: connectionState)
+                HStack(spacing: 12) {
+                    ConnectionStatusIndicator(state: connectionState)
+
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
+                    .accessibilityLabel("Settings")
+                }
             }
-            
+
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     store.send(.toggleCreationSheet(true))
@@ -88,27 +95,15 @@ struct ThreadsListScreen: View {
                 }
                 .accessibilityLabel("New thread")
             }
-            #if DEBUG
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    showDebugMenu = true
-                } label: {
-                    Image(systemName: "wrench.and.screwdriver")
-                }
-                .accessibilityLabel("Debug Menu")
-            }
-            #endif
         }
         .sheet(isPresented: creationSheetBinding) {
             NewConversationView(store: store)
         }
-        #if DEBUG
-        .sheet(isPresented: $showDebugMenu) {
-            DebugMenuView()
+        .sheet(isPresented: $showSettings) {
+            SettingsView(store: store)
         }
-        #endif
     }
-    
+
     private var emptyStateView: some View {
         VStack(spacing: 20) {
             Image(systemName: "message.circle")
@@ -237,9 +232,7 @@ struct ConnectionStatusIndicator: View {
 
 struct ThreadsListCompactView: View {
     @ObservedObject var store: Store<AppState, AppAction>
-    #if DEBUG
-    @State private var showDebugMenu = false
-    #endif
+    @State private var showSettings = false
 
     private var threadsState: ThreadsState { store.state.threads }
     private var connectionState: ConnectionState { store.state.connectionState }
@@ -273,15 +266,15 @@ struct ThreadsListCompactView: View {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.system(size: 50))
                         .foregroundColor(.orange)
-                    
+
                     Text("Connection Error")
                         .font(.headline)
-                    
+
                     Text(message)
                         .font(.subheadline)
                         .multilineTextAlignment(.center)
                         .foregroundColor(.secondary)
-                    
+
                     Button("Retry") {
                         store.send(.onAppear)
                     }
@@ -300,9 +293,18 @@ struct ThreadsListCompactView: View {
         )
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                ConnectionStatusIndicator(state: connectionState)
+                HStack(spacing: 12) {
+                    ConnectionStatusIndicator(state: connectionState)
+
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
+                    .accessibilityLabel("Settings")
+                }
             }
-            
+
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     store.send(.toggleCreationSheet(true))
@@ -311,25 +313,13 @@ struct ThreadsListCompactView: View {
                 }
                 .accessibilityLabel("New thread")
             }
-            #if DEBUG
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    showDebugMenu = true
-                } label: {
-                    Image(systemName: "wrench.and.screwdriver")
-                }
-                .accessibilityLabel("Debug Menu")
-            }
-            #endif
         }
         .sheet(isPresented: creationSheetBinding) {
             NewConversationView(store: store)
         }
-        #if DEBUG
-        .sheet(isPresented: $showDebugMenu) {
-            DebugMenuView()
+        .sheet(isPresented: $showSettings) {
+            SettingsView(store: store)
         }
-        #endif
     }
     
     private var emptyStateView: some View {

@@ -81,12 +81,14 @@ final class AIService: ObservableObject {
     ///   - text: Text to translate (max 10,000 characters)
     ///   - sourceLanguage: Source language code (optional, defaults to "auto")
     ///   - targetLanguage: Target language code (required)
+    ///   - formality: Optional formality level (informal, neutral, formal)
     /// - Returns: TranslationResult with translated text and metadata
     /// - Throws: AIServiceError for various failure cases
     func translate(
         text: String,
         sourceLanguage: String? = "auto",
-        targetLanguage: String
+        targetLanguage: String,
+        formality: String? = nil
     ) async throws -> TranslationResult {
         // Check feature availability
         guard featureFlags.hasFeature(.translationEnabled) else {
@@ -107,13 +109,22 @@ final class AIService: ObservableObject {
         defer { Task { await setProcessing(false) } }
 
         let endpoint = baseURL.appendingPathComponent("api/v1/ai/translate")
-        let requestBody: [String: Any] = [
+        var requestBody: [String: Any] = [
             "text": text,
             "source_language": sourceLanguage ?? "auto",
             "target_language": targetLanguage
         ]
 
+        // Add formality if provided
+        if let formality = formality {
+            requestBody["formality"] = formality
+            print("📝 [AI_SERVICE] Adding formality to request: \(formality)")
+        } else {
+            print("⚠️  [AI_SERVICE] No formality parameter provided")
+        }
+
         print("🌐 [AI_SERVICE] Translating text (\(text.count) chars) from \(sourceLanguage ?? "auto") to \(targetLanguage)")
+        print("📦 [AI_SERVICE] Request body: \(requestBody)")
 
         let responseData = try await performRequest(
             endpoint: endpoint,
