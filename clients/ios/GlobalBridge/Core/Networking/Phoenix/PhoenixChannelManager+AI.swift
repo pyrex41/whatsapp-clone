@@ -117,16 +117,13 @@ extension PhoenixChannelManager {
 
         print("🧠 [PHOENIX_AI] Triggering style learning for message: \(messageId)")
 
-        // Fire-and-forget push (no need to wait for response)
-        _ = await MainActor.run {
-            sendableChannel.channel.push("style:learn", payload: payload)
-                .receive("ok") { _ in
-                    print("✅ [PHOENIX_AI] Style learning triggered successfully")
-                }
-                .receive("error") { message in
-                    print("⚠️  [PHOENIX_AI] Style learning failed: \(message.payload)")
-                }
+        // Fire-and-forget push (no callbacks needed - backend handles asynchronously)
+        // Must access channel on MainActor since it's MainActor-isolated
+        await MainActor.run {
+            _ = sendableChannel.channel.push("style:learn", payload: payload)
         }
+
+        print("✅ [PHOENIX_AI] Style learning push sent (fire-and-forget)")
     }
 
     /// Start AI monitoring for a thread

@@ -1,9 +1,9 @@
 defmodule GlobalbridgeBackend.AI.EmbeddingService do
   @moduledoc """
-  Service for generating text embeddings using OpenAI's text-embedding-3-large model.
+  Service for generating text embeddings using OpenAI's text-embedding-3-small model.
 
   Features:
-  - Generates 3072-dimensional embeddings
+  - Generates 1536-dimensional embeddings
   - Cachex caching for deduplication (1 hour TTL)
   - Async background processing via Oban
   - Batch processing for efficiency
@@ -18,8 +18,8 @@ defmodule GlobalbridgeBackend.AI.EmbeddingService do
 
   require Logger
 
-  @embedding_model System.get_env("OPENAI_EMBEDDING_MODEL") || "text-embedding-3-large"
-  @dimensions 3072
+  @embedding_model System.get_env("OPENAI_EMBEDDING_MODEL") || "text-embedding-3-small"
+  @dimensions 1536
   @test_mode Application.compile_env(:globalbridge_backend, :test_mode, false)
 
   # Test mode flag for bypassing API calls

@@ -151,18 +151,24 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
           []
         end
 
-      # Generate suggestions using AI (in user's language)
-      base_suggestions = generate_replies_with_ai(context, user_profile, similar_suggestions, count)
+      # Generate suggestions using AI (in user's base language)
+      base_suggestions = generate_replies_with_ai(context, user_profile, similar_suggestions, count, user_language)
 
-      # Add translation metadata if needed
+      # Add translations for multilingual conversations
+      # The iOS client expects:
+      # - content: Original text in base language (English)
+      # - translated_text: Translation in target language (Spanish)
       suggestions = if include_translations && ConversationLanguageDetector.translation_needed?(user_language, conversation_language) do
-        add_translation_metadata(base_suggestions, user_language, conversation_language)
+        add_translated_text(base_suggestions, user_language, conversation_language)
       else
-        add_no_translation_metadata(base_suggestions, user_language)
+        # Same language - no translation needed
+        Enum.map(base_suggestions, fn suggestion ->
+          Map.put(suggestion, :translated_text, nil)
+        end)
       end
 
       elapsed = System.monotonic_time(:millisecond) - start_time
-      Logger.info("Generated #{length(suggestions)} suggestions with translation support in #{elapsed}ms")
+      Logger.info("Generated #{length(suggestions)} suggestions (base: #{user_language}, target: #{conversation_language}) in #{elapsed}ms")
 
       {:ok, suggestions}
     rescue
@@ -526,13 +532,13 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
     feedback_results ++ style_results
   end
 
-  defp generate_replies_with_ai(context, user_profile, similar_suggestions, count) do
+  defp generate_replies_with_ai(context, user_profile, similar_suggestions, count, user_language) do
     # Use llama-3.1-8b-instant for fast, context-aware suggestion generation
     # Can also use: llama-3.2-3b-preview (faster, smaller), mixtral-8x7b-32768 (better quality)
     model = System.get_env("SMART_REPLY_MODEL") || System.get_env("TRANSLATION_MODEL") || "llama-3.2-3b-preview"
 
     # Build prompt with conversation context and user style
-    prompt = build_suggestion_prompt(context, user_profile, similar_suggestions, count)
+    prompt = build_suggestion_prompt(context, user_profile, similar_suggestions, count, user_language)
 
     # Call LLM via OpenAIServing with optimized parameters for speed
     case GlobalbridgeBackend.AI.OpenAIServing.generate_completion(prompt, model, max_tokens: 150, temperature: 0.3) do
@@ -542,11 +548,26 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
 
       {:error, reason} ->
         Logger.warning("LLM call failed: #{inspect(reason)}, using fallback templates")
-        fallback_suggestions(context, user_profile, count)
+        fallback_suggestions(context, user_profile, count, user_language)
     end
   end
 
-  defp build_suggestion_prompt(context, user_profile, similar_suggestions, count) do
+  defp build_suggestion_prompt(context, user_profile, similar_suggestions, count, user_language) do
+    # Convert language code to full name for clarity
+    language_name = case user_language do
+      "en" -> "English"
+      "es" -> "Spanish"
+      "fr" -> "French"
+      "de" -> "German"
+      "it" -> "Italian"
+      "pt" -> "Portuguese"
+      "ja" -> "Japanese"
+      "zh" -> "Chinese"
+      "ko" -> "Korean"
+      "ar" -> "Arabic"
+      _ -> "English"  # Default fallback
+    end
+
     style_description = if user_profile do
       """
       User's writing style:
@@ -581,14 +602,16 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
     #{style_description}#{similar_examples}
 
     REQUIREMENTS:
-    1. Generate exactly #{count} distinct reply suggestions
-    2. Match the user's formality level and emoji usage
-    3. Keep replies under 50 characters when possible
-    4. Make replies contextually appropriate to the last message
-    5. Return ONLY the suggestions, one per line, numbered 1., 2., 3., etc.
-    6. Do NOT include explanations or commentary
+    1. Generate ALL suggestions in #{language_name} (#{user_language}) - this is CRITICAL
+    2. Even if the conversation is in another language, generate suggestions in #{language_name}
+    3. Generate exactly #{count} distinct reply suggestions
+    4. Match the user's formality level and emoji usage
+    5. Keep replies under 50 characters when possible
+    6. Make replies contextually appropriate to the last message
+    7. Return ONLY the suggestions, one per line, numbered 1., 2., 3., etc.
+    8. Do NOT include explanations or commentary
 
-    Example format:
+    Example format (in #{language_name}):
     1. Sounds good!
     2. Thanks for letting me know
     3. Got it, appreciate it
@@ -646,8 +669,9 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
     end)
   end
 
-  defp fallback_suggestions(context, user_profile, count) do
+  defp fallback_suggestions(context, user_profile, count, _user_language) do
     # Fallback to template-based suggestions if LLM fails
+    # Note: These are in English (base language) by default
     last_message = context.last_message
 
     base_suggestions = [
@@ -762,9 +786,23 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
 
   ## Translation Support Functions
 
-  defp add_translation_metadata(suggestions, user_language, conversation_language) do
+  @doc """
+  Adds translated_text field to suggestions for iOS client compatibility.
+
+  iOS expects:
+  - content: Original text in base language (e.g., English "Hello")
+  - translated_text: Translation in target language (e.g., Spanish "Hola")
+
+  The iOS smart reply system will:
+  - Display: content (English)
+  - On tap in automatic mode: insert translated_text (Spanish)
+  - On tap in onPress mode: insert content (English)
+  """
+  defp add_translated_text(suggestions, user_language, conversation_language) do
     # Extract content for batch translation
     contents = Enum.map(suggestions, & &1.content)
+
+    Logger.info("Translating #{length(contents)} suggestions from #{user_language} to #{conversation_language}")
 
     # Batch translate all suggestions at once (much faster)
     case TranslationService.translate_batch_safe(contents, user_language, conversation_language) do
@@ -772,33 +810,17 @@ defmodule GlobalbridgeBackend.AI.SmartReplyGenerator do
         # Zip suggestions with their translations
         Enum.zip(suggestions, translations)
         |> Enum.map(fn {suggestion, translated_content} ->
-          Map.put(suggestion, :translation, %{
-            enabled: true,
-            target_language: conversation_language,
-            target_language_name: ConversationLanguageDetector.language_name(conversation_language),
-            translated_content: translated_content,
-            user_can_toggle: true,
-            auto_translate_on_send: true,
-            original_language: user_language
-          })
+          # Return base language in content, target language in translated_text
+          suggestion
+          |> Map.put(:translated_text, translated_content)
         end)
 
-      {:error, _reason} ->
+      {:error, reason} ->
         # Fallback: no translation if it fails
-        Logger.warning("Translation failed, returning suggestions without translation")
-        add_no_translation_metadata(suggestions, user_language)
+        Logger.warning("Translation failed (#{inspect(reason)}), returning suggestions without translation")
+        Enum.map(suggestions, fn suggestion ->
+          Map.put(suggestion, :translated_text, nil)
+        end)
     end
-  end
-
-  defp add_no_translation_metadata(suggestions, user_language) do
-    # No translation needed - same language
-    Enum.map(suggestions, fn suggestion ->
-      Map.put(suggestion, :translation, %{
-        enabled: false,
-        target_language: user_language,
-        user_can_toggle: false,
-        auto_translate_on_send: false
-      })
-    end)
   end
 end

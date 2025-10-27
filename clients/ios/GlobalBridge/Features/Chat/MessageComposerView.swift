@@ -14,14 +14,11 @@ struct MessageComposerView: View {
     // Translation support (optional)
     let threadId: String?
     let phoenixManager: PhoenixChannelManager?
+    let translationSettings: ThreadTranslationSettings?
 
     // Translation state
-    @State private var isTranslationEnabled = false
-    @State private var selectedLanguage = "es"  // Default to Spanish for US users
-    @State private var showLanguagePicker = false
-    @State private var threadLanguage: String?
-    @State private var isLoadingPreference = false
     @State private var showTranslationPreview = false
+    @State private var isTranslating = false
 
     init(
         text: Binding<String>,
@@ -29,7 +26,8 @@ struct MessageComposerView: View {
         onSend: @escaping () -> Void,
         isFocused: FocusState<Bool>.Binding,
         threadId: String? = nil,
-        phoenixManager: PhoenixChannelManager? = nil
+        phoenixManager: PhoenixChannelManager? = nil,
+        translationSettings: ThreadTranslationSettings? = nil
     ) {
         self._text = text
         self.isSending = isSending
@@ -37,92 +35,70 @@ struct MessageComposerView: View {
         self.isFocused = isFocused
         self.threadId = threadId
         self.phoenixManager = phoenixManager
+        self.translationSettings = translationSettings
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            // Translation toggle (if thread-specific translation is enabled)
-            if threadId != nil && phoenixManager != nil {
-                HStack {
-                    TranslationToggleButton(
-                        isTranslationEnabled: $isTranslationEnabled,
-                        selectedLanguage: $selectedLanguage,
-                        showLanguagePicker: $showLanguagePicker,
-                        threadId: threadId ?? "",
-                        threadLanguage: threadLanguage
-                    )
-
-                    Spacer()
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color(.systemGray6))
-            }
-
             // Message input
             HStack(spacing: 8) {
-                TextField("Message", text: $text, prompt: Text("Message"))
-                    .textFieldStyle(.roundedBorder)
-                    .focused(isFocused)
-                    .submitLabel(.send)
-                    .disabled(isSending)
-                    .onSubmit(sendIfPossible)
-                    .onChange(of: text) { old, new in
-                        print("⌨️ [TEXT_FIELD] Text changed: '\(old)' -> '\(new)'")
-                    }
-                    .accessibilityIdentifier("ComposerTextField")
-
-                // Translate & Send button (only show if translation is available)
-                if threadId != nil && phoenixManager != nil {
-                    Button {
-                        showTranslationPreview = true
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "globe")
-                                .font(.system(size: 14))
-                            Text("Translate")
-                                .font(.caption.weight(.medium))
+                // Text field with inline translate button
+                HStack(spacing: 4) {
+                    TextField("Message", text: $text, prompt: Text("Message"))
+                        .focused(isFocused)
+                        .submitLabel(.send)
+                        .disabled(isSending)
+                        .onSubmit(sendIfPossible)
+                        .onChange(of: text) { old, new in
+                            print("⌨️ [TEXT_FIELD] Text changed: '\(old)' -> '\(new)'")
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color.purple.opacity(0.15))
-                        .foregroundColor(.purple)
-                        .cornerRadius(20)
-                    }
-                    .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)
-                    .accessibilityIdentifier("ComposerTranslateButton")
-                    .accessibilityLabel("Translate and send")
-                }
+                        .accessibilityIdentifier("ComposerTextField")
 
-                // Regular send button
+                    // Inline translate button (only show when translationMode == .onPress)
+                    if let settings = translationSettings, settings.translationMode == .onPress {
+                        Button {
+                            showTranslationPreview = true
+                        } label: {
+                            Image(systemName: "globe")
+                                .font(.system(size: 16))
+                                .foregroundColor(.purple)
+                        }
+                        .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)
+                        .accessibilityIdentifier("ComposerTranslateButton")
+                        .accessibilityLabel("Translate message")
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(Color(.systemGray6))
+                .cornerRadius(20)
+
+                // Regular send button (with translation loading indicator)
                 Button {
                     sendIfPossible()
                 } label: {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 32))
-                        .foregroundStyle(text.isEmpty || isSending ? Color.gray : Color.blue)
+                    if isTranslating {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                            .frame(width: 32, height: 32)
+                    } else {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.system(size: 32))
+                            .foregroundStyle(text.isEmpty || isSending ? Color.gray : Color.blue)
+                    }
                 }
-                .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)
+                .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending || isTranslating)
                 .accessibilityIdentifier("ComposerSendButton")
-                .accessibilityLabel("Send message")
+                .accessibilityLabel(isTranslating ? "Translating message" : "Send message")
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
         }
-        .sheet(isPresented: $showLanguagePicker) {
-            if let tid = threadId {
-                LanguagePickerSheet(
-                    selectedLanguage: $selectedLanguage,
-                    threadId: tid,
-                    onLanguageSelected: handleLanguageSelected
-                )
-            }
-        }
         .sheet(isPresented: $showTranslationPreview) {
-            if let tid = threadId {
+            if let tid = threadId, let settings = translationSettings {
                 TranslationPreviewSheet(
                     originalText: text,
-                    targetLanguage: selectedLanguage,
+                    targetLanguage: settings.targetLanguage,
                     onSend: { translatedText, formality in
                         handleTranslatedSend(translatedText: translatedText, formality: formality)
                     },
@@ -134,19 +110,63 @@ struct MessageComposerView: View {
                 )
             }
         }
-        .task {
-            await loadTranslationPreference()
-        }
-        .onChange(of: isTranslationEnabled) { _, newValue in
-            Task {
-                await saveTranslationPreference()
-            }
-        }
     }
 
     private func sendIfPossible() {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !isSending else { return }
-        onSend()
+
+        // Check if automatic translation is enabled
+        if let settings = translationSettings, settings.translationMode == .automatic {
+            // Translate first, then send
+            Task {
+                await translateAndSend()
+            }
+        } else {
+            // Send directly without translation
+            onSend()
+        }
+    }
+
+    private func translateAndSend() async {
+        guard let settings = translationSettings else {
+            onSend()
+            return
+        }
+
+        isTranslating = true
+
+        do {
+            let translationService = BackendTranslationService.shared
+            let result = try await translationService.translate(
+                text: text,
+                targetLanguage: settings.targetLanguage,
+                sourceLanguage: nil, // Auto-detect
+                context: nil,
+                formality: settings.defaultFormality
+            )
+
+            await MainActor.run {
+                isTranslating = false
+                // Replace the text with translated version
+                text = result.translatedText
+
+                // Small delay to let binding update
+                Task {
+                    try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
+                    await MainActor.run {
+                        print("📤 [AUTO_TRANSLATE] Sending translated message: \(text)")
+                        onSend()
+                    }
+                }
+            }
+        } catch {
+            await MainActor.run {
+                isTranslating = false
+                print("❌ [AUTO_TRANSLATE] Translation failed: \(error)")
+                // Send original text if translation fails
+                onSend()
+            }
+        }
     }
 
     private func handleTranslatedSend(translatedText: String, formality: TranslationFormality) {
@@ -170,77 +190,22 @@ struct MessageComposerView: View {
             }
         }
     }
-
-    // MARK: - Translation Methods
-
-    /// Load translation preference for the current thread
-    private func loadTranslationPreference() async {
-        guard let threadId = threadId,
-              let manager = phoenixManager else {
-            return
-        }
-
-        isLoadingPreference = true
-        defer { isLoadingPreference = false }
-
-        do {
-            let preference = try await manager.getTranslationPreference(threadId: threadId)
-
-            await MainActor.run {
-                self.isTranslationEnabled = preference.enabled
-                if let language = preference.targetLanguage {
-                    self.selectedLanguage = language
-                    self.threadLanguage = language
-                }
-
-                print("✅ [COMPOSER_TRANSLATION] Loaded preference - enabled: \(preference.enabled), language: \(preference.targetLanguage ?? "nil")")
-            }
-        } catch {
-            print("⚠️  [COMPOSER_TRANSLATION] Failed to load translation preference: \(error)")
-            // Use defaults on error
-        }
-    }
-
-    /// Save translation preference when enabled/disabled changes
-    private func saveTranslationPreference() async {
-        guard let threadId = threadId,
-              let manager = phoenixManager else {
-            return
-        }
-
-        do {
-            try await manager.setTranslationPreference(
-                threadId: threadId,
-                targetLanguage: selectedLanguage,
-                enabled: isTranslationEnabled
-            )
-
-            print("✅ [COMPOSER_TRANSLATION] Saved preference - enabled: \(isTranslationEnabled), language: \(selectedLanguage)")
-        } catch {
-            print("❌ [COMPOSER_TRANSLATION] Failed to save translation preference: \(error)")
-        }
-    }
-
-    /// Handle language selection from picker sheet
-    private func handleLanguageSelected(_ languageCode: String) {
-        selectedLanguage = languageCode
-
-        Task {
-            await saveTranslationPreference()
-        }
-    }
 }
 
 #Preview("Without Translation") {
-    ComposerPreview(withTranslation: false)
+    ComposerPreview(translationMode: nil)
 }
 
-#Preview("With Translation") {
-    ComposerPreview(withTranslation: true)
+#Preview("With Translation - On Press Mode") {
+    ComposerPreview(translationMode: .onPress)
+}
+
+#Preview("With Translation - Automatic Mode") {
+    ComposerPreview(translationMode: .automatic)
 }
 
 private struct ComposerPreview: View {
-    let withTranslation: Bool
+    let translationMode: TranslationMode?
 
     @State private var text = "Hello"
     @State private var isSending = false
@@ -252,8 +217,17 @@ private struct ComposerPreview: View {
             isSending: isSending,
             onSend: {},
             isFocused: $focused,
-            threadId: withTranslation ? "preview-thread-123" : nil,
-            phoenixManager: withTranslation ? nil : nil  // Would use actual manager in real app
+            threadId: translationMode != nil ? "preview-thread-123" : nil,
+            phoenixManager: translationMode != nil ? nil : nil,  // Would use actual manager in real app
+            translationSettings: translationMode.map { mode in
+                ThreadTranslationSettings(
+                    targetLanguage: "es",
+                    showSuggestions: true,
+                    defaultFormality: .neutral,
+                    autoTranslateIncoming: false,
+                    translationMode: mode
+                )
+            }
         )
         .padding()
     }

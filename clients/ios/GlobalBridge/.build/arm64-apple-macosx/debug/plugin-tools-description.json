@@ -1107,7 +1107,23 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/SelectedSuggestion.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/SmartReplySuggestion.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/SuggestionFeedback.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/ThreadSummary.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/ThreadTranslationSettings.swift"
         },
         {
           "kind" : "file",
@@ -1115,7 +1131,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/TranslationMode.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/TranslationPreferences.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/TranslationResult.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/UserStyleProfile.swift"
         },
         {
           "kind" : "file",
@@ -1203,11 +1231,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+AI.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+CDC.swift"
         },
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+MessageEdit.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+Translation.swift"
         },
         {
           "kind" : "file",
@@ -1235,6 +1271,14 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Protocols/ClockProtocol.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/AIBroadcastCoordinator.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/AIService.swift"
         },
         {
@@ -1251,7 +1295,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/ConversationMonitorService.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/README.md"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/SmartReplyService.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/SmartTranslationService.swift"
         },
         {
           "kind" : "file",
@@ -1371,7 +1427,15 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Settings/AIStyleProfileView.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Settings/FeatureFlagsExampleView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Settings/SettingsView.swift"
         },
         {
           "kind" : "file",
@@ -1403,6 +1467,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/Core/Utilities/AppLaunchManager.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/GlobalBridge.entitlements"
         },
         {
@@ -1412,6 +1480,10 @@
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/Info.plist"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/UI/Views/Splash/SplashVideoView.swift"
         },
         {
           "kind" : "file",
@@ -1436,6 +1508,10 @@
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/ViewModels/TaskExtractionViewModel.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/AI/SmartReplyComposerView.swift"
         },
         {
           "kind" : "file",
@@ -1464,10 +1540,6 @@
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageCellView.swift"
-        },
-        {
-          "kind" : "file",
-          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageContentView.swift"
         },
         {
           "kind" : "file",
@@ -1519,6 +1591,22 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/LanguagePickerSheet.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/TranslationPreviewSheet.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/TranslationSettingsSheet.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/TranslationToggleButton.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TranslationComparisonView.swift"
         },
         {
@@ -1561,9 +1649,16 @@
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceError.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ExtractedTask.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SearchResult.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SelectedSuggestion.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SmartReplySuggestion.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SuggestionFeedback.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadSummary.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadTranslationSettings.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ToneAnalysisResult.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationMode.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationPreferences.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationResult.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UserStyleProfile.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/VectorHealthStatus.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceProtocol.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AuthManager.swift.o",
@@ -1585,19 +1680,26 @@
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Thread+Samples.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Thread.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/User.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+AI.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+CDC.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+MessageEdit.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+Translation.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixConfig.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixStateManager.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UserChannelManager.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PushService.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadService.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ClockProtocol.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIBroadcastCoordinator.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIService.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppleTranslationService.md.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppleTranslationService.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/BackendTranslationService.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ConversationMonitorService.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/README.md.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SmartReplyService.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SmartTranslationService.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TRANSLATION_INTEGRATION.md.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UnifiedTranslationService.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIServiceCache.swift.o",
@@ -1627,7 +1729,9 @@
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/InAppBannerView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatScreen.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageComposerView.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIStyleProfileView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlagsExampleView.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SettingsView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewConversationView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewDirectMessageView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/NewGroupView.swift.o",
@@ -1635,15 +1739,18 @@
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadsListScreen.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Assets.xcassets.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ContentView.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppLaunchManager.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/GlobalBridge.entitlements.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/GlobalBridgeApp.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Info.plist.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SplashVideoView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContentView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContextMenuView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationProviderBadge.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageBubbleViewModel.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ReadReceiptDetailViewModel.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskExtractionViewModel.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SmartReplyComposerView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SummaryGenerationView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadSummaryView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ChatView.swift.o",
@@ -1651,7 +1758,6 @@
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureBadgeView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageBubbleView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageCellView.swift.o",
-        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContentView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageEditView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PresenceBadgeView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PresenceIndicator.swift.o",
@@ -1664,6 +1770,10 @@
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskDetailView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskExtractionView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadListView.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/LanguagePickerSheet.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationPreviewSheet.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationSettingsSheet.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationToggleButton.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationComparisonView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationOverlayView.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TypingIndicatorView.swift.o",
@@ -1740,7 +1850,23 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SelectedSuggestion.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SmartReplySuggestion.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SuggestionFeedback.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadSummary.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadTranslationSettings.swift.o"
         },
         {
           "kind" : "file",
@@ -1748,7 +1874,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationMode.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationPreferences.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationResult.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UserStyleProfile.swift.o"
         },
         {
           "kind" : "file",
@@ -1836,11 +1974,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+AI.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+CDC.swift.o"
         },
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+MessageEdit.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+Translation.swift.o"
         },
         {
           "kind" : "file",
@@ -1868,6 +2014,14 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ClockProtocol.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIBroadcastCoordinator.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIService.swift.o"
         },
         {
@@ -1884,7 +2038,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ConversationMonitorService.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/README.md.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SmartReplyService.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SmartTranslationService.swift.o"
         },
         {
           "kind" : "file",
@@ -2004,7 +2170,15 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIStyleProfileView.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/FeatureFlagsExampleView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SettingsView.swift.o"
         },
         {
           "kind" : "file",
@@ -2036,6 +2210,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppLaunchManager.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/GlobalBridge.entitlements.o"
         },
         {
@@ -2045,6 +2223,10 @@
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Info.plist.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SplashVideoView.swift.o"
         },
         {
           "kind" : "file",
@@ -2069,6 +2251,10 @@
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TaskExtractionViewModel.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SmartReplyComposerView.swift.o"
         },
         {
           "kind" : "file",
@@ -2097,10 +2283,6 @@
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageCellView.swift.o"
-        },
-        {
-          "kind" : "file",
-          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContentView.swift.o"
         },
         {
           "kind" : "file",
@@ -2152,6 +2334,22 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/LanguagePickerSheet.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationPreviewSheet.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationSettingsSheet.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationToggleButton.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationComparisonView.swift.o"
         },
         {
@@ -2176,9 +2374,16 @@
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Errors/AIServiceError.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/ExtractedTask.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/SearchResult.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/SelectedSuggestion.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/SmartReplySuggestion.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/SuggestionFeedback.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/ThreadSummary.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/ThreadTranslationSettings.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/ToneAnalysisResult.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/TranslationMode.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/TranslationPreferences.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/TranslationResult.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/UserStyleProfile.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/VectorHealthStatus.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Protocols/AIServiceProtocol.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Auth/AuthManager.swift",
@@ -2200,19 +2405,26 @@
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/Thread+Samples.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/Thread.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/User.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+AI.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+CDC.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+MessageEdit.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+Translation.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixConfig.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixStateManager.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/UserChannelManager.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/REST/PushService.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/REST/ThreadService.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Protocols/ClockProtocol.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/AIBroadcastCoordinator.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/AIService.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/AppleTranslationService.md",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/AppleTranslationService.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/BackendTranslationService.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/ConversationMonitorService.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/README.md",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/SmartReplyService.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/SmartTranslationService.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/TRANSLATION_INTEGRATION.md",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/UnifiedTranslationService.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AIServiceCache.swift",
@@ -2242,7 +2454,9 @@
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/AppRoot/InAppBannerView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Chat/ChatScreen.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Chat/MessageComposerView.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Settings/AIStyleProfileView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Settings/FeatureFlagsExampleView.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Settings/SettingsView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Threads/NewConversationView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Threads/NewDirectMessageView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Threads/NewGroupView.swift",
@@ -2250,15 +2464,18 @@
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Threads/ThreadsListScreen.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/Assets.xcassets",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/ContentView.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/Core/Utilities/AppLaunchManager.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/GlobalBridge.entitlements",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/GlobalBridgeApp.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/Info.plist",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/UI/Views/Splash/SplashVideoView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Components/MessageContentView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Components/MessageContextMenuView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Components/TranslationProviderBadge.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/ViewModels/MessageBubbleViewModel.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/ViewModels/ReadReceiptDetailViewModel.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/ViewModels/TaskExtractionViewModel.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/AI/SmartReplyComposerView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/AI/SummaryGenerationView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/AI/ThreadSummaryView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/ChatView.swift",
@@ -2266,7 +2483,6 @@
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/FeatureBadgeView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageBubbleView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageCellView.swift",
-        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageContentView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageEditView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/PresenceBadgeView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/PresenceIndicator.swift",
@@ -2279,6 +2495,10 @@
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TaskDetailView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TaskExtractionView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/ThreadListView.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/LanguagePickerSheet.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/TranslationPreviewSheet.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/TranslationSettingsSheet.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/TranslationToggleButton.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TranslationComparisonView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TranslationOverlayView.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TypingIndicatorView.swift",
@@ -2393,6 +2613,30 @@
       "fileList" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/sources",
       "importPath" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/Modules",
       "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/AIBroadcastCoordinatorTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/MonitoringToggleTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/SelectedSuggestionTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/SmartReply/SmartReplyIntegrationTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/SmartReply/SmartReplyServiceTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/Chat/ChatScreenSmartReplyTests.swift"
+        },
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/FeatureFlags/FeatureBadgeViewTests.swift"
@@ -2515,6 +2759,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/ChatScreenSmartReplyTests.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/MessageBubbleAccessibilityTests.swift"
         },
         {
@@ -2531,7 +2779,27 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/ProactiveSuggestionVisualTests.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/ReadReceiptTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SmartReplyErrorStateTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SmartReplyTimeTrackingTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SmartReplyUITests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SuggestionDismissalTests.swift"
         },
         {
           "kind" : "file",
@@ -2558,6 +2826,12 @@
       "moduleName" : "GlobalBridgeTests",
       "moduleOutputPath" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/Modules/GlobalBridgeTests.swiftmodule",
       "objects" : [
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/AIBroadcastCoordinatorTests.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/MonitoringToggleTests.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SelectedSuggestionTests.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SmartReplyIntegrationTests.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SmartReplyServiceTests.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/ChatScreenSmartReplyTests.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/FeatureBadgeViewTests.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/FeatureFlagsOfflineTests.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/FeatureFlagsServiceTests.swift.o",
@@ -2588,11 +2862,17 @@
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SyncActorTests.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/TaskExtractionTests.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/TypingIndicatorTests.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/ChatScreenSmartReplyTests.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/MessageBubbleAccessibilityTests.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/MessageBubbleUITests.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/MessageBubbleViewTests.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/PresenceIndicatorTests.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/ProactiveSuggestionVisualTests.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/ReadReceiptTests.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SmartReplyErrorStateTests.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SmartReplyTimeTrackingTests.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SmartReplyUITests.swift.o",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SuggestionDismissalTests.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/ThreadSummaryViewTests.swift.o",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/TranslationComparisonViewTests.swift.o"
       ],
@@ -2652,6 +2932,30 @@
       ],
       "outputFileMapPath" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/output-file-map.json",
       "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/AIBroadcastCoordinatorTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/MonitoringToggleTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SelectedSuggestionTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SmartReplyIntegrationTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SmartReplyServiceTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/ChatScreenSmartReplyTests.swift.o"
+        },
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/FeatureBadgeViewTests.swift.o"
@@ -2774,6 +3078,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/ChatScreenSmartReplyTests.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/MessageBubbleAccessibilityTests.swift.o"
         },
         {
@@ -2790,7 +3098,27 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/ProactiveSuggestionVisualTests.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/ReadReceiptTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SmartReplyErrorStateTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SmartReplyTimeTrackingTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SmartReplyUITests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SuggestionDismissalTests.swift.o"
         },
         {
           "kind" : "file",
@@ -2807,6 +3135,12 @@
       ],
       "prepareForIndexing" : false,
       "sources" : [
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/AIBroadcastCoordinatorTests.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/MonitoringToggleTests.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/SelectedSuggestionTests.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/SmartReply/SmartReplyIntegrationTests.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/SmartReply/SmartReplyServiceTests.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/Chat/ChatScreenSmartReplyTests.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/FeatureFlags/FeatureBadgeViewTests.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/FeatureFlags/FeatureFlagsOfflineTests.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/FeatureFlags/FeatureFlagsServiceTests.swift",
@@ -2837,11 +3171,17 @@
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/Sync/SyncActorTests.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/TaskExtractionTests.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/TypingIndicatorTests.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/ChatScreenSmartReplyTests.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/MessageBubbleAccessibilityTests.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/MessageBubbleUITests.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/MessageBubbleViewTests.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/PresenceIndicatorTests.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/ProactiveSuggestionVisualTests.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/ReadReceiptTests.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SmartReplyErrorStateTests.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SmartReplyTimeTrackingTests.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SmartReplyUITests.swift",
+        "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SuggestionDismissalTests.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/ThreadSummaryViewTests.swift",
         "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/TranslationComparisonViewTests.swift"
       ],
@@ -3908,9 +4248,16 @@
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Errors/AIServiceError.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/ExtractedTask.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/SearchResult.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/SelectedSuggestion.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/SmartReplySuggestion.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/SuggestionFeedback.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/ThreadSummary.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/ThreadTranslationSettings.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/ToneAnalysisResult.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/TranslationMode.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/TranslationPreferences.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/TranslationResult.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/UserStyleProfile.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/VectorHealthStatus.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Protocols/AIServiceProtocol.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Auth/AuthManager.swift",
@@ -3932,19 +4279,26 @@
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/Thread+Samples.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/Thread.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Models/User.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+AI.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+CDC.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+MessageEdit.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+Translation.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixConfig.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixStateManager.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/UserChannelManager.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/REST/PushService.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/REST/ThreadService.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Protocols/ClockProtocol.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/AIBroadcastCoordinator.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/AIService.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/AppleTranslationService.md",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/AppleTranslationService.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/BackendTranslationService.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/ConversationMonitorService.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/README.md",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/SmartReplyService.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/SmartTranslationService.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/TRANSLATION_INTEGRATION.md",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/UnifiedTranslationService.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AIServiceCache.swift",
@@ -3974,7 +4328,9 @@
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/AppRoot/InAppBannerView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Chat/ChatScreen.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Chat/MessageComposerView.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Settings/AIStyleProfileView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Settings/FeatureFlagsExampleView.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Settings/SettingsView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Threads/NewConversationView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Threads/NewDirectMessageView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Threads/NewGroupView.swift",
@@ -3982,15 +4338,18 @@
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Threads/ThreadsListScreen.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/Assets.xcassets",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/ContentView.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/Core/Utilities/AppLaunchManager.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/GlobalBridge.entitlements",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/GlobalBridgeApp.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/Info.plist",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/UI/Views/Splash/SplashVideoView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Components/MessageContentView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Components/MessageContextMenuView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Components/TranslationProviderBadge.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/ViewModels/MessageBubbleViewModel.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/ViewModels/ReadReceiptDetailViewModel.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/ViewModels/TaskExtractionViewModel.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/AI/SmartReplyComposerView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/AI/SummaryGenerationView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/AI/ThreadSummaryView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/ChatView.swift",
@@ -3998,7 +4357,6 @@
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/FeatureBadgeView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageBubbleView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageCellView.swift",
-      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageContentView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageEditView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/PresenceBadgeView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/PresenceIndicator.swift",
@@ -4011,6 +4369,10 @@
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TaskDetailView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TaskExtractionView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/ThreadListView.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/LanguagePickerSheet.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/TranslationPreviewSheet.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/TranslationSettingsSheet.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/TranslationToggleButton.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TranslationComparisonView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TranslationOverlayView.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/TypingIndicatorView.swift",
@@ -4146,6 +4508,12 @@
       "-package-name",
       "globalbridge",
       "-c",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/AIBroadcastCoordinatorTests.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/MonitoringToggleTests.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/SelectedSuggestionTests.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/SmartReply/SmartReplyIntegrationTests.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/SmartReply/SmartReplyServiceTests.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/Chat/ChatScreenSmartReplyTests.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/FeatureFlags/FeatureBadgeViewTests.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/FeatureFlags/FeatureFlagsOfflineTests.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/FeatureFlags/FeatureFlagsServiceTests.swift",
@@ -4176,11 +4544,17 @@
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/Sync/SyncActorTests.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/TaskExtractionTests.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/TypingIndicatorTests.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/ChatScreenSmartReplyTests.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/MessageBubbleAccessibilityTests.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/MessageBubbleUITests.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/MessageBubbleViewTests.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/PresenceIndicatorTests.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/ProactiveSuggestionVisualTests.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/ReadReceiptTests.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SmartReplyErrorStateTests.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SmartReplyTimeTrackingTests.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SmartReplyUITests.swift",
+      "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SuggestionDismissalTests.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/ThreadSummaryViewTests.swift",
       "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/TranslationComparisonViewTests.swift",
       "-I",
@@ -5035,7 +5409,23 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/SelectedSuggestion.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/SmartReplySuggestion.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/SuggestionFeedback.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/ThreadSummary.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/ThreadTranslationSettings.swift"
         },
         {
           "kind" : "file",
@@ -5043,7 +5433,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/TranslationMode.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/TranslationPreferences.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/TranslationResult.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/AI/Models/UserStyleProfile.swift"
         },
         {
           "kind" : "file",
@@ -5131,11 +5533,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+AI.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+CDC.swift"
         },
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+MessageEdit.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Networking/Phoenix/PhoenixChannelManager+Translation.swift"
         },
         {
           "kind" : "file",
@@ -5163,6 +5573,14 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Protocols/ClockProtocol.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/AIBroadcastCoordinator.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/AIService.swift"
         },
         {
@@ -5179,7 +5597,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/ConversationMonitorService.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/README.md"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/SmartReplyService.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Core/Services/AI/SmartTranslationService.swift"
         },
         {
           "kind" : "file",
@@ -5299,7 +5729,15 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Settings/AIStyleProfileView.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Settings/FeatureFlagsExampleView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Features/Settings/SettingsView.swift"
         },
         {
           "kind" : "file",
@@ -5331,6 +5769,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/Core/Utilities/AppLaunchManager.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/GlobalBridge.entitlements"
         },
         {
@@ -5340,6 +5782,10 @@
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/Info.plist"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/GlobalBridge/UI/Views/Splash/SplashVideoView.swift"
         },
         {
           "kind" : "file",
@@ -5364,6 +5810,10 @@
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/ViewModels/TaskExtractionViewModel.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/AI/SmartReplyComposerView.swift"
         },
         {
           "kind" : "file",
@@ -5392,10 +5842,6 @@
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageCellView.swift"
-        },
-        {
-          "kind" : "file",
-          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/MessageContentView.swift"
         },
         {
           "kind" : "file",
@@ -5444,6 +5890,22 @@
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/ThreadListView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/LanguagePickerSheet.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/TranslationPreviewSheet.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/TranslationSettingsSheet.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/UI/Views/Translation/TranslationToggleButton.swift"
         },
         {
           "kind" : "file",
@@ -5867,6 +6329,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIBroadcastCoordinator.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIService.swift.o"
         },
         {
@@ -5883,11 +6349,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AIStyleProfileView.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppAction.swift.o"
         },
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppEnvironment.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/AppLaunchManager.swift.o"
         },
         {
           "kind" : "file",
@@ -5951,6 +6425,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ClockProtocol.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Command.swift.o"
         },
         {
@@ -5964,6 +6442,10 @@
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ContentView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ConversationMonitorService.swift.o"
         },
         {
           "kind" : "file",
@@ -6027,6 +6509,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/LanguagePickerSheet.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Message.swift.o"
         },
         {
@@ -6044,10 +6530,6 @@
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageComposerView.swift.o"
-        },
-        {
-          "kind" : "file",
-          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/MessageContentView.swift.o"
         },
         {
           "kind" : "file",
@@ -6111,11 +6593,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+AI.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+CDC.swift.o"
         },
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+MessageEdit.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/PhoenixChannelManager+Translation.swift.o"
         },
         {
           "kind" : "file",
@@ -6187,11 +6677,43 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SelectedSuggestion.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SemanticSearchView.swift.o"
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SettingsView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SmartReplyComposerView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SmartReplyService.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SmartReplySuggestion.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SmartTranslationService.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SplashVideoView.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/Store.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/SuggestionFeedback.swift.o"
         },
         {
           "kind" : "file",
@@ -6251,6 +6773,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadTranslationSettings.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/ThreadsListScreen.swift.o"
         },
         {
@@ -6267,7 +6793,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationMode.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationOverlayView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationPreferences.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationPreviewSheet.swift.o"
         },
         {
           "kind" : "file",
@@ -6276,6 +6814,14 @@
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationResult.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationSettingsSheet.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/TranslationToggleButton.swift.o"
         },
         {
           "kind" : "file",
@@ -6303,11 +6849,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/UserStyleProfile.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridge.build/VectorHealthStatus.swift.o"
         },
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgePackageTests.build/runner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/AIBroadcastCoordinatorTests.swift.o"
         },
         {
           "kind" : "file",
@@ -6328,6 +6882,14 @@
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/CDCTriggerTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/ChatScreenSmartReplyTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/ChatScreenSmartReplyTests.swift.o"
         },
         {
           "kind" : "file",
@@ -6371,6 +6933,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/MonitoringToggleTests.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/NotificationManagerTests.swift.o"
         },
         {
@@ -6403,6 +6969,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/ProactiveSuggestionVisualTests.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/PushNotificationTests.swift.o"
         },
         {
@@ -6420,6 +6990,34 @@
         {
           "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/ReadReceiptTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SelectedSuggestionTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SmartReplyErrorStateTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SmartReplyIntegrationTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SmartReplyServiceTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SmartReplyTimeTrackingTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SmartReplyUITests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/.build/arm64-apple-macosx/debug/GlobalBridgeTests.build/SuggestionDismissalTests.swift.o"
         },
         {
           "kind" : "file",
@@ -6681,6 +7279,30 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/AIBroadcastCoordinatorTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/MonitoringToggleTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/SelectedSuggestionTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/SmartReply/SmartReplyIntegrationTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/AI/SmartReply/SmartReplyServiceTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/Chat/ChatScreenSmartReplyTests.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/FeatureFlags/FeatureBadgeViewTests.swift"
         },
         {
@@ -6801,6 +7423,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/ChatScreenSmartReplyTests.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/MessageBubbleAccessibilityTests.swift"
         },
         {
@@ -6817,7 +7443,27 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/ProactiveSuggestionVisualTests.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/ReadReceiptTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SmartReplyErrorStateTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SmartReplyTimeTrackingTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SmartReplyUITests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/reuben/gauntlet/whatsapp-clone/clients/ios/GlobalBridge/Tests/UI/SuggestionDismissalTests.swift"
         },
         {
           "kind" : "file",

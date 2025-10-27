@@ -31,7 +31,7 @@ struct ThreadTranslationSettings: Codable, Equatable {
         showSuggestions: true,
         defaultFormality: FormalityLevel.neutral,
         autoTranslateIncoming: false,
-        translationMode: .onPress
+        translationMode: TranslationMode.onPress
     )
 
     /// Create default settings with specific target language
@@ -39,9 +39,9 @@ struct ThreadTranslationSettings: Codable, Equatable {
         ThreadTranslationSettings(
             targetLanguage: targetLanguage,
             showSuggestions: true,
-            defaultFormality: .neutral,
+            defaultFormality: FormalityLevel.neutral,
             autoTranslateIncoming: false,
-            translationMode: .onPress
+            translationMode: TranslationMode.onPress
         )
     }
 }

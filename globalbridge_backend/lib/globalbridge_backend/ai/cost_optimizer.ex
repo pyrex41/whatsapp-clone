@@ -73,7 +73,7 @@ defmodule GlobalbridgeBackend.AI.CostOptimizer do
 
       _ ->
         # Default fallback
-        "text-embedding-3-large"
+        "text-embedding-3-small"
     end
   end
 
@@ -86,8 +86,8 @@ defmodule GlobalbridgeBackend.AI.CostOptimizer do
 
     case operation do
       :embedding ->
-        # OpenAI embedding pricing: $0.0001 per 1K tokens for text-embedding-3-large
-        cost_per_1k_tokens = 0.0001
+        # OpenAI embedding pricing: $0.00002 per 1K tokens for text-embedding-3-small
+        cost_per_1k_tokens = 0.00002
         token_count / 1000 * cost_per_1k_tokens
 
       :completion ->
@@ -118,7 +118,7 @@ defmodule GlobalbridgeBackend.AI.CostOptimizer do
   # Private functions
 
   defp has_exact_cache_hit?(query, :embedding) do
-    Cache.embedding_exists?(query, "text-embedding-3-large")
+    Cache.embedding_exists?(query, "text-embedding-3-small")
   end
 
   defp has_exact_cache_hit?(query, :search) do
@@ -128,7 +128,7 @@ defmodule GlobalbridgeBackend.AI.CostOptimizer do
   defp has_exact_cache_hit?(_query, _operation), do: false
 
   defp get_cached_result(query, :embedding) do
-    Cache.get_embedding(query, "text-embedding-3-large")
+    Cache.get_embedding(query, "text-embedding-3-small")
   end
 
   defp get_cached_result(query, :search) do
@@ -151,7 +151,7 @@ defmodule GlobalbridgeBackend.AI.CostOptimizer do
 
   defp select_embedding_model(_context) do
     # Always use the most cost-effective embedding model
-    "text-embedding-3-large"
+    "text-embedding-3-small"
   end
 
   defp select_completion_model(context) do

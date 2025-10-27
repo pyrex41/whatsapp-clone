@@ -4,6 +4,9 @@
 //
 //  Translation toggle button for message composer
 //
+//  ⚠️ DEPRECATED: This component is deprecated in favor of TranslationSettingsSheet.
+//  It may be removed in a future version.
+//
 
 import SwiftUI
 

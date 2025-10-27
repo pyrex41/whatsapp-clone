@@ -168,7 +168,11 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         let previousThreadID = state.threads.selectedThreadID
         state.threads.selectedThreadID = threadID
         state.chat.currentThread = thread
-        state.chat.messages = []
+        // Don't clear messages immediately if we're switching threads - let loadMessages handle it
+        // This prevents the jarring empty state when messages are already loading
+        if state.chat.currentThread?.id != threadID {
+            state.chat.messages = []
+        }
         state.chat.isLoadingMessages = true
 
         var commands: [Command<AppAction>] = []
@@ -1137,6 +1141,44 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
     case let .setCurrentThread(threadId):
         state.currentThreadId = threadId
         print("📍 [INSIGHTS] Set current thread: \(threadId ?? "nil")")
+        return .none
+
+    // MARK: Thread Summarization Actions
+
+    case let .fetchThreadSummary(threadId):
+        state.threadSummaryLoading[threadId] = true
+        state.threadSummaryErrors[threadId] = nil
+        print("📝 [SUMMARY] Fetching summary for thread: \(threadId)")
+
+        return .run(priority: nil) { send in
+            do {
+                let summary = try await AIService.shared.summarizeThread(threadId: threadId)
+                send(.threadSummaryReceived(threadId: threadId, .success(summary)))
+            } catch {
+                print("❌ [SUMMARY] Failed to fetch summary: \(error.localizedDescription)")
+                send(.threadSummaryReceived(threadId: threadId, .failure(error)))
+            }
+        }
+
+    case let .threadSummaryReceived(threadId, result):
+        state.threadSummaryLoading[threadId] = false
+
+        switch result {
+        case let .success(summary):
+            state.threadSummaries[threadId] = summary
+            state.threadSummaryErrors[threadId] = nil
+            print("✅ [SUMMARY] Received summary for thread \(threadId): \(summary.summary.prefix(100))...")
+
+        case let .failure(error):
+            state.threadSummaryErrors[threadId] = error.localizedDescription
+            print("❌ [SUMMARY] Summary error for thread \(threadId): \(error.localizedDescription)")
+        }
+        return .none
+
+    case let .clearThreadSummary(threadId):
+        state.threadSummaries.removeValue(forKey: threadId)
+        state.threadSummaryErrors.removeValue(forKey: threadId)
+        print("🗑️  [SUMMARY] Cleared summary for thread: \(threadId)")
         return .none
 
     // MARK: User Preferences

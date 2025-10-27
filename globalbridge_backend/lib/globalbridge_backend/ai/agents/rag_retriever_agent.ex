@@ -98,13 +98,18 @@ defmodule GlobalbridgeBackend.AI.Agents.RAGRetrieverAgent do
         ]
 
         case SemanticSearch.search_with_context(thread_id, search_query, search_opts) do
-          {:ok, %{results: results, context: context}} ->
+          {:ok, %{results: results, context: context}} when results != [] ->
             Logger.info("Retrieved #{length(results)} messages for summarization")
             {:ok, %{results: results, context: context}}
 
+          {:ok, %{results: [], context: _}} ->
+            # No embeddings found - fall back to recent messages
+            Logger.warning("No embeddings found for thread #{thread_id}, falling back to recent messages")
+            fallback_to_recent_messages(thread_id, limit, max_context_length)
+
           {:error, reason} ->
-            Logger.error("Semantic search failed: #{inspect(reason)}")
-            {:error, "Failed to retrieve messages: #{inspect(reason)}"}
+            Logger.error("Semantic search failed: #{inspect(reason)}, falling back to recent messages")
+            fallback_to_recent_messages(thread_id, limit, max_context_length)
         end
 
       {:error, reason} ->
@@ -194,6 +199,46 @@ defmodule GlobalbridgeBackend.AI.Agents.RAGRetrieverAgent do
 
       [] ->
         {:error, "Empty output from retriever agent"}
+    end
+  end
+
+  # Private helper: fallback to recent messages when embeddings are unavailable
+  defp fallback_to_recent_messages(thread_id, limit, max_context_length) do
+    alias GlobalbridgeBackend.Repo
+    alias GlobalbridgeBackend.Schemas.Message
+    alias GlobalbridgeBackend.AI.RAGRetriever
+    import Ecto.Query
+
+    Logger.info("Fetching #{limit} most recent messages from thread #{thread_id} as fallback")
+
+    # Query most recent messages directly from database
+    messages =
+      from(m in Message,
+        where: m.thread_id == ^thread_id,
+        order_by: [desc: m.created_at],
+        limit: ^limit,
+        select: %{
+          id: m.id,
+          content: m.content,
+          sender_id: m.sender_id,
+          created_at: m.created_at
+        }
+      )
+      |> Repo.all()
+      |> Enum.reverse()  # Reverse to chronological order for better context
+
+    if Enum.empty?(messages) do
+      Logger.warning("No messages found in thread #{thread_id}")
+      {:error, "No messages found in thread"}
+    else
+      # Build context from the messages
+      context = RAGRetriever.build_context(messages,
+        max_length: max_context_length,
+        include_metadata: true
+      )
+
+      Logger.info("Built fallback context with #{length(messages)} messages")
+      {:ok, %{results: messages, context: context}}
     end
   end
 end

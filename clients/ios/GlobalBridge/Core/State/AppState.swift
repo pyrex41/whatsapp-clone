@@ -33,6 +33,11 @@ struct AppState: Equatable {
     var aiInsightsVisible: Bool = false
     var currentThreadId: String?
 
+    // MARK: - AI Features - Thread Summarization
+    var threadSummaries: [String: ThreadSummary] = [:] // threadId -> summary
+    var threadSummaryLoading: [String: Bool] = [:] // threadId -> loading state
+    var threadSummaryErrors: [String: String] = [:] // threadId -> error message
+
     // MARK: - User Preferences
     var userLanguage: String = "en" // User's home language for UI and suggestions
 
@@ -54,6 +59,9 @@ struct AppState: Equatable {
         monitoredThreads: Set<String> = [],
         aiInsightsVisible: Bool = false,
         currentThreadId: String? = nil,
+        threadSummaries: [String: ThreadSummary] = [:],
+        threadSummaryLoading: [String: Bool] = [:],
+        threadSummaryErrors: [String: String] = [:],
         userLanguage: String = "en"
     ) {
         self.user = user
@@ -73,6 +81,9 @@ struct AppState: Equatable {
         self.monitoredThreads = monitoredThreads
         self.aiInsightsVisible = aiInsightsVisible
         self.currentThreadId = currentThreadId
+        self.threadSummaries = threadSummaries
+        self.threadSummaryLoading = threadSummaryLoading
+        self.threadSummaryErrors = threadSummaryErrors
         self.userLanguage = userLanguage
     }
 }

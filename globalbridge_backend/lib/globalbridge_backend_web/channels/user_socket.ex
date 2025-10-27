@@ -73,6 +73,7 @@ defmodule GlobalbridgeBackendWeb.UserSocket do
       user_id = params["user_id"] || Ecto.UUID.generate()
 
       # Try to find existing user, or create a mock user struct
+      # Note: We need to fetch the full user record to get auth0_id for channel authorization
       user =
         case Repo.get(User, user_id) do
           nil ->
@@ -81,11 +82,13 @@ defmodule GlobalbridgeBackendWeb.UserSocket do
               id: user_id,
               username: "dev_user_#{String.slice(user_id, 0, 8)}",
               phone_number: "+15551234567",
+              auth0_id: nil,
               inserted_at: DateTime.utc_now(),
               updated_at: DateTime.utc_now()
             }
 
           existing_user ->
+            # User is already fetched with all fields including auth0_id
             existing_user
         end
 

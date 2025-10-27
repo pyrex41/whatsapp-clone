@@ -135,6 +135,17 @@ enum AppAction {
     /// Set current active thread for insights
     case setCurrentThread(threadId: String?)
 
+    // MARK: - AI Features: Thread Summarization
+
+    /// Trigger fetch of thread summary
+    case fetchThreadSummary(threadId: String)
+
+    /// Thread summary received from backend
+    case threadSummaryReceived(threadId: String, Result<ThreadSummary, Error>)
+
+    /// Clear thread summary for a specific thread
+    case clearThreadSummary(threadId: String)
+
     // MARK: - User Preferences
 
     /// Set user's home language for UI and suggestions
