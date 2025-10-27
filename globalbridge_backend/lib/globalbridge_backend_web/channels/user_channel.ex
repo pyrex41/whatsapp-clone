@@ -342,6 +342,32 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
     end
   end
 
+  @impl true
+  def handle_in("update_preferred_language", %{"preferred_language" => language}, socket) do
+    user_id = socket.assigns.user_id
+    Logger.info("🌐 [USER_CHANNEL] Update preferred language: user=#{user_id}, language=#{language}")
+
+    case Repo.get(User, user_id) do
+      nil ->
+        Logger.error("❌ [USER_CHANNEL] User not found: #{user_id}")
+        {:reply, {:error, %{reason: "User not found"}}, socket}
+
+      user ->
+        changeset = User.update_changeset(user, %{preferred_language: language})
+
+        case Repo.update(changeset) do
+          {:ok, updated_user} ->
+            Logger.info("✅ [USER_CHANNEL] Preferred language updated: #{updated_user.preferred_language}")
+            {:reply, {:ok, %{preferred_language: updated_user.preferred_language}}, socket}
+
+          {:error, changeset} ->
+            errors = format_errors(changeset)
+            Logger.error("❌ [USER_CHANNEL] Failed to update preferred language: #{inspect(errors)}")
+            {:reply, {:error, %{errors: errors}}, socket}
+        end
+    end
+  end
+
   # Handle incoming thread_created broadcasts
   @impl true
   def handle_out("thread_created", payload, socket) do
@@ -422,7 +448,8 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
       username: user.username,
       email: user.email,
       display_name: user.display_name,
-      avatar_url: user.avatar_url
+      avatar_url: user.avatar_url,
+      preferred_language: user.preferred_language
     }
   end
 
