@@ -87,6 +87,7 @@ final class InAppBannerCenter: ObservableObject {
 
     /// Update the currently active (visible) thread to suppress banners for it
     func setActiveThread(_ threadId: UUID?) {
+        print("🔔 [BANNER] setActiveThread called: \(threadId?.uuidString ?? "nil")")
         activeThreadId = threadId
     }
 

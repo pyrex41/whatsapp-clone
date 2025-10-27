@@ -58,6 +58,81 @@ defmodule GlobalbridgeBackend.AI.Jobs.SummarizationJob do
   end
 
   @doc """
+  Incremental summarization: updates an existing summary with new messages.
+
+  This is more efficient than full regeneration when only a few messages have been added.
+  It takes the previous summary and the new messages, and generates an updated summary.
+
+  ## Parameters
+  - `thread_id`: The thread to summarize
+  - `old_summary`: The previous summary data (map with summary, decisions, etc.)
+  - `old_message_count`: How many messages were included in the old summary
+  - `opts`: Configuration options
+
+  ## Returns
+  - `{:ok, result}` with the updated structured summary
+  - `{:error, reason}` on failure
+  """
+  @spec summarize_thread_incremental(String.t(), map(), integer(), keyword()) ::
+          {:ok, map()} | {:error, String.t()}
+  def summarize_thread_incremental(thread_id, old_summary, old_message_count, opts \\ []) do
+    Logger.info("SummarizationJob: Incremental summarization for thread #{thread_id} from message #{old_message_count}")
+
+    # Fetch only new messages
+    new_message_opts = Keyword.merge(opts, [
+      offset: old_message_count,
+      max_messages: 20  # Limit to recent messages
+    ])
+
+    case RAGRetrieverAgent.retrieve(thread_id, "new messages", new_message_opts) do
+      {:ok, %{results: results, context: new_context}} when length(results) > 0 ->
+        # Construct incremental update prompt
+        incremental_context = """
+        PREVIOUS SUMMARY:
+        Summary: #{old_summary.summary}
+        Decisions: #{Enum.join(old_summary.decisions || [], ", ")}
+        Action Items: #{Enum.join(old_summary.action_items || [], ", ")}
+        Key Points: #{Enum.join(old_summary.key_points || [], ", ")}
+
+        NEW MESSAGES:
+        #{new_context}
+
+        Please UPDATE the previous summary with the new information from the new messages.
+        Merge any new decisions, action items, and key points with the existing ones.
+        """
+
+        case SummarizerAgent.summarize(incremental_context, thread_id, opts) do
+          {:ok, summary} ->
+            Logger.info("SummarizationJob: Incremental summarization completed")
+            {:ok, %{
+              thread_id: thread_id,
+              objective: "incremental update",
+              summary: summary,
+              retrieved_messages: length(results)
+            }}
+
+          {:error, reason} ->
+            Logger.error("SummarizationJob: Incremental SummarizerAgent failed: #{inspect(reason)}")
+            {:error, "Incremental summary generation failed: #{inspect(reason)}"}
+        end
+
+      {:ok, %{results: []}} ->
+        # No new messages, return old summary
+        Logger.info("SummarizationJob: No new messages for incremental update")
+        {:ok, %{
+          thread_id: thread_id,
+          objective: "no update",
+          summary: old_summary,
+          retrieved_messages: 0
+        }}
+
+      {:error, reason} ->
+        Logger.error("SummarizationJob: Failed to retrieve new messages: #{inspect(reason)}")
+        {:error, "Failed to retrieve new messages: #{inspect(reason)}"}
+    end
+  end
+
+  @doc """
   Convenience function for direct summarization without job orchestration.
 
   This bypasses the full Agens job framework and directly calls the agents.

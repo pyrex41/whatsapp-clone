@@ -172,40 +172,48 @@ defmodule GlobalbridgeBackendWeb.AIController do
     with {:ok, thread_id} <- AIValidator.validate_thread_id(params["thread_id"]),
          {:ok, max_length} <- AIValidator.validate_with_default(params["max_length"], &AIValidator.validate_max_length/1, 200),
          :ok <- verify_thread_access(user.id, thread_id) do
-      # Check rate limits and feature flags (placeholder)
-      # TODO: Implement rate limiting
-      # TODO: Check feature flags
 
-      # Prepare job input (placeholder for future use)
-      _job_input = %{
-        thread_id: thread_id,
-        max_length: max_length,
-        user_id: user.id
-      }
+      # Get current message count for this thread
+      current_message_count = count_thread_messages(thread_id)
 
-      # Execute summarization job
-      case SummarizationJob.summarize_thread(thread_id, "comprehensive summary",
-             max_length: max_length
-           ) do
-        {:ok, %{summary: summary_data} = result} ->
-          # Extract structured summary data from the job result
-          # The summary_data contains: summary, decisions, action_items, key_points, participants, confidence_score
-          json(conn, %{
-            success: true,
-            summary: summary_data.summary,
-            thread_id: thread_id,
-            max_length: max_length,
-            key_topics: summary_data.key_points || [],
-            decisions: summary_data.decisions || [],
-            action_items: format_action_items(summary_data.action_items || []),
-            participants: format_participants(summary_data.participants || []),
-            message_count: result[:retrieved_messages],
-            provider: "grok-2-1212",
-            confidence_score: summary_data.confidence_score
-          })
+      # Check cache and determine strategy
+      case GlobalbridgeBackend.AI.SummaryCache.should_update_incrementally?(thread_id, current_message_count) do
+        {:use_cached, cached_summary} ->
+          # Return cached summary
+          Logger.info("Using cached summary for thread #{thread_id}")
+          json(conn, Map.merge(%{success: true, cached: true}, format_summary_response(cached_summary, thread_id, current_message_count)))
 
-        {:error, reason} ->
-          safe_error_response(conn, :unprocessable_entity, "Summarization failed", reason)
+        {:incremental, old_summary, old_message_count, delta} ->
+          # Incremental update: fetch only new messages and update summary
+          Logger.info("Incremental summary update for thread #{thread_id}: #{delta} new messages")
+
+          case SummarizationJob.summarize_thread_incremental(thread_id, old_summary, old_message_count, max_length: max_length) do
+            {:ok, %{summary: summary_data} = result} ->
+              # Cache the updated summary
+              GlobalbridgeBackend.AI.SummaryCache.put(thread_id, summary_data, current_message_count)
+
+              json(conn, Map.merge(%{success: true, cached: false, incremental: true},
+                format_summary_response(summary_data, thread_id, current_message_count)))
+
+            {:error, reason} ->
+              safe_error_response(conn, :unprocessable_entity, "Incremental summarization failed", reason)
+          end
+
+        :full_regenerate ->
+          # Full regeneration: fetch all messages and generate fresh summary
+          Logger.info("Full summary regeneration for thread #{thread_id}")
+
+          case SummarizationJob.summarize_thread(thread_id, "comprehensive summary", max_length: max_length) do
+            {:ok, %{summary: summary_data} = result} ->
+              # Cache the new summary
+              GlobalbridgeBackend.AI.SummaryCache.put(thread_id, summary_data, current_message_count)
+
+              json(conn, Map.merge(%{success: true, cached: false, incremental: false},
+                format_summary_response(summary_data, thread_id, result[:retrieved_messages] || current_message_count)))
+
+            {:error, reason} ->
+              safe_error_response(conn, :unprocessable_entity, "Summarization failed", reason)
+          end
       end
     else
       {:error, message} when is_binary(message) ->
@@ -965,6 +973,51 @@ defmodule GlobalbridgeBackendWeb.AIController do
     error ->
       Logger.error("❌ [SMART_REPLY] Error querying messages: #{inspect(error)}")
       []
+  end
+
+  # Helper to count messages in a thread
+  defp count_thread_messages(thread_id) do
+    require Logger
+    alias GlobalbridgeBackend.Chat
+
+    # Get thread to find its database shard
+    thread = Chat.get_thread(thread_id)
+
+    if is_nil(thread) do
+      Logger.warning("⚠️  [SUMMARY] Thread not found: #{thread_id}")
+      0
+    else
+      # Get thread's repo using the correct shard_id
+      repo = ThreadRepo.get_repo(thread.database_shard_id)
+
+      # Count messages
+      import Ecto.Query
+      query = from m in Message, select: count(m.id)
+
+      case repo.one(query) do
+        count when is_integer(count) -> count
+        _ -> 0
+      end
+    end
+  rescue
+    error ->
+      Logger.error("❌ [SUMMARY] Error counting messages: #{inspect(error)}")
+      0
+  end
+
+  # Helper to format summary response
+  defp format_summary_response(summary_data, thread_id, message_count) do
+    %{
+      summary: summary_data.summary,
+      thread_id: thread_id,
+      key_topics: summary_data.key_points || [],
+      decisions: summary_data.decisions || [],
+      action_items: format_action_items(summary_data.action_items || []),
+      participants: format_participants(summary_data.participants || []),
+      message_count: message_count,
+      provider: System.get_env("SUMMARIZER_MODEL") || "grok-2-1212",
+      confidence_score: summary_data.confidence_score
+    }
   end
 
   # Helper to format action items from simple strings to structured objects

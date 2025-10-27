@@ -1223,11 +1223,8 @@ public actor PhoenixChannelManager {
         )
     }
 
-    nonisolated private func parseTypingIndicator(from payload: [String: Any]) throws -> TypingIndicator {
-        guard
-            let userId = payload["user_id"] as? String,
-            let conversationId = payload["conversation_id"] as? String
-        else {
+    nonisolated private func parseTypingIndicator(from payload: [String: Any], conversationId: String) throws -> TypingIndicator {
+        guard let userId = payload["user_id"] as? String else {
             throw PhoenixError.decodingFailed(PhoenixDecodingError.missingRequiredFields)
         }
 
@@ -1243,8 +1240,17 @@ public actor PhoenixChannelManager {
             isTyping = true
         }
 
-        let timestampString = payload["timestamp"] as? String
-        let timestamp = timestampString.flatMap(parseISO8601Date) ?? Date()
+        // Parse timestamp - backend sends milliseconds since epoch
+        let timestamp: Date
+        if let timestampMs = payload["timestamp"] as? Int64 {
+            timestamp = Date(timeIntervalSince1970: Double(timestampMs) / 1000.0)
+        } else if let timestampMs = payload["timestamp"] as? Double {
+            timestamp = Date(timeIntervalSince1970: timestampMs / 1000.0)
+        } else if let timestampString = payload["timestamp"] as? String {
+            timestamp = parseISO8601Date(timestampString) ?? Date()
+        } else {
+            timestamp = Date()
+        }
 
         return TypingIndicator(
             userId: userId,
@@ -1320,7 +1326,7 @@ public actor PhoenixChannelManager {
         channel.on("user_typing") { [weak self] (message: SocketMessage) in
             guard let self else { return }
             do {
-                let indicator = try self.parseTypingIndicator(from: message.payload)
+                let indicator = try self.parseTypingIndicator(from: message.payload, conversationId: conversationId)
                 Task { await self.deliverTypingIndicator(indicator, conversationId: conversationId) }
             } catch {
                 print("[Phoenix] Failed to decode typing indicator: \(error)")
