@@ -106,6 +106,9 @@ public actor PhoenixChannelManager {
 
         var params: [String: Any] = [:]
         if let token = authToken ?? config.authToken {
+            // Store token for reconnection attempts
+            storedAuthToken = token
+
             print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             print("🔌 [PHOENIX] About to connect to backend")
             print("📊 [PHOENIX] Token being sent to backend:")
@@ -1446,6 +1449,8 @@ public actor PhoenixChannelManager {
         print("[Phoenix] Error: \(error)")
     }
 
+    private var storedAuthToken: String?
+
     private func attemptReconnect() async {
         guard reconnectAttempts < config.maxReconnectAttempts else {
             print("[Phoenix] Max reconnection attempts reached")
@@ -1456,11 +1461,12 @@ public actor PhoenixChannelManager {
         connectionState = .reconnecting
 
         print("[Phoenix] Attempting reconnection (\(reconnectAttempts)/\(config.maxReconnectAttempts))")
+        print("[Phoenix] Using stored auth token: \(storedAuthToken != nil ? "yes" : "no")")
 
         try? await Task.sleep(nanoseconds: UInt64(config.reconnectDelay * 1_000_000_000))
 
         do {
-            try await connect()
+            try await connect(authToken: storedAuthToken)
         } catch {
             print("[Phoenix] Reconnection failed: \(error)")
             await attemptReconnect()

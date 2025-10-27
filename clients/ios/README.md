@@ -23,18 +23,24 @@ The app uses Auth0 for authentication. Configuration is managed in:
 
 ### 3. Running in Simulator
 
-**IMPORTANT:** To run the app in the iOS Simulator, you must configure the scheme environment:
+The app defaults to connecting to **production** (`globalbridge-backend.fly.dev`) when running in DEBUG mode. This ensures the app works even after force closing and reopening without Xcode attached.
+
+**For local backend development only:**
+
+If you're running the backend locally and want to connect to `localhost:4000`:
 
 1. In Xcode, go to **Product → Scheme → Edit Scheme** (or press `Cmd + <`)
 2. Select **Run** in the left sidebar
 3. Go to the **Arguments** tab
-4. Under **Environment Variables**, add or set:
+4. Under **Environment Variables**, add:
    ```
-   BACKEND_ENV = production
+   BACKEND_ENV = local
    ```
 5. Click **Close**
 
-Without this setting, the app may fail to connect to the backend or crash on launch.
+**Default behavior (no environment variable set):**
+- DEBUG builds → connects to production (fly.dev)
+- RELEASE builds → connects to production (fly.dev)
 
 ### 4. Build and Run
 

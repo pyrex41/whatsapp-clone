@@ -83,19 +83,28 @@ final class AuthManager: ObservableObject {
     
     /// Restore session from stored credentials
     private func restoreSession() async {
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("🔄 [AUTH] RESTORE SESSION STARTED")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
         let credentialsManager = CredentialsManager(authentication: Auth0.authentication(
             clientId: auth0ClientId,
             domain: auth0Domain
         ))
 
+        print("🔍 [AUTH] Attempting to retrieve credentials from secure storage...")
         guard let credentials = try? await credentialsManager.credentials() else {
             print("ℹ️ [AUTH] No stored credentials found")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             return
         }
+
+        print("✅ [AUTH] Credentials retrieved from secure storage")
 
         // IMPORTANT: Check if the stored token is JWE (encrypted) format
         // If so, we need to clear it and force a fresh login
         let tokenParts = credentials.accessToken.split(separator: ".")
+        print("🔍 [AUTH] Token format check: \(tokenParts.count) parts")
         if tokenParts.count == 5 {
             print("⚠️  [AUTH] Stored token is JWE (encrypted) format - CLEARING!")
             print("   This token was issued before Auth0 API was configured.")
@@ -111,22 +120,35 @@ final class AuthManager: ObservableObject {
             isAuthenticated = false
 
             print("✅ [AUTH] Old JWE token cleared. User will need to login again.")
+            print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
             return
         }
 
         // Token is valid JWT format, restore session
         accessToken = credentials.accessToken
         refreshToken = credentials.refreshToken
+        print("✅ [AUTH] Access token: \(accessToken?.prefix(20) ?? "nil")...")
+        print("✅ [AUTH] Refresh token: \(refreshToken == nil ? "nil" : "exists")")
 
         // Extract expiration time
         tokenExpiresAt = credentials.expiresIn
+        if let expiresAt = tokenExpiresAt {
+            print("⏰ [AUTH] Token expires at: \(expiresAt)")
+            let timeUntilExpiry = expiresAt.timeIntervalSinceNow
+            print("⏰ [AUTH] Time until expiry: \(Int(timeUntilExpiry)) seconds")
+        } else {
+            print("⚠️ [AUTH] No expiration info in credentials")
+        }
 
         // Extract user ID from ID token claims
         userId = extractUserIdFromToken(credentials.idToken)
+        print("👤 [AUTH] User ID: \(userId ?? "unknown")")
 
         isAuthenticated = true
+        print("🔐 [AUTH] isAuthenticated: \(isAuthenticated)")
 
         print("✅ [AUTH] Session restored for user: \(userId ?? "unknown")")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         print("   Token format: JWT (3 parts) ✅")
 
         // Schedule token refresh if needed
@@ -319,11 +341,18 @@ final class AuthManager: ObservableObject {
     
     /// Get current access token, refreshing if needed
     func getAccessToken() async -> String? {
+        print("🔍 [AUTH] getAccessToken() called")
+        print("   - Current accessToken: \(accessToken == nil ? "nil" : "exists (\(accessToken!.prefix(20))...)")")
+        print("   - Token expires at: \(tokenExpiresAt?.description ?? "nil")")
+        print("   - Needs refresh: \(needsRefresh())")
+
         // Check if token needs refresh
         if needsRefresh() {
             print("🔄 [AUTH] Token needs refresh, attempting refresh...")
             do {
                 _ = try await refreshToken()
+                print("✅ [AUTH] Token refreshed successfully")
+                print("   - New token: \(accessToken?.prefix(20) ?? "nil")...")
                 return accessToken
             } catch {
                 let authError = AuthError.auth0Error(error)
@@ -332,7 +361,8 @@ final class AuthManager: ObservableObject {
                 return nil
             }
         }
-        
+
+        print("✅ [AUTH] Returning existing token (no refresh needed)")
         return accessToken
     }
 

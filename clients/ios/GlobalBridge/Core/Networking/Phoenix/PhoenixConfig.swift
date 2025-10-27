@@ -72,7 +72,7 @@ public struct PhoenixConfig: Sendable {
         
         // Fall back to build configuration
         #if DEBUG
-        return .development  // Local development (ws://localhost:4000)
+        return .production  // Use production for simulator (set BACKEND_ENV=local for local dev)
         #else
         return .production  // Production (wss://globalbridge-backend.fly.dev)
         #endif

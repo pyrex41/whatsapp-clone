@@ -59,7 +59,7 @@ defmodule GlobalbridgeBackend.Schemas.User do
     |> validate_format(:phone_number, ~r/^\+[1-9]\d{1,14}$/,
       message: "must be valid E.164 format"
     )
-    |> validate_length(:username, min: 3, max: 30)
+    |> validate_length(:username, min: 3, max: 50)
     |> validate_length(:display_name, max: 50)
     |> validate_length(:status_message, max: 139)
     |> unique_constraint(:username)

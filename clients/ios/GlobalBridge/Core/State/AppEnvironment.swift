@@ -289,25 +289,34 @@ extension AppEnvironment {
 
         let realtime = RealtimeClient(
             ensureConnection: {
+                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                print("🔌 [REALTIME] ensureConnection() called")
+                print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
                 // Get Auth0 token (should already be authenticated at this point)
+                print("🔍 [REALTIME] Getting auth token from AuthManager...")
                 guard let authToken = await AuthManager.shared.getAccessToken() else {
                     print("❌ [REALTIME] No auth token available")
+                    print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                     throw NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "Not authenticated"])
                 }
-                
+
+                print("✅ [REALTIME] Got auth token: \(authToken.prefix(20))...")
                 print("🔌 [REALTIME] Connecting to Phoenix with token...")
-                
+
                 // Retry connection up to 3 times with delay
                 var lastError: Error?
                 for attempt in 1...3 {
                     do {
+                        print("🔄 [REALTIME] Connection attempt \(attempt)/3...")
                         try await phoenixManager.connect(authToken: authToken)
                         print("✅ [REALTIME] Phoenix connected on attempt \(attempt)")
                         break
                     } catch {
                         lastError = error
+                        print("❌ [REALTIME] Connection attempt \(attempt) failed: \(error)")
                         if attempt < 3 {
-                            print("⚠️ [REALTIME] Connection attempt \(attempt) failed, retrying in 1s...")
+                            print("⚠️ [REALTIME] Retrying in 1s...")
                             try? await Task.sleep(nanoseconds: 1_000_000_000)
                         }
                     }
