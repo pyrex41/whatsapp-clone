@@ -50,7 +50,7 @@ defmodule GlobalbridgeBackendWeb.UserSocket do
           |> assign(:connected_at, System.system_time(:millisecond))
 
         Logger.debug(
-          "📊 [AUTH] Socket assigned: user_id=#{user.id}, connected_at=#{socket.assigns.connected_at}"
+          "📊 [AUTH] Socket assigned: user_id=#{user.id}, auth0_id=#{inspect(user.auth0_id)}, username=#{user.username}, connected_at=#{socket.assigns.connected_at}"
         )
 
         {:ok, socket}
