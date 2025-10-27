@@ -10,6 +10,9 @@ defmodule GlobalbridgeBackend.Application do
     # Validate sqlite-vec extension before starting
     validate_sqlite_vec()
 
+    # Validate production security settings
+    validate_production_security()
+
     # Background job processing with Oban (not in test)
     children =
       [
@@ -48,6 +51,7 @@ defmodule GlobalbridgeBackend.Application do
              fn ->
                GlobalbridgeBackend.AI.AgensSetup.start_components()
                GlobalbridgeBackend.AI.Telemetry.setup()
+               GlobalbridgeBackend.Bridges.Telemetry.setup()
              end},
             id: :ai_components_setup_task
           ),
@@ -58,6 +62,9 @@ defmodule GlobalbridgeBackend.Application do
           GlobalbridgeBackend.Monitoring.RateLimitMonitor,
           # AI Conversation Monitor for real-time suggestions
           GlobalbridgeBackend.AI.ConversationMonitor,
+          # Bridge Registry and Supervisor for managing bridge processes
+          GlobalbridgeBackend.Bridges.Registry,
+          GlobalbridgeBackend.Bridges.Supervisor,
           # Start a worker by calling: GlobalbridgeBackend.Worker.start_link(arg)
           # {GlobalbridgeBackend.Worker, arg},
           # Start to serve requests, typically the last entry
@@ -150,6 +157,25 @@ defmodule GlobalbridgeBackend.Application do
       Expanded path: #{expanded_path}
       Allowed directories: #{Enum.join(allowed_prefixes, ", ")}
       """
+    end
+  end
+
+  defp validate_production_security do
+    require Logger
+
+    if Application.get_env(:globalbridge_backend, :env) == :prod do
+      # Ensure SSL verification is enabled in production
+      ssl_verify = Application.get_env(:globalbridge_backend, :ssl_verify_peer, true)
+
+      unless ssl_verify do
+        raise """
+        CRITICAL SECURITY ERROR: SSL verification is disabled in production.
+        This creates a severe security vulnerability to MITM attacks.
+        Set SSL_VERIFY_PEER=true in your production environment.
+        """
+      end
+
+      Logger.info("Production security validation passed: SSL verification enabled")
     end
   end
 end
