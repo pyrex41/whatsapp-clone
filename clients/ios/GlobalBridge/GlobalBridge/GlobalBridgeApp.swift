@@ -13,22 +13,36 @@ import Auth0
 struct GlobalBridgeApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var notificationManager = NotificationManager.shared
-    @StateObject private var store = Store(
-        initialState: AppState(),
-        reducer: appReducer,
-        environment: .live
-    )
+    @StateObject private var launchManager = AppLaunchManager.shared
+    @StateObject private var store: Store<AppState, AppAction> = {
+        print("🎬 [APP] Initializing app store...")
+        let store = Store(
+            initialState: AppState(),
+            reducer: appReducer,
+            environment: .live
+        )
+        print("✅ [APP] Store initialized")
+        return store
+    }()
 
     var body: some Scene {
         WindowGroup {
-            AppRootView(store: store)
-                .onAppear {
-                    setupNotifications()
-                    setupAIBroadcastCoordination()
+            ZStack {
+                AppRootView(store: store)
+                    .onAppear {
+                        setupNotifications()
+                        setupAIBroadcastCoordination()
+                    }
+                    .onOpenURL { url in
+                        handleDeepLink(url)
+                    }
+
+                // Splash animation overlay
+                if launchManager.shouldShowSplashVideo {
+                    SplashAnimationView(isPresented: $launchManager.shouldShowSplashVideo)
+                        .zIndex(999)
                 }
-                .onOpenURL { url in
-                    handleDeepLink(url)
-                }
+            }
         }
     }
 
@@ -87,6 +101,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        print("🎯 [APP_DELEGATE] Application did finish launching")
         return true
     }
 
