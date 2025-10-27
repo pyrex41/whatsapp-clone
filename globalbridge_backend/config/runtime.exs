@@ -265,3 +265,18 @@ if config_env() in [:dev, :prod] do
     auth0_client_secret: auth0_client_secret,
     auth0_audience: auth0_audience
 end
+
+# Bridge Configuration
+config :globalbridge_backend, :bridges,
+  # Telegram polling interval (milliseconds)
+  telegram_poll_interval: String.to_integer(System.get_env("TELEGRAM_POLL_INTERVAL") || "1000"),
+  # Maximum consecutive failures before circuit breaker opens
+  max_consecutive_failures: String.to_integer(System.get_env("BRIDGE_MAX_FAILURES") || "5"),
+  # Health check interval (milliseconds)
+  health_check_interval: String.to_integer(System.get_env("BRIDGE_HEALTH_CHECK_INTERVAL") || "30000"),
+  # Circuit breaker timeout (milliseconds)
+  circuit_breaker_timeout: String.to_integer(System.get_env("BRIDGE_CIRCUIT_BREAKER_TIMEOUT") || "300000")
+
+# SSL Verification (Production Security)
+config :globalbridge_backend,
+  ssl_verify_peer: System.get_env("SSL_VERIFY_PEER", "true") == "true"
