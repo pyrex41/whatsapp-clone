@@ -13,7 +13,8 @@ struct NewConversationView: View {
     @ObservedObject var store: Store<AppState, AppAction>
     @State private var showingDMSearch = false
     @State private var showingGroupCreation = false
-    
+    @State private var previousThreadCount = 0
+
     var body: some View {
         NavigationView {
             List {
@@ -65,6 +66,17 @@ struct NewConversationView: View {
             }
             .sheet(isPresented: $showingGroupCreation) {
                 NewGroupView(store: store)
+            }
+            .onAppear {
+                previousThreadCount = store.state.threads.items.count
+            }
+            .onChange(of: store.state.threads.items.count) { oldValue, newValue in
+                // If a new thread was created, dismiss the entire conversation creation flow
+                if newValue > previousThreadCount {
+                    showingGroupCreation = false
+                    showingDMSearch = false
+                    dismiss()
+                }
             }
         }
     }
