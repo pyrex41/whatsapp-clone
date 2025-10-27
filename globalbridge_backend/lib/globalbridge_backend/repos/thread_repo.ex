@@ -414,10 +414,16 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
       client_message_id TEXT,
       -- Embedding metadata (to align with main Repo schema)
       embedding BLOB,
-      embedding_model TEXT DEFAULT 'text-embedding-3-large',
+      embedding_model TEXT DEFAULT 'text-embedding-3-small',
       embedding_generated_at INTEGER,
       -- Language detection for translation
       detected_language TEXT,
+      -- Translation fields
+      original_content TEXT,
+      translated_content TEXT,
+      source_language TEXT,
+      target_language TEXT,
+      is_translated INTEGER DEFAULT 0,
       inserted_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -435,6 +441,13 @@ defmodule GlobalbridgeBackend.Repos.ThreadRepo do
     # Backward-compatible upgrades for older DBs
     ensure_column(repo, "messages", "client_message_id", "TEXT")
     ensure_index(repo, "messages_client_message_id_index", "CREATE INDEX IF NOT EXISTS messages_client_message_id_index ON messages(client_message_id)")
+
+    # Ensure translation fields exist for databases created before this change
+    ensure_column(repo, "messages", "original_content", "TEXT")
+    ensure_column(repo, "messages", "translated_content", "TEXT")
+    ensure_column(repo, "messages", "source_language", "TEXT")
+    ensure_column(repo, "messages", "target_language", "TEXT")
+    ensure_column(repo, "messages", "is_translated", "INTEGER DEFAULT 0")
   end
 
   defp ensure_column(repo, table, column, type) do
