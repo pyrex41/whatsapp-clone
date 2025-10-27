@@ -31,7 +31,8 @@ defmodule GlobalbridgeBackend.Auth.Auth0Verifier do
     email = claims["email"]
     name = claims["name"] || claims["nickname"] || claims["preferred_username"]
 
-    Logger.info("🔐 [AUTH0] Token claims: sub=#{auth0_id}, email=#{email}")
+    Logger.info("🔐 [AUTH0] Token claims: sub=#{auth0_id}, email=#{inspect(email)}, name=#{inspect(name)}")
+    Logger.debug("🔐 [AUTH0] Full claims: #{inspect(claims)}")
 
     # Try to find user by auth0_id
     case Repo.get_by(User, auth0_id: auth0_id) do

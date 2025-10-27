@@ -11,13 +11,17 @@ defmodule GlobalbridgeBackend.Contexts.Contacts do
     Repo.get_by(User, email: String.downcase(email))
   end
 
-  @doc "Search users by email pattern (for non-contacts)"
-  def search_users_by_email(email) when is_binary(email) do
-    email_pattern = "%#{String.downcase(email)}%"
+  @doc "Search users by email/username/display_name pattern (for non-contacts)"
+  def search_users_by_email(query) when is_binary(query) do
+    search_pattern = "%#{String.downcase(query)}%"
 
     # Use fragment for SQLite compatibility (SQLite doesn't support ilike)
+    # Search by email, username, or display_name
     from(u in User,
-      where: fragment("lower(?) LIKE ?", u.email, ^email_pattern),
+      where:
+        fragment("lower(COALESCE(?, '')) LIKE ?", u.email, ^search_pattern) or
+          fragment("lower(?) LIKE ?", u.username, ^search_pattern) or
+          fragment("lower(COALESCE(?, '')) LIKE ?", u.display_name, ^search_pattern),
       select: %{
         id: u.id,
         email: u.email,
