@@ -157,8 +157,27 @@ defmodule GlobalbridgeBackendWeb.Router do
       get("/conversation_insights", AIController, :conversation_insights)
     end
 
+    # Bridge Management Routes
+    resources "/bridges", BridgeController, only: [:index, :create, :update, :delete]
+    get "/threads/:thread_id/bridges", BridgeController, :thread_bridges
+
     # Protected API routes will go here
     # Example: resources for threads, messages, etc.
+  end
+
+  # Webhooks (public but validated)
+  scope "/api/webhooks", GlobalbridgeBackendWeb do
+    pipe_through :api
+
+    post "/telegram", TelegramWebhookController, :webhook
+  end
+
+  # Health check endpoints (public)
+  scope "/api", GlobalbridgeBackendWeb do
+    pipe_through :api
+
+    get "/health", HealthController, :index
+    get "/health/bridges", HealthController, :bridges
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
