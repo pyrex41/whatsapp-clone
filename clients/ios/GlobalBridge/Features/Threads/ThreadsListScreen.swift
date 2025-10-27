@@ -198,6 +198,7 @@ struct ThreadRow: View {
                     .background(Capsule().fill(Color.accentColor.opacity(0.2)))
             }
         }
+        .padding(.horizontal, 16)
         .padding(.vertical, 4)
         .background(
             RoundedRectangle(cornerRadius: 12)
