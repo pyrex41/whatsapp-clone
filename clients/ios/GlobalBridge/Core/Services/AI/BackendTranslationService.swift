@@ -369,6 +369,8 @@ final class BackendTranslationService {
             translatedText: basicResult.translatedText,
             sourceLanguage: basicResult.sourceLanguage,
             targetLanguage: targetLanguage,
+            sourceLanguageCode: basicResult.sourceLanguageCode,
+            targetLanguageCode: basicResult.targetLanguageCode,
             confidence: basicResult.confidence ?? 0.95,
             provider: "backend-ai",
             culturalNotes: culturalNotes,
@@ -529,6 +531,8 @@ struct EnhancedTranslationResult: Codable, Equatable {
     let translatedText: String
     let sourceLanguage: String
     let targetLanguage: String
+    let sourceLanguageCode: String?
+    let targetLanguageCode: String?
     let confidence: Double
     let provider: String?
     let culturalNotes: String?
@@ -543,6 +547,8 @@ struct EnhancedTranslationResult: Codable, Equatable {
         case translatedText = "translated_text"
         case sourceLanguage = "source_language"
         case targetLanguage = "target_language"
+        case sourceLanguageCode = "source_language_code"
+        case targetLanguageCode = "target_language_code"
         case confidence
         case provider
         case culturalNotes = "cultural_notes"

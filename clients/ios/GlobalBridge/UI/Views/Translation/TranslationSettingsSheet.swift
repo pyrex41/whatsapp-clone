@@ -87,6 +87,21 @@ struct TranslationSettingsSheet: View {
                         }
                     }
                     .pickerStyle(.inline)
+
+                    // Show target language picker when automatic translation is enabled
+                    if localSettings.translationMode == .automatic {
+                        Picker("Target Language", selection: $localSettings.targetLanguage) {
+                            ForEach(supportedLanguages, id: \.code) { language in
+                                HStack {
+                                    Text(language.flag)
+                                        .font(.title3)
+                                    Text(language.name)
+                                }
+                                .tag(language.code)
+                            }
+                        }
+                        .pickerStyle(.navigationLink)
+                    }
                 } header: {
                     Text("Outgoing Messages")
                 } footer: {
@@ -121,6 +136,25 @@ struct TranslationSettingsSheet: View {
         let locale = Locale.current
         return locale.localizedString(forLanguageCode: code)?.capitalized ?? code.uppercased()
     }
+
+    // Supported languages for translation
+    private let supportedLanguages: [(code: String, name: String, flag: String)] = [
+        ("en", "English", "🇺🇸"),
+        ("es", "Spanish", "🇪🇸"),
+        ("fr", "French", "🇫🇷"),
+        ("de", "German", "🇩🇪"),
+        ("it", "Italian", "🇮🇹"),
+        ("pt", "Portuguese", "🇵🇹"),
+        ("zh", "Chinese", "🇨🇳"),
+        ("ja", "Japanese", "🇯🇵"),
+        ("ko", "Korean", "🇰🇷"),
+        ("ar", "Arabic", "🇸🇦"),
+        ("ru", "Russian", "🇷🇺"),
+        ("hi", "Hindi", "🇮🇳"),
+        ("nl", "Dutch", "🇳🇱"),
+        ("pl", "Polish", "🇵🇱"),
+        ("tr", "Turkish", "🇹🇷")
+    ]
 }
 
 #Preview {

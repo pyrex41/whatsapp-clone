@@ -18,7 +18,7 @@ actor GlobalBannerHandlerRegistry {
 }
 
 struct DatabaseClient {
-    var loadThreads: @Sendable () async throws -> (user: User, threads: [Thread])
+    var loadThreads: @Sendable () async throws -> (user: User, threads: [Thread], users: [String: CachedUserInfo])
     var createThread: @Sendable (_ title: String, _ creator: User) async throws -> Thread
     var saveThread: @Sendable (_ thread: Thread) async throws -> Void
     var loadMessages: @Sendable (_ threadID: UUID) async throws -> [Message]
@@ -64,7 +64,7 @@ extension AppEnvironment {
         let database = DatabaseClient(
             loadThreads: {
                 let threads = await store.loadThreads()
-                return (user: User.sampleCurrent, threads: threads)
+                return (user: User.sampleCurrent, threads: threads, users: [:])
             },
             createThread: { title, creator in
                 await store.createThread(title: title, creator: creator)
@@ -185,12 +185,12 @@ extension AppEnvironment {
                 
                 if localThreads.isEmpty {
                     print("📥 [LOAD_THREADS] No local threads, syncing from backend...")
-                    
+
                     do {
                         // Sync threads from backend via Phoenix bootstrap
-                        let (syncedThreads, _) = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
-                        print("✅ [LOAD_THREADS] Synced \(syncedThreads.count) threads from backend")
-                        return (user: user, threads: syncedThreads)
+                        let result = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
+                        print("✅ [LOAD_THREADS] Synced \(result.threads.count) threads and \(result.users.count) users from backend")
+                        return (user: user, threads: result.threads, users: result.users)
                     } catch {
                         print("❌ [LOAD_THREADS] Bootstrap sync failed: \(error)")
                         print("❌ [LOAD_THREADS] Error details: \(error.localizedDescription)")
@@ -198,7 +198,7 @@ extension AppEnvironment {
                     }
                 } else {
                     print("✅ [LOAD_THREADS] Loaded \(localThreads.count) threads from local DB")
-                    return (user: user, threads: localThreads)
+                    return (user: user, threads: localThreads, users: [:])
                 }
             },
             createThread: { title, creator in
@@ -348,10 +348,12 @@ extension AppEnvironment {
                                 let raw = message.content.replacingOccurrences(of: "\n", with: " ")
                                 let snippet = String(raw.prefix(120))
                                 let title = thread?.title ?? "New message"
+                                print("🔔 [APP_ENV] Creating messageReceived event: thread=\(message.threadId), title=\(title), snippet=\(snippet)")
                                 let event = NotificationEvent.messageReceived(
                                     .init(threadId: message.threadId, title: title, snippet: snippet, avatarURL: nil)
                                 )
                                 await MainActor.run {
+                                    print("🔔 [APP_ENV] Presenting banner on MainActor")
                                     InAppBannerCenter.shared.present(event: event)
                                 }
                                 // Ensure thread exists locally and persist message for non-active threads
@@ -480,8 +482,8 @@ extension AppEnvironment {
                 _ = try? await initializationTask.value
                 do {
                     // Use Phoenix bootstrap so DM titles are resolved per-user server-side
-                    let (syncedThreads, _) = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
-                    print("✅ Initial bootstrap sync applied (\(syncedThreads.count) threads)")
+                    let result = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
+                    print("✅ Initial bootstrap sync applied (\(result.threads.count) threads, \(result.users.count) users)")
                 } catch {
                     print("⚠️ Failed initial bootstrap sync: \\(error.localizedDescription)")
                 }

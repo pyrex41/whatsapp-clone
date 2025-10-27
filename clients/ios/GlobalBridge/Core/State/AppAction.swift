@@ -11,7 +11,7 @@ enum AppAction {
     case authenticationChecked(isAuthenticated: Bool)
     case userAuthenticated
     case loadUserAndThreads
-    case threadsLoaded(Result<(user: User, threads: [Thread]), Error>)
+    case threadsLoaded(Result<(user: User, threads: [Thread], users: [String: CachedUserInfo]), Error>)
     case threadSelected(Thread.ID)
     case setSearchQuery(String)
     case toggleCreationSheet(Bool)
@@ -151,4 +151,7 @@ enum AppAction {
 
     /// Set user's home language for UI and suggestions
     case setUserLanguage(String)
+
+    /// Update user's display name
+    case updateUserDisplayName(String)
 }

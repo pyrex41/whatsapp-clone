@@ -11,10 +11,12 @@ import Foundation
 nonisolated public struct BootstrapResponse: Codable, Sendable {
     public let threads: [ThreadData]
     public let user: UserData
-    
-    public init(threads: [ThreadData], user: UserData) {
+    public let users: [String: BasicUserInfo]?  // User info for all thread participants
+
+    public init(threads: [ThreadData], user: UserData, users: [String: BasicUserInfo]? = nil) {
         self.threads = threads
         self.user = user
+        self.users = users
     }
 }
 

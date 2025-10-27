@@ -86,10 +86,17 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             // Set user from bootstrap
             state.user = result.user
             print("👤 [LOADED] User set: \(result.user.id)")
-            
+
+            // Cache users from bootstrap
+            for (userId, userInfo) in result.users {
+                state.userCache[userId] = userInfo
+                print("👤 [CACHE] Cached user from bootstrap: \(userId) - \(userInfo.effectiveDisplayName)")
+            }
+            print("👥 [LOADED] Cached \(result.users.count) users from bootstrap")
+
             state.threads.items = result.threads
             print("📋 [LOADED] Loaded \(result.threads.count) threads - showing list (not auto-selecting)")
-            
+
             // Don't auto-select any thread - let user choose from the list
             // This provides better UX similar to WhatsApp/iMessage
             return .none
@@ -1217,6 +1224,20 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         state.userLanguage = languageCode
         print("🌐 [SETTINGS] Set user language: \(languageCode)")
         // TODO: Persist to UserDefaults or backend
+        return .none
+
+    case let .updateUserDisplayName(newName):
+        state.user.displayName = newName
+        print("👤 [SETTINGS] Updated user display name: \(newName)")
+
+        // Update in user cache as well (so it shows correctly in UI immediately)
+        state.userCache[state.user.id] = CachedUserInfo(
+            id: state.user.id,
+            displayName: newName,
+            username: state.user.handle,
+            avatarUrl: state.user.avatarURL?.absoluteString
+        )
+
         return .none
     }
 }

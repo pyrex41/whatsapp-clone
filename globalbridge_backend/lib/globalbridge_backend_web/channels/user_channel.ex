@@ -77,11 +77,41 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
       threads = Threads.list_user_threads(user_id)
       Logger.info("📊 [USER_CHANNEL] Found #{length(threads)} threads for user: #{user_id}")
 
-      # Format response
-    response = %{
-      threads: Enum.map(threads, &format_thread_for_user(&1, user_id)),
-      user: format_user(socket.assigns.user)
-    }
+      # Collect all unique participant IDs from all threads
+      all_participant_ids =
+        threads
+        |> Enum.flat_map(fn thread ->
+          thread = Repo.preload(thread, [:thread_participants])
+          Enum.map(thread.thread_participants, & &1.user_id)
+        end)
+        |> Enum.uniq()
+
+      Logger.info("👥 [USER_CHANNEL] Fetching info for #{length(all_participant_ids)} unique participants")
+
+      # Fetch user info for all participants
+      users_map =
+        all_participant_ids
+        |> Enum.map(fn uid -> Repo.get(User, uid) end)
+        |> Enum.reject(&is_nil/1)
+        |> Enum.map(fn user ->
+          {user.id,
+           %{
+             id: user.id,
+             username: user.username,
+             display_name: user.display_name,
+             avatar_url: user.avatar_url
+           }}
+        end)
+        |> Enum.into(%{})
+
+      Logger.info("✅ [USER_CHANNEL] Fetched #{map_size(users_map)} user records")
+
+      # Format response with user info
+      response = %{
+        threads: Enum.map(threads, &format_thread_for_user(&1, user_id)),
+        user: format_user(socket.assigns.user),
+        users: users_map
+      }
 
       Logger.info("✅ [USER_CHANNEL] Bootstrap successful for user: #{user_id}")
       {:reply, {:ok, response}, socket}
@@ -283,6 +313,32 @@ defmodule GlobalbridgeBackendWeb.UserChannel do
       _ ->
         Logger.warning("⚠️  [USER_CHANNEL] Contact not found for removal")
         {:reply, {:error, %{reason: "Contact not found"}}, socket}
+    end
+  end
+
+  @impl true
+  def handle_in("update_display_name", %{"display_name" => new_name}, socket) do
+    user_id = socket.assigns.user_id
+    Logger.info("👤 [USER_CHANNEL] Update display name: user=#{user_id}, new_name=#{new_name}")
+
+    case Repo.get(User, user_id) do
+      nil ->
+        Logger.error("❌ [USER_CHANNEL] User not found: #{user_id}")
+        {:reply, {:error, %{reason: "User not found"}}, socket}
+
+      user ->
+        changeset = User.update_changeset(user, %{display_name: new_name})
+
+        case Repo.update(changeset) do
+          {:ok, updated_user} ->
+            Logger.info("✅ [USER_CHANNEL] Display name updated: #{updated_user.display_name}")
+            {:reply, {:ok, %{display_name: updated_user.display_name}}, socket}
+
+          {:error, changeset} ->
+            errors = format_errors(changeset)
+            Logger.error("❌ [USER_CHANNEL] Failed to update display name: #{inspect(errors)}")
+            {:reply, {:error, %{errors: errors}}, socket}
+        end
     end
   end
 

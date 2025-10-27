@@ -267,6 +267,7 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
             nil
 
           user ->
+            Logger.debug("👤 [FETCH] User #{user.id}: username=#{user.username}, display_name=#{inspect(user.display_name)}")
             {sender_id,
              %{
                id: user.id,

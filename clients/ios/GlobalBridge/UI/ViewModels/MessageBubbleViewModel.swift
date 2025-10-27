@@ -73,8 +73,11 @@ final class MessageBubbleViewModel: ObservableObject {
             )
 
             // Skip translation if detected source language matches target language
-            if result.sourceLanguage == targetLanguage {
-                print("⏭️ [BUBBLE_VM] Skipping translation: message already in target language (\(targetLanguage))")
+            // Use language codes for accurate comparison (backend may return full names in sourceLanguage)
+            let sourceCode = result.sourceLanguageCode ?? result.sourceLanguage
+            let targetCode = result.targetLanguageCode ?? targetLanguage
+            if sourceCode.lowercased() == targetCode.lowercased() {
+                print("⏭️ [BUBBLE_VM] Skipping translation: message already in target language (\(sourceCode) == \(targetCode))")
                 translationError = .featureDisabled(feature: "translation already in target language")
                 isTranslating = false
                 return

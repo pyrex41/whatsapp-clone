@@ -10,6 +10,9 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var store: Store<AppState, AppAction>
+    @State private var displayName: String = ""
+    @State private var isEditingDisplayName: Bool = false
+    @State private var isSavingDisplayName: Bool = false
 
     var body: some View {
         NavigationView {
@@ -26,6 +29,42 @@ struct SettingsView: View {
                 // MARK: - Account
                 Section("Account") {
                     let user = store.state.user
+
+                    // Display Name Editor
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Display Name")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+
+                        HStack {
+                            TextField("Enter your name", text: $displayName)
+                                .textFieldStyle(.roundedBorder)
+                                .disabled(isSavingDisplayName)
+
+                            if isEditingDisplayName {
+                                Button(action: saveDisplayName) {
+                                    if isSavingDisplayName {
+                                        ProgressView()
+                                    } else {
+                                        Text("Save")
+                                            .bold()
+                                    }
+                                }
+                                .disabled(displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSavingDisplayName)
+                            }
+                        }
+
+                        Text("This name will be shown to other users in conversations")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                    .onAppear {
+                        displayName = user.displayName
+                    }
+                    .onChange(of: displayName) { oldValue, newValue in
+                        isEditingDisplayName = newValue.trimmingCharacters(in: .whitespacesAndNewlines) != user.displayName
+                    }
 
                     HStack {
                         Text("Email")
@@ -71,6 +110,43 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Actions
+
+    private func saveDisplayName() {
+        let trimmedName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return }
+
+        isSavingDisplayName = true
+
+        Task {
+            do {
+                // Call backend to update display name
+                try await updateDisplayNameOnBackend(trimmedName)
+
+                // Update local state
+                await MainActor.run {
+                    store.send(.updateUserDisplayName(trimmedName))
+                    isEditingDisplayName = false
+                    isSavingDisplayName = false
+                }
+            } catch {
+                await MainActor.run {
+                    isSavingDisplayName = false
+                    // Show error to user
+                    print("❌ Failed to update display name: \(error)")
+                }
+            }
+        }
+    }
+
+    private func updateDisplayNameOnBackend(_ newName: String) async throws {
+        guard let phoenixManager = store.environment.phoenixManager else {
+            throw NSError(domain: "Settings", code: -1, userInfo: [NSLocalizedDescriptionKey: "Phoenix manager not available"])
+        }
+
+        try await phoenixManager.updateDisplayName(newName)
     }
 }
 

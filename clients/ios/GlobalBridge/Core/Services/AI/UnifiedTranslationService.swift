@@ -34,6 +34,8 @@ struct UnifiedTranslationResult: Codable, Equatable {
     let translatedText: String
     let sourceLanguage: String
     let targetLanguage: String
+    let sourceLanguageCode: String?
+    let targetLanguageCode: String?
     let confidence: Double
     let provider: String
     let culturalNotes: String?
@@ -54,6 +56,8 @@ struct UnifiedTranslationResult: Codable, Equatable {
         case translatedText = "translated_text"
         case sourceLanguage = "source_language"
         case targetLanguage = "target_language"
+        case sourceLanguageCode = "source_language_code"
+        case targetLanguageCode = "target_language_code"
         case confidence
         case provider
         case culturalNotes = "cultural_notes"
@@ -73,6 +77,8 @@ struct UnifiedTranslationResult: Codable, Equatable {
             translatedText: translatedText,
             sourceLanguage: sourceLanguage,
             targetLanguage: targetLanguage,
+            sourceLanguageCode: sourceLanguageCode,
+            targetLanguageCode: targetLanguageCode,
             confidence: confidence,
             provider: provider,
             culturalNotes: culturalNotes,
@@ -358,6 +364,8 @@ final class UnifiedTranslationService: ObservableObject {
                 translatedText: result.translatedText,
                 sourceLanguage: result.sourceLanguage,
                 targetLanguage: result.targetLanguage,
+                sourceLanguageCode: result.sourceLanguageCode,
+                targetLanguageCode: result.targetLanguageCode,
                 confidence: result.confidence ?? 0.85,
                 provider: "apple",
                 culturalNotes: result.culturalNotes,
@@ -412,6 +420,8 @@ final class UnifiedTranslationService: ObservableObject {
                 translatedText: result.translatedText,
                 sourceLanguage: result.sourceLanguage,
                 targetLanguage: result.targetLanguage,
+                sourceLanguageCode: result.sourceLanguageCode,
+                targetLanguageCode: result.targetLanguageCode,
                 confidence: result.confidence,
                 provider: "backend",
                 culturalNotes: result.culturalNotes,
@@ -475,6 +485,8 @@ final class UnifiedTranslationService: ObservableObject {
                 translatedText: backendResult.translatedText,
                 sourceLanguage: backendResult.sourceLanguage,
                 targetLanguage: backendResult.targetLanguage,
+                sourceLanguageCode: backendResult.sourceLanguageCode,
+                targetLanguageCode: backendResult.targetLanguageCode,
                 confidence: backendResult.confidence,
                 provider: "backend",
                 culturalNotes: backendResult.culturalNotes,
@@ -499,6 +511,8 @@ final class UnifiedTranslationService: ObservableObject {
                     translatedText: appleResult.translatedText,
                     sourceLanguage: appleResult.sourceLanguage,
                     targetLanguage: appleResult.targetLanguage,
+                    sourceLanguageCode: appleResult.sourceLanguageCode,
+                    targetLanguageCode: appleResult.targetLanguageCode,
                     confidence: appleResult.confidence ?? 0.85,
                     provider: "apple",
                     culturalNotes: appleResult.culturalNotes,
@@ -519,6 +533,8 @@ final class UnifiedTranslationService: ObservableObject {
                     translatedText: backendResult.translatedText,
                     sourceLanguage: backendResult.sourceLanguage,
                     targetLanguage: backendResult.targetLanguage,
+                    sourceLanguageCode: backendResult.sourceLanguageCode,
+                    targetLanguageCode: backendResult.targetLanguageCode,
                     confidence: backendResult.confidence,
                     provider: "backend",
                     culturalNotes: backendResult.culturalNotes,

@@ -33,10 +33,21 @@ final class InAppBannerCenter: ObservableObject {
     // MARK: - Public API
 
     func presentMessageBanner(threadId: UUID, title: String, subtitle: String, avatarURL: URL? = nil) {
-        guard NotificationConfig.current != .system else { return }
+        print("🔔 [BANNER] presentMessageBanner called: thread=\(threadId), title=\(title), subtitle=\(subtitle)")
+        print("🔔 [BANNER] NotificationConfig.current = \(NotificationConfig.current.rawValue)")
+
+        guard NotificationConfig.current != .system else {
+            print("🔔 [BANNER] Skipping: NotificationConfig is .system")
+            return
+        }
+
+        print("🔔 [BANNER] activeThreadId = \(activeThreadId?.uuidString ?? "nil")")
 
         // Suppress banners for the currently active thread
-        if let active = activeThreadId, active == threadId { return }
+        if let active = activeThreadId, active == threadId {
+            print("🔔 [BANNER] Skipping: message is for active thread")
+            return
+        }
 
         let now = Date()
 
@@ -82,9 +93,14 @@ final class InAppBannerCenter: ObservableObject {
     // MARK: - NotificationEvent API
 
     func present(event: NotificationEvent) {
-        guard NotificationConfig.current != .system else { return }
+        print("🔔 [BANNER] present(event:) called with event type")
+        guard NotificationConfig.current != .system else {
+            print("🔔 [BANNER] Skipping event: NotificationConfig is .system")
+            return
+        }
         switch event {
         case .messageReceived(let msg):
+            print("🔔 [BANNER] Event type: messageReceived for thread \(msg.threadId)")
             presentMessageBanner(
                 threadId: msg.threadId,
                 title: msg.title,
@@ -93,6 +109,7 @@ final class InAppBannerCenter: ObservableObject {
             )
 
         case .threadCreated(let thread):
+            print("🔔 [BANNER] Event type: threadCreated for thread \(thread.threadId)")
             presentMessageBanner(
                 threadId: thread.threadId,
                 title: thread.title,
@@ -120,9 +137,13 @@ final class InAppBannerCenter: ObservableObject {
     // MARK: - Private
 
     private func showNextIfNeeded() {
-        guard current == nil, !queue.isEmpty else { return }
-      
+        guard current == nil, !queue.isEmpty else {
+            print("🔔 [BANNER] showNextIfNeeded: current=\(current != nil ? "showing" : "nil"), queue.count=\(queue.count)")
+            return
+        }
+
         current = queue.removeFirst()
+        print("🔔 [BANNER] ✅ Showing banner: \(current?.title ?? "unknown")")
 
         // Auto-dismiss after 5 seconds
         dismissTask?.cancel()

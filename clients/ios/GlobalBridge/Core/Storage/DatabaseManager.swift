@@ -786,7 +786,7 @@ final class DatabaseManager {
     }
 
     /// Sync threads from backend via Phoenix channel
-    func syncThreadsFromBackend(phoenixManager: PhoenixChannelManager) async throws -> ([Thread], User) {
+    func syncThreadsFromBackend(phoenixManager: PhoenixChannelManager) async throws -> (threads: [Thread], user: User, users: [String: CachedUserInfo]) {
         print("📥 Syncing threads and user from backend...")
 
         // 1. Fetch bootstrap data via Phoenix channel
@@ -799,12 +799,23 @@ final class DatabaseManager {
         let user = User.from(bootstrap.user)
         print("👤 [SYNC] Received user from backend: \(user.id) - \(user.displayName)")
 
-        // 3. Clear existing local threads
+        // 3. Extract user cache from bootstrap
+        let usersCache: [String: CachedUserInfo] = bootstrap.users?.mapValues { userInfo in
+            CachedUserInfo(
+                id: userInfo.id,
+                displayName: userInfo.displayName,
+                username: userInfo.username,
+                avatarUrl: userInfo.avatarUrl
+            )
+        } ?? [:]
+        print("👥 [SYNC] Extracted \(usersCache.count) users from bootstrap for cache")
+
+        // 4. Clear existing local threads
         print("📥 [SYNC] About to clear existing threads")
         try await clearAllThreads()
         print("📥 [SYNC] Cleared existing threads successfully")
-        
-        // 4. Insert backend threads into local database
+
+        // 5. Insert backend threads into local database
         print("🔄 [BOOTSTRAP] Processing \(bootstrap.threads.count) threads from backend")
         for (index, threadData) in bootstrap.threads.enumerated() {
             print("🔄 [BOOTSTRAP] Processing thread \(index + 1)/\(bootstrap.threads.count): \(threadData.id)")
@@ -840,10 +851,10 @@ final class DatabaseManager {
             print("🔄 [BOOTSTRAP] Successfully processed thread \(thread.id)")
         }
         print("🔄 [BOOTSTRAP] Finished processing all threads")
-        
+
         let threads = try await fetchThreads()
         print("✅ Synced \(bootstrap.threads.count) threads and user from backend")
-        return (threads, user)
+        return (threads: threads, user: user, users: usersCache)
     }
 
     /// Create thread locally only (used during sync)

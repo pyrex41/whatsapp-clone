@@ -740,6 +740,8 @@ struct TranslationComparisonView: View {
             translatedText: "Hola, ¿cómo estás hoy?",
             sourceLanguage: "en",
             targetLanguage: "es",
+            sourceLanguageCode: "en",
+            targetLanguageCode: "es",
             confidence: 0.95,
             provider: "backend",
             culturalNotes: "In Spanish, formal 'usted' form could be used for more respectful greetings",
@@ -753,7 +755,7 @@ struct TranslationComparisonView: View {
         )
     )
 
-    return TranslationComparisonView(
+    TranslationComparisonView(
         comparison: comparison,
         onVote: { preference in
             print("User voted: \(preference.rawValue)")
@@ -771,6 +773,8 @@ struct TranslationComparisonView: View {
             translatedText: "Buenos días!",
             sourceLanguage: "en",
             targetLanguage: "es",
+            sourceLanguageCode: "en",
+            targetLanguageCode: "es",
             confidence: 0.92,
             provider: "apple",
             culturalNotes: "Common morning greeting in Spanish-speaking countries",
@@ -784,7 +788,7 @@ struct TranslationComparisonView: View {
         )
     )
 
-    return TranslationComparisonView(
+    TranslationComparisonView(
         comparison: comparison
     )
 }
@@ -796,6 +800,8 @@ struct TranslationComparisonView: View {
             translatedText: "Gracias",
             sourceLanguage: "en",
             targetLanguage: "es",
+            sourceLanguageCode: "en",
+            targetLanguageCode: "es",
             confidence: 0.98,
             provider: "backend",
             culturalNotes: nil,
@@ -809,7 +815,7 @@ struct TranslationComparisonView: View {
         )
     )
 
-    return TranslationComparisonView(comparison: comparison)
+    TranslationComparisonView(comparison: comparison)
 }
 
 #Preview("Dark Mode") {
@@ -819,6 +825,8 @@ struct TranslationComparisonView: View {
             translatedText: "¿Dónde está el restaurante más cercano?",
             sourceLanguage: "en",
             targetLanguage: "es",
+            sourceLanguageCode: "en",
+            targetLanguageCode: "es",
             confidence: 0.91,
             provider: "backend",
             culturalNotes: "Use 'más cercano' for nearest in distance",
@@ -832,6 +840,6 @@ struct TranslationComparisonView: View {
         )
     )
 
-    return TranslationComparisonView(comparison: comparison)
+    TranslationComparisonView(comparison: comparison)
         .preferredColorScheme(.dark)
 }

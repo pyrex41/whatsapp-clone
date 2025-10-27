@@ -22,6 +22,13 @@ struct TranslationResult: Codable, Equatable {
     /// Target language (ISO 639-1 code)
     let targetLanguage: String
 
+    /// Source language code (ISO 639-1) for accurate comparison
+    /// Some backends return full language names in sourceLanguage, so this provides the code
+    let sourceLanguageCode: String?
+
+    /// Target language code (ISO 639-1) for accurate comparison
+    let targetLanguageCode: String?
+
     /// Translation confidence score (0.0 to 1.0)
     /// Higher values indicate more confident translation
     let confidence: Double?
@@ -43,6 +50,8 @@ struct TranslationResult: Codable, Equatable {
         case translatedText = "translated_text"
         case sourceLanguage = "source_language"
         case targetLanguage = "target_language"
+        case sourceLanguageCode = "source_language_code"
+        case targetLanguageCode = "target_language_code"
         case confidence
         case provider
         case culturalNotes = "cultural_notes"
@@ -56,6 +65,8 @@ struct TranslationResult: Codable, Equatable {
         translatedText: String,
         sourceLanguage: String,
         targetLanguage: String,
+        sourceLanguageCode: String? = nil,
+        targetLanguageCode: String? = nil,
         confidence: Double? = nil,
         provider: String? = nil,
         culturalNotes: String? = nil,
@@ -65,6 +76,8 @@ struct TranslationResult: Codable, Equatable {
         self.translatedText = translatedText
         self.sourceLanguage = sourceLanguage
         self.targetLanguage = targetLanguage
+        self.sourceLanguageCode = sourceLanguageCode
+        self.targetLanguageCode = targetLanguageCode
         self.confidence = confidence
         self.provider = provider
         self.culturalNotes = culturalNotes
@@ -81,6 +94,8 @@ struct TranslationAPIResponse: Codable {
     let translation: String
     let sourceLanguage: String
     let targetLanguage: String
+    let sourceLanguageCode: String?
+    let targetLanguageCode: String?
     let confidence: Double?
     let provider: String?
     let culturalNotes: String?
@@ -90,6 +105,8 @@ struct TranslationAPIResponse: Codable {
         case translation
         case sourceLanguage = "source_language"
         case targetLanguage = "target_language"
+        case sourceLanguageCode = "source_language_code"
+        case targetLanguageCode = "target_language_code"
         case confidence
         case provider
         case culturalNotes = "cultural_notes"
@@ -102,6 +119,8 @@ struct TranslationAPIResponse: Codable {
             translatedText: translation,
             sourceLanguage: sourceLanguage,
             targetLanguage: targetLanguage,
+            sourceLanguageCode: sourceLanguageCode,
+            targetLanguageCode: targetLanguageCode,
             confidence: confidence,
             provider: provider,
             culturalNotes: culturalNotes,

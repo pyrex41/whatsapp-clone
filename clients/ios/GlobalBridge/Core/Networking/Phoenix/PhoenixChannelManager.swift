@@ -612,13 +612,13 @@ public actor PhoenixChannelManager {
         guard let userId = currentUserId else {
             throw PhoenixError.notConnected
         }
-        
+
         guard let channel = channel(for: "user:\(userId)") else {
             throw PhoenixError.channelNotJoined
         }
-        
+
         print("➖ [CONTACTS] Removing contact: \(contactUserId)")
-        
+
         return try await withCheckedThrowingContinuation { continuation in
             channel.push("remove_contact", payload: ["contact_user_id": contactUserId])
                 .receive("ok") { _ in
@@ -628,6 +628,36 @@ public actor PhoenixChannelManager {
                 .receive("error") { message in
                     print("❌ [CONTACTS] Remove failed: \(message.payload)")
                     continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
+                }
+        }
+    }
+
+    /// Update user's display name
+    public func updateDisplayName(_ newName: String) async throws {
+        guard let userId = currentUserId else {
+            throw PhoenixError.notConnected
+        }
+
+        guard let channel = channel(for: "user:\(userId)") else {
+            throw PhoenixError.channelNotJoined
+        }
+
+        print("👤 [UPDATE_NAME] Updating display name: \(newName)")
+
+        return try await withCheckedThrowingContinuation { continuation in
+            channel.push("update_display_name", payload: ["display_name": newName])
+                .receive("ok") { response in
+                    print("✅ [UPDATE_NAME] Display name updated successfully")
+                    print("✅ [UPDATE_NAME] Response: \(response.payload)")
+                    continuation.resume()
+                }
+                .receive("error") { message in
+                    print("❌ [UPDATE_NAME] Update failed: \(message.payload)")
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
+                }
+                .receive("timeout") { _ in
+                    print("❌ [UPDATE_NAME] Request timed out")
+                    continuation.resume(throwing: PhoenixError.timeout)
                 }
         }
     }

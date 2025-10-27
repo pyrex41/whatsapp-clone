@@ -117,16 +117,8 @@ defmodule GlobalbridgeBackend.AI.Agents.SummarizerAgent do
       #{config().prompt.constraints}
       """
 
-      # Call the OpenAI serving directly (will use SUMMARIZER_MODEL from env)
-      case GenServer.call(
-             :openai_serving,
-             {:run,
-              %Agens.Message{
-                input: context,
-                prompt: full_prompt
-              }},
-             60_000
-           ) do
+      # Call the API directly to avoid GenServer timeout issues
+      case call_summarization_api(full_prompt, model) do
         {:ok, result} when is_binary(result) ->
           parse_summary_result(result)
 
@@ -215,6 +207,109 @@ defmodule GlobalbridgeBackend.AI.Agents.SummarizerAgent do
   def valid_summary?(_), do: false
 
   # Private functions
+
+  defp call_summarization_api(prompt, model) do
+    # Determine provider based on model
+    provider = cond do
+      String.starts_with?(model, "grok-") -> :xai
+      String.contains?(model, "llama") or String.contains?(model, "mixtral") -> :groq
+      true -> :groq  # Default to Groq
+    end
+
+    case provider do
+      :xai -> call_xai(prompt, model)
+      :groq -> call_groq(prompt, model)
+    end
+  end
+
+  defp call_groq(prompt, model) do
+    api_key = System.get_env("GROQ_API_KEY")
+
+    if is_nil(api_key) do
+      {:error, "GROQ_API_KEY not set"}
+    else
+      url = "https://api.groq.com/openai/v1/chat/completions"
+
+      headers = [
+        {"Authorization", "Bearer #{api_key}"},
+        {"Content-Type", "application/json"}
+      ]
+
+      body = Jason.encode!(%{
+        model: model,
+        messages: [
+          %{role: "system", content: "You are an expert conversation analyst. Always respond with valid JSON."},
+          %{role: "user", content: prompt}
+        ],
+        max_tokens: 2000,
+        temperature: 0.1,
+        response_format: %{type: "json_object"}
+      })
+
+      case HTTPoison.post(url, body, headers, recv_timeout: 60_000, timeout: 60_000) do
+        {:ok, %{status_code: 200, body: response_body}} ->
+          case Jason.decode(response_body) do
+            {:ok, %{"choices" => [%{"message" => %{"content" => content}} | _]}} ->
+              {:ok, content}
+            {:error, reason} ->
+              Logger.error("Failed to decode Groq response: #{inspect(reason)}")
+              {:error, "JSON decode failed"}
+          end
+
+        {:ok, %{status_code: status_code, body: error_body}} ->
+          Logger.error("Groq API error: #{status_code} - #{error_body}")
+          {:error, "API returned status #{status_code}"}
+
+        {:error, %HTTPoison.Error{reason: reason}} ->
+          Logger.error("HTTP error calling Groq: #{inspect(reason)}")
+          {:error, "Network error: #{inspect(reason)}"}
+      end
+    end
+  end
+
+  defp call_xai(prompt, model) do
+    api_key = System.get_env("XAI_API_KEY")
+
+    if is_nil(api_key) do
+      {:error, "XAI_API_KEY not set"}
+    else
+      url = "https://api.x.ai/v1/chat/completions"
+
+      headers = [
+        {"Authorization", "Bearer #{api_key}"},
+        {"Content-Type", "application/json"}
+      ]
+
+      body = Jason.encode!(%{
+        model: model,
+        messages: [
+          %{role: "system", content: "You are an expert conversation analyst. Always respond with valid JSON."},
+          %{role: "user", content: prompt}
+        ],
+        max_tokens: 2000,
+        temperature: 0.1
+      })
+
+      case HTTPoison.post(url, body, headers, recv_timeout: 60_000, timeout: 60_000) do
+        {:ok, %{status_code: 200, body: response_body}} ->
+          case Jason.decode(response_body) do
+            {:ok, %{"choices" => [%{"message" => %{"content" => content}} | _]}} ->
+              {:ok, content}
+            {:error, reason} ->
+              Logger.error("Failed to decode XAI response: #{inspect(reason)}")
+              {:error, "JSON decode failed"}
+          end
+
+        {:ok, %{status_code: status_code, body: error_body}} ->
+          Logger.error("XAI API error: #{status_code} - #{error_body}")
+          {:error, "API returned status #{status_code}"}
+
+        {:error, %HTTPoison.Error{reason: reason}} ->
+          Logger.error("HTTP error calling XAI: #{inspect(reason)}")
+          {:error, "Network error: #{inspect(reason)}"}
+      end
+    end
+  end
 
   defp extract_json_from_output(output) do
     # Try to extract JSON from code blocks first
