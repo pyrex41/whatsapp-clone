@@ -124,7 +124,8 @@ struct ReadReceiptIndicatorView: View {
                 timestamp: Date(),
                 status: .sent,
                 metadata: nil,
-                clientMessageId: nil
+                clientMessageId: nil,
+                detectedLanguage: nil
             ),
             isOwnMessage: true,
             readCount: 0,
@@ -142,7 +143,8 @@ struct ReadReceiptIndicatorView: View {
                 timestamp: Date().addingTimeInterval(-60),
                 status: .read,
                 metadata: nil,
-                clientMessageId: nil
+                clientMessageId: nil,
+                detectedLanguage: nil
             ),
             isOwnMessage: true,
             readCount: 1,
@@ -160,7 +162,8 @@ struct ReadReceiptIndicatorView: View {
                 timestamp: Date().addingTimeInterval(-120),
                 status: .delivered,
                 metadata: nil,
-                clientMessageId: nil
+                clientMessageId: nil,
+                detectedLanguage: nil
             ),
             isOwnMessage: false,
             readCount: 0,
@@ -178,7 +181,8 @@ struct ReadReceiptIndicatorView: View {
                 timestamp: Date().addingTimeInterval(-180),
                 status: .read,
                 metadata: nil,
-                clientMessageId: nil
+                clientMessageId: nil,
+                detectedLanguage: nil
             ),
             isOwnMessage: true,
             readCount: 3,

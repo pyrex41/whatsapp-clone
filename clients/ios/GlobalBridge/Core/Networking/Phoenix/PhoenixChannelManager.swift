@@ -1218,6 +1218,7 @@ public actor PhoenixChannelManager {
 
         let clientMessageId = payload["client_message_id"] as? String
         let senderDisplayName = payload["sender_display_name"] as? String
+        let detectedLanguage = payload["detected_language"] as? String
 
         return PhoenixMessage(
             id: id,
@@ -1228,7 +1229,8 @@ public actor PhoenixChannelManager {
             timestamp: timestamp,
             status: status,
             metadata: metadata,
-            clientMessageId: clientMessageId
+            clientMessageId: clientMessageId,
+            detectedLanguage: detectedLanguage
         )
     }
 
