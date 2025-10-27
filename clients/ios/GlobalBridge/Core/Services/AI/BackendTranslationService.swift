@@ -342,14 +342,14 @@ final class BackendTranslationService {
         context: [String]?,
         formality: FormalityLevel?
     ) async throws -> EnhancedTranslationResult {
-        // Use the basic AIService.translate() method
-        // In a real implementation, we would extend the backend API to accept
-        // context, formality, and other parameters
+        // Use the AIService.translate() method with formality support
+        // Pass formality as string to match backend API expectations
 
         let basicResult = try await aiService.translate(
             text: text,
             sourceLanguage: sourceLanguage,
-            targetLanguage: targetLanguage
+            targetLanguage: targetLanguage,
+            formality: formality?.rawValue
         )
 
         // Enhance the basic result with additional features
@@ -555,10 +555,37 @@ struct EnhancedTranslationResult: Codable, Equatable {
 }
 
 /// Formality level for translations
-enum FormalityLevel: String, Codable {
+enum FormalityLevel: String, Codable, CaseIterable, Identifiable {
     case formal = "formal"
     case neutral = "neutral"
     case informal = "informal"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .informal:
+            return "Casual"
+        case .neutral:
+            return "Neutral"
+        case .formal:
+            return "Formal"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .informal:
+            return "Informal, friendly tone"
+        case .neutral:
+            return "Standard, balanced tone"
+        case .formal:
+            return "Professional, polite tone"
+        }
+    }
+
+    /// Default formality level
+    static let `default`: FormalityLevel = .neutral
 }
 
 /// Translation history entry for learning

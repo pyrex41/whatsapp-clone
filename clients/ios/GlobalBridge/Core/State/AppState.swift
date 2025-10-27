@@ -26,11 +26,15 @@ struct AppState: Equatable {
     // MARK: - AI Features - Translation
     var translationPreferences: TranslationPreferences = .default
     var messageTranslations: [String: String] = [:] // messageId -> translated text
+    var threadTranslationSettings: [String: ThreadTranslationSettings] = [:] // threadId -> settings
 
     // MARK: - AI Features - Monitoring
     var monitoredThreads: Set<String> = []
     var aiInsightsVisible: Bool = false
     var currentThreadId: String?
+
+    // MARK: - User Preferences
+    var userLanguage: String = "en" // User's home language for UI and suggestions
 
     init(
         user: User = .sampleCurrent,
@@ -46,9 +50,11 @@ struct AppState: Equatable {
         styleLearningEnabled: Bool = true,
         translationPreferences: TranslationPreferences = .default,
         messageTranslations: [String: String] = [:],
+        threadTranslationSettings: [String: ThreadTranslationSettings] = [:],
         monitoredThreads: Set<String> = [],
         aiInsightsVisible: Bool = false,
-        currentThreadId: String? = nil
+        currentThreadId: String? = nil,
+        userLanguage: String = "en"
     ) {
         self.user = user
         self.threads = threads
@@ -63,9 +69,11 @@ struct AppState: Equatable {
         self.styleLearningEnabled = styleLearningEnabled
         self.translationPreferences = translationPreferences
         self.messageTranslations = messageTranslations
+        self.threadTranslationSettings = threadTranslationSettings
         self.monitoredThreads = monitoredThreads
         self.aiInsightsVisible = aiInsightsVisible
         self.currentThreadId = currentThreadId
+        self.userLanguage = userLanguage
     }
 }
 

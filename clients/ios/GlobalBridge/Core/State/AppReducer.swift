@@ -1054,6 +1054,54 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         print("✅ [TRANSLATION] Updated preferences: auto-translate=\(preferences.autoTranslateEnabled)")
         return .none
 
+    // MARK: Thread-Specific Translation Settings
+
+    case let .updateThreadTranslationSettings(threadId, settings):
+        state.threadTranslationSettings[threadId] = settings
+        print("✅ [THREAD_TRANSLATION] Updated settings for thread \(threadId):")
+        print("   - Target language: \(settings.targetLanguage)")
+        print("   - Show suggestions: \(settings.showSuggestions)")
+        print("   - Formality: \(settings.defaultFormality.displayName)")
+        print("   - Auto-translate incoming: \(settings.autoTranslateIncoming)")
+        print("   - Translation mode: \(settings.translationMode.displayName)")
+        // TODO: Persist to UserDefaults or backend
+        return .none
+
+    case let .toggleShowSuggestions(threadId):
+        var settings = state.threadTranslationSettings[threadId] ?? .default
+        settings.showSuggestions.toggle()
+        state.threadTranslationSettings[threadId] = settings
+        print("✅ [THREAD_TRANSLATION] Toggled show suggestions for thread \(threadId): \(settings.showSuggestions)")
+        return .none
+
+    case let .setTranslationMode(threadId, mode):
+        var settings = state.threadTranslationSettings[threadId] ?? .default
+        settings.translationMode = mode
+        state.threadTranslationSettings[threadId] = settings
+        print("✅ [THREAD_TRANSLATION] Set translation mode for thread \(threadId): \(mode.displayName)")
+        return .none
+
+    case let .setFormality(threadId, level):
+        var settings = state.threadTranslationSettings[threadId] ?? .default
+        settings.defaultFormality = level
+        state.threadTranslationSettings[threadId] = settings
+        print("✅ [THREAD_TRANSLATION] Set formality for thread \(threadId): \(level.displayName)")
+        return .none
+
+    case let .toggleAutoTranslateIncoming(threadId):
+        var settings = state.threadTranslationSettings[threadId] ?? .default
+        settings.autoTranslateIncoming.toggle()
+        state.threadTranslationSettings[threadId] = settings
+        print("✅ [THREAD_TRANSLATION] Toggled auto-translate incoming for thread \(threadId): \(settings.autoTranslateIncoming)")
+        return .none
+
+    case let .setThreadTargetLanguage(threadId, language):
+        var settings = state.threadTranslationSettings[threadId] ?? .default
+        settings.targetLanguage = language
+        state.threadTranslationSettings[threadId] = settings
+        print("✅ [THREAD_TRANSLATION] Set target language for thread \(threadId): \(language)")
+        return .none
+
     // MARK: Style Learning Actions
 
     case let .styleProfileUpdated(profile):
@@ -1089,6 +1137,14 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
     case let .setCurrentThread(threadId):
         state.currentThreadId = threadId
         print("📍 [INSIGHTS] Set current thread: \(threadId ?? "nil")")
+        return .none
+
+    // MARK: User Preferences
+
+    case let .setUserLanguage(languageCode):
+        state.userLanguage = languageCode
+        print("🌐 [SETTINGS] Set user language: \(languageCode)")
+        // TODO: Persist to UserDefaults or backend
         return .none
     }
 }

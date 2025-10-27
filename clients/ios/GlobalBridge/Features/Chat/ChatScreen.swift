@@ -12,8 +12,8 @@ struct ChatScreen: View {
     @State private var isAtBottom = true
     @State private var hasFetchedSuggestions = false // Track if we've fetched for this thread
     @State private var lastFetchTime: Date? = nil // For debouncing
-    @State private var hasInteractedWithComposer = false // Track if user has focused composer
     @State private var smartReplyExpanded = false // Track if suggestions are expanded
+    @State private var showTranslationSettings = false // Translation settings sheet
 
     private var chatState: ChatState { store.state.chat }
 
@@ -119,9 +119,10 @@ struct ChatScreen: View {
             }
 
             Divider()
-            // Only show smart reply suggestions after user has interacted with composer
-            if hasInteractedWithComposer {
-                let threadId = thread.id.uuidString
+            // Show smart reply suggestions if enabled in thread settings
+            let threadId = thread.id.uuidString
+            let threadSettings = store.state.threadTranslationSettings[threadId] ?? .default
+            if threadSettings.showSuggestions {
                 let hasSuggestions = !(store.state.smartReplySuggestions[threadId] ?? []).isEmpty
                 let isLoading = store.state.smartReplyLoading[threadId] ?? false
                 let hasError = !(store.state.smartReplyErrors[threadId] ?? "").isEmpty
@@ -130,6 +131,10 @@ struct ChatScreen: View {
                     smartReplySection(thread: thread)
                 }
             }
+
+            // Translation settings button (positioned above composer)
+            translationSettingsButton(thread: thread)
+
             composerSection
         }
         .onAppear { onAppear(thread: thread) }
@@ -137,7 +142,6 @@ struct ChatScreen: View {
             InAppBannerCenter.shared.setActiveThread(newId)
             hasFetchedSuggestions = false
             lastFetchTime = nil
-            hasInteractedWithComposer = false // Reset for new thread
         }
         .onDisappear { onDisappear(thread: thread) }
         .toolbar { toolbar(thread: thread) }
@@ -158,13 +162,15 @@ struct ChatScreen: View {
             error: nil, // Error handling done via separate banner below for now
             translationEnabled: false,
             styleLearningEnabled: store.state.styleLearningEnabled,
-            onSuggestionTap: { suggestion, timeToResponseMs in
-                store.send(.acceptSuggestion(threadId: threadId, suggestion: suggestion, modifiedContent: nil))
+            onSuggestionTap: { suggestion, textToInsert, timeToResponseMs in
+                // Pass the text to insert (could be English or Spanish depending on toggle state)
+                let modifiedContent = textToInsert != suggestion.content ? textToInsert : nil
+                store.send(.acceptSuggestion(threadId: threadId, suggestion: suggestion, modifiedContent: modifiedContent))
                 store.send(.recordFeedback(
                     SuggestionFeedback(
                         suggestionId: suggestion.id,
                         accepted: true,
-                        modifiedContent: nil,
+                        modifiedContent: modifiedContent,
                         rejectionReason: nil,
                         timeToResponseMs: timeToResponseMs,
                         timestamp: Date()
@@ -203,6 +209,39 @@ struct ChatScreen: View {
         }
     }
 
+    @ViewBuilder
+    private func translationSettingsButton(thread: Thread) -> some View {
+        let threadId = thread.id.uuidString
+        let threadSettings = store.state.threadTranslationSettings[threadId] ?? .default
+
+        HStack {
+            Spacer()
+            Button(action: {
+                showTranslationSettings = true
+            }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "gearshape")
+                        .font(.caption)
+                    Text("Translation Settings")
+                        .font(.caption)
+                }
+                .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 4)
+        .sheet(isPresented: $showTranslationSettings) {
+            TranslationSettingsSheet(
+                settings: .constant(threadSettings),
+                threadId: threadId,
+                onSave: { newSettings in
+                    store.send(.updateThreadTranslationSettings(threadId: threadId, settings: newSettings))
+                }
+            )
+        }
+    }
+
     private var composerSection: some View {
         MessageComposerView(
             text: store.binding(
@@ -223,11 +262,6 @@ struct ChatScreen: View {
         .padding(.vertical, 8)
         .onChange(of: composerFocused) { old, new in
             print("⌨️ [COMPOSER] Focus changed: \(old) -> \(new)")
-            // Mark that user has interacted with composer (show suggestions)
-            if new && !hasInteractedWithComposer {
-                hasInteractedWithComposer = true
-                print("✨ [SMART_REPLY] User focused composer - showing preloaded suggestions")
-            }
         }
     }
 

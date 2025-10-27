@@ -102,6 +102,7 @@ struct LanguagePickerSheet: View {
                             }
                         }
                         .padding(.vertical, 4)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                 }

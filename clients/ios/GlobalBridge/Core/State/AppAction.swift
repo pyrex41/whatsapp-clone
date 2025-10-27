@@ -93,6 +93,26 @@ enum AppAction {
     /// Update user translation preferences
     case updateTranslationPreferences(TranslationPreferences)
 
+    // MARK: - Thread-Specific Translation Settings
+
+    /// Update thread translation settings
+    case updateThreadTranslationSettings(threadId: String, settings: ThreadTranslationSettings)
+
+    /// Toggle show suggestions for a thread
+    case toggleShowSuggestions(threadId: String)
+
+    /// Set translation mode for a thread
+    case setTranslationMode(threadId: String, mode: TranslationMode)
+
+    /// Set formality level for a thread
+    case setFormality(threadId: String, level: FormalityLevel)
+
+    /// Toggle auto-translate incoming messages for a thread
+    case toggleAutoTranslateIncoming(threadId: String)
+
+    /// Set target language for a thread
+    case setThreadTargetLanguage(threadId: String, language: String)
+
     // MARK: - AI Features: Style Learning
 
     /// User style profile updated from backend
@@ -114,4 +134,9 @@ enum AppAction {
 
     /// Set current active thread for insights
     case setCurrentThread(threadId: String?)
+
+    // MARK: - User Preferences
+
+    /// Set user's home language for UI and suggestions
+    case setUserLanguage(String)
 }
