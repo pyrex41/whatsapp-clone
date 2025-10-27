@@ -17,13 +17,13 @@ struct SmartReplyComposerView: View {
     let suggestions: [SmartReplySuggestion]
     let isLoading: Bool
     let error: AIServiceError?
-    let translationEnabled: Bool
     let styleLearningEnabled: Bool
+    let translationMode: TranslationMode // Thread translation mode
     let onSuggestionTap: (SmartReplySuggestion, String, Int) -> Void // Now includes (suggestion, textToInsert, timeToResponseMs)
     let onSuggestionDismiss: ((SmartReplySuggestion) -> Void)?
-    let onTranslationToggle: () -> Void
     let onRetry: (() -> Void)?
     let onExpandToggle: ((Bool) -> Void)? // Callback when expansion state changes
+    let onTranslationSettings: (() -> Void)? // Callback when translation settings tapped
 
     // MARK: - State
 
@@ -32,7 +32,52 @@ struct SmartReplyComposerView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 2) {
+            // Learning indicator + expand button on same line
+            if styleLearningEnabled && (!suggestions.isEmpty || isLoading) {
+                HStack(spacing: 8) {
+                    compactLearningIndicator
+
+                    // Show more button inline with sparkles (if applicable)
+                    if !isLoading && suggestions.count > 1 {
+                        Button(action: {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                isExpanded.toggle()
+                                onExpandToggle?(isExpanded)
+                            }
+                        }) {
+                            HStack(spacing: 4) {
+                                Text(isExpanded ? "Show less" : "Show \(suggestions.count - 1) more")
+                                    .font(.caption2)
+                                Image(systemName: "chevron.down")
+                                    .font(.caption2)
+                                    .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                            }
+                            .foregroundColor(.secondary)
+                        }
+                        .accessibilityLabel(isExpanded ? "Hide additional suggestions" : "Show \(suggestions.count - 1) more suggestions")
+                    }
+
+                    Spacer()
+
+                    // Translation settings button inline with sparkles and show more
+                    if let onTranslationSettings = onTranslationSettings {
+                        Button(action: onTranslationSettings) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "gearshape")
+                                    .font(.caption)
+                                Text("Translation Settings")
+                                    .font(.caption)
+                            }
+                            .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Translation settings")
+                    }
+                }
+                .padding(.bottom, 2)
+            }
+
             if let error = error {
                 errorView(error)
             } else if isLoading {
@@ -40,24 +85,10 @@ struct SmartReplyComposerView: View {
             } else if !suggestions.isEmpty {
                 suggestionsView
             }
-
-            if !suggestions.isEmpty || isLoading {
-                HStack(spacing: 8) {
-                    // Compact learning indicator (just icon)
-                    if styleLearningEnabled {
-                        compactLearningIndicator
-                    }
-
-                    Spacer()
-
-                    // Compact translation toggle
-                    compactTranslationToggle
-                }
-            }
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.vertical, 4)
         .background(Color(.systemBackground))
         .accessibilityIdentifier("SmartReplyBar")
     }
@@ -78,34 +109,12 @@ struct SmartReplyComposerView: View {
     // MARK: - Suggestions View
 
     private var suggestionsView: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            // Top row: expand/collapse button in top right (only show if we have more than 1 suggestion)
-            if suggestions.count > 1 {
-                HStack {
-                    Spacer()
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            isExpanded.toggle()
-                            onExpandToggle?(isExpanded)
-                        }
-                    }) {
-                        HStack(spacing: 4) {
-                            Text(isExpanded ? "Show less" : "Show \(suggestions.count - 1) more")
-                                .font(.caption2)
-                            Image(systemName: "chevron.down")
-                                .font(.caption2)
-                        }
-                        .foregroundColor(.secondary)
-                    }
-                    .accessibilityLabel(isExpanded ? "Hide additional suggestions" : "Show \(suggestions.count - 1) more suggestions")
-                }
-                .padding(.bottom, 4)
-            }
-
+        VStack(alignment: .leading, spacing: 3) {
             // Show first suggestion always
             if let firstSuggestion = suggestions.first {
                 SuggestionChip(
                     suggestion: firstSuggestion,
+                    translationMode: translationMode,
                     onTap: { textToInsert, timeToResponseMs in
                         onSuggestionTap(firstSuggestion, textToInsert, timeToResponseMs)
                     },
@@ -122,6 +131,7 @@ struct SmartReplyComposerView: View {
                 ForEach(suggestions.dropFirst().prefix(2)) { suggestion in
                     SuggestionChip(
                         suggestion: suggestion,
+                        translationMode: translationMode,
                         onTap: { textToInsert, timeToResponseMs in
                             onSuggestionTap(suggestion, textToInsert, timeToResponseMs)
                         },
@@ -144,48 +154,6 @@ struct SmartReplyComposerView: View {
             .font(.caption)
             .foregroundColor(.purple)
             .accessibilityLabel("Style learning is active")
-    }
-
-    // MARK: - Learning Indicator (old, kept for compatibility)
-
-    private var learningIndicator: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "sparkles")
-                .font(.caption2)
-                .foregroundColor(.purple)
-            Text("Learning from your messages")
-                .font(.caption2)
-                .foregroundColor(.secondary)
-        }
-        .accessibilityLabel("Style learning is active")
-    }
-
-    // MARK: - Compact Translation Toggle
-
-    private var compactTranslationToggle: some View {
-        Button(action: onTranslationToggle) {
-            Image(systemName: translationEnabled ? "globe" : "globe")
-                .font(.caption)
-                .foregroundColor(translationEnabled ? .blue : .gray)
-        }
-        .accessibilityLabel(translationEnabled ? "Translation enabled" : "Translation disabled")
-        .accessibilityHint("Double tap to toggle translation")
-    }
-
-    // MARK: - Translation Toggle (old, kept for compatibility)
-
-    private var translationToggleView: some View {
-        Button(action: onTranslationToggle) {
-            HStack(spacing: 4) {
-                Image(systemName: translationEnabled ? "checkmark.circle.fill" : "circle")
-                    .font(.caption)
-                Text("Translate")
-                    .font(.caption)
-            }
-            .foregroundColor(translationEnabled ? .blue : .gray)
-        }
-        .accessibilityLabel(translationEnabled ? "Translation enabled" : "Translation disabled")
-        .accessibilityHint("Double tap to toggle translation")
     }
 
     // MARK: - Error View
@@ -241,6 +209,7 @@ struct SmartReplyComposerView: View {
 
 private struct SuggestionChip: View {
     let suggestion: SmartReplySuggestion
+    let translationMode: TranslationMode
     let onTap: (String, Int) -> Void // Now receives (textToInsert, timeToResponseMs)
     let onDismiss: (SmartReplySuggestion) -> Void
     var isCompact: Bool = false
@@ -249,7 +218,6 @@ private struct SuggestionChip: View {
     @State private var isDismissed: Bool = false
     @State private var dragOffset: CGFloat = 0
     @State private var showDismissButton: Bool = false
-    @State private var showTranslation: Bool = false
 
     var body: some View {
         Button(action: handleTap) {
@@ -260,26 +228,10 @@ private struct SuggestionChip: View {
                         .foregroundColor(.purple)
                 }
 
-                // Show either original content or translated text based on toggle
-                Text(currentDisplayText)
+                // Always show original content (not translated)
+                Text(suggestion.content)
                     .font(isCompact ? .callout : .body)
                     .lineLimit(1)
-
-                // Translation toggle button (only show if translation is available)
-                if suggestion.translatedText != nil {
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3)) {
-                            showTranslation.toggle()
-                        }
-                    }) {
-                        Image(systemName: showTranslation ? "globe.americas.fill" : "globe")
-                            .font(.caption2)
-                            .foregroundColor(showTranslation ? .blue : .gray)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(showTranslation ? "Showing translation" : "Show translation")
-                    .accessibilityHint("Double tap to toggle translation")
-                }
             }
             .padding(.horizontal, isCompact ? 10 : 12)
             .padding(.vertical, isCompact ? 6 : 8)
@@ -369,12 +321,16 @@ private struct SuggestionChip: View {
         }
     }
 
-    /// Get the currently displayed text (either original or translated)
-    private var currentDisplayText: String {
-        if showTranslation, let translated = suggestion.translatedText {
-            return translated
+    /// Get the text to insert based on translation mode
+    private var textToInsert: String {
+        switch translationMode {
+        case .automatic:
+            // In automatic mode, insert translated text if available
+            return suggestion.translatedText ?? suggestion.content
+        case .onPress:
+            // In onPress mode, always insert original text
+            return suggestion.content
         }
-        return suggestion.content
     }
 
     private func handleTap() {
@@ -390,8 +346,8 @@ private struct SuggestionChip: View {
         // Calculate time-to-response in milliseconds
         let timeToResponseMs = Int(Date().timeIntervalSince(displayTimestamp) * 1000)
 
-        // Pass the currently displayed text (either English or Spanish) and time-to-response to the callback
-        onTap(currentDisplayText, timeToResponseMs)
+        // Pass the appropriate text based on translation mode
+        onTap(textToInsert, timeToResponseMs)
     }
 
     private func handleDismiss() {
@@ -534,17 +490,17 @@ private struct ShimmerChip: View {
         ],
         isLoading: false,
         error: nil,
-        translationEnabled: false,
         styleLearningEnabled: true,
+        translationMode: .onPress,
         onSuggestionTap: { suggestion, textToInsert, timeMs in
             print("Tapped suggestion: \(suggestion.content), inserting: \(textToInsert) after \(timeMs)ms")
         },
         onSuggestionDismiss: { suggestion in
             print("Dismissed suggestion: \(suggestion.content)")
         },
-        onTranslationToggle: {},
         onRetry: nil,
-        onExpandToggle: nil
+        onExpandToggle: nil,
+        onTranslationSettings: {}
     )
     .padding()
 }
@@ -554,13 +510,13 @@ private struct ShimmerChip: View {
         suggestions: [],
         isLoading: true,
         error: nil,
-        translationEnabled: false,
         styleLearningEnabled: true,
+        translationMode: .onPress,
         onSuggestionTap: { _, _, _ in },
         onSuggestionDismiss: nil,
-        onTranslationToggle: {},
         onRetry: nil,
-        onExpandToggle: nil
+        onExpandToggle: nil,
+        onTranslationSettings: {}
     )
     .padding()
 }
@@ -570,13 +526,13 @@ private struct ShimmerChip: View {
         suggestions: [],
         isLoading: false,
         error: nil,
-        translationEnabled: false,
         styleLearningEnabled: true,
+        translationMode: .onPress,
         onSuggestionTap: { _, _, _ in },
         onSuggestionDismiss: nil,
-        onTranslationToggle: {},
         onRetry: nil,
-        onExpandToggle: nil
+        onExpandToggle: nil,
+        onTranslationSettings: {}
     )
     .padding()
 }
@@ -597,13 +553,13 @@ private struct ShimmerChip: View {
         ],
         isLoading: false,
         error: nil,
-        translationEnabled: true,
         styleLearningEnabled: true,
+        translationMode: .automatic,
         onSuggestionTap: { _, _, _ in },
         onSuggestionDismiss: nil,
-        onTranslationToggle: {},
         onRetry: nil,
-        onExpandToggle: nil
+        onExpandToggle: nil,
+        onTranslationSettings: {}
     )
     .padding()
 }
@@ -641,13 +597,13 @@ private struct ShimmerChip: View {
             ],
             isLoading: false,
             error: nil,
-            translationEnabled: false,
             styleLearningEnabled: true,
+            translationMode: .onPress,
             onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
-            onTranslationToggle: {},
             onRetry: nil,
-        onExpandToggle: nil
+            onExpandToggle: nil,
+            onTranslationSettings: {}
         )
 
         Divider()
@@ -680,13 +636,13 @@ private struct ShimmerChip: View {
             ],
             isLoading: false,
             error: nil,
-            translationEnabled: false,
             styleLearningEnabled: true,
+            translationMode: .onPress,
             onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
-            onTranslationToggle: {},
             onRetry: nil,
-        onExpandToggle: nil
+            onExpandToggle: nil,
+            onTranslationSettings: {}
         )
     }
     .padding()
@@ -697,15 +653,15 @@ private struct ShimmerChip: View {
         suggestions: [],
         isLoading: false,
         error: .networkError(URLError(.notConnectedToInternet)),
-        translationEnabled: false,
         styleLearningEnabled: true,
+        translationMode: .onPress,
         onSuggestionTap: { _, _, _ in },
         onSuggestionDismiss: nil,
-        onTranslationToggle: {},
         onRetry: {
             print("Retry tapped")
         },
-        onExpandToggle: nil
+        onExpandToggle: nil,
+        onTranslationSettings: {}
     )
     .padding()
 }
@@ -719,13 +675,13 @@ private struct ShimmerChip: View {
             remainingQuota: 0,
             tierLimit: "Premium"
         ),
-        translationEnabled: false,
         styleLearningEnabled: true,
+        translationMode: .onPress,
         onSuggestionTap: { _, _, _ in },
         onSuggestionDismiss: nil,
-        onTranslationToggle: {},
         onRetry: nil,
-        onExpandToggle: nil
+        onExpandToggle: nil,
+        onTranslationSettings: {}
     )
     .padding()
 }
@@ -735,13 +691,13 @@ private struct ShimmerChip: View {
         suggestions: [],
         isLoading: false,
         error: .unauthorized,
-        translationEnabled: false,
         styleLearningEnabled: true,
+        translationMode: .onPress,
         onSuggestionTap: { _, _, _ in },
         onSuggestionDismiss: nil,
-        onTranslationToggle: {},
         onRetry: nil,
-        onExpandToggle: nil
+        onExpandToggle: nil,
+        onTranslationSettings: {}
     )
     .padding()
 }
@@ -779,13 +735,13 @@ private struct ShimmerChip: View {
             ],
             isLoading: false,
             error: nil,
-            translationEnabled: false,
             styleLearningEnabled: true,
+            translationMode: .onPress,
             onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
-            onTranslationToggle: {},
             onRetry: nil,
-        onExpandToggle: nil
+            onExpandToggle: nil,
+            onTranslationSettings: {}
         )
 
         Divider()
@@ -818,13 +774,13 @@ private struct ShimmerChip: View {
             ],
             isLoading: false,
             error: nil,
-            translationEnabled: false,
             styleLearningEnabled: true,
+            translationMode: .onPress,
             onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
-            onTranslationToggle: {},
             onRetry: nil,
-        onExpandToggle: nil
+            onExpandToggle: nil,
+            onTranslationSettings: {}
         )
 
         Divider()
@@ -857,13 +813,13 @@ private struct ShimmerChip: View {
             ],
             isLoading: false,
             error: nil,
-            translationEnabled: false,
             styleLearningEnabled: true,
+            translationMode: .onPress,
             onSuggestionTap: { _, _, _ in },
             onSuggestionDismiss: nil,
-            onTranslationToggle: {},
             onRetry: nil,
-        onExpandToggle: nil
+            onExpandToggle: nil,
+            onTranslationSettings: {}
         )
     }
     .padding()
