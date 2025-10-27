@@ -1128,7 +1128,7 @@ final class DatabaseManager {
                     print("⚠️ [DB] Skipping invalid message row")
                     continue
                 }
-                
+
                 var metadata: [String: String]? = nil
                 if let metadataStr = try? row.get(messageMetadata),
                    let data = metadataStr.data(using: .utf8) {
@@ -1153,10 +1153,58 @@ final class DatabaseManager {
                 messages.append(message)
             }
 
-            return messages
+            // Deduplicate messages by client_message_id
+            // When we have duplicates, keep the server-confirmed one (status != sending)
+            let deduplicated = deduplicateMessages(messages)
+            return deduplicated
         } catch {
             throw DatabaseError.queryFailed("Messages: \(error.localizedDescription)")
         }
+    }
+
+    /// Deduplicate messages by client_message_id, preferring server-confirmed over pending
+    private func deduplicateMessages(_ messages: [Message]) -> [Message] {
+        var seenClientIds: [String: Message] = [:]
+        var uniqueMessages: [Message] = []
+
+        for message in messages {
+            // If no client_message_id, keep as-is (server-originated message)
+            guard let clientId = message.clientMessageId else {
+                uniqueMessages.append(message)
+                continue
+            }
+
+            // Check if we've seen this client ID before
+            if let existing = seenClientIds[clientId] {
+                // Keep the server-confirmed one (status = .sent, .delivered, or .read)
+                // Discard the pending one (status = .pending or .failed)
+                if existing.status == .pending && message.status != .pending {
+                    // Replace pending with confirmed
+                    if let index = uniqueMessages.firstIndex(where: { $0.id == existing.id }) {
+                        uniqueMessages.remove(at: index)
+                        uniqueMessages.insert(message, at: index)
+                    }
+                    seenClientIds[clientId] = message
+                    print("🔄 [DB] Deduplication: Replaced pending message \(existing.id) with confirmed \(message.id)")
+                } else if message.status == .pending && existing.status != .pending {
+                    // Skip pending, keep confirmed
+                    print("⏭️ [DB] Deduplication: Skipping pending duplicate \(message.id), keeping confirmed \(existing.id)")
+                } else {
+                    // Both have same status, keep first one
+                    print("⏭️ [DB] Deduplication: Skipping duplicate \(message.id), keeping \(existing.id)")
+                }
+            } else {
+                // First time seeing this client ID
+                seenClientIds[clientId] = message
+                uniqueMessages.append(message)
+            }
+        }
+
+        if seenClientIds.count < messages.count {
+            print("✅ [DB] Deduplicated messages: \(messages.count) -> \(uniqueMessages.count)")
+        }
+
+        return uniqueMessages
     }
 
     // MARK: - CDC Operations

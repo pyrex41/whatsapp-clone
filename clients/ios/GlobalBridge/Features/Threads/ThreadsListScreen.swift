@@ -33,6 +33,14 @@ struct ThreadsListScreen: View {
                             print("👆 [UI] Thread tapped: \(thread.id) - \(thread.title ?? "Untitled")")
                             print("👆 [UI] Currently selected: \(threadsState.selectedThreadID?.uuidString ?? "none")")
                             print("👆 [UI] Is same thread: \(thread.id == threadsState.selectedThreadID)")
+
+                            // Pre-load messages immediately when thread is tapped (before navigation)
+                            // This ensures messages are already loading/loaded by the time ChatScreen renders
+                            if thread.id != threadsState.selectedThreadID {
+                                print("📥 [UI] Pre-loading messages for thread before navigation...")
+                                store.send(.loadMessages(thread.id))
+                            }
+
                             print("👆 [UI] Sending .threadSelected action...")
                             store.send(.threadSelected(thread.id))
                             print("👆 [UI] .threadSelected action sent")
@@ -213,19 +221,20 @@ struct ThreadRow: View {
 
 struct ConnectionStatusIndicator: View {
     let state: ConnectionState
-    
+
     var body: some View {
         HStack(spacing: 6) {
             Circle()
                 .fill(state.color)
                 .frame(width: 8, height: 8)
-            
+
             if case .connecting = state {
                 ProgressView()
                     .scaleEffect(0.7)
                     .frame(width: 12, height: 12)
             }
         }
+        .padding(.leading, 8)
         .accessibilityLabel(state.displayText)
     }
 }

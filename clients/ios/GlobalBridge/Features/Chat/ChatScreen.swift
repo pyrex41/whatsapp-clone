@@ -14,6 +14,7 @@ struct ChatScreen: View {
     @State private var lastFetchTime: Date? = nil // For debouncing
     @State private var smartReplyExpanded = false // Track if suggestions are expanded
     @State private var showTranslationSettings = false // Translation settings sheet
+    @State private var showSummary = false // Summary sheet visibility
 
     private var chatState: ChatState { store.state.chat }
 
@@ -54,10 +55,15 @@ struct ChatScreen: View {
                             }
                             ForEach(chatState.messages, id: \.id) { message in
                                 let isOwn = message.senderId == store.state.user.id
+                                let threadId = thread.id.uuidString
+                                let threadSettings = store.state.threadTranslationSettings[threadId] ?? .default
                                 MessageRow(
                                     message: message,
                                     isOwnMessage: isOwn,
-                                    userCache: store.state.userCache
+                                    userCache: store.state.userCache,
+                                    translationSettings: threadSettings,
+                                    phoenixManager: store.environment.phoenixManager,
+                                    threadId: threadId
                                 )
                                 .id(message.id)
                                 .onAppear { if message.id == chatState.messages.last?.id { isAtBottom = true } }
@@ -119,6 +125,7 @@ struct ChatScreen: View {
             }
 
             Divider()
+
             // Show smart reply suggestions if enabled in thread settings
             let threadId = thread.id.uuidString
             let threadSettings = store.state.threadTranslationSettings[threadId] ?? .default
@@ -131,9 +138,6 @@ struct ChatScreen: View {
                     smartReplySection(thread: thread)
                 }
             }
-
-            // Translation settings button (positioned above composer)
-            translationSettingsButton(thread: thread)
 
             composerSection
         }
@@ -156,42 +160,58 @@ struct ChatScreen: View {
         let threadId = thread.id.uuidString
         let suggestions = store.state.smartReplySuggestions[threadId] ?? []
         let isLoadingSuggestions = store.state.smartReplyLoading[threadId] ?? false
-        SmartReplyComposerView(
-            suggestions: suggestions,
-            isLoading: isLoadingSuggestions,
-            error: nil, // Error handling done via separate banner below for now
-            translationEnabled: false,
-            styleLearningEnabled: store.state.styleLearningEnabled,
-            onSuggestionTap: { suggestion, textToInsert, timeToResponseMs in
-                // Pass the text to insert (could be English or Spanish depending on toggle state)
-                let modifiedContent = textToInsert != suggestion.content ? textToInsert : nil
-                store.send(.acceptSuggestion(threadId: threadId, suggestion: suggestion, modifiedContent: modifiedContent))
-                store.send(.recordFeedback(
-                    SuggestionFeedback(
-                        suggestionId: suggestion.id,
-                        accepted: true,
-                        modifiedContent: modifiedContent,
-                        rejectionReason: nil,
-                        timeToResponseMs: timeToResponseMs,
-                        timestamp: Date()
-                    )
-                ))
-            },
-            onSuggestionDismiss: { dismissedSuggestion in
-                // TODO: Remove dismissed suggestion from local UI state
-                // This is purely UI-level dismissal - no rejection feedback is recorded
-                // The suggestion may reappear in future sessions
-                print("DEBUG: Suggestion dismissed (UI only): \(dismissedSuggestion.content)")
-            },
-            onTranslationToggle: {},
-            onRetry: { refreshSmartReplies(for: thread.id) },
-            onExpandToggle: { expanded in
-                smartReplyExpanded = expanded
+        let threadSettings = store.state.threadTranslationSettings[threadId] ?? .default
+
+        // Only render if we have suggestions or are loading (performance optimization)
+        if !suggestions.isEmpty || isLoadingSuggestions {
+            SmartReplyComposerView(
+                suggestions: suggestions,
+                isLoading: isLoadingSuggestions,
+                error: nil, // Error handling done via separate banner below for now
+                styleLearningEnabled: store.state.styleLearningEnabled,
+                translationMode: threadSettings.translationMode,
+                onSuggestionTap: { suggestion, textToInsert, timeToResponseMs in
+                    // Pass the text to insert (could be English or Spanish depending on translation mode)
+                    let modifiedContent = textToInsert != suggestion.content ? textToInsert : nil
+                    store.send(.acceptSuggestion(threadId: threadId, suggestion: suggestion, modifiedContent: modifiedContent))
+                    store.send(.recordFeedback(
+                        SuggestionFeedback(
+                            suggestionId: suggestion.id,
+                            accepted: true,
+                            modifiedContent: modifiedContent,
+                            rejectionReason: nil,
+                            timeToResponseMs: timeToResponseMs,
+                            timestamp: Date()
+                        )
+                    ))
+                },
+                onSuggestionDismiss: { dismissedSuggestion in
+                    // TODO: Remove dismissed suggestion from local UI state
+                    // This is purely UI-level dismissal - no rejection feedback is recorded
+                    // The suggestion may reappear in future sessions
+                    print("DEBUG: Suggestion dismissed (UI only): \(dismissedSuggestion.content)")
+                },
+                onRetry: { refreshSmartReplies(for: thread.id) },
+                onExpandToggle: { expanded in
+                    smartReplyExpanded = expanded
+                },
+                onTranslationSettings: {
+                    showTranslationSettings = true
+                }
+            )
+            .sheet(isPresented: $showTranslationSettings) {
+                TranslationSettingsSheet(
+                    settings: .constant(threadSettings),
+                    threadId: threadId,
+                    onSave: { newSettings in
+                        store.send(.updateThreadTranslationSettings(threadId: threadId, settings: newSettings))
+                    }
+                )
             }
-        )
-        .padding(.horizontal, 12)
-        .padding(.bottom, 4)
-        .accessibilityIdentifier("smartReplyChips")
+            .padding(.horizontal, 12)
+            .padding(.bottom, 2)
+            .accessibilityIdentifier("smartReplyChips")
+        }
         if let errText = store.state.smartReplyErrors[threadId], !errText.isEmpty {
             HStack(spacing: 8) {
                 Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange)
@@ -209,41 +229,12 @@ struct ChatScreen: View {
         }
     }
 
-    @ViewBuilder
-    private func translationSettingsButton(thread: Thread) -> some View {
-        let threadId = thread.id.uuidString
-        let threadSettings = store.state.threadTranslationSettings[threadId] ?? .default
-
-        HStack {
-            Spacer()
-            Button(action: {
-                showTranslationSettings = true
-            }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "gearshape")
-                        .font(.caption)
-                    Text("Translation Settings")
-                        .font(.caption)
-                }
-                .foregroundColor(.secondary)
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 4)
-        .sheet(isPresented: $showTranslationSettings) {
-            TranslationSettingsSheet(
-                settings: .constant(threadSettings),
-                threadId: threadId,
-                onSave: { newSettings in
-                    store.send(.updateThreadTranslationSettings(threadId: threadId, settings: newSettings))
-                }
-            )
-        }
-    }
 
     private var composerSection: some View {
-        MessageComposerView(
+        let threadId = chatState.currentThread?.id.uuidString
+        let threadSettings = threadId.map { store.state.threadTranslationSettings[$0] ?? .default }
+
+        return MessageComposerView(
             text: store.binding(
                 get: { $0.chat.composer.text },
                 send: AppAction.composerTextChanged
@@ -255,11 +246,13 @@ struct ChatScreen: View {
                 composerFocused = true
             },
             isFocused: $composerFocused,
-            threadId: chatState.currentThread?.id.uuidString,
-            phoenixManager: store.environment.phoenixManager
+            threadId: threadId,
+            phoenixManager: store.environment.phoenixManager,
+            translationSettings: threadSettings
         )
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.top, 4)
+        .padding(.bottom, 8)
         .onChange(of: composerFocused) { old, new in
             print("⌨️ [COMPOSER] Focus changed: \(old) -> \(new)")
         }
@@ -278,29 +271,105 @@ struct ChatScreen: View {
                 }
             }
         }
-        ToolbarItem(placement: .navigationBarTrailing) {
-            let isMonitored = store.state.monitoredThreads.contains(thread.id.uuidString)
-            Button {
-                store.send(.toggleMonitoring(threadId: thread.id.uuidString))
-            } label: {
-                Image(systemName: isMonitored ? "eye.fill" : "eye.slash")
-                    .font(.body)
-                    .foregroundColor(isMonitored ? .blue : .gray)
+        // Only show summary button if there are messages in the chat
+        if !chatState.messages.isEmpty {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                let threadIdStr = thread.id.uuidString
+                let isLoadingSummary = store.state.threadSummaryLoading[threadIdStr] ?? false
+                Button {
+                    showSummary = true
+                    // Fetch summary if not already loaded or if stale
+                    if store.state.threadSummaries[threadIdStr] == nil ||
+                       (store.state.threadSummaries[threadIdStr]?.isStale ?? false) {
+                        store.send(.fetchThreadSummary(threadId: threadIdStr))
+                    }
+                } label: {
+                    if isLoadingSummary {
+                        ProgressView().scaleEffect(0.8)
+                    } else {
+                        Image(systemName: "text.bubble")
+                            .font(.body)
+                    }
+                }
+                .disabled(isLoadingSummary)
+                .accessibilityLabel("View conversation summary")
+                .accessibilityHint("Double tap to view AI-generated summary of this conversation")
+                .sheet(isPresented: $showSummary) {
+                    summarySheet(thread: thread)
+                }
             }
-            .accessibilityLabel(isMonitored ? "AI monitoring enabled" : "AI monitoring disabled")
-            .accessibilityHint("Double tap to toggle AI monitoring for this thread")
         }
-        ToolbarItem(placement: .navigationBarTrailing) {
-            let isLoading = (store.state.smartReplyLoading[thread.id.uuidString] ?? false)
-            Button {
-                refreshSmartReplies(for: thread.id)
-            } label: {
-                if isLoading { ProgressView().scaleEffect(0.8) }
-                else { Image(systemName: "arrow.clockwise").font(.body) }
+    }
+
+    // MARK: - Summary Sheet
+
+    @ViewBuilder
+    private func summarySheet(thread: Thread) -> some View {
+        let threadIdStr = thread.id.uuidString
+        let summary = store.state.threadSummaries[threadIdStr]
+        let isLoading = store.state.threadSummaryLoading[threadIdStr] ?? false
+        let error = store.state.threadSummaryErrors[threadIdStr]
+
+        NavigationView {
+            VStack {
+                if isLoading {
+                    ProgressView("Generating summary...")
+                        .padding()
+                } else if let error = error {
+                    VStack(spacing: 16) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.largeTitle)
+                            .foregroundColor(.orange)
+                        Text("Failed to generate summary")
+                            .font(.headline)
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                        Button("Retry") {
+                            store.send(.fetchThreadSummary(threadId: threadIdStr))
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .padding()
+                } else if let summary = summary {
+                    ThreadSummaryView(
+                        summary: summary,
+                        onRegenerateTapped: {
+                            store.send(.fetchThreadSummary(threadId: threadIdStr))
+                        },
+                        onExportTapped: {
+                            // TODO: Implement export functionality
+                            print("📤 [SUMMARY] Export tapped")
+                        },
+                        onDismissTapped: {
+                            showSummary = false
+                        }
+                    )
+                } else {
+                    ContentUnavailableView(
+                        "No Summary Available",
+                        systemImage: "text.bubble",
+                        description: Text("Tap the button below to generate a summary")
+                    )
+                    .overlay(alignment: .bottom) {
+                        Button("Generate Summary") {
+                            store.send(.fetchThreadSummary(threadId: threadIdStr))
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding()
+                    }
+                }
             }
-            .disabled(isLoading)
-            .accessibilityLabel("Refresh smart reply suggestions")
-            .accessibilityHint("Double tap to refresh AI suggestions")
+            .navigationTitle("Conversation Summary")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        showSummary = false
+                    }
+                }
+            }
         }
     }
 
@@ -343,22 +412,22 @@ struct ChatScreen: View {
         // Don't auto-focus composer - wait for user interaction
         // composerFocused = true  // Removed to prevent auto-showing suggestions
         InAppBannerCenter.shared.setActiveThread(thread.id)
-        // Start preloading suggestions in background
-        fetchSmartRepliesIfNeeded(for: thread.id)
 
-        // Only start monitoring if enabled for this thread
-        let threadIdStr = thread.id.uuidString
-        if store.state.monitoredThreads.contains(threadIdStr) {
-            Task {
-                do {
-                    try await ConversationMonitorService.shared.startMonitoring(threadId: thread.id)
-                    print("✅ [AI_MONITOR] Started monitoring thread: \(thread.id)")
-                } catch {
-                    print("⚠️ [AI_MONITOR] Failed to start monitoring: \(error)")
-                }
+        // Fetch suggestions immediately (no artificial delay)
+        Task {
+            await MainActor.run {
+                fetchSmartRepliesIfNeeded(for: thread.id)
             }
-        } else {
-            print("ℹ️ [AI_MONITOR] Monitoring disabled for thread: \(thread.id)")
+        }
+
+        // Always start monitoring for all threads
+        Task {
+            do {
+                try await ConversationMonitorService.shared.startMonitoring(threadId: thread.id)
+                print("✅ [AI_MONITOR] Started monitoring thread: \(thread.id)")
+            } catch {
+                print("⚠️ [AI_MONITOR] Failed to start monitoring: \(error)")
+            }
         }
 
         // Removed delayed auto-focus to prevent auto-showing suggestions
@@ -373,16 +442,13 @@ struct ChatScreen: View {
     private func onDisappear(thread: Thread) {
         InAppBannerCenter.shared.setActiveThread(nil)
 
-        // Only stop monitoring if it was enabled for this thread
-        let threadIdStr = thread.id.uuidString
-        if store.state.monitoredThreads.contains(threadIdStr) {
-            Task {
-                do {
-                    try await ConversationMonitorService.shared.stopMonitoring(threadId: thread.id)
-                    print("✅ [AI_MONITOR] Stopped monitoring thread: \(thread.id)")
-                } catch {
-                    print("⚠️ [AI_MONITOR] Failed to stop monitoring: \(error)")
-                }
+        // Always stop monitoring when leaving thread
+        Task {
+            do {
+                try await ConversationMonitorService.shared.stopMonitoring(threadId: thread.id)
+                print("✅ [AI_MONITOR] Stopped monitoring thread: \(thread.id)")
+            } catch {
+                print("⚠️ [AI_MONITOR] Failed to stop monitoring: \(error)")
             }
         }
     }
@@ -438,6 +504,15 @@ private struct MessageRow: View {
     let message: Message
     let isOwnMessage: Bool
     let userCache: [String: CachedUserInfo]
+    let translationSettings: ThreadTranslationSettings?
+    let phoenixManager: PhoenixChannelManager?
+    let threadId: String?
+
+    @State private var translatedText: String?
+    @State private var isTranslating = false
+    @State private var showingTranslation = false
+
+    private let translationService = BackendTranslationService.shared
 
     var body: some View {
         HStack {
@@ -450,12 +525,42 @@ private struct MessageRow: View {
                         .font(.caption.bold())
                         .foregroundColor(.secondary)
                 }
-                
-                Text(message.content)
-                    .padding(12)
-                    .background(isOwnMessage ? Color.blue : Color(.systemGray5))
-                    .foregroundColor(isOwnMessage ? .white : .primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                // Message bubble with tap gesture
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(displayText)
+                        .padding(12)
+                        .background(isOwnMessage ? Color.blue : Color(.systemGray5))
+                        .foregroundColor(isOwnMessage ? .white : .primary)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .onTapGesture {
+                            handleMessageTap()
+                        }
+
+                    // Translation indicator
+                    if showingTranslation {
+                        HStack(spacing: 4) {
+                            Image(systemName: "globe")
+                                .font(.caption2)
+                            Text("Tap to see original")
+                                .font(.caption2)
+                        }
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 4)
+                    }
+
+                    // Loading indicator
+                    if isTranslating {
+                        HStack(spacing: 4) {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                            Text("Translating...")
+                                .font(.caption2)
+                        }
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 4)
+                    }
+                }
 
                 Text(TimestampFormatter.string(for: message.createdAt))
                     .font(.caption2)
@@ -466,8 +571,77 @@ private struct MessageRow: View {
             if !isOwnMessage { Spacer() }
         }
         .padding(.horizontal, 8)
+        .task {
+            await autoTranslateIfNeeded()
+        }
     }
-    
+
+    private var displayText: String {
+        if showingTranslation, let translated = translatedText {
+            return translated
+        }
+        return message.content
+    }
+
+    private func handleMessageTap() {
+        if translatedText != nil {
+            // Toggle between original and translated
+            withAnimation(.spring(response: 0.3)) {
+                showingTranslation.toggle()
+            }
+        } else if !isOwnMessage {
+            // Translate on demand for incoming messages
+            Task {
+                await translateMessage()
+            }
+        }
+    }
+
+    private func autoTranslateIfNeeded() async {
+        // Only auto-translate incoming messages if setting is enabled
+        guard let settings = translationSettings,
+              !isOwnMessage,
+              settings.autoTranslateIncoming else {
+            return
+        }
+
+        await translateMessage()
+
+        // Show translation by default if auto-translate is enabled
+        if translatedText != nil {
+            await MainActor.run {
+                showingTranslation = true
+            }
+        }
+    }
+
+    private func translateMessage() async {
+        guard let settings = translationSettings else {
+            return
+        }
+
+        isTranslating = true
+
+        do {
+            // Get user's base language (assuming English for now - could be from global settings)
+            let targetLanguage = "en" // TODO: Get from global user settings
+
+            let result = try await translationService.translate(
+                text: message.content,
+                targetLanguage: targetLanguage,
+                sourceLanguage: nil, // Auto-detect
+                context: nil,
+                formality: settings.defaultFormality
+            )
+
+            translatedText = result.translatedText
+            isTranslating = false
+        } catch {
+            print("❌ [MESSAGE_TRANSLATION] Failed to translate: \(error)")
+            isTranslating = false
+        }
+    }
+
     private var senderDisplayName: String {
         // Look up from user cache
         if let cachedUser = userCache[message.senderId] {
