@@ -110,6 +110,11 @@ struct ThreadsListScreen: View {
         .sheet(isPresented: $showSettings) {
             SettingsView(store: store)
         }
+        .onAppear {
+            // Clear active thread when returning to threads list
+            // This allows banners to show for all threads
+            InAppBannerCenter.shared.setActiveThread(nil)
+        }
         .onReceive(NotificationCenter.default.publisher(for: .newThreadReceived)) { _ in
             // Reload threads when a new thread is received from another user
             print("🔄 [THREADS_LIST] Received newThreadReceived notification, reloading threads")
@@ -334,6 +339,11 @@ struct ThreadsListCompactView: View {
         }
         .sheet(isPresented: $showSettings) {
             SettingsView(store: store)
+        }
+        .onAppear {
+            // Clear active thread when returning to threads list
+            // This allows banners to show for all threads
+            InAppBannerCenter.shared.setActiveThread(nil)
         }
     }
     
