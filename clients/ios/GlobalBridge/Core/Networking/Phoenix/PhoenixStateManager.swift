@@ -19,6 +19,7 @@ public class PhoenixStateManager {
     public private(set) var presences: [String: [String: UserPresence]] = [:] // conversationId -> userId -> presence
     public private(set) var typingStates: [String: TypingState] = [:] // conversationId -> typing state
     public private(set) var readReceipts: [String: ReadReceiptState] = [:] // conversationId -> receipt state
+    public private(set) var bridges: [String: Bridge] = [:] // bridgeId -> bridge
 
     // MARK: - Private Properties
 
@@ -50,6 +51,7 @@ public class PhoenixStateManager {
     public func disconnect() async {
         await channelManager.disconnect()
         connectionState = .disconnected
+        bridges.removeAll()
     }
     
     /// Get current connection state
@@ -166,6 +168,16 @@ public class PhoenixStateManager {
         return readReceipts[conversationId] ?? ReadReceiptState()
     }
 
+    /// Get all bridges
+    public func getBridges() -> [String: Bridge] {
+        return bridges
+    }
+
+    /// Get bridge by ID
+    public func getBridge(byId bridgeId: String) -> Bridge? {
+        return bridges[bridgeId]
+    }
+
     /// Send typing indicator
     public func sendTypingIndicator(conversationId: String, isTyping: Bool) async {
         await channelManager.sendTypingIndicator(conversationId: conversationId, isTyping: isTyping)
@@ -227,6 +239,15 @@ public class PhoenixStateManager {
             await channelManager.onPresence { [weak self] conversationId, presence in
                 Task { @MainActor in
                     self?.handlePresence(conversationId: conversationId, presence: presence)
+                }
+            }
+        }
+
+        // Set up bridge status handler
+        Task {
+            await channelManager.onBridgeStatus { [weak self] bridgeStatus in
+                Task { @MainActor in
+                    self?.handleBridgeStatus(bridgeStatus)
                 }
             }
         }
@@ -297,6 +318,25 @@ public class PhoenixStateManager {
             userId: receipt.userId,
             at: receipt.readAt
         )
+    }
+
+    private func handleBridgeStatus(_ bridgeStatus: BridgeStatus) {
+        let bridgeType = Bridge.BridgeType(rawValue: bridgeStatus.bridgeType) ?? .telegram
+
+        let bridge = Bridge(
+            id: bridgeStatus.bridgeId,
+            userId: "", // Will be set when we have user context
+            bridgeType: bridgeType,
+            phoneNumber: bridgeStatus.phoneNumber,
+            status: bridgeStatus.status,
+            lastConnectedAt: bridgeStatus.status == .connected ? bridgeStatus.timestamp : nil,
+            errorMessage: bridgeStatus.errorMessage,
+            isActive: true,
+            createdAt: Date(), // We don't have creation date from status update
+            updatedAt: bridgeStatus.timestamp
+        )
+
+        bridges[bridgeStatus.bridgeId] = bridge
     }
 }
 
