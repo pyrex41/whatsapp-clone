@@ -23,6 +23,7 @@ final class MessageBubbleViewModel: ObservableObject {
     let message: Message
     private let translationService: UnifiedTranslationService
     private var cancellables = Set<AnyCancellable>()
+    private let userBaseLanguage: String
 
     var hasTranslation: Bool {
         translation != nil
@@ -30,9 +31,10 @@ final class MessageBubbleViewModel: ObservableObject {
 
     // MARK: - Initialization
 
-    init(message: Message, translationService: UnifiedTranslationService) {
+    init(message: Message, translationService: UnifiedTranslationService, userBaseLanguage: String = "en") {
         self.message = message
         self.translationService = translationService
+        self.userBaseLanguage = userBaseLanguage
 
         // Check cache on init
         Task {
@@ -44,7 +46,8 @@ final class MessageBubbleViewModel: ObservableObject {
 
     /// Translate message to user's preferred language
     func translateToUserLanguage() async {
-        let targetLanguage = Locale.current.language.languageCode?.identifier ?? "en"
+        // Use user's base language preference, not device locale
+        let targetLanguage = userBaseLanguage
         await translate(to: targetLanguage)
     }
 
@@ -68,6 +71,14 @@ final class MessageBubbleViewModel: ObservableObject {
                 to: targetLanguage,
                 provider: .auto
             )
+
+            // Skip translation if detected source language matches target language
+            if let detectedLang = result.detectedLanguage, detectedLang == targetLanguage {
+                print("⏭️ [BUBBLE_VM] Skipping translation: message already in target language (\(targetLanguage))")
+                translationError = .featureDisabled(feature: "translation already in target language")
+                isTranslating = false
+                return
+            }
 
             translation = result.toTranslationResult()
             print("✅ [BUBBLE_VM] Translation successful: \(result.provider)")

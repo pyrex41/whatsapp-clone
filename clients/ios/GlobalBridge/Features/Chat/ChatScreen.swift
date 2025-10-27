@@ -63,7 +63,8 @@ struct ChatScreen: View {
                                     userCache: store.state.userCache,
                                     translationSettings: threadSettings,
                                     phoenixManager: store.environment.phoenixManager,
-                                    threadId: threadId
+                                    threadId: threadId,
+                                    userBaseLanguage: store.state.userLanguage
                                 )
                                 .id(message.id)
                                 .onAppear { if message.id == chatState.messages.last?.id { isAtBottom = true } }
@@ -550,6 +551,7 @@ private struct MessageRow: View {
     let translationSettings: ThreadTranslationSettings?
     let phoenixManager: PhoenixChannelManager?
     let threadId: String?
+    let userBaseLanguage: String
 
     @State private var translatedText: String?
     @State private var isTranslating = false
@@ -666,8 +668,9 @@ private struct MessageRow: View {
         isTranslating = true
 
         do {
-            // Get user's base language (assuming English for now - could be from global settings)
-            let targetLanguage = "en" // TODO: Get from global user settings
+            // Use user's base language preference from global settings
+            let targetLanguage = userBaseLanguage
+            print("🌐 [MESSAGE_TRANSLATION] Translating to user's base language: \(targetLanguage)")
 
             let result = try await translationService.translate(
                 text: message.content,
@@ -676,6 +679,13 @@ private struct MessageRow: View {
                 context: nil,
                 formality: settings.defaultFormality
             )
+
+            // Skip translation if detected source language matches target language
+            if let detectedLang = result.detectedLanguage, detectedLang == targetLanguage {
+                print("⏭️ [MESSAGE_TRANSLATION] Skipping translation: message already in target language (\(targetLanguage))")
+                isTranslating = false
+                return
+            }
 
             translatedText = result.translatedText
             isTranslating = false
@@ -688,8 +698,39 @@ private struct MessageRow: View {
     private var senderDisplayName: String {
         // Look up from user cache
         if let cachedUser = userCache[message.senderId] {
-            return cachedUser.effectiveDisplayName
+            // If we have a display name, use it
+            if let displayName = cachedUser.displayName, !displayName.isEmpty {
+                return displayName
+            }
+
+            // Try to extract a readable name from username
+            let username = cachedUser.username
+
+            // Check if username looks like an email
+            if username.contains("@") {
+                // Extract the part before @ and format it nicely
+                let localPart = username.components(separatedBy: "@").first ?? username
+                // Remove + aliases (e.g., "name+alias" -> "name")
+                let cleanName = localPart.components(separatedBy: "+").first ?? localPart
+                // Replace dots and underscores with spaces and capitalize
+                let formatted = cleanName
+                    .replacingOccurrences(of: ".", with: " ")
+                    .replacingOccurrences(of: "_", with: " ")
+                    .capitalized
+                return formatted
+            }
+
+            // Check if username looks like a system ID (e.g., "user_abc123")
+            if username.starts(with: "user_") {
+                // Extract the part after "user_" and capitalize
+                let idPart = String(username.dropFirst(5)) // Remove "user_"
+                return "User \(idPart.prefix(8).capitalized)"
+            }
+
+            // Otherwise use username as-is
+            return username
         }
+
         // Fallback to sender ID prefix
         let prefix = message.senderId.prefix(8)
         return "User \(prefix)"
