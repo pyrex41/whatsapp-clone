@@ -17,16 +17,12 @@ struct FeatureFlagsService {
     static var defaultBaseURL: URL {
         // Check environment variable first
         if let backendEnv = ProcessInfo.processInfo.environment["BACKEND_ENV"],
-           backendEnv.lowercased() == "production" {
-            return URL(string: "https://globalbridge-backend.fly.dev")!
+           backendEnv.lowercased() == "local" {
+            return URL(string: "http://localhost:4000")!
         }
 
-        // Default to localhost for Debug, production for Release
-        #if DEBUG
-        return URL(string: "http://localhost:4000")!
-        #else
+        // Default to production for both Debug and Release
         return URL(string: "https://globalbridge-backend.fly.dev")!
-        #endif
     }
 
     init(

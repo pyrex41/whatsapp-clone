@@ -13,12 +13,24 @@ struct PushService {
     let session: URLSession
     let authManager: AuthManager
 
+    /// Returns the appropriate backend URL based on environment
+    static var defaultBaseURL: URL {
+        // Check environment variable first
+        if let backendEnv = ProcessInfo.processInfo.environment["BACKEND_ENV"],
+           backendEnv.lowercased() == "local" {
+            return URL(string: "http://localhost:4000")!
+        }
+
+        // Default to production for both Debug and Release
+        return URL(string: "https://globalbridge-backend.fly.dev")!
+    }
+
     init(
-        baseURL: URL = URL(string: "http://localhost:4000")!,
+        baseURL: URL? = nil,
         session: URLSession = .shared,
         authManager: AuthManager = .shared
     ) {
-        self.baseURL = baseURL
+        self.baseURL = baseURL ?? Self.defaultBaseURL
         self.session = session
         self.authManager = authManager
     }

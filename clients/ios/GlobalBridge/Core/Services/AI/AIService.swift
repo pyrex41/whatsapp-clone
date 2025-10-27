@@ -59,12 +59,12 @@ final class AIService: ObservableObject {
             self.baseURL = providedURL
         } else {
             #if DEBUG
-            // Check for production override
+            // Check for local development override
             if let backendEnv = ProcessInfo.processInfo.environment["BACKEND_ENV"],
-               backendEnv.lowercased() == "production" {
-                self.baseURL = URL(string: "https://globalbridge-backend.fly.dev")!
-            } else {
+               backendEnv.lowercased() == "local" {
                 self.baseURL = URL(string: "http://localhost:4000")!
+            } else {
+                self.baseURL = URL(string: "https://globalbridge-backend.fly.dev")!
             }
             #else
             self.baseURL = URL(string: "https://globalbridge-backend.fly.dev")!
