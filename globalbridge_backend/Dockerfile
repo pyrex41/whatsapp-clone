@@ -22,7 +22,7 @@ FROM ${BUILDER_IMAGE} AS builder
 
 # install build dependencies (Elixir build + sqlite-vec from source)
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends build-essential git curl ca-certificates unzip \
+  && apt-get install -y --no-install-recommends build-essential git curl ca-certificates unzip gettext-base \
   && rm -rf /var/lib/apt/lists/*
 
 # prepare build dir
@@ -84,11 +84,11 @@ ENV LC_ALL=en_US.UTF-8
 WORKDIR "/app"
 RUN chown nobody /app
 
-// set runner ENV
+# Set runner ENV
 ENV MIX_ENV="prod"
 
 # Bring the compiled sqlite-vec into the runtime image and expose path
-COPY --from=builder /tmp/sqlite-vec/dist/vec.so /usr/local/lib/vec0.so
+COPY --from=builder /tmp/sqlite-vec/dist/vec0.so /usr/local/lib/vec0.so
 RUN chmod +x /usr/local/lib/vec0.so
 ENV SQLITE_VEC_PATH=/usr/local/lib/vec0.so
 

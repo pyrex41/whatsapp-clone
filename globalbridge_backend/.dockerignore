@@ -39,6 +39,25 @@
 # Generated on crash by the VM
 erl_crash.dump
 
+# Development/test database files (don't send 1.2GB of local DBs to Docker!)
+/priv/threads/*.db
+/priv/threads/*.db-shm
+/priv/threads/*.db-wal
+/priv/shared_dbs/*.db
+/priv/shared_dbs/*.db-shm
+/priv/shared_dbs/*.db-wal
+
+# Log files
+*.log
+server_output.log
+backend.log
+
+# Development artifacts and documentation
+repomix-output.xml
+*.png
+/ai-tests/
+/docs/
+
 # Static artifacts - These should be fetched and built inside the Docker image
 # https://hexdocs.pm/phoenix/Mix.Tasks.Phx.Gen.Release.html#module-docker
 /assets/node_modules/

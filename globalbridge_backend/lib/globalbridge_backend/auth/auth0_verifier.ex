@@ -46,8 +46,8 @@ defmodule GlobalbridgeBackend.Auth.Auth0Verifier do
           email: email,
           username: username,
           display_name: name,
-          # Placeholder
-          phone_number: "+10000000000",
+          # Generate unique placeholder phone number (Auth0 doesn't provide phone by default)
+          phone_number: "+1#{:os.system_time(:millisecond) |> rem(10_000_000_000)}",
           # Auth0 manages password
           password_hash: "auth0_managed"
         }

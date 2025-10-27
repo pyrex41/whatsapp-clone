@@ -20,6 +20,7 @@ kill_signal = 'SIGTERM'
   PHX_HOST = 'globalbridge-backend.fly.dev'
   PORT = '8080'
   DEV_MODE = 'true'
+  PHX_SERVER = 'true'
   TRANSLATION_MODEL="llama-3.3-70b-versatile"
   SUMMARIZER_MODEL="grok-4-fast-non-reasoning"
 
