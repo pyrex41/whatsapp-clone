@@ -319,7 +319,8 @@ extension PhoenixStateManager {
                 timestamp: Date().addingTimeInterval(-3600),
                 status: .delivered,
                 metadata: nil,
-                clientMessageId: nil
+                clientMessageId: nil,
+                detectedLanguage: nil
             ),
             PhoenixMessage(
                 id: "2",
@@ -330,7 +331,8 @@ extension PhoenixStateManager {
                 timestamp: Date().addingTimeInterval(-1800),
                 status: .read,
                 metadata: nil,
-                clientMessageId: nil
+                clientMessageId: nil,
+                detectedLanguage: nil
             )
         ]
 
