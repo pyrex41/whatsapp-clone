@@ -333,7 +333,15 @@ extension AppEnvironment {
                     // Register global new_message handler once (user-wide feed)
                     if await GlobalBannerHandlerRegistry.shared.markIfNeeded() {
                         await phoenixManager.onAnyMessage { phoenixMessage in
-                            guard let message = Message.fromPhoenix(phoenixMessage) else { return }
+                            guard var message = Message.fromPhoenix(phoenixMessage) else { return }
+
+                            // Store sender display name in message metadata for user cache update
+                            if let displayName = phoenixMessage.senderDisplayName {
+                                var metadata = message.metadata ?? [:]
+                                metadata["sender_display_name"] = displayName
+                                message.metadata = metadata
+                            }
+
                             // Present banner in banner mode only
                             Task { @Sendable in
                                 let mode = await MainActor.run { NotificationConfig.current }
@@ -412,7 +420,15 @@ extension AppEnvironment {
                 let conversationId = threadID.uuidString
                 // Register UI handler BEFORE joining to avoid missing early events
                 await phoenixManager.onMessage(conversationId: conversationId) { phoenixMessage in
-                    guard let message = Message.fromPhoenix(phoenixMessage) else { return }
+                    guard var message = Message.fromPhoenix(phoenixMessage) else { return }
+
+                    // Store sender display name in message metadata for user cache update
+                    if let displayName = phoenixMessage.senderDisplayName {
+                        var metadata = message.metadata ?? [:]
+                        metadata["sender_display_name"] = displayName
+                        message.metadata = metadata
+                    }
+
                     Task { @MainActor in
                         handler(message)
                     }

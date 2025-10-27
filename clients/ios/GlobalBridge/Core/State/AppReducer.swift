@@ -453,6 +453,17 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
         return .none
 
     case let .receiveRealtimeMessage(message):
+        // Update user cache with sender display name if available in metadata
+        if let displayName = message.metadata?["sender_display_name"] {
+            state.userCache[message.senderId] = CachedUserInfo(
+                id: message.senderId,
+                displayName: displayName.isEmpty ? nil : displayName,
+                username: displayName.isEmpty ? message.senderId : displayName,
+                avatarUrl: state.userCache[message.senderId]?.avatarUrl
+            )
+            print("👤 [CACHE] Updated user cache from message: \(message.senderId) -> \(displayName)")
+        }
+
         guard state.chat.currentThread?.id == message.threadId else {
             if let index = state.threads.items.firstIndex(where: { $0.id == message.threadId }) {
                 state.threads.items[index].lastMessageAt = message.createdAt
@@ -464,24 +475,24 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 try? await environment.database.storeMessage(message)
             }
         }
-        
+
         // Check for existing message by client ID (for deduplication)
         if let clientMsgId = message.clientMessageId,
            let clientUUID = UUID(uuidString: clientMsgId),
            let existingIndex = state.chat.messages.firstIndex(where: { $0.id == clientUUID }) {
             // This is our own message coming back from server - replace with server version
             print("🔄 [RECEIVE] Replacing local message \(clientMsgId) with server ID: \(message.id)")
-            
+
             // Update in memory
             state.chat.messages[existingIndex] = message
-            
+
             // CRITICAL: Delete old client message and store server message
             return .fireAndForget {
                 do {
                     // Delete the old client-generated message
                     print("🗑️ [RECEIVE] Deleting client message: \(clientUUID)")
                     try await DatabaseManager.shared.deleteMessage(id: clientUUID, threadId: message.threadId)
-                    
+
                     // Store the server message
                     print("💾 [RECEIVE] Storing server message: \(message.id)")
                     try await environment.database.storeMessage(message)
@@ -491,13 +502,13 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
                 }
             }
         }
-        
+
         // Check if server ID already exists (shouldn't happen but safety check)
         if state.chat.messages.contains(where: { $0.id.uuidString.lowercased() == message.id.uuidString.lowercased() }) {
             print("⏭️ [RECEIVE] Skipping duplicate message by server ID: \(message.id)")
             return .none
         }
-        
+
         // Add the message since it's not a duplicate
         state.chat.messages.append(message)
         if let index = state.threads.items.firstIndex(where: { $0.id == message.threadId }) {
@@ -507,7 +518,7 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             state.threads.items.insert(updatedThread, at: 0)
             state.chat.currentThread = updatedThread
         }
-        
+
         return .fireAndForget {
             try? await environment.database.storeMessage(message)
         }

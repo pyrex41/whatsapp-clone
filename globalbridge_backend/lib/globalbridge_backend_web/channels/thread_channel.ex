@@ -161,6 +161,10 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     detected_language = detect_message_language(content)
     Logger.debug("🔍 [MSG] Detected language: #{detected_language}")
 
+    # Fetch sender's current display name for real-time propagation
+    sender_display_name = get_user_display_name(user_id)
+    Logger.debug("👤 [MSG] Sender display name: #{sender_display_name}")
+
     # Build message struct with detected language in metadata
     message_attrs = %{
       id: message_id,
@@ -180,10 +184,12 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     # Broadcast immediately to all thread participants
     # This happens BEFORE database write for minimum latency
     # Include detected_language so clients can skip unnecessary translations
+    # Include sender_display_name so clients can update their cache in real-time
     broadcast_message = %{
       id: message_id,
       thread_id: thread_id,
       sender_id: user_id,
+      sender_display_name: sender_display_name,
       content: content,
       content_type: message_attrs.content_type,
       media_url: message_attrs.media_url,
@@ -747,6 +753,21 @@ defmodule GlobalbridgeBackendWeb.ThreadChannel do
     # TODO: Implement actual user lookup
     # For now, return basic info
     %{id: user_id, name: "User"}
+  end
+
+  defp get_user_display_name(user_id) do
+    alias GlobalbridgeBackend.Repo
+    alias GlobalbridgeBackend.Schemas.User
+
+    case Repo.get(User, user_id) do
+      nil ->
+        # User not found, return user_id as fallback
+        user_id
+
+      user ->
+        # Return display_name if available, otherwise username, otherwise user_id
+        user.display_name || user.username || user_id
+    end
   end
 
   defp truncate_message(content, max_length \\ 100) do

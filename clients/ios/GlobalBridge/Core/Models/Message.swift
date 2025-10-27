@@ -86,10 +86,10 @@ struct Message: Identifiable, Codable, Equatable {
 
 extension Message {
     /// Key for storing original text before translation in metadata
-    static let originalTextKey = "original_text"
+    nonisolated static let originalTextKey = "original_text"
 
     /// Key for storing detected language from backend
-    static let detectedLanguageKey = "detected_language"
+    nonisolated static let detectedLanguageKey = "detected_language"
 
     /// Get the original text if this message was translated
     var originalText: String? {
