@@ -123,7 +123,7 @@ defmodule GlobalbridgeBackend.AI.VectorStore do
         |> Enum.sort_by(& &1.distance)  # Sort by distance (lower = more similar)
         |> Enum.take(limit)
 
-        results
+        {:ok, results}
 
       {:error, error} ->
         Logger.error("Failed to search messages: #{inspect(error)}")
@@ -419,7 +419,7 @@ defmodule GlobalbridgeBackend.AI.VectorStore do
   ## Parameters
   - thread_id: Thread database to search
   - user_id: User whose accepted suggestions to search
-  - query_embedding: Real embedding vector (3072 dimensions from text-embedding-3-large)
+  - query_embedding: Real embedding vector (1536 dimensions from text-embedding-3-small)
   - opts: Options including :limit (default 10)
 
   ## Returns
