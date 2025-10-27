@@ -130,9 +130,9 @@ struct NewGroupView: View {
                                 
                                 // User info
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(user.displayName ?? user.username)
+                                    Text(userDisplayName(for: user))
                                         .font(.headline)
-                                    
+
                                     if let email = user.email {
                                         Text(email)
                                             .font(.caption)
@@ -227,13 +227,63 @@ struct NewGroupView: View {
         ))
         dismiss()
     }
+
+    /// Get the best display name for a user
+    private func userDisplayName(for user: UserSearchResult) -> String {
+        // 1. Use display name if available
+        if let displayName = user.displayName, !displayName.isEmpty {
+            return displayName
+        }
+
+        // 2. Extract name from email if available
+        if let email = user.email, !email.isEmpty {
+            // Get the part before @ and format it nicely
+            let localPart = email.components(separatedBy: "@").first ?? email
+            // Remove + aliases (e.g., "name+alias" -> "name")
+            let cleanName = localPart.components(separatedBy: "+").first ?? localPart
+            // Replace dots and underscores with spaces and capitalize
+            let formatted = cleanName
+                .replacingOccurrences(of: ".", with: " ")
+                .replacingOccurrences(of: "_", with: " ")
+                .capitalized
+            return formatted
+        }
+
+        // 3. Fall back to username as last resort
+        return user.username
+    }
 }
 
 /// Chip view for selected user
 struct SelectedUserChip: View {
     let user: UserSearchResult
     let onRemove: () -> Void
-    
+
+    /// Get short display name for chip
+    private func chipDisplayName(for user: UserSearchResult) -> String {
+        // 1. Use display name if available
+        if let displayName = user.displayName, !displayName.isEmpty {
+            // For chips, use first name only or first word
+            return displayName.components(separatedBy: " ").first ?? displayName
+        }
+
+        // 2. Extract first name from email if available
+        if let email = user.email, !email.isEmpty {
+            let localPart = email.components(separatedBy: "@").first ?? email
+            let cleanName = localPart.components(separatedBy: "+").first ?? localPart
+            // Get first part (first name)
+            let firstName = cleanName
+                .replacingOccurrences(of: ".", with: " ")
+                .replacingOccurrences(of: "_", with: " ")
+                .components(separatedBy: " ")
+                .first ?? cleanName
+            return firstName.capitalized
+        }
+
+        // 3. Fall back to username
+        return user.username
+    }
+
     var body: some View {
         VStack(spacing: 4) {
             ZStack(alignment: .topTrailing) {
@@ -260,7 +310,7 @@ struct SelectedUserChip: View {
                 .offset(x: 5, y: -5)
             }
             
-            Text(user.displayName ?? user.username)
+            Text(chipDisplayName(for: user))
                 .font(.caption2)
                 .lineLimit(1)
                 .frame(maxWidth: 60)
