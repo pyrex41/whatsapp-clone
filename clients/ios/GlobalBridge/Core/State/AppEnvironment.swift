@@ -18,7 +18,7 @@ actor GlobalBannerHandlerRegistry {
 }
 
 struct DatabaseClient {
-    var loadThreads: @Sendable () async throws -> (user: User, threads: [Thread], users: [String: CachedUserInfo])
+    var loadThreads: @Sendable () async throws -> (user: User, threads: [Thread], users: [String: CachedUserInfo], preferredLanguage: String?)
     var createThread: @Sendable (_ title: String, _ creator: User) async throws -> Thread
     var saveThread: @Sendable (_ thread: Thread) async throws -> Void
     var loadMessages: @Sendable (_ threadID: UUID) async throws -> [Message]
@@ -64,7 +64,7 @@ extension AppEnvironment {
         let database = DatabaseClient(
             loadThreads: {
                 let threads = await store.loadThreads()
-                return (user: User.sampleCurrent, threads: threads, users: [:])
+                return (user: User.sampleCurrent, threads: threads, users: [:], preferredLanguage: "en")
             },
             createThread: { title, creator in
                 await store.createThread(title: title, creator: creator)
@@ -190,7 +190,7 @@ extension AppEnvironment {
                         // Sync threads from backend via Phoenix bootstrap
                         let result = try await databaseManager.syncThreadsFromBackend(phoenixManager: phoenixManager)
                         print("✅ [LOAD_THREADS] Synced \(result.threads.count) threads and \(result.users.count) users from backend")
-                        return (user: user, threads: result.threads, users: result.users)
+                        return (user: user, threads: result.threads, users: result.users, preferredLanguage: result.preferredLanguage)
                     } catch {
                         print("❌ [LOAD_THREADS] Bootstrap sync failed: \(error)")
                         print("❌ [LOAD_THREADS] Error details: \(error.localizedDescription)")
@@ -198,7 +198,7 @@ extension AppEnvironment {
                     }
                 } else {
                     print("✅ [LOAD_THREADS] Loaded \(localThreads.count) threads from local DB")
-                    return (user: user, threads: localThreads, users: [:])
+                    return (user: user, threads: localThreads, users: [:], preferredLanguage: nil)
                 }
             },
             createThread: { title, creator in

@@ -786,7 +786,7 @@ final class DatabaseManager {
     }
 
     /// Sync threads from backend via Phoenix channel
-    func syncThreadsFromBackend(phoenixManager: PhoenixChannelManager) async throws -> (threads: [Thread], user: User, users: [String: CachedUserInfo]) {
+    func syncThreadsFromBackend(phoenixManager: PhoenixChannelManager) async throws -> (threads: [Thread], user: User, users: [String: CachedUserInfo], preferredLanguage: String?) {
         print("📥 Syncing threads and user from backend...")
 
         // 1. Fetch bootstrap data via Phoenix channel
@@ -798,6 +798,12 @@ final class DatabaseManager {
         print("📥 [SYNC] Converting user data")
         let user = User.from(bootstrap.user)
         print("👤 [SYNC] Received user from backend: \(user.id) - \(user.displayName)")
+
+        // Extract preferred language
+        let preferredLanguage = bootstrap.user.preferredLanguage
+        if let lang = preferredLanguage {
+            print("🌐 [SYNC] User preferred language from backend: \(lang)")
+        }
 
         // 3. Extract user cache from bootstrap
         let usersCache: [String: CachedUserInfo] = bootstrap.users?.mapValues { userInfo in
@@ -854,7 +860,7 @@ final class DatabaseManager {
 
         let threads = try await fetchThreads()
         print("✅ Synced \(bootstrap.threads.count) threads and user from backend")
-        return (threads: threads, user: user, users: usersCache)
+        return (threads: threads, user: user, users: usersCache, preferredLanguage: preferredLanguage)
     }
 
     /// Create thread locally only (used during sync)

@@ -110,27 +110,31 @@ nonisolated public struct UserData: Codable, Sendable {
     public let email: String?
     public let displayName: String?
     public let avatarUrl: String?
-    
+    public let preferredLanguage: String?
+
     enum CodingKeys: String, CodingKey {
         case id
         case username
         case email
         case displayName = "display_name"
         case avatarUrl = "avatar_url"
+        case preferredLanguage = "preferred_language"
     }
-    
+
     public init(
         id: String,
         username: String?,
         email: String?,
         displayName: String?,
-        avatarUrl: String?
+        avatarUrl: String?,
+        preferredLanguage: String? = nil
     ) {
         self.id = id
         self.username = username
         self.email = email
         self.displayName = displayName
         self.avatarUrl = avatarUrl
+        self.preferredLanguage = preferredLanguage
     }
 }
 

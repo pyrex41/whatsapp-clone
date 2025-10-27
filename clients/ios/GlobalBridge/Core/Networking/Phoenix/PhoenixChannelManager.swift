@@ -665,6 +665,35 @@ public actor PhoenixChannelManager {
         }
     }
 
+    public func updatePreferredLanguage(language: String) async throws {
+        guard let userId = currentUserId else {
+            throw PhoenixError.notConnected
+        }
+
+        guard let channel = channel(for: "user:\(userId)") else {
+            throw PhoenixError.channelNotJoined
+        }
+
+        print("🌐 [UPDATE_LANGUAGE] Updating preferred language: \(language)")
+
+        return try await withCheckedThrowingContinuation { continuation in
+            channel.push("update_preferred_language", payload: ["preferred_language": language])
+                .receive("ok") { response in
+                    print("✅ [UPDATE_LANGUAGE] Preferred language updated successfully")
+                    print("✅ [UPDATE_LANGUAGE] Response: \(response.payload)")
+                    continuation.resume()
+                }
+                .receive("error") { message in
+                    print("❌ [UPDATE_LANGUAGE] Update failed: \(message.payload)")
+                    continuation.resume(throwing: PhoenixError.sendFailed(PhoenixPayload(message.payload)))
+                }
+                .receive("timeout") { _ in
+                    print("❌ [UPDATE_LANGUAGE] Request timed out")
+                    continuation.resume(throwing: PhoenixError.timeout)
+                }
+        }
+    }
+
     // MARK: - Channel Management
 
     /// Join a conversation channel

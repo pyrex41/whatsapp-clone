@@ -87,6 +87,12 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
             state.user = result.user
             print("👤 [LOADED] User set: \(result.user.id)")
 
+            // Load preferred language from bootstrap (if available)
+            if let preferredLanguage = result.preferredLanguage {
+                state.userLanguage = preferredLanguage
+                print("🌐 [LOADED] User language set from bootstrap: \(preferredLanguage)")
+            }
+
             // Cache users from bootstrap
             for (userId, userInfo) in result.users {
                 state.userCache[userId] = userInfo
@@ -1254,8 +1260,21 @@ let appReducer: Store<AppState, AppAction>.Reducer = { state, action, environmen
     case let .setUserLanguage(languageCode):
         state.userLanguage = languageCode
         print("🌐 [SETTINGS] Set user language: \(languageCode)")
-        // TODO: Persist to UserDefaults or backend
-        return .none
+
+        // Persist to backend
+        return .run(priority: nil) { send in
+            guard let phoenixManager = environment.phoenixManager else {
+                print("❌ [SETTINGS] Phoenix manager not available")
+                return
+            }
+
+            do {
+                try await phoenixManager.updatePreferredLanguage(language: languageCode)
+                print("✅ [SETTINGS] Preferred language updated on backend: \(languageCode)")
+            } catch {
+                print("❌ [SETTINGS] Failed to update preferred language: \(error.localizedDescription)")
+            }
+        }
 
     case let .updateUserDisplayName(newName):
         state.user.displayName = newName
